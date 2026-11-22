@@ -14,6 +14,8 @@ export default tseslint.config(
     ignores: [
       "**/node_modules/**",
       "**/dist/**",
+      "**/dist-surface/**", // the surface build
+      "packages/host-contract/pinned/**", // pinned verbatim from the reader; never edited here
       "**/.output/**",
       "**/.tanstack/**",
       "test-results/**",

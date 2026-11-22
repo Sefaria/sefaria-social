@@ -3,5 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Fake reader page that loads the social surface (plan section 4.6). Empty until milestone P1."
+  "description": "Fake reader page that loads the built social surface into the fake host (plan section 4.6).",
+  "scripts": {
+    "build": "vite build --configLoader runner",
+    "serve": "node serve.mjs"
+  },
+  "dependencies": {
+    "@sefaria-social/host-contract": "*"
+  }
 }
