@@ -1,0 +1,8 @@
+- id: T-001
+  title: Session state machine and its transition table
+  acs: [AC-001, AC-002, AC-003]
+  files: ["app/src/features/session/machine.ts", "app/src/features/session/machine.test.ts"]
+  depends_on: []
+  parallel: true
+  verify: ["npm test -- machine", "npm run typecheck"]
+  completes: [SESS-002]

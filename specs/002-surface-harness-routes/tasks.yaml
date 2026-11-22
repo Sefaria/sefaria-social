@@ -1,0 +1,56 @@
+- id: T-001
+  title: Surface entry, host-bridged router, the routes of R6 and social's not-found page
+  acs: [AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-012, AC-013]
+  files:
+    - "app/src/surface/*.ts"
+    - "app/src/surface/*.tsx"
+    - "app/src/features/host/*"
+    - "app/src/features/shell/*"
+    - "app/src/features/settings/*"
+    - "app/src/features/room/RoomLobbyPage.tsx"
+    - "app/src/features/shiur/ShiurPage.tsx"
+    - "app/src/lib/ids.ts"
+    - "app/src/lib/search-serializer.ts"
+    - "app/src/routes/*.tsx"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/router.tsx"
+    - "app/src/route-trees.test.ts"
+    - "app/package.json"
+    - "package.json"
+    - "package-lock.json"
+    - "vitest.config.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:contract", "npm test", "npm run typecheck", "npm run build"]
+  completes: [HOST-003, ROOM-001, SHIUR-001, HOST-006, HOST-007]
+- id: T-002
+  title: Surface library build with the release manifest
+  acs: [AC-001]
+  files:
+    - "app/vite.surface.config.ts"
+    - "app/surface-build.ts"
+    - "app/src/surface/build.contract.test.ts"
+    - "app/package.json"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run build:surface", "npm run test:contract"]
+  completes: [HOST-004]
+- id: T-003
+  title: Harness page, harness journeys and the L3 and L4a CI lanes
+  acs: [AC-011]
+  files:
+    - "harness/index.html"
+    - "harness/package.json"
+    - "harness/serve.mjs"
+    - "harness/vite.config.ts"
+    - "harness/src/*"
+    - "e2e/harness.spec.ts"
+    - "playwright.config.ts"
+    - "package.json"
+    - "package-lock.json"
+    - "tsconfig.json"
+    - ".github/workflows/ci.yml"
+  depends_on: [T-001, T-002]
+  parallel: false
+  verify: ["npm run test:e2e", "npm run typecheck"]
+  completes: [HOST-005]
