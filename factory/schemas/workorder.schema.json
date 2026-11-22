@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sefaria.org/schemas/social/workorder.schema.json",
+  "title": "workorder.json",
+  "description": "Written only by `npm run factory -- compile NNN` (plan 5.3). Deterministic: the same spec, feature file and tasks give the same bytes. `approved: false` marks a draft (`compile --draft`); the CI gate rejects it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$comment",
+    "spec",
+    "title",
+    "approved",
+    "spec_sha",
+    "feature_sha",
+    "tasks_sha",
+    "risk",
+    "features",
+    "tasks",
+    "acs"
+  ],
+  "properties": {
+    "$comment": { "type": "string" },
+    "spec": { "type": "string", "pattern": "^\\d{3}$" },
+    "title": { "type": "string" },
+    "approved": { "type": "boolean" },
+    "approved_by": { "type": "string" },
+    "spec_sha": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "feature_sha": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "tasks_sha": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "risk": { "enum": ["normal", "high"] },
+    "features": { "type": "array", "items": { "type": "string" } },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "acs", "files", "depends_on", "parallel", "verify", "completes"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^T-\\d{3}$" },
+          "title": { "type": "string" },
+          "acs": { "type": "array", "items": { "type": "string" } },
+          "files": { "type": "array", "items": { "type": "string" } },
+          "depends_on": { "type": "array", "items": { "type": "string" } },
+          "parallel": { "type": "boolean" },
+          "verify": { "type": "array", "items": { "type": "string" } },
+          "completes": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "acs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ac", "text", "scenarios", "passes", "evidence"],
+        "properties": {
+          "ac": { "type": "string", "pattern": "^AC-\\d{3}$" },
+          "text": { "type": "string" },
+          "scenarios": { "type": "array", "items": { "type": "string" } },
+          "passes": { "type": "boolean" },
+          "evidence": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["commit", "tests"],
+                "properties": {
+                  "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+                  "run": { "type": "string" },
+                  "tests": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

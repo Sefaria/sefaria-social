@@ -10,3 +10,8 @@ app/src/routeTree.gen.ts
 docs/PLAN.md
 # R1–R18 are kept verbatim from docs/PLAN.md section 4.3.
 .claude/rules/routing.md
+# Written by the factory (compile, approve, atlas tools) as JSON.stringify(…, 2); formatting them differently would make a
+# recompile show a diff.
+specs/**/workorder.json
+specs/approvals.json
+docs/features/features.json

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sefaria.org/schemas/social/tasks.schema.json",
+  "title": "tasks.yaml",
+  "description": "The planner's task list for one spec (plan 5.3). `completes` names the atlas features this task finishes; the PR for that task must update their atlas entries.",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "title", "acs", "files", "depends_on", "verify"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^T-\\d{3}$" },
+      "title": { "type": "string", "minLength": 3 },
+      "acs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^AC-\\d{3}$" } },
+      "files": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+      "depends_on": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^T-\\d{3}$" } },
+      "parallel": { "type": "boolean" },
+      "verify": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+      "completes": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": { "type": "string", "pattern": "^(FEED|ROOM|SHIUR|SESS|IDENT|HOST|API|OPS)-\\d{3}$" }
+      }
+    }
+  }
+}
