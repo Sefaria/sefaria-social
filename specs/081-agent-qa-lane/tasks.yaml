@@ -1,0 +1,42 @@
+- id: T-001
+  title: Surface map and derivation
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "factory/surface-map.yaml"
+    - "factory/surfaces.mjs"
+    - "factory/cli.mjs"
+    - "factory/doctor.mjs"
+    - "factory/test/surfaces.test.mjs"
+    - "factory/test/doctor-lanes.test.mjs"
+    - "factory/test/acceptance-081.test.mjs"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-082]
+- id: T-002
+  title: Recount, comment and issue bodies
+  acs: [AC-004, AC-005, AC-006]
+  files:
+    - "factory/qa.mjs"
+    - "factory/cli.mjs"
+    - "factory/test/qa.test.mjs"
+    - "factory/test/acceptance-081.test.mjs"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-083]
+- id: T-003
+  title: agent-qa workflow, environment builder, skills and agents
+  acs: [AC-006, AC-007]
+  files:
+    - ".github/workflows/agent-qa.yml"
+    - "e2e/qa/env.mjs"
+    - ".claude/skills/qa-plan/SKILL.md"
+    - ".claude/skills/qa-run/SKILL.md"
+    - ".claude/agents/qa-runner.md"
+    - ".claude/agents/skeptic.md"
+    - "factory/test/acceptance-081.test.mjs"
+  depends_on: [T-001, T-002]
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-084]

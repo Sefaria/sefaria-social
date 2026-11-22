@@ -1,0 +1,16 @@
+- id: T-001
+  title: Holdout scoring, redaction, prompts, template and nightly wiring
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "factory/holdout.mjs"
+    - "factory/cli.mjs"
+    - "factory/prompts/holdout-evaluator.md"
+    - "factory/prompts/holdout-judge.md"
+    - "factory/test/holdout.test.mjs"
+    - "factory/test/acceptance-086.test.mjs"
+    - ".github/ISSUE_TEMPLATE/holdout-failure.yml"
+    - ".github/workflows/nightly.yml"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-091]

@@ -1,0 +1,25 @@
+- id: T-001
+  title: Persona route, test-only, with the production refusal tests
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/routes/api/test/persona.ts"
+    - "app/src/server/services/test-personas.ts"
+    - "app/src/server/services/test-personas.test.ts"
+    - "app/src/routeTree.gen.ts"
+    - "test/integration/persona-route.test.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm test", "npm run typecheck"]
+  completes: [IDENT-082]
+- id: T-002
+  title: Idempotent seed and schema-checked reset
+  acs: [AC-004, AC-005]
+  files:
+    - "e2e/qa/seeds/*.json"
+    - "app/src/server/db/qa-seed.ts"
+    - "app/src/server/db/qa-seed.test.ts"
+    - "package.json"
+  depends_on: []
+  parallel: false
+  verify: ["npm test", "npm run typecheck"]
+  completes: [OPS-092]
