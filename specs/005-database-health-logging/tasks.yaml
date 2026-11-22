@@ -1,0 +1,38 @@
+- id: T-001
+  title: Postgres schema, migrations, migration rules and the integration test project
+  acs: [AC-001, AC-002]
+  files:
+    - "package.json"
+    - "package-lock.json"
+    - "app/package.json"
+    - "app/tsconfig.json"
+    - "app/drizzle.config.ts"
+    - "app/scripts/migrate.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/db/**"
+    - "app/src/db.int.test.ts"
+    - "test/integration/**"
+    - "vitest.config.ts"
+    - "eslint.config.mjs"
+    - ".github/workflows/ci.yml"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- db", "npm run typecheck"]
+- id: T-002
+  title: Health endpoint, the endpoint wrapper and structured request logging
+  acs: [AC-003, AC-004, AC-005, AC-006]
+  files:
+    - "app/src/server/http/**"
+    - "app/src/server/log/**"
+    - "app/src/server/services/health.ts"
+    - "app/src/server/services/health.test.ts"
+    - "app/src/routes/api/v1/health.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.ops.int.test.ts"
+    - "app/scripts/smoke.mjs"
+    - "test/integration/**"
+    - ".github/workflows/ci.yml"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:integration -- api.ops", "npm test -- logger", "npm run typecheck"]
+  completes: [OPS-005, OPS-015]

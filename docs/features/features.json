@@ -2,6 +2,34 @@
   "$comment": "The feature atlas (docs/PLAN.md 5.10). One entry per observable feature; ids are never reused. `factory compile` creates planned entries; the PR that completes a feature sets 'built' and lists its tagged tests. Checked by `npm run factory -- atlas`.",
   "features": [
     {
+      "id": "API-006",
+      "area": "api",
+      "name": "Identity token verification and protect-by-default API",
+      "description": "",
+      "status": "planned",
+      "spec": "006",
+      "acs": [],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "API-007",
+      "area": "api",
+      "name": "Rooms API with ownership checks, OpenAPI document and generated client",
+      "description": "",
+      "status": "planned",
+      "spec": "007",
+      "acs": [],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",
@@ -20,6 +48,83 @@
       "tests": [
         "app/src/features/feed/FeedPage.test.tsx"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-006",
+      "area": "ident",
+      "name": "Identity token verification and protect-by-default API",
+      "description": "",
+      "status": "planned",
+      "spec": "006",
+      "acs": [],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-008",
+      "area": "ident",
+      "name": "Account deletion in Sefaria removes the user's social data",
+      "description": "",
+      "status": "planned",
+      "spec": "008",
+      "acs": [
+        "008/AC-001",
+        "008/AC-002",
+        "008/AC-003",
+        "008/AC-004",
+        "008/AC-005",
+        "008/AC-006"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-005",
+      "area": "ops",
+      "name": "Database, migrations, health check and request logging",
+      "description": "",
+      "status": "planned",
+      "spec": "005",
+      "acs": [],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-015",
+      "area": "ops",
+      "name": "Database, migrations, health check and request logging",
+      "description": "",
+      "status": "planned",
+      "spec": "005",
+      "acs": [],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-007",
+      "area": "room",
+      "name": "Rooms API with ownership checks, OpenAPI document and generated client",
+      "description": "",
+      "status": "planned",
+      "spec": "007",
+      "acs": [],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     }
