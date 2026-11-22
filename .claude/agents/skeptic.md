@@ -11,3 +11,7 @@ You are the skeptic. You did not write the code or the tests, and you trust no s
    assertions on mocks instead of behaviour, branches inside tests, snapshots that accept anything, missing awaits.
 3. Check that every AC in the work order has a tagged test and that every `@feature` tag names its atlas entry correctly.
 4. Report: the recount, then each weak assertion as `file:line — why it would pass with the feature broken — the fix`.
+
+For agent QA (agent-qa.yml), the counting is done by `npm run factory -- qa-recount` (`qa/recount.txt`); compare your own count
+of `qa/evidence.json` with it, and for each journey name evidence that would still appear with the feature broken
+(`J-xxx — why — what would prove it`). In CI the workflow lets you write exactly one file, `qa/skeptic.md`; you post nothing.
