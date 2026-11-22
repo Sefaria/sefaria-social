@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// The factory CLI: `npm run factory -- <command>`. Commands: compile, approve, gate, doctor, prove-red, atlas, atlas:build.
+// The factory CLI: `npm run factory -- <command>`. Commands: compile, approve, gate, doctor, prove-red, atlas, atlas:build,
+// and the agent-lane commands (F2): preflight, metrics, surfaces, qa-recount, collection, flake, quarantine, retro,
+// quality-score, holdout.
 // Each prints what failed, why, and the command that fixes it; exit code 0 = pass, 1 = fail, 2 = usage error.
 import { FactoryError, findRoot } from "./lib/repo.mjs";
 
@@ -11,7 +13,18 @@ const USAGE = `usage: npm run factory -- <command> [args]   (global: --root <dir
   doctor [--skip-tests]        factory health: hooks, guard tests, CI checks, skills, CODEOWNERS, links
   prove-red --base <ref>       new/changed @ac tests must fail on the merge base, on an assertion
   atlas [--base <ref>]         feature atlas checks (tags, names, built => tested; with --base: PR checks)
-  atlas:build [--out <file>]   render docs/features/features.json to one HTML page`;
+  atlas:build [--out <file>]   render docs/features/features.json to one HTML page
+
+  preflight <lane>             agent lanes: run or skip with a notice (review|qa|security|retro|holdout)
+  metrics record|from-run …    append JSON lines to the factory-data branch (or --local <file>, --dry-run)
+  surfaces --base <ref>        QA surfaces a change touches, from factory/surface-map.yaml (--files a b … also works)
+  qa-recount <evidence.json>   recount agent QA results; render the evidence comment and issue bodies
+  collection <report.json> …   test files on disk == test files executed, per level
+  flake <run.json> <run.json> … tests with mixed results across runs
+  quarantine [--report <f>]    validate factory/quarantine.yaml; judge a report with quarantined tests not gating
+  retro --metrics <dir> …      the weekly retro's numbers (docs/retros/ format)
+  quality-score [--check]      generate docs/QUALITY_SCORE.md (or check it is current)
+  holdout validate|score|issues …  holdout scenario format, satisfaction score, redacted issue bodies`;
 
 const COMMANDS = {
   compile: async () => (await import("./compile.mjs")).runCompile,
@@ -21,6 +34,16 @@ const COMMANDS = {
   "prove-red": async () => (await import("./prove-red.mjs")).runProveRed,
   atlas: async () => (await import("./atlas.mjs")).runAtlas,
   "atlas:build": async () => (await import("./atlas-build.mjs")).runAtlasBuild,
+  preflight: async () => (await import("./preflight.mjs")).runPreflight,
+  metrics: async () => (await import("./metrics.mjs")).runMetrics,
+  surfaces: async () => (await import("./surfaces.mjs")).runSurfaces,
+  "qa-recount": async () => (await import("./qa.mjs")).runQa,
+  collection: async () => (await import("./test-health.mjs")).runCollection,
+  flake: async () => (await import("./test-health.mjs")).runFlake,
+  quarantine: async () => (await import("./test-health.mjs")).runQuarantine,
+  retro: async () => (await import("./retro.mjs")).runRetro,
+  "quality-score": async () => (await import("./quality-score.mjs")).runQualityScore,
+  holdout: async () => (await import("./holdout.mjs")).runHoldout,
 };
 
 const out = { log: (s) => console.log(s), err: (s) => console.error(s) };

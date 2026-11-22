@@ -27,6 +27,7 @@ The full design is `docs/PLAN.md`; when this file and the plan disagree, the pla
 | `docs/decisions/`                         | Before re-deciding something; record a new decision as `NNNN-slug.md` (format: `0000-record-format.md`) |
 | `docs/runbooks/setup-checklist.md`        | A step needs a human (settings, secrets, owners); append it there                                       |
 | `docs/runbooks/working-in-the-factory.md` | Before any spec, task or PR: the pipeline, spec numbers, trailers, what the gate says                   |
+| `docs/runbooks/agent-lanes.md`            | Agent review/QA/security, nightly, metrics, retro, quarantine: what runs, what skips, how to operate it |
 | `REVIEW.md`                               | Reviewing a PR, or wondering what reviewers block on                                                    |
 | `.claude/rules/routing.md`                | Loaded for `app/src/**` and `packages/session/**`: R1–R18 verbatim                                      |
 | `.claude/rules/surface-contract.md`       | Loaded for `app/src/surface/**`, `packages/host-contract/**`, `harness/**`                              |
