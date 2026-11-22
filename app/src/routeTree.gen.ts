@@ -10,14 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SocialIndexRouteImport } from './routes/social.index'
+import { Route as SocialSplatRouteImport } from './routes/social.$'
+import { Route as SocialSettingsRouteImport } from './routes/social.settings'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
 import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
+import { Route as SocialRRoomIdRouteImport } from './routes/social.r.$roomId'
+import { Route as SocialSShiurIdRouteImport } from './routes/social.s.$shiurId'
 import { Route as ApiV1InternalUserDeletedRouteImport } from './routes/api/v1/internal.user-deleted'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
 
 const SocialIndexRoute = SocialIndexRouteImport.update({
   id: '/social/',
   path: '/social/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialSplatRoute = SocialSplatRouteImport.update({
+  id: '/social/$',
+  path: '/social/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialSettingsRoute = SocialSettingsRouteImport.update({
+  id: '/social/settings',
+  path: '/social/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
@@ -28,6 +42,16 @@ const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
 const ApiV1RoomsRoute = ApiV1RoomsRouteImport.update({
   id: '/api/v1/rooms',
   path: '/api/v1/rooms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialRRoomIdRoute = SocialRRoomIdRouteImport.update({
+  id: '/social/r/$roomId',
+  path: '/social/r/$roomId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialSShiurIdRoute = SocialSShiurIdRouteImport.update({
+  id: '/social/s/$shiurId',
+  path: '/social/s/$shiurId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1InternalUserDeletedRoute =
@@ -43,55 +67,83 @@ const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/social/$': typeof SocialSplatRoute
+  '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRoute
 }
 export interface FileRoutesByTo {
+  '/social/$': typeof SocialSplatRoute
+  '/social/settings': typeof SocialSettingsRoute
   '/social': typeof SocialIndexRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/social/$': typeof SocialSplatRoute
+  '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/social/$'
+    | '/social/settings'
     | '/social/'
     | '/api/v1/health'
     | '/api/v1/rooms'
+    | '/social/r/$roomId'
+    | '/social/s/$shiurId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/rooms/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/social/$'
+    | '/social/settings'
     | '/social'
     | '/api/v1/health'
     | '/api/v1/rooms'
+    | '/social/r/$roomId'
+    | '/social/s/$shiurId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/rooms/$roomId'
   id:
     | '__root__'
+    | '/social/$'
+    | '/social/settings'
     | '/social/'
     | '/api/v1/health'
     | '/api/v1/rooms'
+    | '/social/r/$roomId'
+    | '/social/s/$shiurId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/rooms/$roomId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  SocialSplatRoute: typeof SocialSplatRoute
+  SocialSettingsRoute: typeof SocialSettingsRoute
   SocialIndexRoute: typeof SocialIndexRoute
   ApiV1HealthRoute: typeof ApiV1HealthRoute
   ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
+  SocialRRoomIdRoute: typeof SocialRRoomIdRoute
+  SocialSShiurIdRoute: typeof SocialSShiurIdRoute
   ApiV1InternalUserDeletedRoute: typeof ApiV1InternalUserDeletedRoute
 }
 
@@ -102,6 +154,20 @@ declare module '@tanstack/react-router' {
       path: '/social'
       fullPath: '/social/'
       preLoaderRoute: typeof SocialIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/$': {
+      id: '/social/$'
+      path: '/social/$'
+      fullPath: '/social/$'
+      preLoaderRoute: typeof SocialSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/settings': {
+      id: '/social/settings'
+      path: '/social/settings'
+      fullPath: '/social/settings'
+      preLoaderRoute: typeof SocialSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/health': {
@@ -116,6 +182,20 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/rooms'
       fullPath: '/api/v1/rooms'
       preLoaderRoute: typeof ApiV1RoomsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/r/$roomId': {
+      id: '/social/r/$roomId'
+      path: '/social/r/$roomId'
+      fullPath: '/social/r/$roomId'
+      preLoaderRoute: typeof SocialRRoomIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/s/$shiurId': {
+      id: '/social/s/$shiurId'
+      path: '/social/s/$shiurId'
+      fullPath: '/social/s/$shiurId'
+      preLoaderRoute: typeof SocialSShiurIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/internal/user-deleted': {
@@ -148,9 +228,13 @@ const ApiV1RoomsRouteWithChildren = ApiV1RoomsRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
+  SocialSplatRoute: SocialSplatRoute,
+  SocialSettingsRoute: SocialSettingsRoute,
   SocialIndexRoute: SocialIndexRoute,
   ApiV1HealthRoute: ApiV1HealthRoute,
   ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,
+  SocialRRoomIdRoute: SocialRRoomIdRoute,
+  SocialSShiurIdRoute: SocialSShiurIdRoute,
   ApiV1InternalUserDeletedRoute: ApiV1InternalUserDeletedRoute,
 }
 export const routeTree = rootRouteImport

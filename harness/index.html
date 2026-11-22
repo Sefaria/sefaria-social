@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Social harness (fake reader)</title>
+    <link rel="stylesheet" href="/src/harness.css" />
+  </head>
+  <body>
+    <header class="harness-header">
+      <strong>Fake reader</strong>
+      <nav class="harness-controls" aria-label="Harness controls">
+        <button type="button" data-harness="back">Back</button>
+        <button type="button" data-harness="forward">Forward</button>
+        <label>
+          Interface
+          <select data-harness="lang">
+            <option value="english">English</option>
+            <option value="hebrew">Hebrew</option>
+          </select>
+        </label>
+        <button type="button" data-harness="sign">Sign in</button>
+        <a href="/Genesis.1" data-harness-link>Genesis 1 (reader page)</a>
+        <a href="/social" data-harness-link>/social</a>
+      </nav>
+    </header>
+    <section class="harness-reader" aria-label="Reader pane">
+      <dl>
+        <dt>Location</dt>
+        <dd><output data-harness="location"></output></dd>
+        <dt>Context (ctx)</dt>
+        <dd><output data-harness="ctx"></output></dd>
+        <dt>Viewer</dt>
+        <dd><output data-harness="viewer"></output></dd>
+        <dt>Surface</dt>
+        <dd><output data-harness="surface">loading</output></dd>
+      </dl>
+      <p data-harness="reader-page" hidden></p>
+      <details open>
+        <summary>Reader snapshot</summary>
+        <pre data-harness="snapshot"></pre>
+      </details>
+      <details>
+        <summary>What the surface told the reader</summary>
+        <ol data-harness="calls"></ol>
+      </details>
+    </section>
+    <div data-surface-mount="page" class="harness-page"></div>
+    <div data-surface-mount="persistent" class="harness-persistent"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

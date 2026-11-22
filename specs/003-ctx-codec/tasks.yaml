@@ -1,0 +1,8 @@
+- id: T-001
+  title: ctx codec with validation
+  acs: [AC-001, AC-002, AC-003]
+  files: ["app/src/lib/ctx.ts", "app/src/lib/ctx.test.ts", "app/src/lib/ids.ts", "app/package.json", "package-lock.json"]
+  depends_on: []
+  parallel: true
+  verify: ["npm test -- ctx", "npm run typecheck"]
+  completes: [SESS-001]

@@ -1,8 +1,8 @@
 # CI (plan section 5.8). The only required check is `result`; it aggregates every other job.
-# Jobs today: changes → static (typecheck, lint, format, architecture + factory tests, doctor, atlas) → unit → build,
+# Jobs today: changes → static (typecheck, lint, format, architecture + factory tests, doctor, atlas) → unit, build,
 # integration (L2: the API against real Postgres, migrations, OpenAPI breaking check, built-server smoke test),
-# spec-gate (no spec, no code) and prove-red (acceptance tests are red on the merge base) → result.
-# Later milestones add contract and e2e-harness; each must be added to `result`'s `needs` (doctor checks this).
+# contract (L3) and e2e-harness (L4a); spec-gate (no spec, no code) and prove-red (acceptance tests are red on the merge
+# base) → result. Every job must be added to `result`'s `needs` (doctor checks this).
 name: ci
 
 on:
@@ -142,7 +142,62 @@ jobs:
             echo "::error file=app/src/routeTree.gen.ts::The generated route tree is out of date. Fix: run 'npm run build' and commit app/src/routeTree.gen.ts."
             exit 1
           }
-      # The surface build (vite.surface.config.ts) is added by spike S1.
+      - name: Surface build
+        run: npm run build:surface
+      - name: Surface build output
+        run: |
+          # The reader loads app/dist-surface/manifest.json; print it so the PR shows what a release would contain.
+          cat app/dist-surface/manifest.json
+
+  contract:
+    name: contract
+    # L3 (plan 5.5): the surface mounted into the fake host, the surface build's manifest, the pinned contract's hash check.
+    needs: [changes, static]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Contract tests
+        run: npx vitest run --project contract --reporter=default --reporter=junit --outputFile.junit=test-results/contract.xml
+      - name: Pinned contract matches its recorded hashes
+        run: npm run check -w @sefaria-social/host-contract
+
+  e2e-harness:
+    name: e2e-harness
+    # L4a (plan 5.5): Playwright on the harness, desktop and phone viewports, English and Hebrew.
+    needs: [changes, static]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Harness journeys
+        run: npm run test:e2e
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-harness-traces
+          path: test-results/
+          retention-days: 7
 
   integration:
     name: integration
@@ -255,7 +310,7 @@ jobs:
 
   result:
     name: result
-    needs: [changes, static, unit, build, integration, spec-gate, prove-red]
+    needs: [changes, static, unit, build, integration, contract, e2e-harness, spec-gate, prove-red]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -268,13 +323,15 @@ jobs:
           UNIT: ${{ needs.unit.result }}
           BUILD: ${{ needs.build.result }}
           INTEGRATION: ${{ needs.integration.result }}
+          CONTRACT: ${{ needs.contract.result }}
+          E2E_HARNESS: ${{ needs.e2e-harness.result }}
           SPEC_GATE: ${{ needs.spec-gate.result }}
           PROVE_RED: ${{ needs.prove-red.result }}
           EVENT: ${{ github.event_name }}
         run: |
           # Policy:
           # - changes and static must succeed on every run. Skipped or cancelled counts as failure.
-          # - unit, build and integration must succeed, except that `skipped` is accepted when the changes filter decided on purpose that
+          # - unit, build, integration, contract and e2e-harness must succeed, except that `skipped` is accepted when the changes filter decided on purpose that
           #   only docs changed (CODE == false). A skip for any other reason (for example a failed dependency) is a failure.
           # - spec-gate must succeed on pull_request and merge_group. `skipped` is accepted only on a push to main, where its
           #   `if` skips it on purpose (the change passed the gate in the merge queue).
@@ -293,6 +350,8 @@ jobs:
           filterable unit "$UNIT"
           filterable build "$BUILD"
           filterable integration "$INTEGRATION"
+          filterable contract "$CONTRACT"
+          filterable e2e-harness "$E2E_HARNESS"
           if [ "$SPEC_GATE" = "skipped" ] && [ "$EVENT" = "push" ]; then echo "spec-gate: skipped on push to main (on purpose)"
           else must_succeed spec-gate "$SPEC_GATE"; fi
           if [ "$PROVE_RED" = "skipped" ] && [ "$EVENT" = "push" ]; then echo "prove-red: skipped on push to main (on purpose)"

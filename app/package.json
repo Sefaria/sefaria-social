@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build:surface": "vite build -c vite.surface.config.ts --configLoader runner"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.170.41",
@@ -16,7 +17,8 @@
     "pg": "^8.23.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "zod": "^4.6.7"
+    "zod": "^4.6.7",
+    "@sefaria-social/host-contract": "*"
   },
   "devDependencies": {
     "@types/pg": "^8.23.1",
