@@ -50,6 +50,7 @@
     - "package-lock.json"
     - "tsconfig.json"
     - ".github/workflows/ci.yml"
+    - "factory/test/doctor.test.mjs"
   depends_on: [T-001, T-002]
   parallel: false
   verify: ["npm run test:e2e", "npm run typecheck"]

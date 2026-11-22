@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:70f78561e2adf2fddab663510dcc1659dae81126d6bee46849eec9314bc03a19",
   "feature_sha": "sha256:b8ca187a9c8bc6ac0b628ad90262e4ac3b533af96d4c3273b8fd15f6f849a3c1",
-  "tasks_sha": "sha256:6ace1951c22206da958963076a35334b10866c0265a3b75bca45519aa60d23ff",
+  "tasks_sha": "sha256:25027666dcbc8fd350fc893e434bf020cb22a5b5c2ce52b00bf5dc3ff98d5782",
   "risk": "high",
   "features": [
     "HOST-003",
@@ -109,7 +109,8 @@
         "package.json",
         "package-lock.json",
         "tsconfig.json",
-        ".github/workflows/ci.yml"
+        ".github/workflows/ci.yml",
+        "factory/test/doctor.test.mjs"
       ],
       "depends_on": [
         "T-001",
