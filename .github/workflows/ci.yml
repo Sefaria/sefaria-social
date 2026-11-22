@@ -1,7 +1,8 @@
 # CI (plan section 5.8). The only required check is `result`; it aggregates every other job.
 # Jobs today: changes → static (typecheck, lint, format, architecture + factory tests, doctor, atlas) → unit → build,
+# integration (L2: the API against real Postgres, migrations, OpenAPI breaking check, built-server smoke test),
 # spec-gate (no spec, no code) and prove-red (acceptance tests are red on the merge base) → result.
-# Later milestones add integration, contract and e2e-harness; each must be added to `result`'s `needs` (doctor checks this).
+# Later milestones add contract and e2e-harness; each must be added to `result`'s `needs` (doctor checks this).
 name: ci
 
 on:
@@ -143,6 +144,71 @@ jobs:
           }
       # The surface build (vite.surface.config.ts) is added by spike S1.
 
+  integration:
+    name: integration
+    # L2 (plan 5.5): the API against real Postgres (a service container), tokens signed by a key generated at test time and
+    # served from a local JWKS, the walk-the-schema deletion test, then three checks that need the same tree: migrations
+    # match the schema, the OpenAPI document has no breaking change against the base, and the built Start server serves the API.
+    needs: [changes, static]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: social
+          POSTGRES_PASSWORD: social
+          POSTGRES_DB: sefaria_social_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U social -d sefaria_social_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgres://social:social@localhost:5432/sefaria_social_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the OpenAPI check reads the base's document from history
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Integration tests (real Postgres)
+        run: npx vitest run --project integration --reporter=default --reporter=junit --outputFile.junit=test-results/integration.xml
+      - name: Migrations match the schema
+        run: |
+          npm run db:generate -- --name drift-check < /dev/null
+          if [ -n "$(git status --porcelain -- app/src/server/db/migrations)" ]; then
+            git status --porcelain -- app/src/server/db/migrations
+            echo "::error file=app/src/server/db/schema.ts::The schema has changes with no migration. Fix: run 'npm run db:generate -- --name <what-changed>' and commit the new file in app/src/server/db/migrations."
+            exit 1
+          fi
+      - name: OpenAPI breaking-change check
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          MQ_BASE: ${{ github.event.merge_group.base_sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          case "$EVENT" in
+            pull_request) BASE="$PR_BASE" ;;
+            merge_group) BASE="$MQ_BASE" ;;
+            *) BASE="$PUSH_BEFORE" ;;
+          esac
+          if [ -n "$BASE" ] && git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            npm run api:breaking -- --base "$BASE"
+          else
+            echo "No usable base ($EVENT); nothing to compare the OpenAPI document with."
+          fi
+      - name: Build and smoke-test the Start server
+        env:
+          DATABASE_URL: postgres://social:social@localhost:5432/sefaria_social_test
+          USER_DELETED_WEBHOOK_SECRET: ci-smoke-only
+          LOG_LEVEL: error
+        run: npm run build && npm run smoke:server
+
   spec-gate:
     name: spec-gate
     # No spec, no code (plan 5.4). Runs on every PR and merge-queue run, docs-only included (it decides the lane itself).
@@ -189,7 +255,7 @@ jobs:
 
   result:
     name: result
-    needs: [changes, static, unit, build, spec-gate, prove-red]
+    needs: [changes, static, unit, build, integration, spec-gate, prove-red]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -201,13 +267,14 @@ jobs:
           STATIC: ${{ needs.static.result }}
           UNIT: ${{ needs.unit.result }}
           BUILD: ${{ needs.build.result }}
+          INTEGRATION: ${{ needs.integration.result }}
           SPEC_GATE: ${{ needs.spec-gate.result }}
           PROVE_RED: ${{ needs.prove-red.result }}
           EVENT: ${{ github.event_name }}
         run: |
           # Policy:
           # - changes and static must succeed on every run. Skipped or cancelled counts as failure.
-          # - unit and build must succeed, except that `skipped` is accepted when the changes filter decided on purpose that
+          # - unit, build and integration must succeed, except that `skipped` is accepted when the changes filter decided on purpose that
           #   only docs changed (CODE == false). A skip for any other reason (for example a failed dependency) is a failure.
           # - spec-gate must succeed on pull_request and merge_group. `skipped` is accepted only on a push to main, where its
           #   `if` skips it on purpose (the change passed the gate in the merge queue).
@@ -225,6 +292,7 @@ jobs:
           must_succeed static "$STATIC"
           filterable unit "$UNIT"
           filterable build "$BUILD"
+          filterable integration "$INTEGRATION"
           if [ "$SPEC_GATE" = "skipped" ] && [ "$EVENT" = "push" ]; then echo "spec-gate: skipped on push to main (on purpose)"
           else must_succeed spec-gate "$SPEC_GATE"; fi
           if [ "$PROVE_RED" = "skipped" ] && [ "$EVENT" = "push" ]; then echo "prove-red: skipped on push to main (on purpose)"
