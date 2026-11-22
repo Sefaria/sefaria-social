@@ -1,0 +1,25 @@
+/* Social's frame. Reader design tokens only (plan 4.7); no literal colours, no global selectors. */
+.frame {
+  padding: var(--sefaria-space-4, 1rem);
+  font-family: var(--sefaria-font-ui-en, sans-serif);
+}
+
+.frame:lang(he) {
+  font-family: var(--sefaria-font-ui-he, sans-serif);
+}
+
+.nav {
+  display: flex;
+  gap: var(--sefaria-space-4, 1rem);
+  padding-block-end: var(--sefaria-space-2, 0.5rem);
+  margin-block-end: var(--sefaria-space-4, 1rem);
+  border-block-end: 1px solid var(--sefaria-color-border, currentColor);
+}
+
+.navLink {
+  color: var(--sefaria-color-link, inherit);
+}
+
+.navLink[data-status="active"] {
+  font-weight: 700;
+}
