@@ -26,5 +26,5 @@
 
 ## Risks
 
-- A hand-rolled diff is smaller than `oasdiff`; recorded in `docs/decisions/0004-openapi-breaking-check.md`, with the rules
+- A hand-rolled diff is smaller than `oasdiff`; recorded in `docs/decisions/0006-openapi-breaking-check.md`, with the rules
   it does not cover.

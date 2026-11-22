@@ -31,15 +31,15 @@ empty stub until spike S1, which records how one route tree backs both builds in
 lib  →  (server | ui)  →  features  →  routes | surface
 ```
 
-| Layer       | Holds                                                                        | May import                         |
-| ----------- | ---------------------------------------------------------------------------- | ---------------------------------- |
-| `lib/`      | Pure code shared by both sides: schemas, ids, the `ctx` codec                | `lib`                              |
-| `server/`   | Server only: `db/`, `auth/`, `services/`, `webhooks/`                        | `lib`, `server`. Never React       |
-| `ui/`       | Presentational components                                                    | `lib`, `ui`                        |
-| `features/` | `feed/`, `room/`, `shiur/`, `presence/`, `session/`                          | `lib`, `ui`, `features`            |
-| `routes/`   | File routes: UI pages and `api/` server routes                               | Everything to its left             |
-| `surface/`  | `entry.ts` (mount), `host-history.ts`, `host-context.tsx`                    | `lib`, `ui`, `features`, `surface` |
-| entry files | Files directly in `app/src` (`router.tsx`, the generated `routeTree.gen.ts`) | Anything; no layer imports them    |
+| Layer       | Holds                                                                          | May import                         |
+| ----------- | ------------------------------------------------------------------------------ | ---------------------------------- |
+| `lib/`      | Pure code shared by both sides: schemas, ids, the `ctx` codec                  | `lib`                              |
+| `server/`   | Server only: `db/`, `auth/`, `services/`, `webhooks/`, `http/`, `api/`, `log/` | `lib`, `server`. Never React       |
+| `ui/`       | Presentational components                                                      | `lib`, `ui`                        |
+| `features/` | `feed/`, `room/`, `shiur/`, `presence/`, `session/`                            | `lib`, `ui`, `features`            |
+| `routes/`   | File routes: UI pages and `api/` server routes                                 | Everything to its left             |
+| `surface/`  | `entry.ts` (mount), `host-history.ts`, `host-context.tsx`                      | `lib`, `ui`, `features`, `surface` |
+| entry files | Files directly in `app/src` (`router.tsx`, the generated `routeTree.gen.ts`)   | Anything; no layer imports them    |
 
 Rules, each checked by `test/architecture/` (Vitest project `architecture`, run in the CI `static` job):
 
@@ -65,9 +65,17 @@ import it, S1 changes rule (a) for `surface` and records why.
 | `packages/host-contract` | Pinned reader contract, generated types and zod schemas, the fake host | P1        |
 | `packages/session`       | Room protocol and client                                               | P3        |
 | `packages/relay`         | Worker + Durable Object                                                | P3        |
-| `packages/api-client`    | Client generated from the server's OpenAPI document                    | P2        |
+| `packages/api-client`    | Client generated from the server's OpenAPI document (built in P2)      | P2        |
 
 ## Other folders
 
 `specs/` (spec system, F1), `factory/` (compile, gate, doctor, prove-red, F1), `e2e/` (Playwright, P1), `docs/decisions/`
 (decision records), `docs/runbooks/` (human procedures).
+
+## Server (P2)
+
+API routes are TanStack Start server routes under `app/src/routes/api/v1/`; each handler is created with `bind()` from
+`app/src/server/http/endpoint.ts` (access, validation, errors, one log line) and calls `app/src/server/services/*`. The
+endpoint contracts in `app/src/server/api/contracts.ts` generate `packages/api-client/openapi.json`. Acceptance tests for
+the API are `app/src/*.int.test.ts` (entry level, Vitest project `integration`, real Postgres). Details, environment
+variables and the schema: [runbooks/server.md](runbooks/server.md); decisions 0005 and 0006.

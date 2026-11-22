@@ -29,4 +29,4 @@
 ## Risks
 
 - Start's server-route API was a `[CHECK]`; confirmed against 1.169 (`createFileRoute(path)({ server: { handlers } })`) and
-  recorded in `docs/decisions/0003-server-routes-and-api-layer.md`.
+  recorded in `docs/decisions/0005-server-routes-and-api-layer.md`.

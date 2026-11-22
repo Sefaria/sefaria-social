@@ -48,3 +48,21 @@ Source for most items: `docs/PLAN.md` section 9.
       command refuses agent sessions and CI), and commit `specs/approvals.json` and the work order. Until then `spec-gate`
       on the F1 PR fails with "spec 000 not approved", which is expected. Added by F1.
 - [ ] **Name `CLAUDE.md`'s owner** in the file once the owners are decided (plan 5.7). Added by F1.
+
+## Added by P2 (server and identity)
+
+- [ ] **Approve specs 005–008** (`specs/005-…` to `specs/008-…`): review each, then from your own terminal
+      `npm run factory -- approve NNN --by <your email>` and `npm run factory -- compile NNN`, and commit
+      `specs/approvals.json` and the work orders. Until then `spec-gate` on the P2 PR fails only with "spec NNN not
+      approved". Added by P2.
+- [ ] **Confirm the acceptance-test pattern for a greenfield server** (decision 0005): tests assert the route is served (or
+      the module exists) before loading the harness, so `prove-red` sees an assertion failure on the base. Added by P2.
+- [ ] **Production Postgres** for social (provider, size, backups, a `DATABASE_URL` secret), and running
+      `npm run db:migrate` before each deploy. Added by P2.
+- [ ] **Generate the social token key pair and configure Django** (`SOCIAL_TOKEN_PRIVATE_KEYS`, `SOCIAL_TOKEN_ISSUER`) per
+      environment, and set social's `SOCIAL_JWKS_URL` and `SOCIAL_TOKEN_ISSUER` to match exactly (a mismatch fails closed:
+      every call 401/503). Added by P2.
+- [ ] **Webhook secret**: one random value per environment in both Django's and social's `USER_DELETED_WEBHOOK_SECRET`, and
+      Django's `USER_DELETED_WEBHOOK_URLS` set to `<social origin>/api/v1/internal/user-deleted`. Added by P2.
+- [ ] **A mint-from-dev-Django contract test**: a token minted by a real dev Django verified by social's `verifyToken` (the
+      P2 tests use the contract as written in Sefaria-Project PR #4121, not a live Django). Added by P2.

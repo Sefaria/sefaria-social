@@ -4,28 +4,39 @@
     {
       "id": "API-006",
       "area": "api",
-      "name": "Identity token verification and protect-by-default API",
-      "description": "",
-      "status": "planned",
+      "name": "API routes are protected by default",
+      "description": "Every /api route requires credentials unless its method and path are on the explicit public list (today GET /api/v1/health); a public endpoint not on the list cannot be defined; a test enumerates the served route tree.",
+      "status": "built",
       "spec": "006",
-      "acs": [],
+      "acs": [
+        "006/AC-004",
+        "006/AC-005"
+      ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.auth.int.test.ts",
+        "app/src/api.routes.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "API-007",
       "area": "api",
-      "name": "Rooms API with ownership checks, OpenAPI document and generated client",
-      "description": "",
-      "status": "planned",
+      "name": "OpenAPI document, generated client and breaking-change check",
+      "description": "packages/api-client/openapi.json and src/schema.ts generated from the endpoint contracts and checked for staleness; CI fails a breaking change unless a spec in the PR declares contract_impact api-major.",
+      "status": "built",
       "spec": "007",
-      "acs": [],
+      "acs": [
+        "007/AC-006",
+        "007/AC-007"
+      ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.contract.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -54,14 +65,20 @@
     {
       "id": "IDENT-006",
       "area": "ident",
-      "name": "Identity token verification and protect-by-default API",
-      "description": "",
-      "status": "planned",
+      "name": "Sefaria identity token verified on every API call",
+      "description": "Bearer RS256 tokens from Django verified with jose against the configured JWKS (issuer, audience sefaria-social, expiry, numeric sub); cached keys, refetch on unknown kid, 503 when the JWKS does not answer in 3 s.",
+      "status": "built",
       "spec": "006",
-      "acs": [],
+      "acs": [
+        "006/AC-001",
+        "006/AC-002",
+        "006/AC-003"
+      ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.auth.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -69,8 +86,8 @@
       "id": "IDENT-008",
       "area": "ident",
       "name": "Account deletion in Sefaria removes the user's social data",
-      "description": "",
-      "status": "planned",
+      "description": "Signed user.deleted webhook from Django: HMAC verified over the raw body, idempotent on the event id, deletes the user's rows in one transaction and writes a tombstone that refuses their remaining tokens; a staff purge-user command; a walk-the-schema test.",
+      "status": "built",
       "spec": "008",
       "acs": [
         "008/AC-001",
@@ -82,49 +99,72 @@
       ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.user-deleted.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "OPS-005",
       "area": "ops",
-      "name": "Database, migrations, health check and request logging",
-      "description": "",
-      "status": "planned",
+      "name": "Postgres schema, migrations and a public health check",
+      "description": "Seven tables (rooms, room_members, shiurim, shiur_recordings, user_display, deleted_users, webhook_receipts) from committed SQL migrations, timestamptz and indexed foreign keys, an expand/contract migration check, and GET /api/v1/health (public, database only, 503 within 2 s when it does not answer).",
+      "status": "built",
       "spec": "005",
-      "acs": [],
+      "acs": [
+        "005/AC-001",
+        "005/AC-002",
+        "005/AC-003",
+        "005/AC-004"
+      ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.ops.int.test.ts",
+        "app/src/db.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "OPS-015",
       "area": "ops",
-      "name": "Database, migrations, health check and request logging",
-      "description": "",
-      "status": "planned",
+      "name": "Structured request logs with a correlation id",
+      "description": "One JSON log line per API request (static message, method, route template, status, duration, correlation id), never headers, bodies or tokens; X-Correlation-Id propagated or generated.",
+      "status": "built",
       "spec": "005",
-      "acs": [],
+      "acs": [
+        "005/AC-005",
+        "005/AC-006"
+      ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.ops.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "ROOM-007",
       "area": "room",
-      "name": "Rooms API with ownership checks, OpenAPI document and generated client",
-      "description": "",
-      "status": "planned",
+      "name": "Create, list, rename and delete rooms with ownership checks",
+      "description": "POST/GET /api/v1/rooms and GET/PATCH/DELETE /api/v1/rooms/{roomId}; members read, owners rename and delete, non-members get 404, invalid input 400.",
+      "status": "built",
       "spec": "007",
-      "acs": [],
+      "acs": [
+        "007/AC-001",
+        "007/AC-002",
+        "007/AC-003",
+        "007/AC-004",
+        "007/AC-005"
+      ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.rooms.int.test.ts"
+      ],
       "since": null,
       "changed": []
     }
