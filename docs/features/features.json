@@ -41,6 +41,25 @@
       "changed": []
     },
     {
+      "id": "API-045",
+      "area": "api",
+      "name": "Room status passthrough and CORS for the reader's origins",
+      "description": "GET /api/v1/rooms/{roomId}/status from the relay with timeout, retry and fallback; CORS from SOCIAL_ALLOWED_ORIGINS.",
+      "status": "planned",
+      "spec": "011",
+      "acs": [
+        "011/AC-003",
+        "011/AC-005"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",
@@ -275,6 +294,55 @@
       "changed": []
     },
     {
+      "id": "IDENT-041",
+      "area": "ident",
+      "name": "Relay accepts only verified Sefaria tokens",
+      "description": "Token from Sec-WebSocket-Protocol verified against the JWKS on upgrade; the token decides the participant's id and name.",
+      "status": "planned",
+      "spec": "010",
+      "acs": [
+        "010/AC-002",
+        "010/AC-003"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-043",
+      "area": "ident",
+      "name": "Relay drops a deleted user",
+      "description": "Internal drop-user call closes the user's sockets and refuses their upgrades for 30 minutes.",
+      "status": "planned",
+      "spec": "010",
+      "acs": [
+        "010/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-049",
+      "area": "ident",
+      "name": "Account deletion drops the user from the relay",
+      "description": "After the deletion webhook commits, the server asks the relay to drop the user from their rooms.",
+      "status": "planned",
+      "spec": "011",
+      "acs": [
+        "011/AC-004"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "OPS-005",
       "area": "ops",
       "name": "Postgres schema, migrations and a public health check",
@@ -361,6 +429,63 @@
       "changed": []
     },
     {
+      "id": "ROOM-011",
+      "area": "room",
+      "name": "Join and leave a room from its link",
+      "description": "POST /api/v1/rooms/{roomId}/members joins (the room id is the invitation); DELETE .../members/me leaves.",
+      "status": "planned",
+      "spec": "011",
+      "acs": [
+        "011/AC-001",
+        "011/AC-002"
+      ],
+      "surfaces": [
+        "room"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-012",
+      "area": "room",
+      "name": "Presence list",
+      "description": "Who is in the room, live: name, leading, following whom, away; the viewer marked as you.",
+      "status": "planned",
+      "spec": "012",
+      "acs": [
+        "012/AC-001",
+        "012/AC-002",
+        "012/AC-003"
+      ],
+      "surfaces": [
+        "room"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-044",
+      "area": "room",
+      "name": "Lobby Join button",
+      "description": "A non-member on /social/r/<id> sees Join; signed-out viewers are sent to sign in.",
+      "status": "planned",
+      "spec": "011",
+      "acs": [
+        "011/AC-006"
+      ],
+      "surfaces": [
+        "room"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SESS-001",
       "area": "sess",
       "name": "Social context in the reader's ctx parameter",
@@ -405,6 +530,188 @@
       "tests": [
         "app/src/features/session/machine.test.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-009",
+      "area": "sess",
+      "name": "Room protocol and client in packages/session",
+      "description": "The room (validation, limits, spotlight, streams) and the session client (follow through the state API, publish when needed), started from the reader's src/lib/session.",
+      "status": "planned",
+      "spec": "009",
+      "acs": [
+        "009/AC-001",
+        "009/AC-002",
+        "009/AC-003"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-010",
+      "area": "sess",
+      "name": "Relay: one Durable Object per room in the Workers runtime",
+      "description": "Worker and Durable Object from the reader's relay running packages/session's room; Origin and path checks.",
+      "status": "planned",
+      "spec": "010",
+      "acs": [
+        "010/AC-001"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-013",
+      "area": "sess",
+      "name": "Enlarge into a room's reader context",
+      "description": "R9 and R10: own place kept, target snapshot, push with ctx, apply on context ready; streamed moves replace; Back leaves.",
+      "status": "planned",
+      "spec": "013",
+      "acs": [
+        "013/AC-001",
+        "013/AC-002"
+      ],
+      "surfaces": [
+        "room",
+        "persistent"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-014",
+      "area": "sess",
+      "name": "Follow, follow again and lead",
+      "description": "Following the spotlight or a picked participant through applySnapshot; breaking away and coming back; taking the lead.",
+      "status": "planned",
+      "spec": "014",
+      "acs": [
+        "014/AC-001",
+        "014/AC-002",
+        "014/AC-003"
+      ],
+      "surfaces": [
+        "room",
+        "persistent"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-040",
+      "area": "sess",
+      "name": "Protocol fixtures keep social's and the reader's copies in step",
+      "description": "Recorded protocol results from the reader's room code, replayed against packages/session; a drift check against a reader checkout.",
+      "status": "planned",
+      "spec": "009",
+      "acs": [
+        "009/AC-004",
+        "009/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-042",
+      "area": "sess",
+      "name": "Relay status read for cards",
+      "description": "Internal status of a room: ref and title from the spotlight stream's summary slice and the participant count.",
+      "status": "planned",
+      "spec": "010",
+      "acs": [
+        "010/AC-004"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-046",
+      "area": "sess",
+      "name": "Minimise to the own place or the lobby",
+      "description": "R12: push the own place without ctx or the lobby; the persistent mount shows the mini view.",
+      "status": "planned",
+      "spec": "013",
+      "acs": [
+        "013/AC-003"
+      ],
+      "surfaces": [
+        "persistent"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-047",
+      "area": "sess",
+      "name": "Reconnect from ctx alone on a cold load",
+      "description": "R11: the persistent mount connects from the ctx value alone.",
+      "status": "planned",
+      "spec": "013",
+      "acs": [
+        "013/AC-004"
+      ],
+      "surfaces": [
+        "persistent"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-048",
+      "area": "sess",
+      "name": "Nothing personal applied or sent",
+      "description": "R13 and R14: only the viewer's moment slices are applied; outgoing snapshots lose ctx, personal slices and search words, and gain the summary slice.",
+      "status": "planned",
+      "spec": "013",
+      "acs": [
+        "013/AC-005",
+        "013/AC-006"
+      ],
+      "surfaces": [
+        "persistent"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-050",
+      "area": "sess",
+      "name": "Two learners in one room on the harness",
+      "description": "P3's exit journey in Playwright with two browser contexts, a local relay and server.",
+      "status": "planned",
+      "spec": "014",
+      "acs": [
+        "014/AC-004"
+      ],
+      "surfaces": [
+        "room",
+        "persistent"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },

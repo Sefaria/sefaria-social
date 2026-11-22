@@ -1,0 +1,54 @@
+- id: T-001
+  title: Copy the reader-state core, protocol and room with their tests
+  acs: [AC-001]
+  files:
+    - "packages/session/package.json"
+    - "packages/session/src/core/**"
+    - "packages/session/src/protocol.ts"
+    - "packages/session/src/ids.ts"
+    - "packages/session/src/ids.test.ts"
+    - "packages/session/src/room.ts"
+    - "packages/session/src/room.test.ts"
+    - "packages/session/src/acceptance.test.ts"
+    - "packages/session/src/index.ts"
+    - "packages/session/SOURCE.json"
+    - "package.json"
+    - "package-lock.json"
+    - "tsconfig.json"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- packages/session", "npm run typecheck"]
+- id: T-002
+  title: Client, incoming and outgoing checks, transports with canPublish and a protocols callback
+  acs: [AC-002, AC-003]
+  files:
+    - "packages/session/src/client.ts"
+    - "packages/session/src/client.test.ts"
+    - "packages/session/src/client.room.test.ts"
+    - "packages/session/src/incoming.ts"
+    - "packages/session/src/outgoing.ts"
+    - "packages/session/src/outgoing.test.ts"
+    - "packages/session/src/core/transports/**"
+    - "packages/session/src/acceptance.test.ts"
+    - "packages/session/src/index.ts"
+    - "packages/session/SOURCE.json"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- packages/session", "npm run typecheck"]
+  completes: [SESS-009]
+- id: T-003
+  title: Protocol fixtures recorded from the reader, the replay contract test and the drift check
+  acs: [AC-004, AC-005]
+  files:
+    - "packages/session/fixtures/**"
+    - "packages/session/scripts/**"
+    - "packages/session/src/protocol.contract.test.ts"
+    - "packages/session/package.json"
+    - "packages/session/SOURCE.json"
+    - "vitest.config.ts"
+    - "eslint.config.mjs"
+    - ".prettierignore"
+  depends_on: [T-002]
+  parallel: false
+  verify: ["npm run test:contract", "npm run typecheck"]
+  completes: [SESS-040]

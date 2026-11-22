@@ -1,0 +1,45 @@
+- id: T-001
+  title: The follow gate and the publish view (R13, R14)
+  acs: [AC-005, AC-006]
+  files:
+    - "app/src/features/session/room-reader.ts"
+    - "app/src/features/session/room-reader.test.ts"
+    - "packages/host-contract/src/fake-host.ts"
+    - "packages/host-contract/src/fake-host.test.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- room-reader", "npm run typecheck"]
+  completes: [SESS-048]
+- id: T-002
+  title: Enlarge, streamed replacements and Back through the machine and the host (R9, R10)
+  acs: [AC-001, AC-002]
+  files:
+    - "app/src/features/session/**"
+    - "app/src/features/room/**"
+    - "app/src/features/shell/strings.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- controller", "npm run typecheck"]
+  completes: [SESS-013]
+- id: T-003
+  title: Minimise to the own place or the lobby, and the mini view (R12)
+  acs: [AC-003]
+  files:
+    - "app/src/features/session/**"
+    - "app/src/surface/persistent.tsx"
+    - "app/src/features/shell/strings.ts"
+  depends_on: [T-002]
+  parallel: false
+  verify: ["npm test -- controller", "npm run typecheck"]
+  completes: [SESS-046]
+- id: T-004
+  title: Reconnect from ctx alone on a cold load (R11)
+  acs: [AC-004]
+  files:
+    - "app/src/features/session/**"
+    - "app/src/surface/persistent.tsx"
+    - "app/src/surface/entry.ts"
+  depends_on: [T-003]
+  parallel: false
+  verify: ["npm test -- controller", "npm run typecheck"]
+  completes: [SESS-047]

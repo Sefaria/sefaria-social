@@ -1,0 +1,64 @@
+- id: T-001
+  title: Join and leave endpoints
+  acs: [AC-001, AC-002]
+  files:
+    - "app/src/server/api/**"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.members.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.members.me.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.join.int.test.ts"
+    - "packages/api-client/**"
+    - "test/integration/**"
+    - ".github/workflows/ci.yml"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- api.join", "npm run typecheck"]
+  completes: [ROOM-011]
+- id: T-002
+  title: Room status from the relay, with timeout, retry and fallback; CORS for the reader's origins
+  acs: [AC-003, AC-005]
+  files:
+    - "app/src/server/api/**"
+    - "app/src/server/services/relay.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/http/**"
+    - "app/src/server/config.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.status.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.join.int.test.ts"
+    - "packages/api-client/**"
+    - "test/integration/**"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:integration -- api.join", "npm run typecheck"]
+  completes: [API-045]
+- id: T-003
+  title: The deletion webhook asks the relay to drop the user
+  acs: [AC-004]
+  files:
+    - "app/src/server/webhooks/**"
+    - "app/src/server/services/users.ts"
+    - "app/src/server/services/relay.ts"
+    - "app/src/api.join.int.test.ts"
+    - "test/integration/**"
+  depends_on: [T-002]
+  parallel: false
+  verify: ["npm run test:integration -- api.join", "npm run typecheck"]
+  completes: [IDENT-049]
+- id: T-004
+  title: The lobby's Join button
+  acs: [AC-006]
+  files:
+    - "app/src/features/api/**"
+    - "app/src/features/room/**"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/entry.ts"
+    - "app/src/surface/host-context.tsx"
+    - "app/src/routes/social.r.$roomId.tsx"
+    - "app/package.json"
+    - "package-lock.json"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- RoomLobbyPage", "npm run typecheck"]
+  completes: [ROOM-044]
