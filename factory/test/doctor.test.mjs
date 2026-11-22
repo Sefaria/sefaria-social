@@ -112,9 +112,10 @@ describe("doctor", () => {
   it("fails when a CI job is not aggregated by result", () => {
     const root = copyOfRepo();
     write(root, {
+      // Drop prove-red from result's needs, whatever other jobs later milestones add to that list.
       ".github/workflows/ci.yml": read(root, ".github/workflows/ci.yml").replace(
-        "needs: [changes, static, unit, build, spec-gate, prove-red]",
-        "needs: [changes, static, unit, build, spec-gate]",
+        /(needs: \[changes, static[^\]\n]*), prove-red([^\]\n]*\])/,
+        "$1$2",
       ),
     });
     expect(checkResultNeeds(root)).toContain(

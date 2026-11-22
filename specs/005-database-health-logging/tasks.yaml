@@ -15,6 +15,7 @@
     - "vitest.config.ts"
     - "eslint.config.mjs"
     - ".github/workflows/ci.yml"
+    - "factory/test/doctor.test.mjs"
   depends_on: []
   parallel: false
   verify: ["npm run test:integration -- db", "npm run typecheck"]
