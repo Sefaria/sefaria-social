@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { FeedPage } from "./FeedPage";
 
 describe("FeedPage placeholder", () => {
-  // @feature HOST-000 Social page shows the surface name and contract version
   // @ac 000/AC-001
   it("shows the surface name, its id and the SurfaceHost contract version it was built for", () => {
     expect(renderToStaticMarkup(<FeedPage />)).toBe(
