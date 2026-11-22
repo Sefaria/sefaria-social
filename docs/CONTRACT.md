@@ -7,8 +7,14 @@ Source: [PLAN.md](PLAN.md) section 4.2.
 
 - Canonical source: `reader-next/contract/surface-host.v1.ts` in Sefaria-Project, plus a JSON Schema generated from it. Both are
   created by the reader seam (milestone A1).
-- Social keeps a **pinned copy** in `packages/host-contract/` with the reader commit it came from. Types are generated from the
-  schema, never hand-copied. Updates go through the `contract-sync` skill. Until A1 lands, P1 works from the shape below.
+- Social keeps a **pinned copy** in `packages/host-contract/pinned/` (`surface-host.v1.ts`, `surface-manifest.v1.ts`,
+  `surface-manifest.v1.schema.json`), with `SOURCE.json` (reader repo, commit, sha256 per file) and `contract.sha256` (checked
+  by `factory doctor`). Pinned from `Sefaria/Sefaria-Project` `feat/reader-social-surface` @ `b90e19735d` (PR 4122, not yet
+  merged). Types are re-exported from the pinned `.ts` file (`src/contract.ts`), never hand-copied; the reader generates a JSON
+  Schema only for the manifest. Re-pin with `npm run pin -w @sefaria-social/host-contract -- <reader checkout> <commit>` (the
+  `contract-sync` skill); `npm run check -w @sefaria-social/host-contract` (CI `contract` job) fails on a hand edit.
+- `src/schemas.ts` validates every value that crosses the contract; `src/conformance.ts` proves at compile time that each
+  schema's type equals the pinned type.
 
 ## Shape
 
@@ -63,7 +69,7 @@ workspace commands (`reader-next/src/lib/workspace/commands.ts`).
   receiving.
 - **Nothing React crosses.** No components, context or hooks; DOM elements and plain objects only. The surface bundles its own
   React, TanStack Router and Query, and never imports server code or the Start runtime (`test/architecture/`).
-- **The fake host** (`packages/host-contract/fake-host.ts`, milestone P1) implements this interface in memory and is typed from
+- **The fake host** (`packages/host-contract/src/fake-host.ts`, import `@sefaria-social/host-contract/fake-host`) implements this interface in memory and is typed from
   the generated contract, so a removed or renamed member stops it compiling. Never widen it to make a test pass.
 
 ## Planned for v1.1 (not in v1)

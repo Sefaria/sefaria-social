@@ -1,0 +1,45 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+.harness-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #ccc;
+}
+.harness-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.harness-reader {
+  padding: 0.5rem 1rem;
+  background: #f6f6f2;
+  font-size: 0.85rem;
+}
+.harness-reader dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+.harness-reader dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.harness-reader pre {
+  max-height: 10rem;
+  overflow: auto;
+}
+.harness-page {
+  min-height: 50vh;
+}
+.harness-persistent {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+}
