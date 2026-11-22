@@ -1,0 +1,27 @@
+{
+  "$comment": "The feature atlas (docs/PLAN.md 5.10). One entry per observable feature; ids are never reused. `factory compile` creates planned entries; the PR that completes a feature sets 'built' and lists its tagged tests. Checked by `npm run factory -- atlas`.",
+  "features": [
+    {
+      "id": "HOST-000",
+      "area": "host",
+      "name": "Social page shows the surface name and contract version",
+      "description": "The /social placeholder page shows the heading \"Sefaria Social\" and the line \"Surface: social, SurfaceHost contract v1.0\", from one constant in app/src/lib/surface-info.ts.",
+      "status": "built",
+      "spec": "000",
+      "acs": [
+        "000/AC-001"
+      ],
+      "surfaces": [
+        "feed"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/features/feed/FeedPage.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    }
+  ]
+}
