@@ -62,13 +62,13 @@ masked in logs). The server's persona route is specified in `specs/082-test-pers
 
 What the recount decides (`factory/qa.mjs`):
 
-| Verdict               | When                                                                                   | A pass? |
-| --------------------- | -------------------------------------------------------------------------------------- | ------- |
-| pass                  | the last attempt passed, no attempt failed, and it carries an evidence line            | yes     |
-| failed-then-recovered | an attempt failed and a later one passed                                               | no      |
-| cannot-reach          | `cannot_reach` has a reason (component not built, route missing)                       | no      |
-| fail                  | the last attempt failed, or it "passed" with no evidence line                          | no      |
-| not-run               | no attempt recorded                                                                    | no      |
+| Verdict               | When                                                                        | A pass? |
+| --------------------- | --------------------------------------------------------------------------- | ------- |
+| pass                  | the last attempt passed, no attempt failed, and it carries an evidence line | yes     |
+| failed-then-recovered | an attempt failed and a later one passed                                    | no      |
+| cannot-reach          | `cannot_reach` has a reason (component not built, route missing)            | no      |
+| fail                  | the last attempt failed, or it "passed" with no evidence line               | no      |
+| not-run               | no attempt recorded                                                         | no      |
 
 A derived surface with no journey blocks the report. A journey on a surface the plan did not list is a planner gap.
 

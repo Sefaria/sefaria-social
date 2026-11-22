@@ -49,7 +49,10 @@ export async function up(root, { timeoutMs = 90_000, env = process.env } = {}) {
     const ok = await healthy(c.health, Date.now() + timeoutMs);
     result.components[c.name] = ok
       ? { status: "up", url: c.health.replace(/\/(api\/)?health$|\/$/, ""), pid: child.pid }
-      : { status: "failed", reason: `'${c.script}' did not answer ${c.health} within ${timeoutMs / 1000}s; see ${path.relative(root, log)}` };
+      : {
+          status: "failed",
+          reason: `'${c.script}' did not answer ${c.health} within ${timeoutMs / 1000}s; see ${path.relative(root, log)}`,
+        };
   }
   return result;
 }
