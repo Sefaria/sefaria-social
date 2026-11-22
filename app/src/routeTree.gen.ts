@@ -10,33 +10,89 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SocialIndexRouteImport } from './routes/social.index'
+import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
+import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
+import { Route as ApiV1InternalUserDeletedRouteImport } from './routes/api/v1/internal.user-deleted'
+import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
 
 const SocialIndexRoute = SocialIndexRouteImport.update({
   id: '/social/',
   path: '/social/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
+  id: '/api/v1/health',
+  path: '/api/v1/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1RoomsRoute = ApiV1RoomsRouteImport.update({
+  id: '/api/v1/rooms',
+  path: '/api/v1/rooms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1InternalUserDeletedRoute =
+  ApiV1InternalUserDeletedRouteImport.update({
+    id: '/api/v1/internal/user-deleted',
+    path: '/api/v1/internal/user-deleted',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
+  id: '/$roomId',
+  path: '/$roomId',
+  getParentRoute: () => ApiV1RoomsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/social/': typeof SocialIndexRoute
+  '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
+  '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRoute
 }
 export interface FileRoutesByTo {
   '/social': typeof SocialIndexRoute
+  '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
+  '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/social/': typeof SocialIndexRoute
+  '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
+  '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/social/'
+  fullPaths:
+    | '/social/'
+    | '/api/v1/health'
+    | '/api/v1/rooms'
+    | '/api/v1/internal/user-deleted'
+    | '/api/v1/rooms/$roomId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/social'
-  id: '__root__' | '/social/'
+  to:
+    | '/social'
+    | '/api/v1/health'
+    | '/api/v1/rooms'
+    | '/api/v1/internal/user-deleted'
+    | '/api/v1/rooms/$roomId'
+  id:
+    | '__root__'
+    | '/social/'
+    | '/api/v1/health'
+    | '/api/v1/rooms'
+    | '/api/v1/internal/user-deleted'
+    | '/api/v1/rooms/$roomId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   SocialIndexRoute: typeof SocialIndexRoute
+  ApiV1HealthRoute: typeof ApiV1HealthRoute
+  ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
+  ApiV1InternalUserDeletedRoute: typeof ApiV1InternalUserDeletedRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +104,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SocialIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/health': {
+      id: '/api/v1/health'
+      path: '/api/v1/health'
+      fullPath: '/api/v1/health'
+      preLoaderRoute: typeof ApiV1HealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/rooms': {
+      id: '/api/v1/rooms'
+      path: '/api/v1/rooms'
+      fullPath: '/api/v1/rooms'
+      preLoaderRoute: typeof ApiV1RoomsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/internal/user-deleted': {
+      id: '/api/v1/internal/user-deleted'
+      path: '/api/v1/internal/user-deleted'
+      fullPath: '/api/v1/internal/user-deleted'
+      preLoaderRoute: typeof ApiV1InternalUserDeletedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/rooms/$roomId': {
+      id: '/api/v1/rooms/$roomId'
+      path: '/$roomId'
+      fullPath: '/api/v1/rooms/$roomId'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdRouteImport
+      parentRoute: typeof ApiV1RoomsRoute
+    }
   }
 }
 
+interface ApiV1RoomsRouteChildren {
+  ApiV1RoomsRoomIdRoute: typeof ApiV1RoomsRoomIdRoute
+}
+
+const ApiV1RoomsRouteChildren: ApiV1RoomsRouteChildren = {
+  ApiV1RoomsRoomIdRoute: ApiV1RoomsRoomIdRoute,
+}
+
+const ApiV1RoomsRouteWithChildren = ApiV1RoomsRoute._addFileChildren(
+  ApiV1RoomsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   SocialIndexRoute: SocialIndexRoute,
+  ApiV1HealthRoute: ApiV1HealthRoute,
+  ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,
+  ApiV1InternalUserDeletedRoute: ApiV1InternalUserDeletedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
