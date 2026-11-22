@@ -6,7 +6,7 @@ paths:
 
 # Specs and the feature atlas
 
-Summary of `docs/PLAN.md` sections 5.2, 5.3 and 5.10. The tooling arrives in milestone F1.
+Summary of `docs/PLAN.md` sections 5.2, 5.3 and 5.10. Tooling: `npm run factory -- compile|atlas`; how-to: `docs/runbooks/working-in-the-factory.md`.
 
 - Anyone may draft a spec, an agent included. A human agrees to it by approving the PR; approval is recorded only by
   `npm run factory -- approve <id> --by <email>`, run by that human. Never write an approval yourself.

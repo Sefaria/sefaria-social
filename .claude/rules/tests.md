@@ -8,7 +8,7 @@ paths:
 
 # Tests
 
-From `docs/PLAN.md` section 5.5. Some checks arrive in F1 (tags, prove-red, quarantine).
+From `docs/PLAN.md` section 5.5. Tags and prove-red are checked by the factory; the quarantine file arrives in F2.
 
 1. Every acceptance criterion has at least one deterministic test tagged with its id (`// @ac 012/AC-001`).
 2. Red before green: a new acceptance test must fail against the merge base, for the right reason (the assertion, not a missing

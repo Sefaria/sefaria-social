@@ -18,42 +18,42 @@ The full design is `docs/PLAN.md`; when this file and the plan disagree, the pla
 
 ## Map: read when
 
-| File                                | Read it when                                                                                            |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `docs/PLAN.md`                      | Before any milestone; it is the source of truth (sections 0–3 first)                                    |
-| `docs/ARCHITECTURE.md`              | Adding a file under `app/src` or a package; deciding which layer owns code                              |
-| `docs/ROUTING.md`                   | Anything that reads or changes the URL, links, enlarge/minimise (R1–R18)                                |
-| `docs/CONTRACT.md`                  | Anything that touches the host object, the surface entry, or the pinned contract                        |
-| `docs/decisions/`                   | Before re-deciding something; record a new decision as `NNNN-slug.md` (format: `0000-record-format.md`) |
-| `docs/runbooks/setup-checklist.md`  | A step needs a human (settings, secrets, owners); append it there                                       |
-| `REVIEW.md`                         | Reviewing a PR, or wondering what reviewers block on                                                    |
-| `.claude/rules/routing.md`          | Loaded for `app/src/**` and `packages/session/**`: R1–R18 verbatim                                      |
-| `.claude/rules/surface-contract.md` | Loaded for `app/src/surface/**`, `packages/host-contract/**`, `harness/**`                              |
-| `.claude/rules/server-api.md`       | Loaded for `app/src/server/**`, `app/src/routes/api/**`, `packages/api-client/**`                       |
-| `.claude/rules/db.md`               | Loaded for `app/src/server/db/**`                                                                       |
-| `.claude/rules/relay.md`            | Loaded for `packages/relay/**`, `packages/session/**`                                                   |
-| `.claude/rules/tests.md`            | Loaded for test files and `e2e/**`                                                                      |
-| `.claude/rules/security.md`         | Loaded for server, auth, webhooks, workflows                                                            |
-| `.claude/rules/specs.md`            | Loaded for `specs/**` and the atlas                                                                     |
-| `.claude/rules/styling-i18n.md`     | Loaded for `*.tsx`, `*.css`                                                                             |
+| File                                      | Read it when                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `docs/PLAN.md`                            | Before any milestone; it is the source of truth (sections 0–3 first)                                    |
+| `docs/ARCHITECTURE.md`                    | Adding a file under `app/src` or a package; deciding which layer owns code                              |
+| `docs/ROUTING.md`                         | Anything that reads or changes the URL, links, enlarge/minimise (R1–R18)                                |
+| `docs/CONTRACT.md`                        | Anything that touches the host object, the surface entry, or the pinned contract                        |
+| `docs/decisions/`                         | Before re-deciding something; record a new decision as `NNNN-slug.md` (format: `0000-record-format.md`) |
+| `docs/runbooks/setup-checklist.md`        | A step needs a human (settings, secrets, owners); append it there                                       |
+| `docs/runbooks/working-in-the-factory.md` | Before any spec, task or PR: the pipeline, spec numbers, trailers, what the gate says                   |
+| `REVIEW.md`                               | Reviewing a PR, or wondering what reviewers block on                                                    |
+| `.claude/rules/routing.md`                | Loaded for `app/src/**` and `packages/session/**`: R1–R18 verbatim                                      |
+| `.claude/rules/surface-contract.md`       | Loaded for `app/src/surface/**`, `packages/host-contract/**`, `harness/**`                              |
+| `.claude/rules/server-api.md`             | Loaded for `app/src/server/**`, `app/src/routes/api/**`, `packages/api-client/**`                       |
+| `.claude/rules/db.md`                     | Loaded for `app/src/server/db/**`                                                                       |
+| `.claude/rules/relay.md`                  | Loaded for `packages/relay/**`, `packages/session/**`                                                   |
+| `.claude/rules/tests.md`                  | Loaded for test files and `e2e/**`                                                                      |
+| `.claude/rules/security.md`               | Loaded for server, auth, webhooks, workflows                                                            |
+| `.claude/rules/specs.md`                  | Loaded for `specs/**` and the atlas                                                                     |
+| `.claude/rules/styling-i18n.md`           | Loaded for `*.tsx`, `*.css`                                                                             |
 
 ## How work flows
 
 spec → work order → one task per session → verify → PR. A human agrees to every spec and approves every merge.
 
-1. `/shape-spec` writes `specs/NNN-slug/spec.md` + `acceptance.feature`; a human owner approves it by PR review.
-2. `/plan-spec NNN` writes `plan.md` + `tasks.yaml`; `npm run factory -- compile NNN` writes `workorder.json`.
-3. `/build-task T-xxx` builds one task test-first, in one session, as one PR.
+1. `/shape-spec` writes `specs/NNN-slug/spec.md` + `acceptance.feature`; a human code owner reviews it and runs
+   `npm run factory -- approve NNN --by <email>` (never an agent: the command refuses agent sessions).
+2. `/plan-spec NNN` writes `plan.md` + `tasks.yaml`; `npm run factory -- compile NNN` writes `workorder.json`
+   (`--draft` before approval: buildable locally, refused by CI's `spec-gate`).
+3. `/build-task NNN/T-xxx` builds one task test-first, in one session, as one PR; commits carry `Spec: NNN` / `Task: T-xxx`.
 4. `/verify` records each check's command and real output, ending with a VERDICT line.
-
-The spec system, these skills and the factory commands arrive in milestone F1. Milestone F0 (this bootstrap) is the only work
-built without a spec.
 
 ## Non-negotiables (each is enforced by the named check)
 
-- No product code without an active work order. [`guard-paths` hook and CI `spec-gate`, from F1]
-- A spec change is its own PR, reviewed by a human owner; never change a spec and product code together. [`spec-gate`, F1]
-- A feature is not done until its atlas entry (`docs/features/features.json`) is updated and has a tagged test. [`atlas`, F1]
+- No product code without an active work order. [`guard-paths` hook and CI `spec-gate`]
+- A spec change is its own PR, reviewed by a human owner; never change an agreed spec and product code together. [`spec-gate`]
+- A feature is not done until its atlas entry (`docs/features/features.json`) is updated and has a tagged test. [`factory atlas` in CI `static`]
 - The surface never imports server code or the Start runtime; server never imports React; layers import only to their left.
   [`test/architecture/` in CI `static`]
 - Never touch `window.history` or `location`; navigate through the host (R1). Only `app/src/surface/host-history.ts` may.
@@ -76,9 +76,11 @@ npm run test:arch         # L0 architecture tests (CI static job)
 npm test                  # L1 unit tests (CI unit job)
 npm run test:e2e          # Playwright (empty until P1; passes with no tests)
 npm run build             # Start build (the surface build arrives with spike S1)
+npm run test:factory      # the factory's own negative tests (CI static job)
+npm run factory -- help   # compile, approve (humans only), gate, doctor, prove-red, atlas, atlas:build
 ```
 
-`npm run factory -- doctor` arrives in F1. CI: `.github/workflows/ci.yml`; the only required check is `result`.
+CI: `.github/workflows/ci.yml`; the only required check is `result`.
 
 ## Browser support
 
@@ -96,3 +98,5 @@ Baseline widely available without a decision record.
 - Architecture tests scan with the TypeScript parser; the `~/` alias means `app/src`. A new top-level folder under `app/src` is a
   violation until it is added as a layer in `test/architecture/rules.ts` and `docs/ARCHITECTURE.md`.
 - `docs/PLAN.md` is excluded from Prettier on purpose; do not reformat the owner's plan.
+- The guard hook blocks Edit/Write on `app/`, `packages/`, `harness/`, `e2e/` without `.factory/active.json` (set by
+  `/build-task`) and on protected paths always (`factory/lib/paths.mjs`). Specs are open; `specs/approvals.json` never is.
