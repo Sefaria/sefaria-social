@@ -86,8 +86,9 @@ jobs:
         name: Collection check (files on disk == files executed, per level)
         if: always()
         run: |
-          reports="test-results/vitest-1.json"; if [ -f test-results/e2e-1.json ]; then reports="$reports test-results/e2e-1.json"; fi
-          npm run --silent factory -- collection $reports --out test-results/collection.json
+          reports=(test-results/vitest-1.json)
+          if [ -f test-results/e2e-1.json ]; then reports+=(test-results/e2e-1.json); fi
+          npm run --silent factory -- collection "${reports[@]}" --out test-results/collection.json
           echo "tests=$(node -e 'console.log(require("./test-results/vitest-1.json").numTotalTests)')" >> "$GITHUB_OUTPUT"
           echo "skipped=$(node -e 'const r=require("./test-results/vitest-1.json");console.log((r.numPendingTests||0)+(r.numTodoTests||0))')" >> "$GITHUB_OUTPUT"
       - name: Quarantine list (fields and expiry; quarantined failures do not gate)
@@ -240,7 +241,11 @@ jobs:
       - name: Publish the quality score with metrics columns to factory-data (reports/)
         if: always()
         run: |
-          git fetch --quiet --depth=1 origin factory-data:refs/remotes/origin/factory-data 2>/dev/null && git worktree add --quiet /tmp/fd origin/factory-data || mkdir -p /tmp/fd/metrics
+          if git fetch --quiet --depth=1 origin factory-data:refs/remotes/origin/factory-data 2>/dev/null; then
+            git worktree add --quiet /tmp/fd origin/factory-data
+          else
+            mkdir -p /tmp/fd/metrics
+          fi
           gh issue list --label escaped --state open --json number,labels > /tmp/escaped.json 2>/dev/null || echo "[]" > /tmp/escaped.json
           cp /tmp/escaped.json escaped.json
           npm run --silent factory -- quality-score --metrics /tmp/fd/metrics --escaped escaped.json --out /tmp/QUALITY_SCORE.md
