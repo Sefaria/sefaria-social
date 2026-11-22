@@ -1,0 +1,128 @@
+{
+  "repo": "Sefaria/Sefaria-Project",
+  "branch": "reader-next",
+  "commit": "70b0804c9e7d2c981b3d1157bac1265e3b368f42",
+  "lastChangedIn": "6883b3d9b1ca1f13e3ed4cb48aa756e6bf578d89",
+  "root": "reader-next",
+  "license": "GPL-3.0 (Sefaria-Project root LICENSE); the files carry no licence header",
+  "note": "Copied, then: ~/ imports rewritten to relative ones, vitest globals imported explicitly, Prettier run with this repo settings. Every other change is listed in localChanges.",
+  "localChanges": [],
+  "files": {
+    "src/core/api.ts": {
+      "from": "src/lib/reader-state/core/api.ts",
+      "sha256": "4651bd9419b6d1b71aa0598227fe79cdfc492c6d4790647c061eaf77f0c5666c"
+    },
+    "src/core/api.test.ts": {
+      "from": "src/lib/reader-state/core/api.test.ts",
+      "sha256": "279a212b1157b80f28d284c9f8ef9a1ea8ac7725c9064d317d2eee9189f3b33b"
+    },
+    "src/core/diff.ts": {
+      "from": "src/lib/reader-state/core/diff.ts",
+      "sha256": "4e1cdcfc87d28635ca9adbd0c6a71d2c0011b90043e1d2b0330616946203127a"
+    },
+    "src/core/diff.test.ts": {
+      "from": "src/lib/reader-state/core/diff.test.ts",
+      "sha256": "d5ce8adf042beb8bfb9a63746471854a6792e1ab61e8e68aa2fb13f09c396a30"
+    },
+    "src/core/json.ts": {
+      "from": "src/lib/reader-state/core/json.ts",
+      "sha256": "56bcd61e102b85cd53ce0ec680fbb438efbeac6d2908af0f6f531e3fa418d50d"
+    },
+    "src/core/registry.ts": {
+      "from": "src/lib/reader-state/core/registry.ts",
+      "sha256": "e5484990a101f0feb17e8a00aaf0a258777d26aed9e488edbcc08438516f7770"
+    },
+    "src/core/registry.test.ts": {
+      "from": "src/lib/reader-state/core/registry.test.ts",
+      "sha256": "bbd3659777a64422a312310bdc91cdc9d85b0e0c21d7092909aa83c4d64ea51a"
+    },
+    "src/core/schema.ts": {
+      "from": "src/lib/reader-state/core/schema.ts",
+      "sha256": "f5df83d0748de1a08a80648ec20577eac5c3f447cb964522994dee9cb6cb3ad1"
+    },
+    "src/core/schema.test.ts": {
+      "from": "src/lib/reader-state/core/schema.test.ts",
+      "sha256": "560b8715df4de99a05ccc0378e8e93e379b41bc2e1080708bb626bc869d0b804"
+    },
+    "src/core/stream.ts": {
+      "from": "src/lib/reader-state/core/stream.ts",
+      "sha256": "84507d4411741c42aa66b78d76596989e1aa1520e410545fa7142a90224d687a"
+    },
+    "src/core/stream.test.ts": {
+      "from": "src/lib/reader-state/core/stream.test.ts",
+      "sha256": "f1631382cc93c2fa831263bf150657bf8826ccfbc6b9616a31a37ef47065bc6f"
+    },
+    "src/core/test-utils.ts": {
+      "from": "src/lib/reader-state/core/test-utils.ts",
+      "sha256": "444d2973b570268c2a9a14f242b9531e1ac0fe41a230dadee26ba33dbfe3070a"
+    },
+    "src/core/types.ts": {
+      "from": "src/lib/reader-state/core/types.ts",
+      "sha256": "87406a2fbe337267006af22774d68b5db2b3a82a503f6f13c1795d0057aed163"
+    },
+    "src/core/transports/listeners.ts": {
+      "from": "src/lib/reader-state/core/transports/listeners.ts",
+      "sha256": "b774e0a6781dc20ecbae343a6b19691059b6b095e77f9212aef2c6d3a59aec30"
+    },
+    "src/core/transports/memory.ts": {
+      "from": "src/lib/reader-state/core/transports/memory.ts",
+      "sha256": "9c637cf86cd9a2c43552e570bd632750ab4ba2523b5c5b9d4e5d064ef0853724"
+    },
+    "src/core/transports/memory.test.ts": {
+      "from": "src/lib/reader-state/core/transports/memory.test.ts",
+      "sha256": "bf8d6bb01290f36b89bf8c368f0ac5276e3cd3148b95bfbe0ef5f706162e95c0"
+    },
+    "src/core/transports/websocket.ts": {
+      "from": "src/lib/reader-state/core/transports/websocket.ts",
+      "sha256": "c4d9e08047642ddfc938421eb9d2c11db4a0b440f935c8782f05da96ce751483"
+    },
+    "src/core/transports/websocket.test.ts": {
+      "from": "src/lib/reader-state/core/transports/websocket.test.ts",
+      "sha256": "8f08710ea2bf7e8d061b61f15b8d909411701c74ef718a8e1607961e535f933b"
+    },
+    "src/protocol.ts": {
+      "from": "src/lib/session/protocol.ts",
+      "sha256": "fe4085ead3f9206d9c3a48fa5a51a420bf83551a5dd88542ef390fbcd2a7a962"
+    },
+    "src/ids.ts": {
+      "from": "src/lib/session/ids.ts",
+      "sha256": "bab1748bbc95de32839c9b36a3acec3a674048cb6ac31072f07082a6a9a472b3"
+    },
+    "src/ids.test.ts": {
+      "from": "src/lib/session/ids.test.ts",
+      "sha256": "ffb43ecbdc3092c0e893eae6fa92a3a1de3e08bcd1212b751599851d9369d19e"
+    },
+    "src/room.ts": {
+      "from": "src/lib/session/room.ts",
+      "sha256": "fd63cdc3cd348340b099d41d74fc1577aa33df83a5bbc50d52a0a9caa58c95be"
+    },
+    "src/room.test.ts": {
+      "from": "src/lib/session/room.test.ts",
+      "sha256": "e5c626e4a45d22e0d789a60bd30cf583f623a1a51c98cda806b780e6fea1e5d5"
+    },
+    "src/incoming.ts": {
+      "from": "src/lib/session/incoming.ts",
+      "sha256": "a6dabe7bf9041c10ea6395b2fb20338ddc329897fb601dc9436c1cdfa33aebf6"
+    },
+    "src/outgoing.ts": {
+      "from": "src/lib/session/outgoing.ts",
+      "sha256": "142ba47dc4f9ceb9e84ba646da75229f7a5142e4c9e00be06aecf81f1acaf99c"
+    },
+    "src/outgoing.test.ts": {
+      "from": "src/lib/session/outgoing.test.ts",
+      "sha256": "20e4379b23116637887ad269b25930271d91dd19b3be54bbf022ef79fb182662"
+    },
+    "src/client.ts": {
+      "from": "src/lib/session/client.ts",
+      "sha256": "9fa6adb05374352019a39b18baa4a76516fc2f9d58fb40ba189f9c1fe1eb97ab"
+    },
+    "src/client.test.ts": {
+      "from": "src/lib/session/client.test.ts",
+      "sha256": "0719f94e766dcafc01817cc291b45792b9f780a58e41182aed943e30ae48ad4c"
+    },
+    "src/client.room.test.ts": {
+      "from": "src/lib/session/client.room.test.ts",
+      "sha256": "2a35118c479c1eb9b9ef5c851fc0f03d7cfadb95d88005aa8fd6416639fbca33"
+    }
+  }
+}
