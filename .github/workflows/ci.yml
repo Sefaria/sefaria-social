@@ -1,8 +1,8 @@
 # CI (plan section 5.8). The only required check is `result`; it aggregates every other job.
 # Jobs today: changes → static (typecheck, lint, format, architecture + factory tests, doctor, atlas) → unit, build,
 # integration (L2: the API against real Postgres, migrations, OpenAPI breaking check, built-server smoke test),
-# contract (L3) and e2e-harness (L4a); spec-gate (no spec, no code) and prove-red (acceptance tests are red on the merge
-# base) → result. Every job must be added to `result`'s `needs` (doctor checks this).
+# contract (L3), container (the server image, spec 021) and e2e-harness (L4a, with the local release rehearsal);
+# spec-gate (no spec, no code) and prove-red (acceptance tests are red on the merge base) → result. Every job must be added to `result`'s `needs` (doctor checks this).
 # `metrics` (F2) runs after `result` and appends one line per job to the factory-data branch; it never blocks a merge.
 name: ci
 
@@ -147,6 +147,9 @@ jobs:
           }
       - name: Surface build
         run: npm run build:surface
+      - name: Surface size budget
+        # Spec 019: app/surface-budget.json; prints every file's raw and gzip size.
+        run: npm run surface:budget
       - name: Surface build output
         run: |
           # The reader loads app/dist-surface/manifest.json; print it so the PR shows what a release would contain.
@@ -215,6 +218,41 @@ jobs:
           name: e2e-harness-traces
           path: test-results/
           retention-days: 7
+
+  container:
+    name: container
+    # Spec 021: the server image follows its rules (pinned bases, no fetched URLs, non-root, health check), builds from the
+    # lockfile, and runs for real against Postgres: migrate, healthy, health 200, protected route 401, not root, SIGTERM.
+    needs: [changes, static]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: social
+          POSTGRES_PASSWORD: social
+          POSTGRES_DB: sefaria_social
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U social -d sefaria_social"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Dockerfile rules
+        run: npm run release -- check-dockerfile
+      - name: Build the image
+        run: docker build -t sefaria-social-server:ci .
+      - name: Run the image
+        env:
+          DATABASE_URL: postgres://social:social@127.0.0.1:5432/sefaria_social
+        run: app/scripts/container-smoke.sh sefaria-social-server:ci
 
   integration:
     name: integration
@@ -343,7 +381,7 @@ jobs:
 
   result:
     name: result
-    needs: [changes, static, unit, build, integration, contract, e2e-harness, spec-gate, prove-red]
+    needs: [changes, static, unit, build, integration, contract, container, e2e-harness, spec-gate, prove-red]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -357,6 +395,7 @@ jobs:
           BUILD: ${{ needs.build.result }}
           INTEGRATION: ${{ needs.integration.result }}
           CONTRACT: ${{ needs.contract.result }}
+          CONTAINER: ${{ needs.container.result }}
           E2E_HARNESS: ${{ needs.e2e-harness.result }}
           SPEC_GATE: ${{ needs.spec-gate.result }}
           PROVE_RED: ${{ needs.prove-red.result }}
@@ -364,7 +403,7 @@ jobs:
         run: |
           # Policy:
           # - changes and static must succeed on every run. Skipped or cancelled counts as failure.
-          # - unit, build, integration, contract and e2e-harness must succeed, except that `skipped` is accepted when the changes filter decided on purpose that
+          # - unit, build, integration, contract, container and e2e-harness must succeed, except that `skipped` is accepted when the changes filter decided on purpose that
           #   only docs changed (CODE == false). A skip for any other reason (for example a failed dependency) is a failure.
           # - spec-gate must succeed on pull_request and merge_group. `skipped` is accepted only on a push to main, where its
           #   `if` skips it on purpose (the change passed the gate in the merge queue).
@@ -384,6 +423,7 @@ jobs:
           filterable build "$BUILD"
           filterable integration "$INTEGRATION"
           filterable contract "$CONTRACT"
+          filterable container "$CONTAINER"
           filterable e2e-harness "$E2E_HARNESS"
           if [ "$SPEC_GATE" = "skipped" ] && [ "$EVENT" = "push" ]; then echo "spec-gate: skipped on push to main (on purpose)"
           else must_succeed spec-gate "$SPEC_GATE"; fi
@@ -396,7 +436,7 @@ jobs:
     # One metrics line per job of this run (plan 5.8, 5.9), appended to the factory-data branch with the workflow token (which
     # does not trigger CI). A reporter: it needs `result`, so it is not in result.needs and never blocks a merge (doctor allows
     # exactly this). Fork PRs get a read-only token, so they are skipped on purpose. A refused push is a warning, not a failure.
-    needs: [changes, static, unit, build, integration, contract, e2e-harness, spec-gate, prove-red, result]
+    needs: [changes, static, unit, build, integration, contract, container, e2e-harness, spec-gate, prove-red, result]
     if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 5

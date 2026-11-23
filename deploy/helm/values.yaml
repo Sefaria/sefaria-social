@@ -1,0 +1,130 @@
+# A sketch of the Helm values for the social server in its own namespace (spec 021; plan 7; docs/runbooks/deploy.md). It
+# follows the existing pattern for a standalone TanStack Start app outside the main Sefaria chart: its own namespace, image
+# pushed by this repo's release workflow, its own route on the gateway. It is a starting point for whoever does the
+# infrastructure work (a human task); nothing in this repository applies it, and the infrastructure repository is not touched.
+#
+# No secret value belongs in this file. Secrets are referenced by name; the cluster's secret store creates them.
+# Every variable the server reads (app/src/server/config.ts) appears below, from the ConfigMap or the Secret; a test
+# (factory/test/acceptance-021.test.mjs) keeps the two lists in step.
+
+namespace: sefaria-social
+
+image:
+  # Written by release.yml after it pushes the image; always by digest, never a moving tag.
+  repository: us-east1-docker.pkg.dev/PROJECT/REPOSITORY/sefaria-social-server
+  digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+# Rolling update with no lost capacity; the old ReplicaSet stays for `helm rollback`.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+revisionHistoryLimit: 5
+
+containerPort: 3200
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3200
+
+# Plan 9 D2 default: social.sefaria.org, its own gateway route. The API is Bearer-token only (no cookies).
+route:
+  enabled: true
+  hostnames: [social.sefaria.org]
+  # Paths the server answers. The surface bundle is NOT served here: it is published to the asset origin (spec 020).
+  paths: ["/api/", "/assets/", "/social"]
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000 # the image's `node` user
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+# GET /api/v1/health answers 200 when Postgres answers `select 1` within 2 s, else 503 (spec 005).
+livenessProbe:
+  httpGet:
+    path: /api/v1/health
+    port: 3200
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /api/v1/health
+    port: 3200
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 2
+
+# The server stops on SIGTERM within 8 s (app/scripts/start.mjs).
+terminationGracePeriodSeconds: 15
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 192Mi
+  limits:
+    memory: 512Mi
+
+# Migrations run before each upgrade with the same image (forward-only; app/scripts/migrate.mjs).
+migrations:
+  enabled: true
+  hook: pre-install,pre-upgrade
+  command: ["node", "app/scripts/migrate.mjs"]
+
+# Non-secret configuration (a ConfigMap named below).
+configMap:
+  name: sefaria-social-config
+  data:
+    SOCIAL_JWKS_URL: https://www.sefaria.org/.well-known/sefaria-social-jwks.json
+    SOCIAL_TOKEN_ISSUER: https://www.sefaria.org
+    SOCIAL_TOKEN_AUDIENCE: sefaria-social
+    RELAY_INTERNAL_URL: https://rooms.sefaria.org
+    SOCIAL_ALLOWED_ORIGINS: https://www.sefaria.org,https://www.sefaria.org.il
+    LOG_LEVEL: info
+
+# Secret values, by name only. The Secret (sefaria-social-secrets) is created by the cluster's secret store.
+secret:
+  name: sefaria-social-secrets
+  keys:
+    - DATABASE_URL
+    - USER_DELETED_WEBHOOK_SECRET
+    - RELAY_INTERNAL_SECRET
+
+# What the Deployment's env becomes (rendered by the chart from configMap and secret above).
+env:
+  - name: SOCIAL_JWKS_URL
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SOCIAL_JWKS_URL } }
+  - name: SOCIAL_TOKEN_ISSUER
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SOCIAL_TOKEN_ISSUER } }
+  - name: SOCIAL_TOKEN_AUDIENCE
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SOCIAL_TOKEN_AUDIENCE } }
+  - name: RELAY_INTERNAL_URL
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: RELAY_INTERNAL_URL } }
+  - name: SOCIAL_ALLOWED_ORIGINS
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SOCIAL_ALLOWED_ORIGINS } }
+  - name: LOG_LEVEL
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: LOG_LEVEL } }
+  - name: DATABASE_URL
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: DATABASE_URL } }
+  - name: USER_DELETED_WEBHOOK_SECRET
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: USER_DELETED_WEBHOOK_SECRET } }
+  - name: RELAY_INTERNAL_SECRET
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: RELAY_INTERNAL_SECRET } }
+
+podDisruptionBudget:
+  minAvailable: 1

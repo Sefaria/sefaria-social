@@ -113,12 +113,11 @@ describe("doctor: agent lanes", () => {
   it("allows a reporter job that needs result (it runs after it), and still catches a job that is in neither", () => {
     const root = copyOfRepo();
     expect(checkResultNeeds(root)).toEqual([]);
-    edit(
-      root,
-      ".github/workflows/ci.yml",
-      "needs: [changes, static, unit, build, integration, contract, e2e-harness, spec-gate, prove-red, result]",
-      "needs: [changes]",
-    );
+    // The metrics job's needs end with `result`; match the list by shape so adding a CI job does not break this test.
+    const ci = read(root, ".github/workflows/ci.yml");
+    const metricsNeeds = ci.match(/needs: \[[^\]\n]*, result\]/)?.[0];
+    expect(metricsNeeds).toBeDefined();
+    edit(root, ".github/workflows/ci.yml", metricsNeeds, "needs: [changes]");
     expect(checkResultNeeds(root)).toEqual([
       "ci.yml job 'metrics' is not in result.needs, so its failure would not block a merge",
     ]);

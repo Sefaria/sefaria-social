@@ -1,0 +1,19 @@
+# The build context of the server image (Dockerfile): source and lockfile only. No local builds, dependencies, secrets,
+# test output or agent state.
+**/node_modules
+**/dist
+**/dist-surface
+**/.wrangler
+**/.dev.vars
+.git
+.github
+.claude
+.factory
+.env
+.env.*
+test-results
+playwright-report
+qa
+reports
+.stryker-tmp
+**/*.log
