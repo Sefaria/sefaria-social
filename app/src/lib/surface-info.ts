@@ -4,7 +4,7 @@
  */
 export const SURFACE = {
   id: "social",
-  name: "Sefaria Social",
+  name: "Sefaria Social (preview demo)",
   contract: { major: 1, minor: 0 },
 } as const;
 
