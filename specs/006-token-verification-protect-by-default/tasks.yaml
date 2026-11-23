@@ -1,0 +1,24 @@
+- id: T-001
+  title: Verify Sefaria identity tokens against the configured JWKS
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/server/auth/**"
+    - "app/src/server/http/**"
+    - "app/src/server/config.ts"
+    - "app/src/api.auth.int.test.ts"
+    - "test/integration/**"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- verify", "npm run test:integration -- api.auth", "npm run typecheck"]
+  completes: [IDENT-006]
+- id: T-002
+  title: Protect every API route by default, with an explicit public list
+  acs: [AC-004, AC-005]
+  files:
+    - "app/src/server/http/**"
+    - "app/src/api.routes.int.test.ts"
+    - "test/integration/**"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:integration -- api.routes", "npm run typecheck"]
+  completes: [API-006]
