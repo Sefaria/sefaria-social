@@ -58,3 +58,26 @@ export async function relayStatus(roomId: string): Promise<RoomStatusDto> {
     return OFFLINE_STATUS;
   }
 }
+
+/**
+ * Tell the relay a user's account was deleted (plan 6.3): it closes their sockets in these rooms and refuses them everywhere
+ * until their tokens have expired. Never throws; a failure is logged and the caller's deletion stands.
+ */
+export async function dropUserFromRelay(userId: number, rooms: string[]): Promise<boolean> {
+  try {
+    const res = await call("internal/drop-user", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ userId, rooms }),
+    });
+    if (res === null) return false; // no relay configured (local development)
+    if (!res.ok) {
+      log.error("relay.drop_failed", { status: res.status });
+      return false;
+    }
+    return true;
+  } catch (e) {
+    log.error("relay.drop_failed", { error: e instanceof Error ? e.name : "unknown" });
+    return false;
+  }
+}

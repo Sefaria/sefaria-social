@@ -11,6 +11,7 @@ function served(method: string, path: string): unknown {
   return handlers?.[method];
 }
 
+const relayClients = import.meta.glob<Record<string, unknown>>("./server/services/relay.ts");
 const load = async () => (await import("../../test/integration/harness")).harness(getRouter());
 type Room = { id: string; title: string; ownerUserId: number; role: string };
 const MISSING = "6f1c2d3e-4b5a-4c6d-8e7f-001122334455";
@@ -161,4 +162,47 @@ describe("spec 011: status and CORS", () => {
       delete process.env.SOCIAL_ALLOWED_ORIGINS;
     }
   });
+});
+
+describe("spec 011: deletion reaches the relay", () => {
+  // @feature IDENT-049 Account deletion drops the user from the relay
+  // @ac 011/AC-004
+  it("after the deletion commits, the relay drops the user from their rooms; a relay failure is logged and the webhook still succeeds", async () => {
+    const mod = await relayClients["./server/services/relay.ts"]?.();
+    expect(Object.keys(mod ?? {}), "server/services/relay.ts exports dropUserFromRelay").toContain("dropUserFromRelay");
+    const { support, relay, protocols } = await withRelay();
+    try {
+      const h = await load();
+      const owner = await h.token(5151);
+      const doomed = await h.token(4242);
+      const roomA = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "A" } })).json as Room;
+      const roomB = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "B" } })).json as Room;
+      for (const r of [roomA, roomB]) await h.call("POST", `/api/v1/rooms/${r.id}/members`, { token: doomed });
+      const peers = [
+        await support.connect(relay.mf, `/r/${roomA.id}`, { protocols: await protocols("4242") }),
+        await support.connect(relay.mf, `/r/${roomB.id}`, { protocols: await protocols("4242") }),
+      ];
+      peers.forEach((p) => p.send(support.join("4242")));
+      await expect.poll(() => peers.map((p) => support.lastParticipants(p)?.length)).toEqual([1, 1]);
+
+      const body = JSON.stringify({ event: "user.deleted", id: "evt-0001", occurred_at: "2026-11-23T01:02:03Z", user_id: 4242 });
+      const res = await h.webhook(body);
+      expect([res.status, res.json]).toEqual([200, { status: "processed" }]);
+      await expect.poll(() => peers.map((p) => p.closed)).toEqual([true, true]);
+      const back = await support.connect(relay.mf, `/r/${roomA.id}`, { protocols: await protocols("4242") });
+      expect(back.status).toBe(401);
+
+      // The relay down: the deletion still commits, the webhook answers processed, and the failure is logged.
+      await relay.close();
+      await h.call("POST", "/api/v1/rooms", { token: await h.token(6161), body: { title: "C" } });
+      const body2 = JSON.stringify({ event: "user.deleted", id: "evt-0002", occurred_at: "2026-11-23T01:02:04Z", user_id: 6161 });
+      const res2 = await h.webhook(body2);
+      expect([res2.status, res2.json]).toEqual([200, { status: "processed" }]);
+      expect(await h.sql("select count(*)::int as n from rooms where owner_user_id = 6161")).toEqual([{ n: 0 }]);
+      expect(h.logs.filter((l) => JSON.parse(l).msg === "relay.drop_failed")).toHaveLength(1);
+    } finally {
+      withoutRelay();
+      await relay.close().catch(() => undefined);
+    }
+  }, 60_000);
 });

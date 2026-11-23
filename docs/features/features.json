@@ -337,14 +337,16 @@
       "area": "ident",
       "name": "Account deletion drops the user from the relay",
       "description": "After the deletion webhook commits, the server asks the relay to drop the user from their rooms.",
-      "status": "planned",
+      "status": "built",
       "spec": "011",
       "acs": [
         "011/AC-004"
       ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.join.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
