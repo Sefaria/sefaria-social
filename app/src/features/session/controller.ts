@@ -19,13 +19,24 @@ export const TARGET_WAIT_MS = 1_500;
 export const FALLBACK_URL = "/texts";
 /** An enter whose context never shows up in the address is abandoned after this long. */
 export const ENTER_TIMEOUT_MS = 10_000;
+/** A press on a card holds the room's session this long; an enlarge within it takes over (spec 017 AC-004). */
+export const PREFETCH_MS = 10_000;
+
+export interface EnlargeOptions {
+  /** Where to land when the room's stream has no state yet: a card passes its ref's reader address (spec 018). */
+  fallbackUrl?: string;
+}
 
 export interface RoomController {
   view(): SessionView;
   subscribe(cb: () => void): () => void;
   /** Rooms the viewer entered and has not left (their connection stays while they browse elsewhere). */
   liveRooms(): string[];
-  enlarge(roomId: string): Promise<void>;
+  enlarge(roomId: string, opts?: EnlargeOptions): Promise<void>;
+  /** Resolves true once the viewer is in this room's context (expanded or detached), false after `ms`. */
+  whenEntered(roomId: string, ms: number): Promise<boolean>;
+  /** Prepare a room's session on a press (one socket, held PREFETCH_MS unless an enlarge follows). Signed out: nothing. */
+  prefetch(roomId: string): void;
   minimise(): void;
   /** Leave the room's session: out of its context if in it, and close its connection. */
   leave(roomId: string): void;
@@ -51,6 +62,14 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
   let offClient: (() => void) | null = null;
   let enterTimer: ReturnType<typeof setTimeout> | null = null;
   let restoreAfterLeave: ReaderSnapshot | null = null;
+  const prefetched = new Map<string, { release: () => void; timer: ReturnType<typeof setTimeout> }>();
+  const dropPrefetch = (roomId: string) => {
+    const p = prefetched.get(roomId);
+    if (!p) return;
+    clearTimeout(p.timer);
+    prefetched.delete(roomId);
+    p.release();
+  };
 
   const emit = () => [...listeners].forEach((cb) => cb());
   const step = (event: SessionEvent) => {
@@ -177,7 +196,7 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
     },
     liveRooms: () => [...live.keys()],
 
-    async enlarge(roomId) {
+    async enlarge(roomId, opts) {
       if (roomOf(view) === roomId && view.kind !== "leaving") return;
       if (view.kind !== "idle" && view.kind !== "card") return;
       if (!host.viewer.get()) {
@@ -188,6 +207,7 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       const location = host.location.get();
       const ownPlace = isReaderPage(location.pathname) ? host.reader.state.getSnapshot() : null;
       if (!live.has(roomId)) live.set(roomId, sessions.acquire(roomId, "live"));
+      dropPrefetch(roomId); // the live hold keeps the prepared session (and its socket) open from here
       emit();
       // R9 (2): the target, validated by the follow gate when it arrived.
       const target = await targetFor(roomId);
@@ -198,7 +218,30 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
         ENTER_TIMEOUT_MS,
       );
       // R9 (3): one push, with ctx. (4) happens in onContext once the reader reports the context.
-      host.navigate(withCtx(target?.url ?? FALLBACK_URL, { kind: "room", id: roomId }));
+      host.navigate(withCtx(target?.url ?? opts?.fallbackUrl ?? FALLBACK_URL, { kind: "room", id: roomId }));
+    },
+
+    whenEntered(roomId, ms) {
+      const inRoom = () => (view.kind === "expanded" || view.kind === "detached") && view.context.id === roomId;
+      if (inRoom()) return Promise.resolve(true);
+      return new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => finish(false), ms);
+        listeners.add(check);
+        function check() {
+          if (inRoom()) finish(true);
+        }
+        function finish(ok: boolean) {
+          clearTimeout(timer);
+          listeners.delete(check);
+          resolve(ok);
+        }
+      });
+    },
+
+    prefetch(roomId) {
+      if (!host.viewer.get() || live.has(roomId) || prefetched.has(roomId)) return;
+      const release = sessions.acquire(roomId, "prefetch");
+      prefetched.set(roomId, { release, timer: setTimeout(() => dropPrefetch(roomId), PREFETCH_MS) });
     },
 
     minimise() {
@@ -237,6 +280,7 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       dropContext();
       for (const release of live.values()) release();
       live.clear();
+      for (const roomId of [...prefetched.keys()]) dropPrefetch(roomId);
       if (enterTimer) clearTimeout(enterTimer);
     },
   };

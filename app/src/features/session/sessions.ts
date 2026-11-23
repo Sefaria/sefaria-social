@@ -1,5 +1,5 @@
 // One connection per joined room (plan 4.5: a socket opens only for a room the viewer is in — its lobby, its reader context,
-// or a live session they entered — never for a card). Holds are reference counts: the lobby holds while it is open, the
+// or a live session they entered — never for a card that nobody has pressed). Holds are reference counts: the lobby holds while it is open, the
 // persistent mount while a social ctx is in the address, and "live" from entering until the viewer leaves. The last release
 // closes the socket. Every connection asks the host for a fresh identity token, which travels in Sec-WebSocket-Protocol.
 import {
@@ -14,7 +14,8 @@ import { pageTextSource } from "~/lib/sefaria-text";
 import { roomReader, type RoomReader } from "./room-reader";
 
 export const RELAY_SUBPROTOCOL = "sefaria-social.v1";
-export type Hold = "lobby" | "context" | "live";
+/** "prefetch": a press on a feed card prepares the room before the click lands (spec 017 AC-004). */
+export type Hold = "lobby" | "context" | "live" | "prefetch";
 
 export interface RoomSession {
   roomId: string;
