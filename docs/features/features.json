@@ -647,6 +647,26 @@
       "changed": []
     },
     {
+      "id": "OPS-022",
+      "area": "ops",
+      "name": "Coolify deployment with a preview per pull request",
+      "description": "docker-compose.coolify.yml builds app (the server, migrating before it serves), surface (the release build behind nginx, no-cache manifest, immutable assets, any origin), relay (the Worker in workerd from its environment) and postgres; one Coolify app is the shared dev backend and builds a full preview per pull request.",
+      "status": "built",
+      "spec": "022",
+      "acs": [
+        "022/AC-001",
+        "022/AC-002",
+        "022/AC-003"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-022.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "OPS-080",
       "area": "ops",
       "name": "Agent lanes skip with a notice when credentials are absent",

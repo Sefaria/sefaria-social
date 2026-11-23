@@ -1,0 +1,63 @@
+# Sefaria Social on Coolify (spec 022; docs/runbooks/previews.md). One Coolify app built from this file: its main deployment is
+# the shared dev backend that staging and cauldrons use, and every pull request gets a preview with its own copy of all four
+# services. Coolify sets each service's public domain (preview hosts are <pr>.<domain>) and supplies the variables below; a
+# variable set on the app applies to every preview too, so none of them may be specific to one pull request.
+services:
+  app:
+    # The social server (Dockerfile, spec 021): API, webhooks and health. Applies the committed migrations, then serves.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["sh", "-c", "node app/scripts/migrate.mjs && exec node app/scripts/start.mjs"]
+    environment:
+      DATABASE_URL: "postgres://social:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/social"
+      SOCIAL_JWKS_URL: "${SOCIAL_JWKS_URL}"
+      SOCIAL_TOKEN_ISSUER: "${SOCIAL_TOKEN_ISSUER}"
+      SOCIAL_ALLOWED_ORIGINS: "${SOCIAL_ALLOWED_ORIGINS}"
+      USER_DELETED_WEBHOOK_SECRET: "${USER_DELETED_WEBHOOK_SECRET}"
+      RELAY_INTERNAL_URL: "http://relay:8787"
+      RELAY_INTERNAL_SECRET: "${SERVICE_PASSWORD_RELAY}"
+    expose:
+      - "3200"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  surface:
+    # The surface bundle the reader loads: /manifest.json and the hashed files it lists.
+    build:
+      context: .
+      dockerfile: deploy/coolify/surface.Dockerfile
+    expose:
+      - "8080"
+
+  relay:
+    # The rooms relay: the Worker in workerd (wrangler dev). The reader connects to wss://<relay domain>/r/<roomId>.
+    build:
+      context: .
+      dockerfile: deploy/coolify/relay.Dockerfile
+    environment:
+      ALLOWED_ORIGINS: "${SOCIAL_ALLOWED_ORIGINS}"
+      JWKS_URL: "${SOCIAL_JWKS_URL}"
+      TOKEN_ISSUER: "${SOCIAL_TOKEN_ISSUER}"
+      RELAY_INTERNAL_SECRET: "${SERVICE_PASSWORD_RELAY}"
+    expose:
+      - "8787"
+
+  postgres:
+    # Each deployment's own database (a preview's is thrown away with it).
+    image: postgres:17.7-bookworm@sha256:86e0b703649d7a792bd9243ee28afc9d8f7c6b2b5638077c9d6882d4d472bbfd
+    environment:
+      POSTGRES_USER: social
+      POSTGRES_PASSWORD: "${SERVICE_PASSWORD_POSTGRES}"
+      POSTGRES_DB: social
+    volumes:
+      - social-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U social -d social"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  social-postgres:
