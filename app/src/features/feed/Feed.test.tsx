@@ -13,12 +13,17 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-async function setup(opts: SupportModule.FeedSetup = {}) {
+async function loadSupport() {
   const support = await mods["./test-feed.tsx"]?.();
   expect(support, "app/src/features/feed/test-feed.tsx (and the feed) exist").toBeDefined();
-  const r = await support!.renderFeed(opts);
+  return support!;
+}
+
+async function setup(opts: SupportModule.FeedSetup | ((s: typeof SupportModule) => SupportModule.FeedSetup) = {}) {
+  const support = await loadSupport();
+  const r = await support.renderFeed(typeof opts === "function" ? opts(support) : opts);
   teardown.push(r.unmount);
-  return { ...r, support: support! };
+  return { ...r, support };
 }
 
 const headings = (el: HTMLElement) => [...el.querySelectorAll("[data-social-page=feed] h2")].map((h) => h.textContent);
@@ -28,7 +33,7 @@ describe("the feed page", () => {
   // @ac 015/AC-003
   it("shows Live now, Scheduled and Recent in that order, says when a section is empty, and reads again every 30 seconds", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    const { el, api, support } = await setup({ feed: { ...(await mods["./test-feed.tsx"]!()).FEED, scheduled: [] } });
+    const { el, api, support } = await setup((s) => ({ feed: { ...s.FEED, scheduled: [] } }));
     await vi.waitFor(() => expect(el.querySelector("[data-feed-state]")?.getAttribute("data-feed-state")).toBe("ready"));
     expect(headings(el)).toEqual(["Live now", "Scheduled", "Recent"]);
     expect(el.querySelector("[data-feed-section=scheduled] p")?.textContent).toBe("Nothing is scheduled yet.");
