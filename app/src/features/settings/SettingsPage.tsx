@@ -14,7 +14,12 @@ export function SettingsPage({ tab }: { tab: SettingsTab | undefined }) {
       <ul className={styles.tabs}>
         {SETTINGS_TABS.map((name) => (
           <li key={name}>
-            <Link to="/social/settings" search={{ tab: name }} aria-current={name === current ? "page" : undefined} className={styles.tab}>
+            <Link
+              to="/social/settings"
+              search={{ tab: name }}
+              aria-current={name === current ? "page" : undefined}
+              className={styles.tab}
+            >
               {t.tabs[name]}
             </Link>
           </li>

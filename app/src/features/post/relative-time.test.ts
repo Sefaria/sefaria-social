@@ -2,7 +2,7 @@
 // @feature FEED-063 The composer and the timeline on /social
 import { describe, expect, it } from "vitest";
 import { stringsFor } from "~/features/shell/strings";
-import { relative } from "./RelativeTime";
+import { relative } from "~/ui/RelativeTime";
 
 const NOW = Date.parse("2026-11-24T12:00:00Z");
 const at = (ms: number) => new Date(NOW - ms).toISOString();

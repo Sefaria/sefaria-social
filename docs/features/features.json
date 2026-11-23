@@ -302,7 +302,7 @@
       "depends_on": {},
       "tests": [
         "e2e/social.spec.ts",
-        "app/src/ui/RelativeTime.test.ts"
+        "app/src/features/post/relative-time.test.ts"
       ],
       "since": null,
       "changed": []
