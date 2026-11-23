@@ -1,5 +1,5 @@
 // Notifications as sentences (spec 026 AC-004), in both interface languages.
-// @feature FEED-067 The notifications list, unread count and marking read
+// @feature FEED-067 The notifications list, unread count and the activity page
 import { describe, expect, it } from "vitest";
 import { stringsFor } from "~/features/shell/strings";
 import { sentence } from "./ActivityPage";

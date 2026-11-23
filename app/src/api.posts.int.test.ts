@@ -103,7 +103,7 @@ describe("spec 023: posts and the timeline", () => {
     expect((await h.call("GET", "/api/v1/timeline?tab=nope", { token: viewer })).status).toBe(400);
   });
 
-  // @feature FEED-062 A post's own page data and deleting a post
+  // @feature FEED-062 A post's own page and deleting a post
   // @ac 023/AC-003
   it("reads one post with its replies oldest first; only its author deletes it; a deleted post is 404", async () => {
     expect(served("GET", "/api/v1/posts/$postId"), "GET /api/v1/posts/$postId is served").toBeTypeOf("function");

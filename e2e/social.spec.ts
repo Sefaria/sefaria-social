@@ -54,9 +54,11 @@ const postWith = (page: Page, text: string) => mount(page).locator("article[data
 test.describe("posts, replies and Yasher koach", () => {
   // @feature FEED-063 The composer and the timeline on /social
   // @ac 023/AC-004
-  // @feature FEED-062 A post's own page data and deleting a post
+  // @feature FEED-062 A post's own page and deleting a post
   // @ac 023/AC-005
-  test("a learner posts a thought anchored to a source; it tops Following; its page shows the source and replies", async ({ browser }) => {
+  test("a learner posts a thought anchored to a source; it tops Following; its page shows the source and replies", async ({
+    browser,
+  }) => {
     const me = persona("Composer Learner");
     const { page, context } = await as(browser, me);
     await page.goto("/social");
@@ -119,9 +121,11 @@ test.describe("posts, replies and Yasher koach", () => {
 });
 
 test.describe("profiles and follows", () => {
-  // @feature IDENT-101 A profile page's data: counts, follow state and posts
+  // @feature IDENT-101 A profile page: kind, bio, counts, follow state and posts
   // @ac 025/AC-005
-  test("following from Who to follow turns the button at once; the profile page shows kind, bio, counts and posts", async ({ browser }) => {
+  test("following from Who to follow turns the button at once; the profile page shows kind, bio, counts and posts", async ({
+    browser,
+  }) => {
     const me = persona("Follow Learner");
     const name = `Beit Midrash ${me.id}`;
     const admin = persona("Gabbai");
@@ -173,7 +177,7 @@ test.describe("profiles and follows", () => {
 });
 
 test.describe("activity", () => {
-  // @feature FEED-067 The notifications list, unread count and marking read
+  // @feature FEED-067 The notifications list, unread count and the activity page
   // @ac 026/AC-003
   // @ac 026/AC-004
   test("the unread badge counts what happened; the activity page links to it and clears the badge", async ({ browser }) => {
@@ -207,15 +211,22 @@ test.describe("sharing", () => {
   // @feature FEED-068 Share a post or a profile
   // @ac 027/AC-001
   // @ac 027/AC-002
-  test("Share offers copy, WhatsApp and email with the post's absolute link; copying announces it; Escape returns focus", async ({ browser }) => {
+  test("Share offers copy, WhatsApp and email with the post's absolute link; copying announces it; Escape returns focus", async ({
+    browser,
+  }) => {
     const me = persona("Share Learner");
-    const post = await api(await tokenFor(me), "POST", "/api/v1/posts", { body: `What is hateful to you ${me.id}`, ref: "Shabbat 31a" });
+    const post = await api(await tokenFor(me), "POST", "/api/v1/posts", {
+      body: `What is hateful to you ${me.id}`,
+      ref: "Shabbat 31a",
+    });
     const { page, context } = await as(browser, me);
     await page.goto(`/social/p/${post.id}`);
     const share = mount(page).locator("[data-share]").first();
     await share.locator("[data-action=share]").click();
     const menu = share.locator("[data-share-menu]");
-    await expect(menu.locator("[data-share-item]")).toHaveText(["Copy link", "WhatsApp", "Email"].concat(await menu.locator("[data-share-item=native]").count() ? ["Share…"] : []));
+    await expect(menu.locator("[data-share-item]")).toHaveText(
+      ["Copy link", "WhatsApp", "Email"].concat((await menu.locator("[data-share-item=native]").count()) ? ["Share…"] : []),
+    );
     const link = `http://localhost:${new URL(page.url()).port}/social/p/${post.id}`;
     const wa = await menu.locator("[data-share-item=whatsapp]").getAttribute("href");
     expect(decodeURIComponent(wa!.replace("https://wa.me/?text=", ""))).toBe(`What is hateful to you ${me.id}\n${link}`);

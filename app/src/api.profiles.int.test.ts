@@ -67,7 +67,7 @@ describe("spec 025: profiles and follows", () => {
     expect((await h.call("PATCH", "/api/v1/profiles/me", { token, body: { bio: "x".repeat(301) } })).status).toBe(400);
   });
 
-  // @feature IDENT-101 A profile page's data: counts, follow state and posts
+  // @feature IDENT-101 A profile page: kind, bio, counts, follow state and posts
   // @ac 025/AC-002
   it("reads any profile with its kind, counts, follow state and latest posts; an unknown one is 404", async () => {
     expect(served("GET", "/api/v1/profiles/$profileId"), "GET /api/v1/profiles/$profileId is served").toBeTypeOf("function");
@@ -187,7 +187,7 @@ describe("spec 026: notifications", () => {
     expect(await kinds(gabbai)).toEqual(["follow:Fan"]);
   });
 
-  // @feature FEED-067 The notifications list, unread count and marking read
+  // @feature FEED-067 The notifications list, unread count and the activity page
   // @ac 026/AC-002
   it("lists notifications newest first with the post they are about and the unread count; marking read clears it", async () => {
     expect(served("POST", "/api/v1/notifications/read"), "POST /api/v1/notifications/read is served").toBeTypeOf("function");
