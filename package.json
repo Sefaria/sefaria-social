@@ -21,7 +21,7 @@
     "test": "vitest run --project unit",
     "test:arch": "vitest run --project architecture",
     "test:all": "vitest run",
-    "test:e2e": "playwright test --pass-with-no-tests",
+    "test:e2e": "npm run build:surface && npm run build:harness && playwright test",
     "factory": "node factory/cli.mjs",
     "atlas:build": "node factory/cli.mjs atlas:build",
     "test:factory": "vitest run --project factory",
@@ -31,7 +31,11 @@
     "api:generate": "tsx app/scripts/openapi.ts",
     "api:breaking": "tsx app/scripts/openapi-breaking.ts",
     "purge-user": "tsx app/scripts/purge-user.ts",
-    "smoke:server": "node app/scripts/smoke.mjs"
+    "smoke:server": "node app/scripts/smoke.mjs",
+    "build:surface": "npm run build:surface -w app",
+    "build:harness": "npm run build -w @sefaria-social/harness",
+    "harness": "npm run serve -w @sefaria-social/harness",
+    "test:contract": "vitest run --project contract && npm run check -w @sefaria-social/host-contract"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -43,6 +47,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
     "openapi-typescript": "^7.13.0",
+    "jsdom": "^27.0.1",
     "prettier": "^3.6.2",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",

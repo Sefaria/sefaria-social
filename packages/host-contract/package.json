@@ -1,0 +1,19 @@
+{
+  "name": "@sefaria-social/host-contract",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Pinned SurfaceHost contract from the reader, zod schemas for everything that crosses it, and the in-memory fake host.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fake-host": "./src/fake-host.ts",
+    "./pinned/surface-manifest.v1.schema.json": "./pinned/surface-manifest.v1.schema.json"
+  },
+  "scripts": {
+    "pin": "node scripts/pin.mjs",
+    "check": "node scripts/pin.mjs --check"
+  },
+  "dependencies": {
+    "zod": "^4.6.6"
+  }
+}

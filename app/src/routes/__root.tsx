@@ -2,8 +2,12 @@
 import type { ReactNode } from "react";
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 
-// Standalone mode only for now: the document shell (<html>) is rendered here. In surface mode the root renders content only
-// (plan section 4.1); spike S1 decides how the mode reaches the root.
+import { SocialLayout } from "~/features/shell/SocialLayout";
+import { SocialNotFound } from "~/features/shell/SocialNotFound";
+
+// The Start app's root (standalone mode, R5): it renders the document shell (<html>). The surface has its own root, which
+// renders content only (app/src/surface/route-tree.tsx); both trees share the page components and the frame
+// (docs/decisions/0003-two-builds.md).
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -13,12 +17,15 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootComponent,
+  notFoundComponent: SocialNotFound,
 });
 
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
+      <SocialLayout>
+        <Outlet />
+      </SocialLayout>
     </RootDocument>
   );
 }

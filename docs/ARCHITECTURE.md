@@ -22,8 +22,11 @@ only through the host ([ROUTING.md](ROUTING.md)). Identity comes from Django as 
 | Start app | `app/vite.config.ts`         | Node server (`app/dist/server`) and client assets                    |
 | Surface   | `app/vite.surface.config.ts` | ES module `surface.[hash].js`, chunks, one CSS file, `manifest.json` |
 
-Both builds use the same route components; the root renders an `<html>` shell only in standalone mode. The surface config is an
-empty stub until spike S1, which records how one route tree backs both builds in `decisions/0001-two-builds.md`.
+Both builds use the same route components and shared route definitions (`features/shell/social-routes.ts`) over **two thin
+route trees**: the Start app's file routes (whose root renders the `<html>` shell) and the surface's code-based tree
+(`surface/route-tree.tsx`, content only). Same `/social/…` paths, no basepath; `app/src/route-trees.test.ts` checks they match.
+Why: [decisions/0003-two-builds.md](decisions/0003-two-builds.md). `npm run build:surface` writes `app/dist-surface/`
+(`assets/surface.<hash>.js`, chunks, one CSS file, `manifest.json` in the reader's format with sha384 hashes).
 
 ## Layers in `app/src`
 
@@ -31,15 +34,15 @@ empty stub until spike S1, which records how one route tree backs both builds in
 lib  →  (server | ui)  →  features  →  routes | surface
 ```
 
-| Layer       | Holds                                                                          | May import                         |
-| ----------- | ------------------------------------------------------------------------------ | ---------------------------------- |
-| `lib/`      | Pure code shared by both sides: schemas, ids, the `ctx` codec                  | `lib`                              |
-| `server/`   | Server only: `db/`, `auth/`, `services/`, `webhooks/`, `http/`, `api/`, `log/` | `lib`, `server`. Never React       |
-| `ui/`       | Presentational components                                                      | `lib`, `ui`                        |
-| `features/` | `feed/`, `room/`, `shiur/`, `presence/`, `session/`                            | `lib`, `ui`, `features`            |
-| `routes/`   | File routes: UI pages and `api/` server routes                                 | Everything to its left             |
-| `surface/`  | `entry.ts` (mount), `host-history.ts`, `host-context.tsx`                      | `lib`, `ui`, `features`, `surface` |
-| entry files | Files directly in `app/src` (`router.tsx`, the generated `routeTree.gen.ts`)   | Anything; no layer imports them    |
+| Layer       | Holds                                                                               | May import                         |
+| ----------- | ----------------------------------------------------------------------------------- | ---------------------------------- |
+| `lib/`      | Pure code shared by both sides: schemas, ids, the `ctx` codec                       | `lib`                              |
+| `server/`   | Server only: `db/`, `auth/`, `services/`, `webhooks/`, `http/`, `api/`, `log/`      | `lib`, `server`. Never React       |
+| `ui/`       | Presentational components                                                           | `lib`, `ui`                        |
+| `features/` | `feed/`, `room/`, `shiur/`, `settings/`, `presence/`, `session/`, `host/`, `shell/` | `lib`, `ui`, `features`            |
+| `routes/`   | File routes: UI pages and `api/` server routes                                      | Everything to its left             |
+| `surface/`  | `entry.ts` (mount), `host-history.ts`, `host-context.tsx`                           | `lib`, `ui`, `features`, `surface` |
+| entry files | Files directly in `app/src` (`router.tsx`, the generated `routeTree.gen.ts`)        | Anything; no layer imports them    |
 
 Rules, each checked by `test/architecture/` (Vitest project `architecture`, run in the CI `static` job):
 
@@ -55,8 +58,8 @@ Imports are read with the TypeScript parser: static imports, re-exports, `import
 `~/` alias means `app/src`. Each rule has negative tests that write a violating tree to a temporary directory and assert the rule
 reports it, so a rule that silently stops working turns CI red.
 
-Open for S1: the surface build must mount the shared route tree, which today lives in an entry file. If the surface needs to
-import it, S1 changes rule (a) for `surface` and records why.
+S1 outcome: the surface never imports the generated route tree (it carries the Start runtime and, from P2, server routes), so
+rule (a) is unchanged. Tests that compare the two trees live directly in `app/src` (entry level).
 
 ## Packages
 
