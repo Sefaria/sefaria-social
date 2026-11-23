@@ -97,6 +97,11 @@ export interface FakeHostOptions {
   sliceScopes?: Record<string, "personal" | "moment">;
   /** Token lifetime in seconds. Default 300. */
   tokenTtl?: number;
+  /**
+   * Where identity tokens come from instead of the fake HS256 key: end-to-end tests hand in RS256 tokens signed by the key a
+   * local JWKS publishes, so the real server and relay accept them. Still rejects while signed out, like the reader.
+   */
+  token?: () => Promise<string>;
 }
 
 export interface FakeHostCalls {
@@ -202,8 +207,10 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
     return { v: SNAPSHOT_V, url: stripCtx(url()), nav: null, slices: Object.fromEntries(picked) };
   };
 
-  // Snapshot subscribers hear about every address change, like the reader's state API.
+  // Snapshot subscribers hear about every address change the person makes, like the reader's state API, which never reports
+  // a change its own applySnapshot made.
   history.subscribe(() => {
+    if (applying) return;
     const s = snapshot();
     stateSubs.forEach((cb) => cb({ url: s.url }, s));
   });
@@ -302,6 +309,7 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
       async identityToken() {
         if (!viewer) throw new SignedOutError("signed out");
         calls.tokens++;
+        if (opts.token) return opts.token();
         const now = Math.floor(Date.now() / 1000);
         return mintFakeToken({ sub: String(viewer.id), name: viewer.name, iat: now, exp: now + (opts.tokenTtl ?? 300) });
       },

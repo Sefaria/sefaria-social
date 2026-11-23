@@ -10,7 +10,17 @@ import { loadSurface } from "./load-surface";
 
 declare global {
   interface Window {
-    __HARNESS_CONFIG__?: { interfaceLang?: "english" | "hebrew"; viewer?: Viewer };
+    __HARNESS_CONFIG__?: {
+      interfaceLang?: "english" | "hebrew";
+      viewer?: Viewer;
+      /** An identity token for the viewer (end-to-end tests with the local server and relay). */
+      token?: string;
+      apiOrigin?: string;
+      relayOrigin?: string;
+      /** The fake reader's slices and their scopes (personal settings vs what is on screen). */
+      slices?: Record<string, { v: number; value: unknown }>;
+      sliceScopes?: Record<string, "personal" | "moment">;
+    };
   }
 }
 
@@ -21,6 +31,13 @@ const fake = createFakeHost({
   history: createBrowserFakeHistory(),
   ui: { interfaceLang: config.interfaceLang ?? "english" },
   viewer: config.viewer ?? null,
+  ...(config.token ? { token: async () => config.token! } : {}),
+  config: {
+    ...(config.apiOrigin ? { apiOrigin: config.apiOrigin } : {}),
+    ...(config.relayOrigin ? { relayOrigin: config.relayOrigin } : {}),
+  },
+  ...(config.slices ? { slices: config.slices } : {}),
+  ...(config.sliceScopes ? { sliceScopes: config.sliceScopes } : {}),
 });
 const { host } = fake;
 // The harness itself is visible for debugging in the browser console.

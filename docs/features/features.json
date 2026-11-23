@@ -733,7 +733,7 @@
       "area": "sess",
       "name": "Two learners in one room on the harness",
       "description": "P3's exit journey in Playwright with two browser contexts, a local relay and server.",
-      "status": "planned",
+      "status": "built",
       "spec": "014",
       "acs": [
         "014/AC-004"
@@ -743,7 +743,9 @@
         "persistent"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "e2e/rooms.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
