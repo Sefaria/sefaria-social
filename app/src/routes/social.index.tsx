@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FeedPage } from "~/features/feed/FeedPage";
+import { FeedRoutePage } from "~/features/feed/Feed";
 import { validateNoSearch } from "~/features/shell/social-routes";
 
-// `/social`: the feed (plan R6). A placeholder until the feed spec is built.
+// `/social`: the feed (plan R6; spec 015).
 export const Route = createFileRoute("/social/")({
   validateSearch: validateNoSearch,
-  component: FeedPage,
+  component: FeedRoutePage,
 });

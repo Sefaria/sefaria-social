@@ -15,6 +15,8 @@ export const SUMMARY_SLICE = "social.summary";
 
 export interface RoomStatus {
   ref: string | null;
+  /** The ref in Hebrew, when the publisher knew it (spec 016). */
+  heRef: string | null;
   title: string | null;
   participants: number;
 }
@@ -37,8 +39,10 @@ export function authorized(req: Request, secret: string | undefined): boolean {
 }
 
 /** The summary in a stream's snapshot slices, if it is well formed. */
-export function summaryOf(slices: Record<string, { v: number; value: unknown }> | undefined): Pick<RoomStatus, "ref" | "title"> {
-  const value = slices?.[SUMMARY_SLICE]?.value as { ref?: unknown; title?: unknown } | undefined;
+export function summaryOf(
+  slices: Record<string, { v: number; value: unknown }> | undefined,
+): Pick<RoomStatus, "ref" | "heRef" | "title"> {
+  const value = slices?.[SUMMARY_SLICE]?.value as { ref?: unknown; heRef?: unknown; title?: unknown } | undefined;
   const text = (x: unknown) => (typeof x === "string" && x.length > 0 && x.length <= 300 ? x : null);
-  return { ref: text(value?.ref), title: text(value?.title) };
+  return { ref: text(value?.ref), heRef: text(value?.heRef), title: text(value?.title) };
 }

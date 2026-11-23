@@ -1,0 +1,21 @@
+- id: T-001
+  title: Enlarge from a card with a transition, onto the card's ref
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "app/src/features/feed/**"
+    - "app/src/features/session/controller.ts"
+    - "app/src/surface/room-context.test.tsx"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- enlarge-transition", "npm test -- FeedCard", "npm run typecheck"]
+  completes: [FEED-018]
+- id: T-002
+  title: End to end — enlarging lands on the card's source without a reload
+  acs: [AC-001]
+  files:
+    - "e2e/feed.spec.ts"
+    - "e2e/stack/publisher.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:e2e"]
+  completes: [SESS-055]

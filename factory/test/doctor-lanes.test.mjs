@@ -99,10 +99,13 @@ describe("doctor: agent lanes", () => {
   it("fails when a spec or an atlas entry names a surface that is not in the map", () => {
     const root = copyOfRepo();
     edit(root, "specs/000-hello-surface/spec.md", "surfaces: [feed]", "surfaces: [feeed]");
-    edit(root, "docs/features/features.json", '"feed"', '"lobby-x"');
+    // Break the first atlas entry whose first surface is "feed" (the area field also says "feed"; leave it alone).
+    const atlas = JSON.parse(read(root, "docs/features/features.json"));
+    const firstFeed = atlas.features.find((f) => f.surfaces[0] === "feed").id;
+    edit(root, "docs/features/features.json", '"surfaces": [\n        "feed"', '"surfaces": [\n        "lobby-x"');
     expect(checkSurfaceMap(root)).toEqual([
       "spec 000 names surface 'feeed', which is not in factory/surface-map.yaml",
-      "atlas entry HOST-000 names surface 'lobby-x', which is not in factory/surface-map.yaml",
+      `atlas entry ${firstFeed} names surface 'lobby-x', which is not in factory/surface-map.yaml`,
     ]);
   });
 

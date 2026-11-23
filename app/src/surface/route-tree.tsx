@@ -4,7 +4,7 @@
 // components and the same search validation; the root renders content only, never a document.
 import { Outlet, createRootRouteWithContext, createRoute, lazyRouteComponent } from "@tanstack/react-router";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
-import { FeedPage } from "~/features/feed/FeedPage";
+import { FeedRoutePage } from "~/features/feed/Feed";
 import { SocialLayout } from "~/features/shell/SocialLayout";
 import { SocialNotFound } from "~/features/shell/SocialNotFound";
 import { SOCIAL_PATHS, requireId, validateNoSearch, validateSettingsSearch } from "~/features/shell/social-routes";
@@ -27,7 +27,7 @@ const feedRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SOCIAL_PATHS.feed,
   validateSearch: validateNoSearch,
-  component: FeedPage,
+  component: FeedRoutePage,
 });
 
 // The other pages are separate chunks: the reader downloads them only when the user opens them.

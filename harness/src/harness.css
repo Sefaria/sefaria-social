@@ -1,6 +1,9 @@
+/* The harness's own chrome uses the reader's tokens too, so the dark theme is dark everywhere (visual checks, plan 4.7). */
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
+  background: var(--sefaria-color-page);
+  color: var(--sefaria-color-text);
 }
 .harness-header {
   display: flex;
@@ -8,7 +11,7 @@ body {
   gap: 0.75rem;
   align-items: center;
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--sefaria-color-border);
 }
 .harness-controls {
   display: flex;
@@ -18,7 +21,7 @@ body {
 }
 .harness-reader {
   padding: 0.5rem 1rem;
-  background: #f6f6f2;
+  background: var(--sefaria-color-surface-subtle);
   font-size: 0.85rem;
 }
 .harness-reader dl {

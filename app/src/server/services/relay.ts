@@ -9,14 +9,17 @@ const TIMEOUT_MS = 2_000;
 export interface RoomStatusDto {
   live: boolean;
   ref: string | null;
+  /** The ref in Hebrew from the publisher's summary (spec 016); null when unknown or from a relay that predates it. */
+  heRef: string | null;
   title: string | null;
   participants: number;
 }
 
-export const OFFLINE_STATUS: RoomStatusDto = { live: false, ref: null, title: null, participants: 0 };
+export const OFFLINE_STATUS: RoomStatusDto = { live: false, ref: null, heRef: null, title: null, participants: 0 };
 
 const RelayStatus = z.object({
   ref: z.string().max(300).nullable(),
+  heRef: z.string().max(300).nullable().default(null),
   title: z.string().max(300).nullable(),
   participants: z.int().nonnegative(),
 });

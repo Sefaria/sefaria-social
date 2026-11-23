@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SocialIndexRouteImport } from './routes/social.index'
 import { Route as SocialSplatRouteImport } from './routes/social.$'
 import { Route as SocialSettingsRouteImport } from './routes/social.settings'
+import { Route as ApiV1FeedRouteImport } from './routes/api/v1/feed'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
@@ -36,6 +37,11 @@ const SocialSplatRoute = SocialSplatRouteImport.update({
 const SocialSettingsRoute = SocialSettingsRouteImport.update({
   id: '/social/settings',
   path: '/social/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1FeedRoute = ApiV1FeedRouteImport.update({
+  id: '/api/v1/feed',
+  path: '/api/v1/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/social/$': typeof SocialSplatRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
+  '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/social/$': typeof SocialSplatRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social': typeof SocialIndexRoute
+  '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/social/$': typeof SocialSplatRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
+  '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/social/$'
     | '/social/settings'
     | '/social/'
+    | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/me'
     | '/api/v1/rooms'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/social/$'
     | '/social/settings'
     | '/social'
+    | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/me'
     | '/api/v1/rooms'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/social/$'
     | '/social/settings'
     | '/social/'
+    | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/me'
     | '/api/v1/rooms'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   SocialSplatRoute: typeof SocialSplatRoute
   SocialSettingsRoute: typeof SocialSettingsRoute
   SocialIndexRoute: typeof SocialIndexRoute
+  ApiV1FeedRoute: typeof ApiV1FeedRoute
   ApiV1HealthRoute: typeof ApiV1HealthRoute
   ApiV1MeRoute: typeof ApiV1MeRoute
   ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       path: '/social/settings'
       fullPath: '/social/settings'
       preLoaderRoute: typeof SocialSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/feed': {
+      id: '/api/v1/feed'
+      path: '/api/v1/feed'
+      fullPath: '/api/v1/feed'
+      preLoaderRoute: typeof ApiV1FeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/health': {
@@ -336,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   SocialSplatRoute: SocialSplatRoute,
   SocialSettingsRoute: SocialSettingsRoute,
   SocialIndexRoute: SocialIndexRoute,
+  ApiV1FeedRoute: ApiV1FeedRoute,
   ApiV1HealthRoute: ApiV1HealthRoute,
   ApiV1MeRoute: ApiV1MeRoute,
   ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,

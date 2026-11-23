@@ -1,0 +1,28 @@
+- id: T-001
+  title: SourceText — fetch, validate, sanitise and render the text, gated on visibility
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/lib/sefaria-text.ts"
+    - "app/src/lib/sefaria-text.test.ts"
+    - "app/src/ui/SourceText.tsx"
+    - "app/src/ui/SourceText.test.tsx"
+    - "app/src/ui/source-text.module.css"
+    - "app/src/ui/README.md"
+    - "harness/fixtures/texts/**"
+    - "harness/fixtures/record-texts.mjs"
+    - "harness/serve.mjs"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- SourceText", "npm test -- sefaria-text", "npm run typecheck"]
+  completes: [FEED-017]
+- id: T-002
+  title: Prepare the room on press
+  acs: [AC-004]
+  files:
+    - "app/src/features/session/sessions.ts"
+    - "app/src/features/session/controller.ts"
+    - "app/src/features/feed/**"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- FeedCard", "npm run typecheck"]
+  completes: [FEED-053]

@@ -21,8 +21,28 @@ export const Room = z.object({
 export const RoomStatus = z.object({
   live: z.boolean(),
   ref: z.string().nullable(),
+  heRef: z.string().nullable(),
   title: z.string().nullable(),
   participants: z.int().nonnegative(),
+});
+
+const Iso = z.iso.datetime({ offset: true });
+
+export const Feed = z.object({
+  live: z.array(
+    z.object({
+      id: z.uuid(),
+      title: z.string(),
+      ref: z.string().nullable(),
+      heRef: z.string().nullable(),
+      sourceTitle: z.string().nullable(),
+      participants: z.int().positive(),
+    }),
+  ),
+  scheduled: z.array(
+    z.object({ id: z.uuid(), title: z.string(), ref: z.string().nullable(), roomId: z.uuid().nullable(), scheduledAt: Iso }),
+  ),
+  recent: z.array(z.object({ id: z.uuid(), title: z.string(), updatedAt: Iso })),
 });
 
 export const Me = z.object({ userId: z.int().positive(), name: z.string() });
@@ -153,6 +173,16 @@ export const getRoomStatus = defineEndpoint({
   responses: { 200: { description: "The room's live status.", schema: RoomStatus } },
 });
 
+export const getFeed = defineEndpoint({
+  operationId: "getFeed",
+  method: "GET",
+  path: "/api/v1/feed",
+  summary:
+    "The viewer's feed: their live rooms (with what is being learned and how many are in each), upcoming shiurim they may attend, and their other rooms. At most 20 per section.",
+  tags: ["feed"],
+  responses: { 200: { description: "The feed.", schema: Feed } },
+});
+
 export const userDeleted = defineEndpoint({
   operationId: "userDeletedWebhook",
   method: "POST",
@@ -176,5 +206,6 @@ export const ENDPOINTS = [
   joinRoom,
   leaveRoom,
   getRoomStatus,
+  getFeed,
   userDeleted,
 ] as const;

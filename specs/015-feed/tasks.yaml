@@ -1,0 +1,31 @@
+- id: T-001
+  title: GET /api/v1/feed — live, scheduled and recent for the viewer
+  acs: [AC-001, AC-002]
+  files:
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/services/feed.ts"
+    - "app/src/server/services/relay.ts"
+    - "app/src/routes/api/v1/feed.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.status.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.feed.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "packages/api-client/src/index.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- api.feed", "npm run typecheck"]
+  completes: [FEED-015]
+- id: T-002
+  title: The feed page at /social
+  acs: [AC-003, AC-004, AC-005]
+  files:
+    - "app/src/features/feed/**"
+    - "app/src/routes/social.index.tsx"
+    - "app/src/surface/route-tree.tsx"
+    - "app/src/features/shell/strings.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- FeedPage", "npm run typecheck"]
+  completes: [FEED-051]

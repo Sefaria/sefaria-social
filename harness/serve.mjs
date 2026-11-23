@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const HARNESS_DIR = path.join(here, "dist");
 const SURFACE_DIR = path.resolve(here, "../app/dist-surface");
+const TEXTS_DIR = path.join(here, "fixtures", "texts");
+const TEXTS_PATH = "/api/v3/texts/";
 const PORT = Number(process.env.HARNESS_PORT) || 3300;
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -28,8 +30,31 @@ async function file(dir, rel) {
   }
 }
 
+/**
+ * Sefaria's public text API, played from recorded answers (harness/fixtures/record-texts.mjs; public data), so cards render
+ * real text without the network. Same file-name rule as the recorder. An unrecorded ref is 404, like an unknown ref.
+ */
+async function serveText(url, res) {
+  let ref;
+  try {
+    ref = decodeURIComponent(url.pathname.slice(TEXTS_PATH.length));
+  } catch {
+    ref = "";
+  }
+  const found = ref && (await file(TEXTS_DIR, `/${ref.replace(/[^A-Za-z0-9.-]+/g, "_")}.json`));
+  if (!found) {
+    res.writeHead(404, { "content-type": "application/json" }).end(JSON.stringify({ error: `no recorded text for ${ref}` }));
+    return;
+  }
+  res.writeHead(200, { "content-type": TYPES[".json"], "cache-control": "no-cache" }).end(await readFile(found));
+}
+
 createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
+  if (url.pathname.startsWith(TEXTS_PATH)) {
+    await serveText(url, res);
+    return;
+  }
   const isSurface = url.pathname.startsWith("/surface/");
   const found = isSurface
     ? await file(SURFACE_DIR, url.pathname.slice("/surface".length))

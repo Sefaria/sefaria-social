@@ -1,0 +1,71 @@
+/* A light card (spec 016). Reader design tokens only (plan 4.7); logical properties so Hebrew mirrors. */
+.card {
+  position: relative;
+  display: grid;
+  gap: var(--sefaria-space-2, 0.5rem);
+  padding: var(--sefaria-space-4, 1rem);
+  border: 1px solid var(--sefaria-color-border, currentColor);
+  border-radius: var(--sefaria-radius-lg, 8px);
+  background: var(--sefaria-color-surface, transparent);
+  color: var(--sefaria-color-text, inherit);
+}
+
+.card:hover {
+  border-color: var(--sefaria-color-border-strong, currentColor);
+}
+
+.card:focus-within {
+  outline: 2px solid var(--sefaria-color-focus, currentColor);
+  outline-offset: 2px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
+
+.link {
+  color: var(--sefaria-color-text-strong, inherit);
+  text-decoration: none;
+}
+
+/* The one link covers the whole card. Its own outline is drawn by the card (:focus-within) around the whole target. */
+.link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.link:focus-visible {
+  outline: none;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-1, 0.25rem);
+  margin: 0;
+  color: var(--sefaria-color-text-secondary, inherit);
+  font-size: 0.875rem;
+}
+
+.live {
+  font-weight: 700;
+  color: var(--sefaria-color-text, inherit);
+}
+
+.dot {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: var(--sefaria-color-voices, currentColor);
+}
+
+.where {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sefaria-color-text-secondary, inherit);
+}

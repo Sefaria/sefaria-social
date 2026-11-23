@@ -32,6 +32,7 @@ surfaces:
     reach: "harness: /social/settings"
     paths:
       - "app/src/routes/social.settings*"
+      - "app/src/features/settings/**"
   session:
     description: Being in a room from any reader route — follow, enlarge, minimise, the persistent mount.
     reach: "harness: any reader route with a social ctx value; two browser contexts"
@@ -71,6 +72,9 @@ surfaces:
 shared:
   - "app/src/lib/**"
   - "app/src/ui/**"
+  - "app/src/features/host/**"
+  - "app/src/features/shell/**"
+  - "app/src/features/api/**"
   - "packages/api-client/**"
 
 ignore:
@@ -89,3 +93,6 @@ ignore:
   - "app/tsconfig.json"
   - "app/vite.config.ts"
   - "app/vite.surface.config.ts"
+  - "app/surface-build.ts"
+  - "app/drizzle.config.ts"
+  - "app/scripts/**"

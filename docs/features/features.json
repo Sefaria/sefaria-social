@@ -62,6 +62,165 @@
       "changed": []
     },
     {
+      "id": "FEED-015",
+      "area": "feed",
+      "name": "Feed API: live, scheduled and recent for the viewer",
+      "description": "GET /api/v1/feed: the viewer's live rooms (relay status with ref, heRef, title, count), upcoming shiurim they may attend, and their other rooms; 200 with everything recent when the relay is down.",
+      "status": "built",
+      "spec": "015",
+      "acs": [
+        "015/AC-001",
+        "015/AC-002"
+      ],
+      "surfaces": [
+        "feed",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.feed.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-016",
+      "area": "feed",
+      "name": "Light card: article with one stretched link and status in words",
+      "description": "A card per room or shiur: an article labelled by its heading, one stretched link to the lobby or shiur page, status from the server's read in words, the ref in the interface language; checked visually in English, Hebrew and dark.",
+      "status": "built",
+      "spec": "016",
+      "acs": [
+        "016/AC-001",
+        "016/AC-002",
+        "016/AC-005"
+      ],
+      "surfaces": [
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/feed/FeedCard.test.tsx",
+        "e2e/feed-visual.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-017",
+      "area": "feed",
+      "name": "Source-text renderer from the public text API",
+      "description": "ui/SourceText.tsx: validated, plain-text only (no markup from the API), Hebrew and English blocks with lang and dir, a fallback line on failure.",
+      "status": "built",
+      "spec": "017",
+      "acs": [
+        "017/AC-001",
+        "017/AC-002"
+      ],
+      "surfaces": [
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/lib/sefaria-text.test.ts",
+        "app/src/ui/SourceText.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-018",
+      "area": "feed",
+      "name": "Enlarge from a card with a view transition",
+      "description": "Pressing a live card enlarges into the room (R9) with the card's ref as fallback target; view transition where supported, transform and clip-path otherwise, none with reduced motion; modified clicks stay links.",
+      "status": "built",
+      "spec": "018",
+      "acs": [
+        "018/AC-002",
+        "018/AC-003",
+        "018/AC-004"
+      ],
+      "surfaces": [
+        "feed",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/feed/FeedCard.test.tsx",
+        "app/src/features/feed/enlarge-transition.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-051",
+      "area": "feed",
+      "name": "Feed page at /social",
+      "description": "Live now, Scheduled and Recent sections of cards; signed-out prompt with the reader's sign-in; error alert; polls every 30 s; both interface languages.",
+      "status": "built",
+      "spec": "015",
+      "acs": [
+        "015/AC-003",
+        "015/AC-004",
+        "015/AC-005"
+      ],
+      "surfaces": [
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/feed/Feed.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-052",
+      "area": "feed",
+      "name": "A feed of live cards opens no sockets",
+      "description": "No WebSocket and no reader for cards until a press or an enlarge; counted in component tests and end to end.",
+      "status": "built",
+      "spec": "016",
+      "acs": [
+        "016/AC-003"
+      ],
+      "surfaces": [
+        "feed",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/feed/FeedCard.test.tsx",
+        "e2e/feed.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-053",
+      "area": "feed",
+      "name": "Prefetch on visibility and on press",
+      "description": "A card's text is fetched only within 200px of the viewport, once per ref; pressing a live card prepares the room's session (prefetch hold, released after 10 s).",
+      "status": "built",
+      "spec": "017",
+      "acs": [
+        "017/AC-003",
+        "017/AC-004"
+      ],
+      "surfaces": [
+        "feed",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/feed/FeedCard.test.tsx",
+        "app/src/lib/sefaria-text.test.ts",
+        "app/src/ui/SourceText.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",
@@ -1029,6 +1188,48 @@
       "depends_on": {},
       "tests": [
         "e2e/rooms.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-054",
+      "area": "sess",
+      "name": "Stream summary carries heRef and the source's title",
+      "description": "social.summary = {ref, heRef, title}; heRef and title from the text API's answer, republished when it lands; the relay status read and the server pass heRef on.",
+      "status": "built",
+      "spec": "016",
+      "acs": [
+        "016/AC-004"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/session/room-reader.test.ts",
+        "packages/relay/src/relay.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-055",
+      "area": "sess",
+      "name": "Enlarging from a card lands on its source without a reload",
+      "description": "End to end on the harness: the applied snapshot's ref equals the card's, the document is not reloaded, Back returns to the feed.",
+      "status": "built",
+      "spec": "018",
+      "acs": [
+        "018/AC-001"
+      ],
+      "surfaces": [
+        "feed",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "e2e/feed.spec.ts"
       ],
       "since": null,
       "changed": []

@@ -1,0 +1,34 @@
+/* The source text in a card (spec 017). Reader design tokens only (plan 4.7). Two lines per language, then an ellipsis. */
+.text {
+  display: grid;
+  gap: var(--sefaria-space-1, 0.25rem);
+  min-block-size: 2lh;
+}
+
+.he,
+.en {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  color: var(--sefaria-color-text, inherit);
+}
+
+.he {
+  font-family: var(--sefaria-font-text-he, serif);
+  font-size: 1.125em;
+  line-height: 1.5;
+}
+
+.en {
+  font-family: var(--sefaria-font-text-en, serif);
+  line-height: 1.45;
+}
+
+.unavailable {
+  margin: 0;
+  color: var(--sefaria-color-text-secondary, inherit);
+  font-size: 0.875em;
+}
