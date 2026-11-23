@@ -4,7 +4,7 @@
   "title": "The social surface mounts in a fake reader page and every R6 page loads and deep-links under /social",
   "approved": true,
   "approved_by": "akiva@sefaria.org",
-  "spec_sha": "sha256:70f78561e2adf2fddab663510dcc1659dae81126d6bee46849eec9314bc03a19",
+  "spec_sha": "sha256:1bb291c36c09a614450b9b848be7e7cb235e8c693fc351d94308ee8f7f596c1e",
   "feature_sha": "sha256:b8ca187a9c8bc6ac0b628ad90262e4ac3b533af96d4c3273b8fd15f6f849a3c1",
   "tasks_sha": "sha256:25027666dcbc8fd350fc893e434bf020cb22a5b5c2ce52b00bf5dc3ff98d5782",
   "risk": "high",
