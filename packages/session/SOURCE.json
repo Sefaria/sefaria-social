@@ -6,7 +6,12 @@
   "root": "reader-next",
   "license": "GPL-3.0 (Sefaria-Project root LICENSE); the files carry no licence header",
   "note": "Copied, then: ~/ imports rewritten to relative ones, vitest globals imported explicitly, Prettier run with this repo settings. Every other change is listed in localChanges.",
-  "localChanges": [],
+  "localChanges": [
+    "src/client.ts: canPublish option and refresh() (publish only while social allows it).",
+    "src/core/transports/websocket.ts: protocols may be a function, called before every connection (a fresh token in Sec-WebSocket-Protocol).",
+    "src/outgoing.ts: /social pages are private (never published as a reader place).",
+    "src/client.test.ts: runs in jsdom (it reads document.visibilityState)."
+  ],
   "files": {
     "src/core/api.ts": {
       "from": "src/lib/reader-state/core/api.ts",

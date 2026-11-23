@@ -5,7 +5,12 @@ import { createListeners, utf8Bytes } from "./listeners";
 export const MAX_FRAME_BYTES = 16 * 1024;
 
 export interface WebSocketTransportOptions {
-  protocols?: string | string[];
+  /**
+   * Subprotocols to offer. A function is called before every connection, the first and each reconnect, so a short-lived
+   * credential can travel in `Sec-WebSocket-Protocol` and never in the URL (local change in social's copy). A rejection
+   * counts as a failed attempt and is retried with back-off.
+   */
+  protocols?: string | string[] | (() => string | string[] | Promise<string | string[]>);
   /** Reconnect delays: initialMs, doubling per failed attempt up to maxMs, each jittered. Default { initialMs: 500, maxMs: 30_000 }. */
   backoff?: { initialMs: number; maxMs: number };
   /** Messages kept while connecting; the oldest are dropped past this (a keyframe on reconnect supersedes them). Default 100. */
@@ -56,9 +61,31 @@ export function createWebSocketTransport<M>(
 
   function connect() {
     if (status === "closed") return;
+    if (typeof protocols !== "function") {
+      open(protocols);
+      return;
+    }
+    let attemptProtocols: Promise<string | string[]>;
+    try {
+      attemptProtocols = Promise.resolve(protocols());
+    } catch (err) {
+      attemptProtocols = Promise.reject(err);
+    }
+    attemptProtocols.then(
+      (p) => {
+        if (status !== "closed" && socket === null && timer === null) open(p);
+      },
+      () => {
+        // No credential now (signed out, a network error): try again later, like a dropped socket.
+        if (status !== "closed") scheduleReconnect();
+      },
+    );
+  }
+
+  function open(offered: string | string[] | undefined) {
     let ws: WebSocket;
     try {
-      ws = new WebSocket(url, protocols);
+      ws = new WebSocket(url, offered);
     } catch (err) {
       // A malformed URL never becomes valid: give up instead of retrying forever.
       console.warn("WebSocket transport: cannot connect", err);

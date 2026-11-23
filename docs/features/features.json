@@ -538,7 +538,7 @@
       "area": "sess",
       "name": "Room protocol and client in packages/session",
       "description": "The room (validation, limits, spotlight, streams) and the session client (follow through the state API, publish when needed), started from the reader's src/lib/session.",
-      "status": "planned",
+      "status": "built",
       "spec": "009",
       "acs": [
         "009/AC-001",
@@ -547,7 +547,9 @@
       ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "packages/session/src/acceptance.test.ts"
+      ],
       "since": null,
       "changed": []
     },
