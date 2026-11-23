@@ -36,7 +36,12 @@ export default defineConfig({
   ],
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    // Two browser contexts and no layout under test: the rooms journeys run once, on desktop.
-    { name: "phone", use: { ...devices["Pixel 7"] }, testIgnore: ["reader/**", "rooms.spec.ts"] },
+    // Several browser contexts and shared server state: the rooms and feed journeys and the feed's visual baselines run once,
+    // on desktop.
+    {
+      name: "phone",
+      use: { ...devices["Pixel 7"] },
+      testIgnore: ["reader/**", "rooms.spec.ts", "feed.spec.ts", "feed-visual.spec.ts"],
+    },
   ],
 });

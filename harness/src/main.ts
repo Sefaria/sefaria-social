@@ -2,7 +2,8 @@
 // would show (the address, the ctx, the snapshot, every call the surface made), loads the built surface through its manifest
 // and mounts it like the reader does: the page mount under /social and /social/*, the persistent mount on every page.
 //
-// Tests configure it before load with `window.__HARNESS_CONFIG__ = { interfaceLang, viewer }` (Playwright addInitScript).
+// Tests configure it before load with `window.__HARNESS_CONFIG__ = { interfaceLang, theme, viewer, … }` (Playwright
+// addInitScript). Sefaria's text API (/api/v3/texts/…) is answered by harness/serve.mjs from recorded fixtures.
 import type { Unmount } from "@sefaria-social/host-contract";
 import { createFakeHost, type Viewer } from "@sefaria-social/host-contract/fake-host";
 import { createBrowserFakeHistory } from "./browser-history";
@@ -12,6 +13,8 @@ declare global {
   interface Window {
     __HARNESS_CONFIG__?: {
       interfaceLang?: "english" | "hebrew";
+      /** The reader's colour theme (data-theme on <html>, like the reader); "light" by default, as the reader pins it. */
+      theme?: "light" | "dark" | "sepia";
       viewer?: Viewer;
       /** An identity token for the viewer (end-to-end tests with the local server and relay). */
       token?: string;
@@ -52,9 +55,10 @@ async function redeemQaTicket(): Promise<void> {
   config.relayOrigin ??= "ws://127.0.0.1:8787";
 }
 await redeemQaTicket();
+document.documentElement.dataset.theme = config.theme ?? "light";
 const fake = createFakeHost({
   history: createBrowserFakeHistory(),
-  ui: { interfaceLang: config.interfaceLang ?? "english" },
+  ui: { interfaceLang: config.interfaceLang ?? "english", theme: config.theme ?? "light" },
   viewer: config.viewer ?? null,
   ...(config.token ? { token: async () => config.token! } : {}),
   config: {
