@@ -71,7 +71,9 @@ jobs:
           REHEARSAL_TARGET="$RUNNER_TEMP/release-rehearsal"
           export RELEASE_TARGET="file:$REHEARSAL_TARGET"
           mkdir -p "$REHEARSAL_TARGET"
-          npm run -s release -- serve --dir "$REHEARSAL_TARGET" --port 3410 &
+          # The asset origin stand-in; its output goes to a file so it never holds the step's output open.
+          npm run -s release -- serve --dir "$REHEARSAL_TARGET" --port 3410 > "$RUNNER_TEMP/serve.log" 2>&1 &
+          trap 'pkill -f "release/cli.ts serve" || true' EXIT
           for _ in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:3410/ && break; sleep 1; done
           npm run -s release -- publish --version "$VERSION"
           npm run -s release -- smoke --url "http://127.0.0.1:3410/v/$VERSION/manifest.json" --origin https://www.sefaria.org
