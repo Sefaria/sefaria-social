@@ -291,7 +291,8 @@
       "depends_on": {},
       "tests": [
         "app/src/api.ops.int.test.ts",
-        "app/src/db.int.test.ts"
+        "app/src/db.int.test.ts",
+        "app/src/route-trees.test.ts"
       ],
       "since": null,
       "changed": []
