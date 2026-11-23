@@ -37,9 +37,12 @@ export const viewerSchema = z
 export const interfaceLangSchema = z.enum(["english", "hebrew"]);
 export const themeSchema = z.enum(["light", "dark", "sepia"]);
 
+/** An origin the reader configured, or "" when it has none (the contract types it as string; the reader sends "" when unset). */
+const configuredOriginSchema = z.union([z.literal(""), z.string().url()]);
+
 export const hostConfigSchema = z.object({
-  apiOrigin: z.string().url(),
-  relayOrigin: z.string().url(),
+  apiOrigin: configuredOriginSchema,
+  relayOrigin: configuredOriginSchema,
   environment: z.enum(["local", "staging", "production"]),
 });
 
