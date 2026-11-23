@@ -70,7 +70,7 @@ export async function rollback(target: StorageTarget, to?: string, now = new Dat
   const dest = to ?? state.knownGood[0];
   if (!dest)
     throw new Error(
-      `refusing to roll back: ${state.current} is the only version that was ever stable, so there is no known-good version to go back to. ` +
+      `refusing to roll back: there is no known-good version to go back to (current: ${state.current}; rolled back: ${state.rolledBack.join(", ") || "none"}). ` +
         "Fix: publish and promote a fixed version, or turn the reader's social lab off (feature.reader.labs.social) meanwhile.",
     );
   if (!state.knownGood.includes(dest))
