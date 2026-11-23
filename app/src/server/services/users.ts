@@ -28,6 +28,12 @@ export interface DeletionCounts {
   user_display: number;
 }
 
+/** The rooms a user is a member of (owned ones included), for telling the relay after a deletion commits. */
+export async function roomIdsOf(tx: Executor, userId: number): Promise<string[]> {
+  const rows = await tx.select({ id: roomMembers.roomId }).from(roomMembers).where(eq(roomMembers.userId, userId));
+  return rows.map((r) => r.id);
+}
+
 /**
  * Delete every row for `userId` and write its tombstone. Run inside the caller's transaction. Set-based statements in a
  * fixed order; cascades remove other members of the user's rooms and recordings of the user's shiurim.

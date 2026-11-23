@@ -18,7 +18,9 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "zod": "^4.6.7",
-    "@sefaria-social/host-contract": "*"
+    "@sefaria-social/host-contract": "*",
+    "@sefaria-social/api-client": "*",
+    "@sefaria-social/session": "*"
   },
   "devDependencies": {
     "@types/pg": "^8.23.1",

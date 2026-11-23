@@ -28,12 +28,16 @@ describe("spec 007: API contract", () => {
     );
     expect(ops.sort()).toEqual([
       "DELETE /api/v1/rooms/{roomId} deleteRoom secured",
+      "DELETE /api/v1/rooms/{roomId}/members/me leaveRoom secured",
       "GET /api/v1/health getHealth public",
+      "GET /api/v1/me getMe secured",
       "GET /api/v1/rooms listRooms secured",
       "GET /api/v1/rooms/{roomId} getRoom secured",
+      "GET /api/v1/rooms/{roomId}/status getRoomStatus secured",
       "PATCH /api/v1/rooms/{roomId} renameRoom secured",
       "POST /api/v1/internal/user-deleted userDeletedWebhook secured",
       "POST /api/v1/rooms createRoom secured",
+      "POST /api/v1/rooms/{roomId}/members joinRoom secured",
     ]);
   });
 

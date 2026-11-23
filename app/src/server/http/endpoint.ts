@@ -5,7 +5,8 @@
 //      a valid signature over the raw body, and `public` is allowed only for endpoints on PUBLIC_ENDPOINTS;
 //   3. validates path parameters and the body with the contract's zod schemas (400 request.invalid);
 //   4. validates the handler's response against the contract, so nothing undeclared leaves the server;
-//   5. maps errors to { error: { code, message } } and writes exactly one log line, without headers, body or token.
+//   5. maps errors to { error: { code, message } } and writes exactly one log line, without headers, body or token;
+//   6. adds CORS headers for an allowed Origin (./cors.ts); a CORS preflight (OPTIONS) is answered without a token.
 // Protect by default: there is no way to skip step 2, and a method a route does not declare answers 401/405 the same way.
 import type { z } from "zod";
 import { authenticate } from "../auth/authenticate";
@@ -14,6 +15,7 @@ import { getConfig } from "../config";
 import { log } from "../log/logger";
 import { SIGNATURE_HEADER, verifySignature } from "../webhooks/signature";
 import { CORRELATION_HEADER, correlationIdFrom } from "./correlation";
+import { corsHeaders, preflight } from "./cors";
 import { ApiError, errorBody } from "./errors";
 import { PUBLIC_ENDPOINTS } from "./public-routes";
 
@@ -81,8 +83,8 @@ export function defineEndpoint<const S extends EndpointSpec>(spec: S): S & { acc
   return { ...spec, access };
 }
 
-function json(status: number, body: unknown, correlationId: string): Response {
-  const headers = { "cache-control": "no-store", [CORRELATION_HEADER]: correlationId };
+function json(status: number, body: unknown, correlationId: string, extra: Record<string, string> = {}): Response {
+  const headers = { "cache-control": "no-store", [CORRELATION_HEADER]: correlationId, ...extra };
   if (status === 204 || body === undefined) return new Response(null, { status, headers });
   return new Response(JSON.stringify(body), { status, headers: { ...headers, "content-type": "application/json" } });
 }
@@ -130,15 +132,16 @@ async function run(
 ): Promise<Response> {
   const started = performance.now();
   const correlationId = correlationIdFrom(ctx.request.headers.get(CORRELATION_HEADER));
+  const cors = corsHeaders(ctx.request);
   let status = 500;
   try {
     const result = await inner(correlationId);
     status = result.status;
-    return json(result.status, result.body, correlationId);
+    return json(result.status, result.body, correlationId, cors);
   } catch (e) {
     if (e instanceof ApiError) {
       status = e.status;
-      return json(e.status, errorBody(e.code), correlationId);
+      return json(e.status, errorBody(e.code), correlationId, cors);
     }
     log.error("request.failed", {
       method,
@@ -147,7 +150,7 @@ async function run(
       error: e instanceof Error ? e.name : "unknown",
     });
     status = 500;
-    return json(500, errorBody("internal"), correlationId);
+    return json(500, errorBody("internal"), correlationId, cors);
   } finally {
     log.info("request.completed", {
       method,
@@ -198,11 +201,14 @@ export function serve(handlers: Partial<Record<Method, BoundHandler>>): ServerHa
     if (typeof h.endpoint !== "object" || h.endpoint.method !== method)
       throw new Error(`serve(): the ${method} handler must be bind(<endpoint for ${method}>, …)`);
   const path = [...paths][0]!;
+  const declared = bound.map(([m]) => m);
   const ANY = (ctx: RouteCtx) =>
-    run(ctx.request.method, path, ctx, async () => {
-      await authenticate(ctx.request);
-      throw new ApiError(405, "method.not_allowed");
-    });
+    ctx.request.method === "OPTIONS"
+      ? Promise.resolve(preflight(ctx.request, declared))
+      : run(ctx.request.method, path, ctx, async () => {
+          await authenticate(ctx.request);
+          throw new ApiError(405, "method.not_allowed");
+        });
   return { ...handlers, ANY };
 }
 

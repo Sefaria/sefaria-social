@@ -16,3 +16,7 @@ playwright-report/
 /qa/
 /reports/
 /.stryker-tmp/
+
+# The relay's local secrets and wrangler state
+packages/relay/.dev.vars
+packages/relay/.wrangler/

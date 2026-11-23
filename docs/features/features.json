@@ -41,6 +41,27 @@
       "changed": []
     },
     {
+      "id": "API-045",
+      "area": "api",
+      "name": "Room status passthrough and CORS for the reader's origins",
+      "description": "GET /api/v1/rooms/{roomId}/status from the relay with timeout, retry and fallback; CORS from SOCIAL_ALLOWED_ORIGINS.",
+      "status": "built",
+      "spec": "011",
+      "acs": [
+        "011/AC-003",
+        "011/AC-005"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.join.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",
@@ -275,6 +296,84 @@
       "changed": []
     },
     {
+      "id": "IDENT-041",
+      "area": "ident",
+      "name": "Relay accepts only verified Sefaria tokens",
+      "description": "Token from Sec-WebSocket-Protocol verified against the JWKS on upgrade; the token decides the participant's id and name.",
+      "status": "built",
+      "spec": "010",
+      "acs": [
+        "010/AC-002",
+        "010/AC-003"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "packages/relay/src/relay.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-043",
+      "area": "ident",
+      "name": "Relay drops a deleted user",
+      "description": "Internal drop-user call closes the user's sockets and refuses their upgrades for 30 minutes.",
+      "status": "built",
+      "spec": "010",
+      "acs": [
+        "010/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "packages/relay/src/relay.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-049",
+      "area": "ident",
+      "name": "Account deletion drops the user from the relay",
+      "description": "After the deletion webhook commits, the server asks the relay to drop the user from their rooms.",
+      "status": "built",
+      "spec": "011",
+      "acs": [
+        "011/AC-004"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.join.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-082",
+      "area": "ident",
+      "name": "Test-only persona sessions",
+      "description": "POST /api/test/persona (QA server only: SOCIAL_ENV ^test(-|$) and x-qa-persona-secret) returns a persona token and a one-time harness sign-in URL; GET /api/v1/me; never in the production build.",
+      "status": "built",
+      "spec": "082",
+      "acs": [
+        "082/AC-001",
+        "082/AC-002",
+        "082/AC-003"
+      ],
+      "surfaces": [
+        "identity",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/qa.personas.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "OPS-005",
       "area": "ops",
       "name": "Postgres schema, migrations and a public health check",
@@ -313,143 +412,6 @@
       "tests": [
         "app/src/api.ops.int.test.ts"
       ],
-      "since": null,
-      "changed": []
-    },
-    {
-      "id": "ROOM-001",
-      "area": "room",
-      "name": "Room lobby page at /social/r/$roomId",
-      "description": "Placeholder room lobby page; ids must match ^[A-Za-z0-9_-]{8,128}$ (R6).",
-      "status": "built",
-      "spec": "002",
-      "acs": [
-        "002/AC-012"
-      ],
-      "surfaces": [
-        "room-lobby"
-      ],
-      "depends_on": {
-        "host_contract": "1.0"
-      },
-      "tests": [
-        "app/src/surface/mount.contract.test.tsx",
-        "e2e/harness.spec.ts"
-      ],
-      "since": null,
-      "changed": []
-    },
-    {
-      "id": "ROOM-007",
-      "area": "room",
-      "name": "Create, list, rename and delete rooms with ownership checks",
-      "description": "POST/GET /api/v1/rooms and GET/PATCH/DELETE /api/v1/rooms/{roomId}; members read, owners rename and delete, non-members get 404, invalid input 400.",
-      "status": "built",
-      "spec": "007",
-      "acs": [
-        "007/AC-001",
-        "007/AC-002",
-        "007/AC-003",
-        "007/AC-004",
-        "007/AC-005"
-      ],
-      "surfaces": [],
-      "depends_on": {},
-      "tests": [
-        "app/src/api.rooms.int.test.ts"
-      ],
-      "since": null,
-      "changed": []
-    },
-    {
-      "id": "SESS-001",
-      "area": "sess",
-      "name": "Social context in the reader's ctx parameter",
-      "description": "app/src/lib/ctx.ts encodes and decodes social.room.<id> / social.shiur.<id> and adds or removes only social's ctx on a reader URL, keeping every other parameter byte for byte (R3, R11).",
-      "status": "built",
-      "spec": "003",
-      "acs": [
-        "003/AC-001",
-        "003/AC-002",
-        "003/AC-003"
-      ],
-      "surfaces": [
-        "session"
-      ],
-      "depends_on": {
-        "host_contract": "1.0"
-      },
-      "tests": [
-        "app/src/lib/ctx.test.ts"
-      ],
-      "since": null,
-      "changed": []
-    },
-    {
-      "id": "SESS-002",
-      "area": "sess",
-      "name": "Enlarge and minimise session state machine",
-      "description": "app/src/features/session/machine.ts: the SessionView union of plan 4.3 with an explicit transition table; illegal moves are refused and leave the state unchanged.",
-      "status": "built",
-      "spec": "004",
-      "acs": [
-        "004/AC-001",
-        "004/AC-002",
-        "004/AC-003"
-      ],
-      "surfaces": [
-        "session"
-      ],
-      "depends_on": {
-        "host_contract": "1.0"
-      },
-      "tests": [
-        "app/src/features/session/machine.test.ts"
-      ],
-      "since": null,
-      "changed": []
-    },
-    {
-      "id": "SHIUR-001",
-      "area": "shiur",
-      "name": "Shiur page at /social/s/$shiurId",
-      "description": "Placeholder shiur page with a link to a ref through the reader's workspace commands (R15).",
-      "status": "built",
-      "spec": "002",
-      "acs": [
-        "002/AC-013"
-      ],
-      "surfaces": [
-        "shiur"
-      ],
-      "depends_on": {
-        "host_contract": "1.0"
-      },
-      "tests": [
-        "app/src/surface/mount.contract.test.tsx",
-        "e2e/harness.spec.ts"
-      ],
-      "since": null,
-      "changed": []
-    },
-    {
-      "id": "IDENT-082",
-      "area": "ident",
-      "name": "Test-only persona sessions",
-      "description": "POST /api/test/persona issues a persona session only when the environment name matches the test pattern and the shared-secret header matches; 403 otherwise, and a test proves production refuses it. Built by P3.",
-      "status": "planned",
-      "spec": "082",
-      "acs": [
-        "082/AC-001",
-        "082/AC-002",
-        "082/AC-003"
-      ],
-      "surfaces": [
-        "identity",
-        "api"
-      ],
-      "depends_on": {},
-      "tests": [],
       "since": null,
       "changed": []
     },
@@ -694,9 +656,9 @@
     {
       "id": "OPS-092",
       "area": "ops",
-      "name": "QA seed and reset scripts",
-      "description": "npm run qa:seed is idempotent per scenario; npm run qa:reset leaves zero rows in every table, checked against the schema. Built by P3.",
-      "status": "planned",
+      "name": "Idempotent QA seed and schema-checked reset",
+      "description": "npm run qa:seed creates nothing the second time; npm run qa:reset leaves zero rows in every table the schema lists.",
+      "status": "built",
       "spec": "082",
       "acs": [
         "082/AC-004",
@@ -707,7 +669,390 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/qa.personas.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-001",
+      "area": "room",
+      "name": "Room lobby page at /social/r/$roomId",
+      "description": "Placeholder room lobby page; ids must match ^[A-Za-z0-9_-]{8,128}$ (R6).",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-012"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/surface/mount.contract.test.tsx",
+        "e2e/harness.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-007",
+      "area": "room",
+      "name": "Create, list, rename and delete rooms with ownership checks",
+      "description": "POST/GET /api/v1/rooms and GET/PATCH/DELETE /api/v1/rooms/{roomId}; members read, owners rename and delete, non-members get 404, invalid input 400.",
+      "status": "built",
+      "spec": "007",
+      "acs": [
+        "007/AC-001",
+        "007/AC-002",
+        "007/AC-003",
+        "007/AC-004",
+        "007/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.rooms.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-011",
+      "area": "room",
+      "name": "Join and leave a room from its link",
+      "description": "POST /api/v1/rooms/{roomId}/members joins (the room id is the invitation); DELETE .../members/me leaves.",
+      "status": "built",
+      "spec": "011",
+      "acs": [
+        "011/AC-001",
+        "011/AC-002"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.join.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-012",
+      "area": "room",
+      "name": "Presence list",
+      "description": "Who is in the room, live: name, leading, following whom, away; the viewer marked as you.",
+      "status": "built",
+      "spec": "012",
+      "acs": [
+        "012/AC-001",
+        "012/AC-002",
+        "012/AC-003"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/presence/PresenceList.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-044",
+      "area": "room",
+      "name": "Lobby Join button",
+      "description": "A non-member on /social/r/<id> sees Join; signed-out viewers are sent to sign in.",
+      "status": "built",
+      "spec": "011",
+      "acs": [
+        "011/AC-006"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/room/RoomLobbyPage.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-001",
+      "area": "sess",
+      "name": "Social context in the reader's ctx parameter",
+      "description": "app/src/lib/ctx.ts encodes and decodes social.room.<id> / social.shiur.<id> and adds or removes only social's ctx on a reader URL, keeping every other parameter byte for byte (R3, R11).",
+      "status": "built",
+      "spec": "003",
+      "acs": [
+        "003/AC-001",
+        "003/AC-002",
+        "003/AC-003"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/lib/ctx.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-002",
+      "area": "sess",
+      "name": "Enlarge and minimise session state machine",
+      "description": "app/src/features/session/machine.ts: the SessionView union of plan 4.3 with an explicit transition table; illegal moves are refused and leave the state unchanged.",
+      "status": "built",
+      "spec": "004",
+      "acs": [
+        "004/AC-001",
+        "004/AC-002",
+        "004/AC-003"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/features/session/machine.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-009",
+      "area": "sess",
+      "name": "Room protocol and client in packages/session",
+      "description": "The room (validation, limits, spotlight, streams) and the session client (follow through the state API, publish when needed), started from the reader's src/lib/session.",
+      "status": "built",
+      "spec": "009",
+      "acs": [
+        "009/AC-001",
+        "009/AC-002",
+        "009/AC-003"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "packages/session/src/acceptance.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-010",
+      "area": "sess",
+      "name": "Relay: one Durable Object per room in the Workers runtime",
+      "description": "Worker and Durable Object from the reader's relay running packages/session's room; Origin and path checks.",
+      "status": "built",
+      "spec": "010",
+      "acs": [
+        "010/AC-001"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "packages/relay/src/relay.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-013",
+      "area": "sess",
+      "name": "Enlarge into a room's reader context",
+      "description": "R9 and R10: own place kept, target snapshot, push with ctx, apply on context ready; streamed moves replace; Back leaves.",
+      "status": "built",
+      "spec": "013",
+      "acs": [
+        "013/AC-001",
+        "013/AC-002"
+      ],
+      "surfaces": [
+        "room-lobby",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/room-context.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-014",
+      "area": "sess",
+      "name": "Follow, follow again and lead",
+      "description": "Following the spotlight or a picked participant through applySnapshot; breaking away and coming back; taking the lead.",
+      "status": "built",
+      "spec": "014",
+      "acs": [
+        "014/AC-001",
+        "014/AC-002",
+        "014/AC-003"
+      ],
+      "surfaces": [
+        "room-lobby",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/room-following.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-040",
+      "area": "sess",
+      "name": "Protocol fixtures keep social's and the reader's copies in step",
+      "description": "Recorded protocol results from the reader's room code, replayed against packages/session; a drift check against a reader checkout.",
+      "status": "built",
+      "spec": "009",
+      "acs": [
+        "009/AC-004",
+        "009/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "packages/session/src/protocol.contract.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-042",
+      "area": "sess",
+      "name": "Relay status read for cards",
+      "description": "Internal status of a room: ref and title from the spotlight stream's summary slice and the participant count.",
+      "status": "built",
+      "spec": "010",
+      "acs": [
+        "010/AC-004"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "packages/relay/src/relay.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-046",
+      "area": "sess",
+      "name": "Minimise to the own place or the lobby",
+      "description": "R12: push the own place without ctx or the lobby; the persistent mount shows the mini view.",
+      "status": "built",
+      "spec": "013",
+      "acs": [
+        "013/AC-003"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/room-context.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-047",
+      "area": "sess",
+      "name": "Reconnect from ctx alone on a cold load",
+      "description": "R11: the persistent mount connects from the ctx value alone.",
+      "status": "built",
+      "spec": "013",
+      "acs": [
+        "013/AC-004"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/room-context.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-048",
+      "area": "sess",
+      "name": "Nothing personal applied or sent",
+      "description": "R13 and R14: only the viewer's moment slices are applied; outgoing snapshots lose ctx, personal slices and search words, and gain the summary slice.",
+      "status": "built",
+      "spec": "013",
+      "acs": [
+        "013/AC-005",
+        "013/AC-006"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/session/room-reader.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-050",
+      "area": "sess",
+      "name": "Two learners in one room on the harness",
+      "description": "P3's exit journey in Playwright with two browser contexts, a local relay and server.",
+      "status": "built",
+      "spec": "014",
+      "acs": [
+        "014/AC-004"
+      ],
+      "surfaces": [
+        "room-lobby",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "e2e/rooms.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-001",
+      "area": "shiur",
+      "name": "Shiur page at /social/s/$shiurId",
+      "description": "Placeholder shiur page with a link to a ref through the reader's workspace commands (R15).",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-013"
+      ],
+      "surfaces": [
+        "shiur"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/surface/mount.contract.test.tsx",
+        "e2e/harness.spec.ts"
+      ],
       "since": null,
       "changed": []
     }

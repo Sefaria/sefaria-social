@@ -5,15 +5,19 @@ Built in milestone P2 (specs 005–008). Design: [PLAN.md](../PLAN.md) sections 
 
 ## API surface (`/api/v1`)
 
-| Method and path                      | Access                         | What                                                  |
-| ------------------------------------ | ------------------------------ | ----------------------------------------------------- |
-| `GET /api/v1/health`                 | public (the only one)          | `select 1` within 2 s: 200 `ok` or 503 `unavailable`  |
-| `GET /api/v1/rooms`                  | Sefaria token                  | Rooms the caller is a member of, newest first         |
-| `POST /api/v1/rooms`                 | Sefaria token                  | Create `{title}` (1–120 chars); caller is owner       |
-| `GET /api/v1/rooms/{roomId}`         | token + member                 | The room; non-member or missing: 404 `room.not_found` |
-| `PATCH /api/v1/rooms/{roomId}`       | token + owner                  | Rename `{title}`; member: 403 `room.forbidden`        |
-| `DELETE /api/v1/rooms/{roomId}`      | token + owner                  | Delete with memberships: 204                          |
-| `POST /api/v1/internal/user-deleted` | `X-Sefaria-Signature` (Django) | Account deletion: `processed`/`duplicate`/`ignored`   |
+| Method and path                            | Access                         | What                                                                                    |
+| ------------------------------------------ | ------------------------------ | --------------------------------------------------------------------------------------- |
+| `GET /api/v1/health`                       | public (the only one)          | `select 1` within 2 s: 200 `ok` or 503 `unavailable`                                    |
+| `GET /api/v1/rooms`                        | Sefaria token                  | Rooms the caller is a member of, newest first                                           |
+| `POST /api/v1/rooms`                       | Sefaria token                  | Create `{title}` (1–120 chars); caller is owner                                         |
+| `GET /api/v1/rooms/{roomId}`               | token + member                 | The room; non-member or missing: 404 `room.not_found`                                   |
+| `PATCH /api/v1/rooms/{roomId}`             | token + owner                  | Rename `{title}`; member: 403 `room.forbidden`                                          |
+| `DELETE /api/v1/rooms/{roomId}`            | token + owner                  | Delete with memberships: 204                                                            |
+| `POST /api/v1/internal/user-deleted`       | `X-Sefaria-Signature` (Django) | Account deletion: `processed`/`duplicate`/`ignored`; then the relay drops the user (P3) |
+| `GET /api/v1/me`                           | Sefaria token                  | `{userId, name}` from the token (P3, spec 082)                                          |
+| `POST /api/v1/rooms/{roomId}/members`      | Sefaria token                  | Join (the room id is the invitation); idempotent; missing room 404 (P3, spec 011)       |
+| `DELETE /api/v1/rooms/{roomId}/members/me` | token + member                 | Leave; owner: 403 `room.owner_cannot_leave` (P3)                                        |
+| `GET /api/v1/rooms/{roomId}/status`        | token + member                 | `{live, ref, title, participants}` from the relay; offline fallback (P3)                |
 
 - **Token:** `Authorization: Bearer <JWT>` from Django's `POST /api/social/token` (RS256, `aud` `sefaria-social`, `sub` =
   `auth_user.id`, 10 minutes). Verified with `jose` against the JWKS URL (3 s timeout, keys cached, refetch on an unknown
@@ -34,15 +38,18 @@ for any route that answers without credentials and is not on that list.
 
 ## Environment variables
 
-| Variable                      | Required            | Meaning                                                                                                               |
-| ----------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                | yes (has a default) | Postgres URL. Default `postgres://localhost:5432/sefaria_social`                                                      |
-| `SOCIAL_JWKS_URL`             | yes                 | Django's keys: `https://<sefaria origin>/.well-known/sefaria-social-jwks.json`. Unset: every token call is 503        |
-| `SOCIAL_TOKEN_ISSUER`         | yes                 | Must equal Django's `SOCIAL_TOKEN_ISSUER` (default there: the English library origin, e.g. `https://www.sefaria.org`) |
-| `SOCIAL_TOKEN_AUDIENCE`       | no                  | Default `sefaria-social` (Django's fixed `aud`)                                                                       |
-| `USER_DELETED_WEBHOOK_SECRET` | yes                 | Same value as Django's `USER_DELETED_WEBHOOK_SECRET`. Unset: the webhook answers 503 (Django retries)                 |
-| `LOG_LEVEL`                   | no                  | `debug` / `info` (default) / `warn` / `error`                                                                         |
-| `TEST_DATABASE_URL`           | tests only          | Default `postgres://localhost:5432/sefaria_social_test`; the name must contain `test` (it is reset)                   |
+| Variable                      | Required              | Meaning                                                                                                                                        |
+| ----------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                | yes (has a default)   | Postgres URL. Default `postgres://localhost:5432/sefaria_social`                                                                               |
+| `SOCIAL_JWKS_URL`             | yes                   | Django's keys: `https://<sefaria origin>/.well-known/sefaria-social-jwks.json`. Unset: every token call is 503                                 |
+| `SOCIAL_TOKEN_ISSUER`         | yes                   | Must equal Django's `SOCIAL_TOKEN_ISSUER` (default there: the English library origin, e.g. `https://www.sefaria.org`)                          |
+| `SOCIAL_TOKEN_AUDIENCE`       | no                    | Default `sefaria-social` (Django's fixed `aud`)                                                                                                |
+| `USER_DELETED_WEBHOOK_SECRET` | yes                   | Same value as Django's `USER_DELETED_WEBHOOK_SECRET`. Unset: the webhook answers 503 (Django retries)                                          |
+| `RELAY_INTERNAL_URL`          | no                    | The relay's base URL for its internal routes (status, drop-user). Unset: status is always offline and deletions are not sent to the relay (P3) |
+| `RELAY_INTERNAL_SECRET`       | with the above        | Same value as the relay's `RELAY_INTERNAL_SECRET` (P3)                                                                                         |
+| `SOCIAL_ALLOWED_ORIGINS`      | yes (for the surface) | Comma-separated browser origins allowed by CORS: the reader's origins, e.g. `https://www.sefaria.org,https://www.sefaria.org.il` (P3)          |
+| `LOG_LEVEL`                   | no                    | `debug` / `info` (default) / `warn` / `error`                                                                                                  |
+| `TEST_DATABASE_URL`           | tests only            | Default `postgres://localhost:5432/sefaria_social_test`; the name must contain `test` (it is reset)                                            |
 
 Django side (Sefaria-Project PR #4121): set `SOCIAL_TOKEN_PRIVATE_KEYS`, `SOCIAL_TOKEN_ISSUER`, `USER_DELETED_WEBHOOK_URLS`
 (`<social origin>/api/v1/internal/user-deleted`) and `USER_DELETED_WEBHOOK_SECRET`.
@@ -83,3 +90,10 @@ Changing the schema: edit `schema.ts`, run `npm run db:generate -- --name <what>
 schema and migrations differ, and the migration check refuses drop/rename/retype/new NOT NULL without a `-- contract:` line.
 A new table holding a user id must be added to `deleteUserData` (`app/src/server/services/users.ts`) and to the seed in
 `test/integration/schema-walk.ts`; the walk-the-schema test fails until both are done.
+
+## QA and e2e environments (P3)
+
+- `npm run qa:server` (after `npm run build`; needs `SOCIAL_ENV=test-<anything>` and `QA_PERSONA_SECRET`): the built server
+  plus the test-only persona routes (spec 082) on 127.0.0.1:3200; `npm run qa:relay`, `npm run qa:harness`,
+  `npm run qa:seed -- <scenario>|--all`, `npm run qa:reset`. Contract: `e2e/qa/README.md` (F2).
+- `npm run test:e2e` starts `e2e/stack/start.ts` itself (Postgres `E2E_DATABASE_URL`, a JWKS, the API, the relay).

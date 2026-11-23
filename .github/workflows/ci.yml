@@ -173,11 +173,25 @@ jobs:
 
   e2e-harness:
     name: e2e-harness
-    # L4a (plan 5.5): Playwright on the harness, desktop and phone viewports, English and Hebrew.
+    # L4a (plan 5.5): Playwright on the harness, desktop and phone viewports, English and Hebrew; and the multi-user rooms
+    # journey against the local stack (e2e/stack: Postgres below, a JWKS, the built Start server, the relay in wrangler dev).
     needs: [changes, static]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: social
+          POSTGRES_PASSWORD: social
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U social"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      E2E_DATABASE_URL: postgres://social:social@localhost:5432/sefaria_social_e2e_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -235,6 +249,8 @@ jobs:
       - run: npm ci
       - name: Integration tests (real Postgres)
         run: npx vitest run --project integration --reporter=default --reporter=junit --outputFile.junit=test-results/integration.xml
+      - name: Relay tests (the Worker in workerd through Miniflare)
+        run: npx vitest run --project relay --reporter=default --reporter=junit --outputFile.junit=test-results/relay.xml
       - name: Migrations match the schema
         run: |
           npm run db:generate -- --name drift-check < /dev/null
@@ -296,6 +312,20 @@ jobs:
     if: needs.changes.outputs.code == 'true' && github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # New integration acceptance tests load on the merge base's integration project, whose global setup needs Postgres.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: social
+          POSTGRES_PASSWORD: social
+          POSTGRES_DB: sefaria_social_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U social -d sefaria_social_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgres://social:social@localhost:5432/sefaria_social_test
     steps:
       - uses: actions/checkout@v4
         with:

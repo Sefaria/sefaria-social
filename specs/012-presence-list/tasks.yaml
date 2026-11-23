@@ -1,0 +1,18 @@
+- id: T-001
+  title: Room sessions with holds, fresh tokens per connection, and the presence list
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/features/session/sessions.ts"
+    - "app/src/features/session/test-relay.ts"
+    - "app/src/features/session/test-surface.tsx"
+    - "app/src/features/session/use-room-session.ts"
+    - "packages/session/src/index.ts"
+    - "app/src/features/presence/**"
+    - "app/src/features/room/**"
+    - "app/src/features/shell/strings.ts"
+    - "app/package.json"
+    - "package-lock.json"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- PresenceList", "npm run typecheck"]
+  completes: [ROOM-012]

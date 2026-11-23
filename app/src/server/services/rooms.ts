@@ -5,6 +5,7 @@ import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import { roomMembers, rooms } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { relayStatus, type RoomStatusDto } from "./relay";
 import { upsertDisplay } from "./users";
 
 export interface RoomDto {
@@ -89,4 +90,33 @@ export async function deleteRoom(identity: Identity, roomId: string, db: Db = ge
     if (m.role !== "owner") throw new ApiError(403, "room.forbidden");
     await tx.delete(rooms).where(eq(rooms.id, roomId)); // memberships go with it (on delete cascade)
   });
+}
+
+/**
+ * Join a room (spec 011). The room id is a random UUID and acts as the invitation: any signed-in user who holds it may join.
+ * Idempotent: a member (or the owner) gets the room back unchanged. A room that does not exist is room.not_found.
+ */
+export async function joinRoom(identity: Identity, roomId: string, db: Db = getDb()): Promise<RoomDto> {
+  return db.transaction(async (tx) => {
+    const [room] = await tx.select({ id: rooms.id }).from(rooms).where(eq(rooms.id, roomId)).limit(1);
+    if (!room) throw new ApiError(404, "room.not_found");
+    await upsertDisplay(tx, identity);
+    await tx.insert(roomMembers).values({ roomId, userId: identity.userId, role: "member" }).onConflictDoNothing();
+    return toDto(await membership(tx, identity, roomId));
+  });
+}
+
+/** Leave a room (spec 011). The owner cannot leave; a non-member gets room.not_found. */
+export async function leaveRoom(identity: Identity, roomId: string, db: Db = getDb()): Promise<void> {
+  await db.transaction(async (tx) => {
+    const m = await membership(tx, identity, roomId);
+    if (m.role === "owner") throw new ApiError(403, "room.owner_cannot_leave");
+    await tx.delete(roomMembers).where(and(eq(roomMembers.roomId, roomId), eq(roomMembers.userId, identity.userId)));
+  });
+}
+
+/** A room's live status (spec 011): members only, then the relay's status read (outside any transaction). */
+export async function getRoomStatus(identity: Identity, roomId: string, db: Db = getDb()): Promise<RoomStatusDto> {
+  await membership(db, identity, roomId);
+  return relayStatus(roomId);
 }

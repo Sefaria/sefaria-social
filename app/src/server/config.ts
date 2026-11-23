@@ -14,6 +14,12 @@ const Env = z.object({
   SOCIAL_TOKEN_AUDIENCE: z.string().min(1).default("sefaria-social"),
   /** HMAC key shared with Django's USER_DELETED_WEBHOOK_SECRET. */
   USER_DELETED_WEBHOOK_SECRET: z.string().min(1).optional(),
+  /** The relay's base URL for its internal routes (status, drop-user), for example https://rooms.sefaria.org. */
+  RELAY_INTERNAL_URL: z.url().optional(),
+  /** Shared with the relay's RELAY_INTERNAL_SECRET. */
+  RELAY_INTERNAL_SECRET: z.string().min(1).optional(),
+  /** Origins whose pages may call the API from a browser (CORS), comma-separated: the reader's origins. */
+  SOCIAL_ALLOWED_ORIGINS: z.string().optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 

@@ -18,6 +18,15 @@ export const Room = z.object({
   updatedAt: z.iso.datetime({ offset: true }),
 });
 
+export const RoomStatus = z.object({
+  live: z.boolean(),
+  ref: z.string().nullable(),
+  title: z.string().nullable(),
+  participants: z.int().nonnegative(),
+});
+
+export const Me = z.object({ userId: z.int().positive(), name: z.string() });
+
 export const RoomList = z.object({ rooms: z.array(Room) });
 
 export const RoomInput = z.strictObject({ title: z.string().trim().min(1).max(120) });
@@ -46,6 +55,15 @@ export const getHealth = defineEndpoint({
     200: { description: "The database answers.", schema: Health },
     503: { description: "The database does not answer within 2 seconds.", schema: Health },
   },
+});
+
+export const getMe = defineEndpoint({
+  operationId: "getMe",
+  method: "GET",
+  path: "/api/v1/me",
+  summary: "Who the token says the caller is. Proves a session is authenticated (spec 082).",
+  tags: ["identity"],
+  responses: { 200: { description: "The caller.", schema: Me } },
 });
 
 export const listRooms = defineEndpoint({
@@ -101,6 +119,40 @@ export const deleteRoom = defineEndpoint({
   responses: { 204: { description: "Deleted." } },
 });
 
+export const joinRoom = defineEndpoint({
+  operationId: "joinRoom",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/members",
+  summary: "Join a room. The room id is the invitation: any signed-in user who has it may join. Idempotent.",
+  tags: ["rooms"],
+  params: RoomParams,
+  errors: [404],
+  responses: { 200: { description: "The room, with the caller's role.", schema: Room } },
+});
+
+export const leaveRoom = defineEndpoint({
+  operationId: "leaveRoom",
+  method: "DELETE",
+  path: "/api/v1/rooms/{roomId}/members/me",
+  summary: "Leave a room. The owner cannot leave (delete the room instead).",
+  tags: ["rooms"],
+  params: RoomParams,
+  errors: [403, 404],
+  responses: { 204: { description: "Left." } },
+});
+
+export const getRoomStatus = defineEndpoint({
+  operationId: "getRoomStatus",
+  method: "GET",
+  path: "/api/v1/rooms/{roomId}/status",
+  summary:
+    "What a room is learning now and how many are in it, from the relay. Members only. Not live when the relay is unreachable.",
+  tags: ["rooms"],
+  params: RoomParams,
+  errors: [404],
+  responses: { 200: { description: "The room's live status.", schema: RoomStatus } },
+});
+
 export const userDeleted = defineEndpoint({
   operationId: "userDeletedWebhook",
   method: "POST",
@@ -113,4 +165,16 @@ export const userDeleted = defineEndpoint({
 });
 
 /** Every endpoint, in document order. The route-enumeration test checks this list against the served route tree. */
-export const ENDPOINTS = [getHealth, listRooms, createRoom, getRoom, renameRoom, deleteRoom, userDeleted] as const;
+export const ENDPOINTS = [
+  getHealth,
+  getMe,
+  listRooms,
+  createRoom,
+  getRoom,
+  renameRoom,
+  deleteRoom,
+  joinRoom,
+  leaveRoom,
+  getRoomStatus,
+  userDeleted,
+] as const;

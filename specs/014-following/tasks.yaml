@@ -1,0 +1,33 @@
+- id: T-001
+  title: Follow, follow again and lead in the room's context
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/features/session/**"
+    - "app/src/features/presence/**"
+    - "app/src/surface/persistent.tsx"
+    - "app/src/surface/room-context.test.tsx"
+    - "app/src/surface/room-following.test.tsx"
+    - "app/src/features/shell/strings.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- following", "npm run typecheck"]
+  completes: [SESS-014]
+- id: T-002
+  title: Two learners on the harness with a local relay and server; the real-reader journeys written and disabled
+  acs: [AC-004]
+  files:
+    - "e2e/**"
+    - "harness/**"
+    - "playwright.config.ts"
+    - "package.json"
+    - "package-lock.json"
+    - ".github/workflows/ci.yml"
+    - "packages/host-contract/src/fake-host.ts"
+    - "packages/host-contract/src/fake-host.test.ts"
+    - "packages/relay/**"
+    - "app/scripts/**"
+    - "tsconfig.json"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:e2e", "npm run typecheck"]
+  completes: [SESS-050]

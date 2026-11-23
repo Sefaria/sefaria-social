@@ -6,7 +6,7 @@
   "approved_by": "akiva@sefaria.org",
   "spec_sha": "sha256:58e1b33abf371c7b8fc2a86f731ab96c0de91b7c3e9a1ec11a365b790fc784ad",
   "feature_sha": "sha256:1621f9916044833e42ba2c316f2debeb7462f4e78b0f4b6da8b9efbb916eb23b",
-  "tasks_sha": "sha256:af7679063b2624cd1d1355c8aadeeba225c8c6eb7f71e1bb3c6e1574f42584fd",
+  "tasks_sha": "sha256:be2c64fecc86c148d13bb677d08f68eed67c21a3c0c07250deffeb529cb46146",
   "risk": "high",
   "features": [
     "IDENT-082",
@@ -15,23 +15,33 @@
   "tasks": [
     {
       "id": "T-001",
-      "title": "Persona route, test-only, with the production refusal tests",
+      "title": "Test-only persona routes in front of the built server, GET /api/v1/me, production refusal tests",
       "acs": [
         "AC-001",
         "AC-002",
         "AC-003"
       ],
       "files": [
-        "app/src/routes/api/test/persona.ts",
-        "app/src/server/services/test-personas.ts",
-        "app/src/server/services/test-personas.test.ts",
+        "app/src/server/qa/personas.ts",
+        "app/src/server/api/**",
+        "app/src/routes/api/v1/me.ts",
         "app/src/routeTree.gen.ts",
-        "test/integration/persona-route.test.ts"
+        "app/src/api.contract.test.ts",
+        "app/src/qa.personas.int.test.ts",
+        "app/scripts/qa-server.ts",
+        "app/scripts/qa-relay.ts",
+        "app/scripts/qa-config.ts",
+        "app/scripts/node-serve.ts",
+        "app/scripts/smoke.mjs",
+        "e2e/stack/start.ts",
+        "harness/src/main.ts",
+        "packages/api-client/**",
+        "package.json"
       ],
       "depends_on": [],
       "parallel": false,
       "verify": [
-        "npm test",
+        "npm run test:integration -- qa.personas",
         "npm run typecheck"
       ],
       "completes": [
@@ -48,13 +58,15 @@
       "files": [
         "e2e/qa/seeds/*.json",
         "app/src/server/db/qa-seed.ts",
-        "app/src/server/db/qa-seed.test.ts",
+        "app/src/qa.personas.int.test.ts",
+        "app/scripts/qa-seed.ts",
+        "app/scripts/qa-reset.ts",
         "package.json"
       ],
       "depends_on": [],
       "parallel": false,
       "verify": [
-        "npm test",
+        "npm run test:integration -- qa.personas",
         "npm run typecheck"
       ],
       "completes": [

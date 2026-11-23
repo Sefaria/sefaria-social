@@ -134,3 +134,29 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       Django's `USER_DELETED_WEBHOOK_URLS` set to `<social origin>/api/v1/internal/user-deleted`. Added by P2.
 - [ ] **A mint-from-dev-Django contract test**: a token minted by a real dev Django verified by social's `verifyToken` (the
       P2 tests use the contract as written in Sefaria-Project PR #4121, not a live Django). Added by P2.
+
+## Added by P3 (rooms)
+
+- [ ] **Approve specs 009–014 and 082** (082 was written by F2, re-planned and built by P3): review each with its code, then
+      run the approve and compile commands for each, and commit. Until then `spec-gate` on the P3 PR fails only with "spec
+      NNN not approved" (it also lists P1's 001–004, merged into this branch). Added by P3.
+- [ ] **Deploy the relay** (Cloudflare; nothing is automated). Pick the account and a custom domain, add the route to
+      `packages/relay/wrangler.toml` (no account id in the file; `CLOUDFLARE_ACCOUNT_ID` comes from the environment), set
+      `ALLOWED_ORIGINS` to the reader's origins and `JWKS_URL` and `TOKEN_ISSUER` exactly as the server's, and store the
+      internal secret with `wrangler secret put RELAY_INTERNAL_SECRET`. Dry run: `npm run check -w @sefaria-social/relay`.
+      Then deploy from `packages/relay` with `npx wrangler deploy`. Add a staging environment block the same way. Added by
+      P3.
+- [ ] **Server and relay wiring**: the server's `RELAY_INTERNAL_URL` and `RELAY_INTERNAL_SECRET` (the relay's value), and
+      `SOCIAL_ALLOWED_ORIGINS` (the reader's origins); the reader's `PUBLIC_SOCIAL_RELAY_ORIGIN` (the relay's wss origin)
+      and `PUBLIC_SOCIAL_API_ORIGIN` (the server). Added by P3.
+- [ ] **Room roles at the relay** (decision 0008): every member may take the lead today, because the relay sees only the
+      Sefaria token, not who owns the room. Decide whether only owners host; that needs a server-issued room ticket or a
+      relay call to the server. Added by P3.
+- [ ] **Protocol drift check on every re-pin**: run `npm run fixtures -w @sefaria-social/session -- --check <checkout>`
+      against a Sefaria-Project checkout. A failing case is a protocol change to agree on. Added by P3.
+- [ ] **Enable L4b** (`e2e/reader/`, disabled) after A1 merges: two signed-in reader sessions and a reader image; see
+      `e2e/reader/README.md`. Added by P3.
+- [ ] **`CLAUDE.md` commands** (protected): add `npm run test:relay`, `npm run relay:dev`, the `qa:*` scripts, and that
+      `npm run test:e2e` now builds the Start server and needs Postgres (`E2E_DATABASE_URL`). Added by P3.
+- [ ] **Licence of the copied code**: `packages/session` and `packages/relay` start from Sefaria-Project (GPL-3.0);
+      confirm it fits the social repo's licence once D1 is decided (decision 0007). Added by P3.

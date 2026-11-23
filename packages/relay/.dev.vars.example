@@ -1,0 +1,5 @@
+# Copy to .dev.vars (gitignored) for `npm run relay:dev`. Local values only; never real secrets.
+ALLOWED_ORIGINS=http://localhost:3300,http://localhost:3100,http://127.0.0.1:3300
+JWKS_URL=http://127.0.0.1:3299/.well-known/sefaria-social-jwks.json
+TOKEN_ISSUER=http://localhost:3299
+RELAY_INTERNAL_SECRET=local-relay-secret

@@ -13,6 +13,8 @@ export const LOG_EVENTS = [
   "webhook.user_deleted.duplicate",
   "webhook.ignored",
   "user.purged",
+  "relay.status_failed",
+  "relay.drop_failed",
 ] as const;
 export type LogEvent = (typeof LOG_EVENTS)[number];
 export type LogLevel = "debug" | "info" | "warn" | "error";

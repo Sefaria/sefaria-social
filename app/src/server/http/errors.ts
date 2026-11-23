@@ -11,6 +11,7 @@ export type ErrorCode =
   | "method.not_allowed"
   | "room.not_found"
   | "room.forbidden"
+  | "room.owner_cannot_leave"
   | "internal";
 
 const MESSAGES: Record<ErrorCode, string> = {
@@ -25,6 +26,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   "method.not_allowed": "This method is not allowed on this route.",
   "room.not_found": "Room not found.",
   "room.forbidden": "Only the room's owner can do that.",
+  "room.owner_cannot_leave": "The owner cannot leave their own room; delete it instead.",
   internal: "Something went wrong.",
 };
 

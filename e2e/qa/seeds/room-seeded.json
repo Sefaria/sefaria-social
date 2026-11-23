@@ -1,0 +1,14 @@
+{
+  "displays": [
+    { "userId": 900002, "name": "Host Persona" },
+    { "userId": 900003, "name": "Follower Persona" }
+  ],
+  "rooms": [
+    {
+      "id": "5eed0000-0000-4000-8000-000000000001",
+      "title": "Seeded room",
+      "ownerUserId": 900002,
+      "members": [900003]
+    }
+  ]
+}

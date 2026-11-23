@@ -1,0 +1,33 @@
+- id: T-001
+  title: Worker and Durable Object from the reader's relay, tested in workerd through Miniflare
+  acs: [AC-001]
+  files:
+    - "packages/relay/**"
+    - "package.json"
+    - "package-lock.json"
+    - "vitest.config.ts"
+    - "tsconfig.json"
+    - ".gitignore"
+    - ".prettierignore"
+    - "eslint.config.mjs"
+    - ".github/workflows/ci.yml"
+  depends_on: []
+  parallel: false
+  verify: ["npx vitest run --project relay", "npm run typecheck"]
+  completes: [SESS-010]
+- id: T-002
+  title: Token check on upgrade and identity on join
+  acs: [AC-002, AC-003]
+  files: ["packages/relay/**"]
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npx vitest run --project relay", "npm run typecheck"]
+  completes: [IDENT-041]
+- id: T-003
+  title: Status read and the drop for deleted users
+  acs: [AC-004, AC-005]
+  files: ["packages/relay/**"]
+  depends_on: [T-002]
+  parallel: false
+  verify: ["npx vitest run --project relay", "npm run typecheck"]
+  completes: [SESS-042, IDENT-043]

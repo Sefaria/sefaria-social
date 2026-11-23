@@ -1,15 +1,28 @@
+# Re-planned by P3 against P2's server layout (the spec's note asks for it). The persona routes are not a file route: they
+# live in app/src/server/qa/ and are mounted only by app/scripts/qa-server.ts in front of the built server, so the
+# production build never contains them (AC-003 is proven by the production route table and by the built server's smoke test).
 - id: T-001
-  title: Persona route, test-only, with the production refusal tests
+  title: Test-only persona routes in front of the built server, GET /api/v1/me, production refusal tests
   acs: [AC-001, AC-002, AC-003]
   files:
-    - "app/src/routes/api/test/persona.ts"
-    - "app/src/server/services/test-personas.ts"
-    - "app/src/server/services/test-personas.test.ts"
+    - "app/src/server/qa/personas.ts"
+    - "app/src/server/api/**"
+    - "app/src/routes/api/v1/me.ts"
     - "app/src/routeTree.gen.ts"
-    - "test/integration/persona-route.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/qa.personas.int.test.ts"
+    - "app/scripts/qa-server.ts"
+    - "app/scripts/qa-relay.ts"
+    - "app/scripts/qa-config.ts"
+    - "app/scripts/node-serve.ts"
+    - "app/scripts/smoke.mjs"
+    - "e2e/stack/start.ts"
+    - "harness/src/main.ts"
+    - "packages/api-client/**"
+    - "package.json"
   depends_on: []
   parallel: false
-  verify: ["npm test", "npm run typecheck"]
+  verify: ["npm run test:integration -- qa.personas", "npm run typecheck"]
   completes: [IDENT-082]
 - id: T-002
   title: Idempotent seed and schema-checked reset
@@ -17,9 +30,11 @@
   files:
     - "e2e/qa/seeds/*.json"
     - "app/src/server/db/qa-seed.ts"
-    - "app/src/server/db/qa-seed.test.ts"
+    - "app/src/qa.personas.int.test.ts"
+    - "app/scripts/qa-seed.ts"
+    - "app/scripts/qa-reset.ts"
     - "package.json"
   depends_on: []
   parallel: false
-  verify: ["npm test", "npm run typecheck"]
+  verify: ["npm run test:integration -- qa.personas", "npm run typecheck"]
   completes: [OPS-092]

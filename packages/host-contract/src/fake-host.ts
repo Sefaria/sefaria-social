@@ -8,6 +8,7 @@ import type {
   ApplyContext,
   ApplyResult,
   ReaderSnapshot,
+  SliceFilter,
   SnapshotChange,
   SurfaceHost,
   Unsubscribe,
@@ -89,8 +90,18 @@ export interface FakeHostOptions {
   config?: Partial<SurfaceHost["config"]>;
   /** The reader's slices before anything is applied. */
   slices?: ReaderSnapshot["slices"];
+  /**
+   * Each slice's scope, as the reader registers it ("personal": the reader's own preference such as settings; "moment": what
+   * is on screen). `getSnapshot({ scope: "moment" })` returns only moment slices, like the reader. Unlisted slices are moment.
+   */
+  sliceScopes?: Record<string, "personal" | "moment">;
   /** Token lifetime in seconds. Default 300. */
   tokenTtl?: number;
+  /**
+   * Where identity tokens come from instead of the fake HS256 key: end-to-end tests hand in RS256 tokens signed by the key a
+   * local JWKS publishes, so the real server and relay accept them. Still rejects while signed out, like the reader.
+   */
+  token?: () => Promise<string>;
 }
 
 export interface FakeHostCalls {
@@ -115,6 +126,12 @@ export interface FakeHost {
   setUi(ui: Partial<HostUi>): void;
   /** Simulates the user scrolling or clicking in the reader (fires onLocalInput subscribers). */
   localInput(): void;
+  /**
+   * Simulates the person moving in the reader themselves, the way the reader's own navigation does: input first, then a push
+   * that keeps the current `ctx` (the reader keeps it through its own workspace changes), then the state subscribers hear it.
+   * `slices` are merged into the reader's slices.
+   */
+  localMove(path: string, slices?: ReaderSnapshot["slices"]): void;
 }
 
 const SNAPSHOT_V = 1 as const;
@@ -179,10 +196,21 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
     const value = new URL(url(), "http://fake.invalid").searchParams.get("ctx");
     return value && READER_CONTEXT_RE.test(value) ? value : null;
   };
-  const snapshot = (): ReaderSnapshot => ({ v: SNAPSHOT_V, url: stripCtx(url()), nav: null, slices: { ...slices } });
+  const scopeOf = (id: string) => opts.sliceScopes?.[id] ?? "moment";
+  const snapshot = (filter?: SliceFilter): ReaderSnapshot => {
+    const picked = Object.entries(slices).filter(
+      ([id]) =>
+        (filter?.scope !== "moment" || scopeOf(id) === "moment") &&
+        (!filter?.include || filter.include.includes(id)) &&
+        !filter?.exclude?.includes(id),
+    );
+    return { v: SNAPSHOT_V, url: stripCtx(url()), nav: null, slices: Object.fromEntries(picked) };
+  };
 
-  // Snapshot subscribers hear about every address change, like the reader's state API.
+  // Snapshot subscribers hear about every address change the person makes, like the reader's state API, which never reports
+  // a change its own applySnapshot made.
   history.subscribe(() => {
+    if (applying) return;
     const s = snapshot();
     stateSubs.forEach((cb) => cb({ url: s.url }, s));
   });
@@ -213,14 +241,15 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
     },
     reader: {
       state: {
-        getSnapshot: () => snapshot(),
+        getSnapshot: (filter) => snapshot(filter),
         async applySnapshot(s, ctx): Promise<ApplyResult> {
           const parsed = readerSnapshotSchema.safeParse(s);
           if (!parsed.success) return { warnings: [{ code: 103, detail: "snapshot refused" }] };
           calls.applied.push({ snapshot: parsed.data, ctx });
           applying = true;
           try {
-            slices = { ...parsed.data.slices };
+            // Like the reader: a snapshot restores the slices it carries; the reader's other slices stay as they are.
+            slices = { ...slices, ...parsed.data.slices };
             // Like the reader: follow and playback navigate with replace and keep the current ctx.
             const to = withCtx(parsed.data.url, currentCtx());
             if (to !== url()) history.replace(to, history.get().state);
@@ -229,9 +258,11 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
           }
           return { warnings: [] };
         },
-        subscribe(onChange) {
-          stateSubs.add(onChange);
-          return () => stateSubs.delete(onChange);
+        subscribe(onChange, filter) {
+          // Filtered like the reader: the subscriber's snapshot holds only the slices its filter asks for.
+          const cb = (change: SnapshotChange, _s: ReaderSnapshot) => onChange(change, snapshot(filter));
+          stateSubs.add(cb);
+          return () => stateSubs.delete(cb);
         },
         onLocalInput(cb) {
           inputSubs.add(cb);
@@ -278,6 +309,7 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
       async identityToken() {
         if (!viewer) throw new SignedOutError("signed out");
         calls.tokens++;
+        if (opts.token) return opts.token();
         const now = Math.floor(Date.now() / 1000);
         return mintFakeToken({ sub: String(viewer.id), name: viewer.name, iat: now, exp: now + (opts.tokenTtl ?? 300) });
       },
@@ -325,6 +357,16 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
     },
     localInput() {
       inputSubs.forEach((cb) => cb());
+    },
+    localMove(path, moved) {
+      inputSubs.forEach((cb) => cb());
+      if (moved) slices = { ...slices, ...moved };
+      const to = withCtx(stripCtx(path), currentCtx());
+      if (to !== url()) history.push(to, null);
+      else {
+        const s = snapshot();
+        stateSubs.forEach((cb) => cb({ slices: moved ?? {} }, s));
+      }
     },
   };
 }
