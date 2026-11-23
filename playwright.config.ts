@@ -41,7 +41,7 @@ export default defineConfig({
     {
       name: "phone",
       use: { ...devices["Pixel 7"] },
-      testIgnore: ["reader/**", "rooms.spec.ts", "feed.spec.ts", "feed-visual.spec.ts", "release.spec.ts", "social.spec.ts"],
+      testIgnore: ["reader/**", "rooms.spec.ts", "feed.spec.ts", "feed-visual.spec.ts", "release.spec.ts"],
     },
   ],
 });
