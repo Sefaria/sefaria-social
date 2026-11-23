@@ -84,3 +84,27 @@ describe("fake host", () => {
     expect(fake.url()).toBe(`/login?next=${encodeURIComponent("/social/s/abcdefgh")}`);
   });
 });
+
+describe("fake host: slices like the reader's", () => {
+  it("filters moment slices, merges applied slices into the rest, and moves locally keeping ctx", async () => {
+    const { createFakeHost } = await load();
+    const fake = createFakeHost({
+      url: "/Genesis.1?ctx=social.room.room-00001",
+      slices: { "sefaria.settings": { v: 1, value: { font: 20 } }, "sefaria.scroll": { v: 1, value: { seg: 1 } } },
+      sliceScopes: { "sefaria.settings": "personal" },
+    });
+    expect(Object.keys(fake.host.reader.state.getSnapshot({ scope: "moment" }).slices)).toEqual(["sefaria.scroll"]);
+    await fake.host.reader.state.applySnapshot(
+      { v: 1, url: "/Genesis.2", nav: null, slices: { "sefaria.scroll": { v: 1, value: { seg: 5 } } } },
+      { origin: "follow", persist: false },
+    );
+    expect(fake.host.reader.state.getSnapshot().slices).toEqual({
+      "sefaria.settings": { v: 1, value: { font: 20 } },
+      "sefaria.scroll": { v: 1, value: { seg: 5 } },
+    });
+    const heard: string[] = [];
+    fake.host.reader.state.subscribe((_c, s) => heard.push(`${s.url} ${Object.keys(s.slices).join(",")}`), { scope: "moment" });
+    fake.localMove("/Genesis.3");
+    expect([fake.url(), heard]).toEqual(["/Genesis.3?ctx=social.room.room-00001", ["/Genesis.3 sefaria.scroll"]]);
+  });
+});

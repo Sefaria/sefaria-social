@@ -702,7 +702,7 @@
       "area": "sess",
       "name": "Nothing personal applied or sent",
       "description": "R13 and R14: only the viewer's moment slices are applied; outgoing snapshots lose ctx, personal slices and search words, and gain the summary slice.",
-      "status": "planned",
+      "status": "built",
       "spec": "013",
       "acs": [
         "013/AC-005",
@@ -712,7 +712,9 @@
         "persistent"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/session/room-reader.test.ts"
+      ],
       "since": null,
       "changed": []
     },

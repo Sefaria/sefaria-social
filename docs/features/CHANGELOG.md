@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-23 — SESS-048 "Nothing personal applied or sent": built (spec 013, task T-001).
 - 2026-11-23 — ROOM-044 "Lobby Join button": built (spec 011, task T-004).
 - 2026-11-23 — IDENT-049 "Account deletion drops the user from the relay": built (spec 011, task T-003).
 - 2026-11-23 — API-045 "Room status passthrough and CORS for the reader's origins": built (spec 011, task T-002).
