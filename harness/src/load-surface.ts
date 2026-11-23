@@ -1,6 +1,7 @@
 // Loads the built surface the way the reader does (reader seam notes, "How the reader loads the surface"): fetch the manifest,
 // validate it with the pinned schema, link every stylesheet and modulepreload every script with its integrity hash, wait for
 // them, import the entry and check its default export. A difference from the reader here would hide a release problem.
+// Like the reader (PUBLIC_SOCIAL_ORIGINS), every resolved URL must be on an allowed origin, over https except on localhost.
 import { surfaceManifestSchema, type Surface } from "@sefaria-social/host-contract";
 
 const load = (el: HTMLLinkElement) =>
@@ -19,12 +20,26 @@ function link(rel: string, href: string, integrity: string): HTMLLinkElement {
   return el;
 }
 
-export async function loadSurface(manifestUrl: string): Promise<{ surface: Surface; version: string }> {
-  const res = await fetch(manifestUrl, { credentials: "omit", cache: "no-cache", headers: { accept: "application/json" } });
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+/** The reader's origin rule: on the allowlist, and https unless the host is local. Throws otherwise. */
+export function checkOrigin(url: string, allowedOrigins: readonly string[]): string {
+  const u = new URL(url);
+  if (!allowedOrigins.includes(u.origin)) throw new Error(`${u.origin} is not an allowed surface origin`);
+  if (u.protocol !== "https:" && !(u.protocol === "http:" && LOCAL_HOSTS.has(u.hostname))) throw new Error(`${url} is not https`);
+  return u.href;
+}
+
+export async function loadSurface(
+  manifestUrl: string,
+  allowedOrigins: readonly string[] = [location.origin],
+): Promise<{ surface: Surface; version: string }> {
+  const absolute = checkOrigin(new URL(manifestUrl, location.href).href, allowedOrigins);
+  const res = await fetch(absolute, { credentials: "omit", cache: "no-cache", headers: { accept: "application/json" } });
   if (!res.ok) throw new Error(`manifest: HTTP ${res.status}`);
   const manifest = surfaceManifestSchema.parse(await res.json());
   if (manifest.contract !== 1) throw new Error(`manifest: contract ${manifest.contract} is not served`);
-  const resolve = (p: string) => new URL(p, res.url).href;
+  const resolve = (p: string) => checkOrigin(new URL(p, res.url).href, allowedOrigins);
   const integrityOf = new Map(manifest.files.map((f) => [f.path, f.integrity]));
   const els: HTMLLinkElement[] = [];
   for (const css of manifest.css ?? []) els.push(link("stylesheet", resolve(css), integrityOf.get(css) ?? ""));

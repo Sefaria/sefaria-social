@@ -36,12 +36,12 @@ export default defineConfig({
   ],
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    // Several browser contexts and shared server state: the rooms and feed journeys and the feed's visual baselines run once,
-    // on desktop.
+    // Several browser contexts and shared server state: the rooms and feed journeys, the feed's visual baselines and the
+    // release rehearsal (its own target and port) run once, on desktop.
     {
       name: "phone",
       use: { ...devices["Pixel 7"] },
-      testIgnore: ["reader/**", "rooms.spec.ts", "feed.spec.ts", "feed-visual.spec.ts"],
+      testIgnore: ["reader/**", "rooms.spec.ts", "feed.spec.ts", "feed-visual.spec.ts", "release.spec.ts"],
     },
   ],
 });

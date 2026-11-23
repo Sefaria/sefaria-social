@@ -23,6 +23,10 @@ declare global {
       /** The fake reader's slices and their scopes (personal settings vs what is on screen). */
       slices?: Record<string, { v: number; value: unknown }>;
       sliceScopes?: Record<string, "personal" | "moment">;
+      /** Where to load the surface from (default: this server's own build at /surface/manifest.json); a release's stable manifest in e2e/release.spec.ts. */
+      manifestUrl?: string;
+      /** The reader's PUBLIC_SOCIAL_ORIGINS: origins the manifest and every file may come from (default: this page's origin). */
+      allowedOrigins?: string[];
     };
   }
 }
@@ -121,7 +125,10 @@ async function start() {
   renderReaderPane();
   const surfaceOut = $("[data-harness=surface]");
   try {
-    const { surface, version } = await loadSurface("/surface/manifest.json");
+    const { surface, version } = await loadSurface(
+      config.manifestUrl ?? "/surface/manifest.json",
+      config.allowedOrigins ?? [location.origin],
+    );
     surfaceOut.textContent = `social@${version}`;
     document.body.dataset.surfaceState = "loaded";
     const pageEl = $<HTMLElement>("[data-surface-mount=page]");
