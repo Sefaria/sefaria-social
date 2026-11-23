@@ -1,7 +1,7 @@
 ---
 id: "082"
 title: Test-only persona sessions and idempotent QA seed and reset
-status: proposed
+status: approved
 features: [IDENT-082, OPS-092]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [identity, api]

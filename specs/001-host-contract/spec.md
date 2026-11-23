@@ -1,7 +1,7 @@
 ---
 id: "001"
 title: Social builds against a pinned copy of the reader's SurfaceHost contract and a fake host typed from it
-status: proposed
+status: approved
 features: [HOST-001, HOST-002]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [host]

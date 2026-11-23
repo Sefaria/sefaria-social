@@ -1,7 +1,7 @@
 ---
 id: "014"
 title: Following someone in a room through the reader state API, proven with two learners
-status: proposed
+status: approved
 features: [SESS-014, SESS-050]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [room, persistent]

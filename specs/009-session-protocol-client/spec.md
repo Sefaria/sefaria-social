@@ -1,7 +1,7 @@
 ---
 id: "009"
 title: Room protocol and client in packages/session, kept in step with the reader's copy
-status: proposed
+status: approved
 features: [SESS-009, SESS-040]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []
