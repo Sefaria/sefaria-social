@@ -321,7 +321,10 @@
       ],
       "since": null,
       "changed": [
-        "2026-11-23: useViewer settles when viewer.get() returns a new object per call"
+        {
+          "spec": "002",
+          "date": "2026-11-23"
+        }
       ]
     },
     {
