@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "npm run dev -w app",
     "build": "npm run build -w app",
-    "typecheck": "npm run typecheck -w app && tsc -p tsconfig.json --noEmit",
+    "typecheck": "npm run typecheck -w app && tsc -p tsconfig.json --noEmit && tsc -p packages/relay/tsconfig.json --noEmit",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -26,6 +26,8 @@
     "atlas:build": "node factory/cli.mjs atlas:build",
     "test:factory": "vitest run --project factory",
     "test:integration": "vitest run --project integration",
+    "test:relay": "vitest run --project relay",
+    "relay:dev": "npm run dev -w @sefaria-social/relay",
     "db:generate": "drizzle-kit generate --config app/drizzle.config.ts",
     "db:migrate": "tsx app/scripts/migrate.ts",
     "api:generate": "tsx app/scripts/openapi.ts",

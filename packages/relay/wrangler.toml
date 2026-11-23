@@ -1,0 +1,21 @@
+# The social room relay: a Worker plus one Durable Object per room (plan 1.1, 6.4; decision 0007).
+#   npm run relay:dev        local (workerd via wrangler dev) on port 8787, reading packages/relay/.dev.vars
+#   deployment               a human step: docs/runbooks/setup-checklist.md ("Relay")
+# No account_id and no routes here: deployment sets CLOUDFLARE_ACCOUNT_ID and the custom domain (setup checklist).
+# Secrets are never in this file: RELAY_INTERNAL_SECRET is set with `wrangler secret put`.
+name = "sefaria-social-relay"
+main = "src/worker.ts"
+compatibility_date = "2026-10-01"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]   # new namespaces must be SQLite-backed; rooms never write to storage
+
+[vars]
+# Exact origins, comma-separated; "https://*.suffix" allows any subdomain of suffix. Local development overrides this in
+# .dev.vars (see .dev.vars.example).
+ALLOWED_ORIGINS = "https://www.sefaria.org,https://www.sefaria.org.il"

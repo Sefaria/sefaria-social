@@ -232,6 +232,8 @@ jobs:
       - run: npm ci
       - name: Integration tests (real Postgres)
         run: npx vitest run --project integration --reporter=default --reporter=junit --outputFile.junit=test-results/integration.xml
+      - name: Relay tests (the Worker in workerd through Miniflare)
+        run: npx vitest run --project relay --reporter=default --reporter=junit --outputFile.junit=test-results/relay.xml
       - name: Migrations match the schema
         run: |
           npm run db:generate -- --name drift-check < /dev/null

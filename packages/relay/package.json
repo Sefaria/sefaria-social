@@ -1,0 +1,21 @@
+{
+  "name": "@sefaria-social/relay",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Cloudflare Worker with one Durable Object per room, running the room from @sefaria-social/session; started from the reader's relay.",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "check": "wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "@sefaria-social/session": "*",
+    "jose": "^6.2.18"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261122.2",
+    "esbuild": "0.28.2",
+    "miniflare": "5.20261119.0-beta",
+    "wrangler": "^4.166.0"
+  }
+}
