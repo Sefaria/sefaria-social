@@ -295,6 +295,20 @@ jobs:
     if: needs.changes.outputs.code == 'true' && github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # New integration acceptance tests load on the merge base's integration project, whose global setup needs Postgres.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: social
+          POSTGRES_PASSWORD: social
+          POSTGRES_DB: sefaria_social_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U social -d sefaria_social_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgres://social:social@localhost:5432/sefaria_social_test
     steps:
       - uses: actions/checkout@v4
         with:

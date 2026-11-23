@@ -437,7 +437,7 @@
       "area": "room",
       "name": "Join and leave a room from its link",
       "description": "POST /api/v1/rooms/{roomId}/members joins (the room id is the invitation); DELETE .../members/me leaves.",
-      "status": "planned",
+      "status": "built",
       "spec": "011",
       "acs": [
         "011/AC-001",
@@ -447,7 +447,9 @@
         "room"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.join.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },

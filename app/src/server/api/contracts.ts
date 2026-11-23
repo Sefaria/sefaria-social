@@ -101,6 +101,28 @@ export const deleteRoom = defineEndpoint({
   responses: { 204: { description: "Deleted." } },
 });
 
+export const joinRoom = defineEndpoint({
+  operationId: "joinRoom",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/members",
+  summary: "Join a room. The room id is the invitation: any signed-in user who has it may join. Idempotent.",
+  tags: ["rooms"],
+  params: RoomParams,
+  errors: [404],
+  responses: { 200: { description: "The room, with the caller's role.", schema: Room } },
+});
+
+export const leaveRoom = defineEndpoint({
+  operationId: "leaveRoom",
+  method: "DELETE",
+  path: "/api/v1/rooms/{roomId}/members/me",
+  summary: "Leave a room. The owner cannot leave (delete the room instead).",
+  tags: ["rooms"],
+  params: RoomParams,
+  errors: [403, 404],
+  responses: { 204: { description: "Left." } },
+});
+
 export const userDeleted = defineEndpoint({
   operationId: "userDeletedWebhook",
   method: "POST",
@@ -113,4 +135,14 @@ export const userDeleted = defineEndpoint({
 });
 
 /** Every endpoint, in document order. The route-enumeration test checks this list against the served route tree. */
-export const ENDPOINTS = [getHealth, listRooms, createRoom, getRoom, renameRoom, deleteRoom, userDeleted] as const;
+export const ENDPOINTS = [
+  getHealth,
+  listRooms,
+  createRoom,
+  getRoom,
+  renameRoom,
+  deleteRoom,
+  joinRoom,
+  leaveRoom,
+  userDeleted,
+] as const;

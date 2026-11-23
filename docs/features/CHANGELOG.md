@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-23 — ROOM-011 "Join and leave a room from its link": built (spec 011, task T-001).
 - 2026-11-23 — IDENT-043 "Relay drops a deleted user": built (spec 010, task T-003).
 - 2026-11-23 — SESS-042 "Relay status read for cards": built (spec 010, task T-003).
 - 2026-11-23 — IDENT-041 "Relay accepts only verified Sefaria tokens": built (spec 010, task T-002).

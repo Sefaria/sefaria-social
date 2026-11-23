@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:cb1c731008907f25440ea49c33fa4cdc72f8c6cf68e1123395fbf6b28d0bc448",
   "feature_sha": "sha256:56a3c3ace0f355dc74126a09b87499254f43ef3ded9b5a9adacfcbd7c33e8f31",
-  "tasks_sha": "sha256:78c97557df8e767b3514d52b6fffafad50497f759abcbc6e592d7a47ec3db33d",
+  "tasks_sha": "sha256:7338bd64d165f8c69f2f1f84dac0ae9a757ad3fcd5dfd1e811309751b621e127",
   "risk": "high",
   "features": [
     "ROOM-011",
@@ -28,6 +28,7 @@
         "app/src/routes/api/v1/rooms.$roomId.members.me.ts",
         "app/src/routeTree.gen.ts",
         "app/src/api.join.int.test.ts",
+        "app/src/api.contract.test.ts",
         "packages/api-client/**",
         "test/integration/**",
         ".github/workflows/ci.yml"
@@ -58,6 +59,7 @@
         "app/src/routes/api/v1/rooms.$roomId.status.ts",
         "app/src/routeTree.gen.ts",
         "app/src/api.join.int.test.ts",
+        "app/src/api.contract.test.ts",
         "packages/api-client/**",
         "test/integration/**"
       ],
