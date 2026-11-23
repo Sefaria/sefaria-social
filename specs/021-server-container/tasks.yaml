@@ -1,0 +1,28 @@
+- id: T-001
+  title: Dockerfile, production server entry, migrate command and the Dockerfile rules
+  acs: [AC-001, AC-002]
+  files:
+    - "factory/test/doctor-lanes.test.mjs"
+    - "Dockerfile"
+    - ".dockerignore"
+    - "app/scripts/start.mjs"
+    - "app/scripts/migrate.mjs"
+    - "app/scripts/release/dockerfile.ts"
+    - "app/scripts/release/cli.ts"
+    - "app/scripts/container-smoke.sh"
+    - ".github/workflows/ci.yml"
+    - "factory/test/acceptance-021.test.mjs"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run typecheck"]
+  completes: []
+- id: T-002
+  title: Helm values sketch for a standalone namespace
+  acs: [AC-003]
+  files:
+    - "deploy/helm/values.yaml"
+    - "factory/test/acceptance-021.test.mjs"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:factory"]
+  completes: [OPS-021]

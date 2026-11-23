@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Roll the social surface back (spec 020 AC-003; docs/runbooks/deploy.md, "Rollback"): move the stable manifest pointer to
+# the last known-good version, or to a named known-good version. Readers get it on their next page load (the pointer is
+# served no-cache). The rolled-back version is never promoted again.
+#
+#   RELEASE_TARGET=file:<folder>|bucket:<name> scripts/rollback [<version>]
+#
+# The server is rolled back separately (helm rollback); see the runbook.
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec "$here/node_modules/.bin/tsx" "$here/app/scripts/release/cli.ts" rollback "$@"

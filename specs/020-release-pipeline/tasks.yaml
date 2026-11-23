@@ -1,0 +1,34 @@
+- id: T-001
+  title: Storage targets, publish, smoke, promote and rollback
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "app/scripts/release/**"
+    - "scripts/rollback"
+    - "factory/test/acceptance-020.test.mjs"
+    - "package.json"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run typecheck"]
+  completes: []
+- id: T-002
+  title: release.yml on merge to main, with secret-gated real steps
+  acs: [AC-005]
+  files:
+    - ".github/workflows/release.yml"
+    - "factory/test/acceptance-020.test.mjs"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: []
+- id: T-003
+  title: Local release and rollback, end to end through the harness
+  acs: [AC-006]
+  files:
+    - "e2e/release.spec.ts"
+    - "harness/src/**"
+    - "app/vite.surface.config.ts"
+    - "playwright.config.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:e2e", "npm run typecheck"]
+  completes: [OPS-020]

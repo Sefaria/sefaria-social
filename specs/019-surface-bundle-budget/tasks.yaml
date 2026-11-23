@@ -1,0 +1,25 @@
+- id: T-001
+  title: Minified surface build and the size budget check
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/vite.surface.config.ts"
+    - "app/surface-budget.json"
+    - "app/scripts/release/budget.ts"
+    - "app/scripts/release/cli.ts"
+    - "app/src/surface/minify.contract.test.ts"
+    - "factory/test/acceptance-019.test.mjs"
+    - "package.json"
+  depends_on: []
+  parallel: false
+  verify: ["npm run build:surface", "npm run surface:budget", "npm run test:factory"]
+  completes: []
+- id: T-002
+  title: CI runs the budget check after the surface build
+  acs: [AC-004]
+  files:
+    - ".github/workflows/ci.yml"
+    - "factory/test/acceptance-019.test.mjs"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-019]

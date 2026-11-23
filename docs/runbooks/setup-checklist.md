@@ -173,3 +173,31 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       They were produced by the P4 worker on the harness, not checked by a designer. Added by P4.
 - [ ] **Hebrew strings for the feed** in `app/src/features/shell/strings.ts` (`feed*`, `card*`) were written by the P4
       worker; have a Hebrew speaker review them. Added by P4.
+
+## Added by P5 (release)
+
+- [ ] **Approve specs 019–021** (`specs/019-surface-bundle-budget`, `020-release-pipeline`, `021-server-container`): review
+      each with its code, then `npm run factory -- approve NNN --by YOUR_EMAIL` and `npm run factory -- compile NNN`, and
+      commit. Until then `spec-gate` on the P5 PR fails only with "spec NNN not approved". Added by P5.
+- [ ] **Decide who does the infrastructure work, and when** (plan 9; blocks the first real release). The ordered list is in
+      `docs/runbooks/deploy.md`, "Before the first real release". Added by P5.
+- [ ] **Asset storage and origin** for the surface (D2 default `social.sefaria.org/surface/`): implement `BucketTarget` in
+      `app/scripts/release/storage.ts` for the chosen store, then set the variable `RELEASE_TARGET=bucket:<name>` and the
+      secret `RELEASE_STORAGE_CREDENTIALS`. The store must send CORS for the reader's origins. Until then `release.yml`'s
+      upload, smoke and promote steps skip with a notice. Added by P5.
+- [ ] **Registry, workload identity and namespace** for the server: variables `SERVER_IMAGE_REPOSITORY`,
+      `DEPLOY_WORKLOAD_IDENTITY_PROVIDER`, `DEPLOY_SERVICE_ACCOUNT`; then wire the deploy step (`deploy.md`, "Wire the deploy
+      step") and adapt `deploy/helm/values.yaml`. The infrastructure repository was not touched. Added by P5.
+- [ ] **Smoke-test origins**: variables `SOCIAL_ASSET_BASE_URL` (e.g. `https://social.sefaria.org/surface`) and
+      `SOCIAL_API_ORIGIN` (e.g. `https://social.sefaria.org`). Added by P5.
+- [ ] **Reader configuration** (reader Helm values): `PUBLIC_SOCIAL_MANIFEST_URL=<asset base>/stable/manifest.json`,
+      `PUBLIC_SOCIAL_ORIGINS=<asset origin>`, `PUBLIC_SOCIAL_API_ORIGIN`, `PUBLIC_SOCIAL_RELAY_ORIGIN`,
+      `PUBLIC_SOCIAL_ENVIRONMENT`. Added by P5.
+- [ ] **When the reader adds a Content-Security-Policy**, list the social asset origin (script and style), the API origin and
+      the relay origin (`docs/runbooks/security.md`). Added by P5.
+- [ ] **First staging release and rollback**, recorded like `docs/runbooks/rollback-rehearsal-local.md` (plan 8 P5's original
+      exit test; only a local rehearsal was possible). Added by P5.
+- [ ] **Holdout trials need a staging reset hook** (F2's open problem); P5 did not add one, because there is no staging.
+      Added by P5.
+- [ ] **SRI in Firefox and Safari**: the integrity checks are proven in Chromium only (A1's e2e and `e2e/release.spec.ts`).
+      Run the release e2e with Playwright's firefox and webkit projects once, or check by hand. Added by P5.

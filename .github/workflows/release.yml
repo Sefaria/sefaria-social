@@ -1,0 +1,166 @@
+# Release (plan 7; spec 020). On every push to main: build the surface, check its size budget, rehearse the whole release
+# on a filesystem target (publish → smoke → promote → a second version → rollback), then do the real thing: upload the
+# surface to its asset origin, build and deploy the server, smoke-test both, and move the stable manifest pointer.
+#
+# The hosting does not exist yet (plan 9, D2). Each real step runs only when its configuration is present and otherwise
+# skips with a notice naming what is missing; docs/runbooks/setup-checklist.md and docs/runbooks/deploy.md list it all.
+# A manual run with `rollback_to` moves the stable pointer back instead of releasing (scripts/rollback).
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      rollback_to:
+        description: "Roll back instead of releasing: a known-good version, or 'last' for the last known-good one. Empty releases main."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+# One release at a time, and never cancel one halfway: a cancelled release could leave the pointer between versions.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22"
+  CI: "true"
+
+jobs:
+  release:
+    name: release
+    if: github.event_name == 'push' || inputs.rollback_to == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # What is configured decides which real steps run (secrets cannot be read in `if:`, so they are tested here).
+      ASSETS_READY: ${{ vars.RELEASE_TARGET != '' && secrets.RELEASE_STORAGE_CREDENTIALS != '' }}
+      DEPLOY_READY: ${{ vars.SERVER_IMAGE_REPOSITORY != '' && vars.DEPLOY_WORKLOAD_IDENTITY_PROVIDER != '' && vars.DEPLOY_SERVICE_ACCOUNT != '' }}
+      SMOKE_READY: ${{ vars.SOCIAL_ASSET_BASE_URL != '' && vars.SOCIAL_API_ORIGIN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Version
+        id: version
+        run: echo "version=$(npm run -s release -- version)" >> "$GITHUB_OUTPUT"
+      - name: Build the surface
+        env:
+          SURFACE_VERSION: ${{ steps.version.outputs.version }}
+        run: npm run build:surface
+      - name: Surface size budget
+        run: npm run surface:budget
+      - name: Keep the source maps (private build artifact; never published)
+        uses: actions/upload-artifact@v4
+        with:
+          name: surface-sourcemaps-${{ steps.version.outputs.version }}
+          path: app/dist-surface/assets/*.map
+          retention-days: 30
+
+      # ── Rehearsal: the whole pointer lifecycle on a filesystem target, served over HTTP like the asset origin ──────────────
+      - name: "Rehearsal: publish, smoke over HTTP, promote, a second version, rollback"
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          REHEARSAL_TARGET="$RUNNER_TEMP/release-rehearsal"
+          export RELEASE_TARGET="file:$REHEARSAL_TARGET"
+          mkdir -p "$REHEARSAL_TARGET"
+          # The asset origin stand-in; its output goes to a file so it never holds the step's output open.
+          npm run -s release -- serve --dir "$REHEARSAL_TARGET" --port 3410 > "$RUNNER_TEMP/serve.log" 2>&1 &
+          trap 'pkill -f "release/cli.ts serve" || true' EXIT
+          for _ in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:3410/ && break; sleep 1; done
+          npm run -s release -- publish --version "$VERSION"
+          npm run -s release -- smoke --url "http://127.0.0.1:3410/v/$VERSION/manifest.json" --origin https://www.sefaria.org
+          npm run -s release -- promote "$VERSION"
+          SURFACE_VERSION="$VERSION.rehearsal" SURFACE_OUT_DIR="$RUNNER_TEMP/rehearsal-build" npm run -s build:surface > /dev/null
+          npm run -s release -- publish --dir "$RUNNER_TEMP/rehearsal-build"
+          npm run -s release -- promote "$VERSION.rehearsal"
+          scripts/rollback
+          npm run -s release -- status
+          npm run -s release -- smoke --url http://127.0.0.1:3410/stable/manifest.json --origin https://www.sefaria.org | tee "$RUNNER_TEMP/smoke.txt"
+          grep -q "manifest version $VERSION$" "$RUNNER_TEMP/smoke.txt"
+
+      # ── The real release. Each step needs its configuration; without it, a notice and nothing else. ──────────────────────
+      - name: Upload the surface to the asset origin
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_TARGET: ${{ vars.RELEASE_TARGET }}
+          RELEASE_STORAGE_CREDENTIALS: ${{ secrets.RELEASE_STORAGE_CREDENTIALS }}
+        run: |
+          if [ "$ASSETS_READY" != "true" ]; then
+            echo "::notice title=Upload skipped::RELEASE_TARGET (variable) and RELEASE_STORAGE_CREDENTIALS (secret) are not both set; the asset origin does not exist yet (docs/runbooks/setup-checklist.md)."
+            exit 0
+          fi
+          npm run -s release -- publish --version "$VERSION"
+      - name: Build the server image
+        run: |
+          docker build -t "sefaria-social-server:${{ steps.version.outputs.version }}" .
+          npm run -s release -- check-dockerfile
+      - name: Push the image and deploy the server
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ "$DEPLOY_READY" != "true" ]; then
+            echo "::notice title=Deploy skipped::SERVER_IMAGE_REPOSITORY, DEPLOY_WORKLOAD_IDENTITY_PROVIDER and DEPLOY_SERVICE_ACCOUNT (variables) are not all set; there is no cluster namespace or registry for social yet (docs/runbooks/deploy.md)."
+            exit 0
+          fi
+          echo "::error title=Deploy not wired::The deploy variables are set, but the push and helm upgrade commands are a human task: follow docs/runbooks/deploy.md, 'Wire the deploy step', and replace this step."
+          exit 1
+      - name: Smoke-test the published version and the deployed server
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          SOCIAL_ASSET_BASE_URL: ${{ vars.SOCIAL_ASSET_BASE_URL }}
+          SOCIAL_API_ORIGIN: ${{ vars.SOCIAL_API_ORIGIN }}
+        run: |
+          if [ "$SMOKE_READY" != "true" ] || [ "$ASSETS_READY" != "true" ]; then
+            echo "::notice title=Smoke test skipped::SOCIAL_ASSET_BASE_URL and SOCIAL_API_ORIGIN (variables) and the asset upload are needed; the rehearsal above smoke-tested the same build."
+            exit 0
+          fi
+          npm run -s release -- smoke --url "$SOCIAL_ASSET_BASE_URL/v/$VERSION/manifest.json" --origin https://www.sefaria.org
+          if [ "$DEPLOY_READY" = "true" ]; then npm run -s release -- smoke --server "$SOCIAL_API_ORIGIN"; fi
+      - name: Move the stable pointer
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_TARGET: ${{ vars.RELEASE_TARGET }}
+          RELEASE_STORAGE_CREDENTIALS: ${{ secrets.RELEASE_STORAGE_CREDENTIALS }}
+          SOCIAL_ASSET_BASE_URL: ${{ vars.SOCIAL_ASSET_BASE_URL }}
+        run: |
+          if [ "$ASSETS_READY" != "true" ] || [ "$SMOKE_READY" != "true" ]; then
+            echo "::notice title=Promote skipped::the stable pointer moves only after a real upload and smoke test; neither is configured yet."
+            exit 0
+          fi
+          npm run -s release -- promote "$VERSION"
+          npm run -s release -- smoke --url "$SOCIAL_ASSET_BASE_URL/stable/manifest.json" --origin https://www.sefaria.org
+
+  rollback:
+    name: rollback
+    if: github.event_name == 'workflow_dispatch' && inputs.rollback_to != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ASSETS_READY: ${{ vars.RELEASE_TARGET != '' && secrets.RELEASE_STORAGE_CREDENTIALS != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Move the stable pointer back
+        env:
+          TO: ${{ inputs.rollback_to }}
+          RELEASE_TARGET: ${{ vars.RELEASE_TARGET }}
+          RELEASE_STORAGE_CREDENTIALS: ${{ secrets.RELEASE_STORAGE_CREDENTIALS }}
+        run: |
+          if [ "$ASSETS_READY" != "true" ]; then
+            echo "::notice title=Rollback skipped::RELEASE_TARGET (variable) and RELEASE_STORAGE_CREDENTIALS (secret) are not both set, so there is no stable pointer to move yet."
+            exit 0
+          fi
+          if [ "$TO" = "last" ]; then scripts/rollback; else scripts/rollback "$TO"; fi
+          npm run -s release -- status
