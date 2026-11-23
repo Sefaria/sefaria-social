@@ -24,6 +24,269 @@
       "changed": []
     },
     {
+      "id": "HOST-001",
+      "area": "host",
+      "name": "Pinned SurfaceHost contract with runtime schemas",
+      "description": "packages/host-contract pins the reader's SurfaceHost v1 contract files with their source commit and hashes (pin check in L3), re-exports its types, and validates every value that crosses it with zod schemas proven equal to the pinned types.",
+      "status": "built",
+      "spec": "001",
+      "acs": [
+        "001/AC-001",
+        "001/AC-003"
+      ],
+      "surfaces": [
+        "host-integration"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "packages/host-contract/src/schemas.test.ts",
+        "packages/host-contract/src/pin.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "HOST-002",
+      "area": "host",
+      "name": "Fake host for tests and the harness",
+      "description": "An in-memory SurfaceHost typed from the pinned contract: browser-like history, refusal of off-site navigation, ctx exposure, snapshot apply that keeps ctx, test-key tokens, recorded calls.",
+      "status": "built",
+      "spec": "001",
+      "acs": [
+        "001/AC-002",
+        "001/AC-004"
+      ],
+      "surfaces": [
+        "host-integration"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "packages/host-contract/src/fake-host.test.ts",
+        "packages/host-contract/src/pin.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "HOST-003",
+      "area": "host",
+      "name": "Surface entry mounts into the reader page",
+      "description": "The surface's default export mounts the page view (host-bridged router, R4) and the persistent view (renders only in a social ctx, R18); links go through the host (R15); never touches window.history (R1); a host from another major gets a reload notice.",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-002",
+        "002/AC-005",
+        "002/AC-006",
+        "002/AC-007",
+        "002/AC-008",
+        "002/AC-009",
+        "002/AC-010"
+      ],
+      "surfaces": [
+        "host-integration"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/surface/mount.contract.test.tsx",
+        "app/src/surface/host-history.test.ts",
+        "app/src/route-trees.test.ts",
+        "e2e/harness.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "HOST-004",
+      "area": "host",
+      "name": "Surface build with a release manifest",
+      "description": "npm run build:surface emits an ES module entry, chunks, one CSS file and manifest.json in the reader's manifest format with sha384 hashes; the build refuses Start runtime and server imports.",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-001"
+      ],
+      "surfaces": [
+        "host-integration"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/surface/build.contract.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "HOST-005",
+      "area": "host",
+      "name": "Harness page loads the built surface into the fake host",
+      "description": "harness/ is a fake reader page that loads the built surface through its manifest into the fake host over the browser's history, shows the reader's location, ctx, snapshot and the calls the surface made, and runs the L4a journeys.",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-011"
+      ],
+      "surfaces": [
+        "host-integration"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "e2e/harness.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "HOST-006",
+      "area": "host",
+      "name": "Social settings page at /social/settings",
+      "description": "Placeholder settings page with a tab in the search (?tab=profile|notifications), validated per route; unknown parameters dropped (R7).",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-004"
+      ],
+      "surfaces": [
+        "settings"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/surface/mount.contract.test.tsx",
+        "e2e/harness.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "HOST-007",
+      "area": "host",
+      "name": "Social's own not-found page",
+      "description": "Any path under /social that is not an R6 page, or has an invalid id, renders social's not-found page inside the surface (R6).",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-003"
+      ],
+      "surfaces": [
+        "host-integration"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/surface/mount.contract.test.tsx",
+        "e2e/harness.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-001",
+      "area": "room",
+      "name": "Room lobby page at /social/r/$roomId",
+      "description": "Placeholder room lobby page; ids must match ^[A-Za-z0-9_-]{8,128}$ (R6).",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-012"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/surface/mount.contract.test.tsx",
+        "e2e/harness.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-001",
+      "area": "sess",
+      "name": "Social context in the reader's ctx parameter",
+      "description": "app/src/lib/ctx.ts encodes and decodes social.room.<id> / social.shiur.<id> and adds or removes only social's ctx on a reader URL, keeping every other parameter byte for byte (R3, R11).",
+      "status": "built",
+      "spec": "003",
+      "acs": [
+        "003/AC-001",
+        "003/AC-002",
+        "003/AC-003"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/lib/ctx.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-002",
+      "area": "sess",
+      "name": "Enlarge and minimise session state machine",
+      "description": "app/src/features/session/machine.ts: the SessionView union of plan 4.3 with an explicit transition table; illegal moves are refused and leave the state unchanged.",
+      "status": "built",
+      "spec": "004",
+      "acs": [
+        "004/AC-001",
+        "004/AC-002",
+        "004/AC-003"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/features/session/machine.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-001",
+      "area": "shiur",
+      "name": "Shiur page at /social/s/$shiurId",
+      "description": "Placeholder shiur page with a link to a ref through the reader's workspace commands (R15).",
+      "status": "built",
+      "spec": "002",
+      "acs": [
+        "002/AC-013"
+      ],
+      "surfaces": [
+        "shiur"
+      ],
+      "depends_on": {
+        "host_contract": "1.0"
+      },
+      "tests": [
+        "app/src/surface/mount.contract.test.tsx",
+        "e2e/harness.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "IDENT-082",
       "area": "ident",
       "name": "Test-only persona sessions",

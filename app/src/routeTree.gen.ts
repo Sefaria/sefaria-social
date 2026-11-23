@@ -10,33 +10,89 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SocialIndexRouteImport } from './routes/social.index'
+import { Route as SocialSplatRouteImport } from './routes/social.$'
+import { Route as SocialSettingsRouteImport } from './routes/social.settings'
+import { Route as SocialRRoomIdRouteImport } from './routes/social.r.$roomId'
+import { Route as SocialSShiurIdRouteImport } from './routes/social.s.$shiurId'
 
 const SocialIndexRoute = SocialIndexRouteImport.update({
   id: '/social/',
   path: '/social/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SocialSplatRoute = SocialSplatRouteImport.update({
+  id: '/social/$',
+  path: '/social/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialSettingsRoute = SocialSettingsRouteImport.update({
+  id: '/social/settings',
+  path: '/social/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialRRoomIdRoute = SocialRRoomIdRouteImport.update({
+  id: '/social/r/$roomId',
+  path: '/social/r/$roomId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialSShiurIdRoute = SocialSShiurIdRouteImport.update({
+  id: '/social/s/$shiurId',
+  path: '/social/s/$shiurId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
+  '/social/$': typeof SocialSplatRoute
+  '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
+  '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/s/$shiurId': typeof SocialSShiurIdRoute
 }
 export interface FileRoutesByTo {
+  '/social/$': typeof SocialSplatRoute
+  '/social/settings': typeof SocialSettingsRoute
   '/social': typeof SocialIndexRoute
+  '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/s/$shiurId': typeof SocialSShiurIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/social/$': typeof SocialSplatRoute
+  '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
+  '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/s/$shiurId': typeof SocialSShiurIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/social/'
+  fullPaths:
+    | '/social/$'
+    | '/social/settings'
+    | '/social/'
+    | '/social/r/$roomId'
+    | '/social/s/$shiurId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/social'
-  id: '__root__' | '/social/'
+  to:
+    | '/social/$'
+    | '/social/settings'
+    | '/social'
+    | '/social/r/$roomId'
+    | '/social/s/$shiurId'
+  id:
+    | '__root__'
+    | '/social/$'
+    | '/social/settings'
+    | '/social/'
+    | '/social/r/$roomId'
+    | '/social/s/$shiurId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  SocialSplatRoute: typeof SocialSplatRoute
+  SocialSettingsRoute: typeof SocialSettingsRoute
   SocialIndexRoute: typeof SocialIndexRoute
+  SocialRRoomIdRoute: typeof SocialRRoomIdRoute
+  SocialSShiurIdRoute: typeof SocialSShiurIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +104,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SocialIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/social/$': {
+      id: '/social/$'
+      path: '/social/$'
+      fullPath: '/social/$'
+      preLoaderRoute: typeof SocialSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/settings': {
+      id: '/social/settings'
+      path: '/social/settings'
+      fullPath: '/social/settings'
+      preLoaderRoute: typeof SocialSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/r/$roomId': {
+      id: '/social/r/$roomId'
+      path: '/social/r/$roomId'
+      fullPath: '/social/r/$roomId'
+      preLoaderRoute: typeof SocialRRoomIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/s/$shiurId': {
+      id: '/social/s/$shiurId'
+      path: '/social/s/$shiurId'
+      fullPath: '/social/s/$shiurId'
+      preLoaderRoute: typeof SocialSShiurIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  SocialSplatRoute: SocialSplatRoute,
+  SocialSettingsRoute: SocialSettingsRoute,
   SocialIndexRoute: SocialIndexRoute,
+  SocialRRoomIdRoute: SocialRRoomIdRoute,
+  SocialSShiurIdRoute: SocialSShiurIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -101,3 +101,18 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
 5. **H-005 Hebrew interface.** Story: a learner using the Hebrew interface opens the feed and a room lobby and expects everything to
    read naturally right to left. Rubric: R1 (language) the feed's headings and buttons are in Hebrew; R2 (accessibility) the page
    direction is right to left and focus order follows it; R3 (language) dates and counts are formatted for Hebrew.
+
+## Added by P1 (contract, harness, routing)
+
+- [ ] **Approve specs 001–004** (`specs/001-host-contract`, `002-surface-harness-routes`, `003-ctx-codec`,
+      `004-session-machine`): review each with its code, then `npm run factory -- approve NNN --by <your email>` and
+      `npm run factory -- compile NNN`, and commit. Until then `spec-gate` on the P1 PR fails only because they await approval.
+      Added by P1.
+- [ ] **Re-pin the contract after the reader seam merges.** `packages/host-contract/pinned/` is pinned from
+      `feat/reader-social-surface` @ `b90e19735d` (Sefaria-Project PR 4122, unmerged). After it merges into `reader-next`, run
+      `npm run pin -w @sefaria-social/host-contract -- <reader checkout> <merged commit>` and review the diff. Added by P1.
+- [ ] **Decide R4's wording.** Decision `docs/decisions/0003-two-builds.md` drops R4's `basepath: "/social"` (the surface tree
+      uses `/social/…` paths instead). `docs/ROUTING.md` notes it; `.claude/rules/routing.md` (protected, verbatim) still says
+      basepath. Amend it, or reject the decision. Added by P1.
+- [ ] **`CLAUDE.md` commands** (protected): add `npm run build:surface`, `npm run build:harness`, `npm run harness`,
+      `npm run test:contract`, and that `npm run test:e2e` now builds and runs the harness journeys. Added by P1.

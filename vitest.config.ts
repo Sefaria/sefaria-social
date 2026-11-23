@@ -2,9 +2,14 @@ import { defineConfig } from "vitest/config";
 import viteReact from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 
-// Three projects. `architecture` (L0, the static job): structural rules over the source tree. `factory` (L0, the static job):
+// Four projects. `architecture` (L0, the static job): structural rules over the source tree. `factory` (L0, the static job):
 // the factory's own tests — every gate, hook and doctor rule with its negative test, in fixture git repos. `unit` (L1, the unit
-// job): unit and component tests next to the code. Every test has a time limit; a hung test fails instead of holding CI.
+// job): unit and component tests next to the code. `contract` (L3, the contract job): the surface against the fake host, the
+// surface build's manifest, and the pinned contract (`*.contract.test.*` and packages/host-contract). Component tests opt into
+// jsdom with a `// @vitest-environment jsdom` docblock. Every test has a time limit; a hung test fails instead of holding CI.
+/** L3 contract tests (plan 5.5). */
+const CONTRACT_TESTS = ["app/src/**/*.contract.test.{ts,tsx}", "packages/host-contract/src/**/*.test.ts"];
+
 export default defineConfig({
   resolve: { alias: { "~": fileURLToPath(new URL("./app/src", import.meta.url)) } },
   test: {
@@ -36,6 +41,18 @@ export default defineConfig({
           name: "unit",
           environment: "node",
           include: ["app/src/**/*.test.{ts,tsx}", "packages/*/src/**/*.test.{ts,tsx}"],
+          exclude: [...CONTRACT_TESTS, "**/node_modules/**"],
+        },
+      },
+      {
+        extends: true,
+        plugins: [viteReact()],
+        test: {
+          name: "contract",
+          environment: "node",
+          include: CONTRACT_TESTS,
+          // The surface build test and the pinned-contract compile test run Vite and tsc.
+          testTimeout: 60_000,
         },
       },
     ],
