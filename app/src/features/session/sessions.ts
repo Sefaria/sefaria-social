@@ -31,7 +31,7 @@ export interface SessionPolicy {
 }
 
 export interface RoomSessions {
-  /** Hold a room's session open; returns the release. Signed out: nothing opens and the release does nothing. */
+  /** Hold a room's session open; returns the release. Signed out or no relay: nothing opens and the release does nothing. */
   acquire(roomId: string, hold: Hold): () => void;
   get(roomId: string): RoomSession | null;
   /** Rooms with a session, for the mini view. */
@@ -63,7 +63,8 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
 
   function open(roomId: string) {
     const viewer = host.viewer.get();
-    if (!viewer) return null;
+    // Signed out, or a reader with no relay configured (it sends relayOrigin ""): no socket, the same as signed out.
+    if (!viewer || !host.config.relayOrigin) return null;
     const transport = makeTransport(relayUrl(host.config.relayOrigin, roomId), async () => [
       RELAY_SUBPROTOCOL,
       `bearer.${await host.viewer.identityToken()}`,

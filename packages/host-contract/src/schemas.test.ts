@@ -46,4 +46,20 @@ describe("contract schemas", () => {
     ]);
     expect(s.surfaceHostShapeSchema.safeParse({ contract: { major: 1, minor: 0 } }).success).toBe(false);
   });
+
+  // @feature HOST-001 Pinned SurfaceHost contract with runtime schemas
+  // @ac 001/AC-001
+  it("accepts the reader's empty apiOrigin and relayOrigin (not configured) and still refuses a value that is not a URL", async () => {
+    const { hostConfigSchema } = await load();
+    const ok = (apiOrigin: string, relayOrigin: string) =>
+      hostConfigSchema.safeParse({ apiOrigin, relayOrigin, environment: "local" }).success;
+    // the contract types both as string, and the reader passes "" when PUBLIC_SOCIAL_API_ORIGIN or _RELAY_ORIGIN is unset
+    expect([
+      ok("", ""),
+      ok("https://social.example", ""),
+      ok("", "wss://relay.example"),
+      ok("http://localhost:3200", "ws://localhost:8787"),
+    ]).toEqual([true, true, true, true]);
+    expect([ok("not a url", ""), ok("", "relay"), ok(" ", "")]).toEqual([false, false, false]);
+  });
 });
