@@ -3,7 +3,7 @@
   "spec": "011",
   "title": "Joining a room from its link, the room status passthrough, and the lobby's Join",
   "approved": false,
-  "spec_sha": "sha256:2f6049b1b9d76d2cf015dc7d6ffd771e9790913fbe81495e692214aa7ede48c9",
+  "spec_sha": "sha256:cb1c731008907f25440ea49c33fa4cdc72f8c6cf68e1123395fbf6b28d0bc448",
   "feature_sha": "sha256:56a3c3ace0f355dc74126a09b87499254f43ef3ded9b5a9adacfcbd7c33e8f31",
   "tasks_sha": "sha256:78c97557df8e767b3514d52b6fffafad50497f759abcbc6e592d7a47ec3db33d",
   "risk": "high",
@@ -148,7 +148,7 @@
     },
     {
       "ac": "AC-003",
-      "text": "WHEN a member calls `GET /api/v1/rooms/{roomId}/status` THE SYSTEM SHALL answer `{live, ref, title, participants}` from the relay's internal status read (2 s timeout, one retry on a network error or 5xx), and `{live: false, ref: null, title: null, participants: 0}` when the relay is not configured or does not answer; a non-member gets 404 `room.not_found`.",
+      "text": "WHEN a member calls `GET /api/v1/rooms/{roomId}/status` THE SYSTEM SHALL answer `{live, ref, title,",
       "scenarios": [
         "Status from the relay, or a quiet fallback"
       ],

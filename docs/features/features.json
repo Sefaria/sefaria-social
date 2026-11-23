@@ -615,7 +615,7 @@
       "area": "sess",
       "name": "Protocol fixtures keep social's and the reader's copies in step",
       "description": "Recorded protocol results from the reader's room code, replayed against packages/session; a drift check against a reader checkout.",
-      "status": "planned",
+      "status": "built",
       "spec": "009",
       "acs": [
         "009/AC-004",
@@ -623,7 +623,9 @@
       ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "packages/session/src/protocol.contract.test.ts"
+      ],
       "since": null,
       "changed": []
     },

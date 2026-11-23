@@ -10,7 +10,11 @@ import { fileURLToPath } from "node:url";
 // manifest, and the pinned contract (`*.contract.test.*` and packages/host-contract). Component tests opt into jsdom with a
 // `// @vitest-environment jsdom` docblock. Every test has a time limit; a hung test fails instead of holding CI.
 /** L3 contract tests (plan 5.5). */
-const CONTRACT_TESTS = ["app/src/**/*.contract.test.{ts,tsx}", "packages/host-contract/src/**/*.test.ts"];
+const CONTRACT_TESTS = [
+  "app/src/**/*.contract.test.{ts,tsx}",
+  "packages/*/src/**/*.contract.test.ts",
+  "packages/host-contract/src/**/*.test.ts",
+];
 
 export default defineConfig({
   resolve: { alias: { "~": fileURLToPath(new URL("./app/src", import.meta.url)) } },

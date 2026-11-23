@@ -25,7 +25,7 @@ drop that user too (plan 6.3).
 - AC-002 WHEN a member who is not the owner calls `DELETE /api/v1/rooms/{roomId}/members/me` THE SYSTEM SHALL remove their
   membership and respond 204; the owner gets 403 `room.owner_cannot_leave`; a non-member gets 404 `room.not_found`.
 - AC-003 WHEN a member calls `GET /api/v1/rooms/{roomId}/status` THE SYSTEM SHALL answer `{live, ref, title,
-  participants}` from the relay's internal status read (2 s timeout, one retry on a network error or 5xx), and
+participants}` from the relay's internal status read (2 s timeout, one retry on a network error or 5xx), and
   `{live: false, ref: null, title: null, participants: 0}` when the relay is not configured or does not answer; a
   non-member gets 404 `room.not_found`.
 - AC-004 WHEN the account-deletion webhook deletes a user THE SYSTEM SHALL, after the deletion has committed, ask the relay
