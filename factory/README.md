@@ -17,4 +17,19 @@ The deterministic half of the software factory (plan sections 5.3–5.5, 5.9, 5.
 | `test/`           | `npm run test:factory`     | every rule's negative test, in fixture git repos (`@guard <module>/<rule>`)                       |
 
 Every rule is listed in its module's exported `RULES`; `doctor` fails when a rule has no test tagged `@guard <module>/<rule>`.
-Arriving in F2: metrics, `surface-map.yaml`, `quarantine.yaml`.
+Agent lanes (F2; how to operate them: `docs/runbooks/agent-lanes.md`):
+
+| File                  | Command                             | What                                                                       |
+| --------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
+| `preflight.mjs`       | `preflight <lane>`                  | run or skip an agent lane, with a notice when credentials are absent       |
+| `metrics.mjs`         | `metrics record\|from-run\|publish` | append-only JSON lines on the `factory-data` branch (zero dependencies)    |
+| `surfaces.mjs`        | `surfaces --base <ref>`             | QA surfaces from the diff through `surface-map.yaml`                       |
+| `qa.mjs`              | `qa-recount <evidence.json>`        | recount agent QA, render the one evidence comment and the failure issues   |
+| `test-health.mjs`     | `collection`, `flake`, `quarantine` | nightly: files on disk == files executed; mixed results; `quarantine.yaml` |
+| `retro.mjs`           | `retro --metrics <dir>`             | the weekly retro's numbers                                                 |
+| `quality-score.mjs`   | `quality-score [--check]`           | generates `docs/QUALITY_SCORE.md`                                          |
+| `holdout.mjs`         | `holdout validate\|score\|issues`   | holdout scenario format, satisfaction score, redacted issue bodies         |
+| `prompts/`            |                                     | holdout evaluator and judge prompts                                        |
+| `surface-map.yaml`    |                                     | path → QA surface                                                          |
+| `quarantine.yaml`     |                                     | flaky tests: reason, issue, expiry                                         |
+| `test/acceptance-08x` | `npm run test:factory`              | acceptance tests of specs 080–086 (CLI only, so prove-red can run them)    |

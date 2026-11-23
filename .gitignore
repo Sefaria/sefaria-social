@@ -16,3 +16,7 @@ playwright-report/
 # The relay's local secrets and wrangler state
 packages/relay/.dev.vars
 packages/relay/.wrangler/
+# Agent QA and mutation testing outputs (agent-qa.yml, nightly.yml).
+/qa/
+/reports/
+/.stryker-tmp/

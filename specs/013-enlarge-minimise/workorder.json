@@ -3,7 +3,7 @@
   "spec": "013",
   "title": "Enlarge into a room's reader context and minimise out of it (R8–R14)",
   "approved": false,
-  "spec_sha": "sha256:6ab7657b62f47be1e90cf3017f279d0a7d17241e35ef5133b34e3a68d4774439",
+  "spec_sha": "sha256:67925bf9a8e11f28acdbad25015145b2ec4126e984d0042ef7b482df3a8010f1",
   "feature_sha": "sha256:b96f1f41002ed8bfc747ac7747dfd364d0f7306c50c850d0bc9afbe0fe5f5a8a",
   "tasks_sha": "sha256:51a75e696961e732e9c9fc8590e6563b51919ec0f3f613fc8d051efce27e3784",
   "risk": "high",

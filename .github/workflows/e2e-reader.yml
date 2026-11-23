@@ -1,0 +1,69 @@
+# L4b (plan 5.5, 5.8): the harness journeys against the real reader image at the pinned commit, with the social lab on.
+#
+# DISABLED until the reader seam lands. Reason: the reader has no `social` route prefix, surface loader, SurfaceHost v1 or lab
+# yet (milestone A1, Sefaria-Project branch reader-next), so there is nothing to load the surface into, and no reader image with
+# the seam to pin. The `reader` job runs only when the repository variable E2E_READER_ENABLED is 'true'; every other run is the
+# `disabled` job, which prints this reason. To enable (after A1 merges): set READER_IMAGE (the reader container at the pinned
+# commit) and E2E_READER_ENABLED=true, then add `merge_group` to the triggers below. Listed in docs/runbooks/setup-checklist.md.
+name: e2e-reader
+
+on:
+  schedule:
+    - cron: "47 3 * * *" # nightly, after nightly.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-reader-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  disabled:
+    name: disabled
+    if: vars.E2E_READER_ENABLED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: echo "::notice title=e2e-reader disabled::L4b waits for the reader seam (A1). Enable with the repository variables READER_IMAGE and E2E_READER_ENABLED=true; see .github/workflows/e2e-reader.yml."
+
+  reader:
+    name: reader
+    if: vars.E2E_READER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write # metrics line
+    services:
+      reader:
+        image: ${{ vars.READER_IMAGE }}
+        ports: ["3100:3100"]
+        env:
+          SOCIAL_SURFACE_DEV_URL: http://host.docker.internal:3300
+          LAB_SOCIAL: "on"
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: L4b journeys against the reader
+        env:
+          E2E_TARGET: reader
+          READER_URL: http://127.0.0.1:3100
+        run: npx playwright test --grep @l4b
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: e2e-reader
+          result: ${{ job.status }}
+          started-at: ${{ steps.start.outputs.at }}

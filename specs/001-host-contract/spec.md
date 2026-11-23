@@ -4,7 +4,7 @@ title: Social builds against a pinned copy of the reader's SurfaceHost contract 
 status: proposed
 features: [HOST-001, HOST-002]
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [host]
+surfaces: [host-integration]
 risk: high
 contract_impact: none
 ---

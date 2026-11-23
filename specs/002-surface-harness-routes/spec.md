@@ -4,7 +4,7 @@ title: The social surface mounts in a fake reader page and every R6 page loads a
 status: proposed
 features: [HOST-003, HOST-004, HOST-005, HOST-006, HOST-007, ROOM-001, SHIUR-001]
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [host, feed, room, shiur, settings]
+surfaces: [host-integration, feed, room-lobby, shiur, settings]
 risk: high
 contract_impact: none
 ---

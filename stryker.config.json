@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-schema.json",
+  "_comment": "Mutation testing (plan 5.5 L5c), nightly and advisory. Stryker is installed at run time by nightly.yml (npm install --no-save @stryker-mutator/core@10.1.1 @stryker-mutator/vitest-runner@10.1.1), so it is not a dependency. `--mutate <files>` names the changed files; the vitest runner runs only the related tests.",
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "vitest": { "configFile": "vitest.config.ts", "related": true },
+  "coverageAnalysis": "perTest",
+  "reporters": ["clear-text", "progress", "json"],
+  "jsonReporter": { "fileName": "reports/mutation/mutation.json" },
+  "tempDirName": ".stryker-tmp",
+  "timeoutMS": 20000,
+  "concurrency": 2,
+  "thresholds": { "high": 80, "low": 60, "break": null }
+}

@@ -1,0 +1,37 @@
+- id: T-001
+  title: Preflight decides run or skip per lane
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "factory/preflight.mjs"
+    - "factory/cli.mjs"
+    - "factory/test/preflight.test.mjs"
+    - "factory/test/acceptance-080.test.mjs"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+- id: T-002
+  title: Agent review and security review workflows
+  acs: [AC-003, AC-006]
+  files:
+    - ".github/workflows/agent-review.yml"
+    - ".github/workflows/security-review.yml"
+    - "factory/test/acceptance-080.test.mjs"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-080]
+- id: T-003
+  title: Doctor checks agent jobs and workflow hygiene; actionlint in static
+  acs: [AC-004, AC-005]
+  files:
+    - "factory/doctor.mjs"
+    - "factory/lib/paths.mjs"
+    - "factory/README.md"
+    - "factory/test/doctor-lanes.test.mjs"
+    - "factory/test/acceptance-080.test.mjs"
+    - ".github/workflows/ci.yml"
+    - "CLAUDE.md"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-081]

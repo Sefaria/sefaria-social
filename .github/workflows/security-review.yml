@@ -1,0 +1,88 @@
+# Security review (plan 5.8): anthropics/claude-code-security-review on pull requests from this repository only. The action's
+# README says it is not hardened against prompt injection, so it never runs on a fork: the job's `if` refuses forks, and
+# factory/preflight.mjs refuses them again. The action accepts only an API key (no OIDC) and has no turn limit; it is capped by
+# claudecode-timeout and the job's timeout-minutes instead (docs/decisions/0080-agent-actions.md). Advisory: findings are PR
+# comments. Skips with a notice when ANTHROPIC_API_KEY is not configured.
+name: security-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    name: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: write # the metrics line on factory-data only
+    outputs:
+      run: ${{ steps.pre.outputs.run }}
+      model: ${{ steps.pre.outputs.model }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pre
+        name: Decide whether the security review runs
+        env:
+          HAS_ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          AGENT_MODEL: ${{ vars.SECURITY_REVIEW_MODEL }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: node factory/preflight.mjs security
+      - name: Record the skip
+        if: steps.pre.outputs.run != 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: ./.github/actions/metrics
+        with:
+          job: security
+          result: skipped
+          extra: |
+            reason=${{ steps.pre.outputs.rule }}
+
+  security:
+    name: security
+    needs: preflight
+    if: needs.preflight.outputs.run == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write # metrics line only
+      pull-requests: write
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+      - id: agent
+        name: Security review
+        continue-on-error: true # advisory
+        uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # main, 2026-02-11 (no release tags)
+        with:
+          claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude-model: ${{ needs.preflight.outputs.model }}
+          claudecode-timeout: "15"
+          comment-pr: "true"
+          upload-results: "true"
+          exclude-directories: "docs,specs,node_modules"
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: security
+          result: ${{ steps.agent.outcome == 'success' && 'success' || 'failure' }}
+          started-at: ${{ steps.start.outputs.at }}
+          model: ${{ needs.preflight.outputs.model }}
+          extra: |
+            findings=${{ steps.agent.outputs.findings-count }}

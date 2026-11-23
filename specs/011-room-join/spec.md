@@ -4,7 +4,7 @@ title: Joining a room from its link, the room status passthrough, and the lobby'
 status: proposed
 features: [ROOM-011, API-045, IDENT-049, ROOM-044]
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [room, api]
+surfaces: [room-lobby, api]
 risk: high
 contract_impact: api-minor
 ---

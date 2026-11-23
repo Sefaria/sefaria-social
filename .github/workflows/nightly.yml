@@ -1,0 +1,474 @@
+# Nightly (plan 5.5, 5.8): the checks that are too slow or too noisy for every PR, each recording a metrics line.
+#   tests-3x         every Vitest project (and Playwright, once e2e tests exist) three times: flake detection, the collection
+#                    check (test files on disk == test files executed, per level) and the quarantine list (expiry)
+#   mutation         Stryker on source files changed in the last day (advisory; installed at run time, not a dependency)
+#   audit            npm audit: high or critical in runtime dependencies fails
+#   contract-drift   the pinned SurfaceHost contract against the reader's default branch (skips until both exist)
+#   docs-freshness   docs/QUALITY_SCORE.md is current; the atlas checks pass
+#   doctor           `npm run factory -- doctor` in full, guard negative tests included
+#   holdout-*        holdout scenarios (L5b): only this workflow and release.yml may check out the holdout repository, with the
+#                    HOLDOUT_DEPLOY_KEY deploy key; skips with a notice until the key, the repo name, a staging URL and Anthropic
+#                    credentials exist. Three clean trials per scenario; one judge per rubric dimension.
+# The full L4 matrix (desktop and phone, English and Hebrew) runs inside tests-3x once P1's Playwright projects exist.
+name: nightly
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # 03:17 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22"
+  CI: "true"
+
+jobs:
+  tests-3x:
+    name: tests-3x
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write # metrics lines and the nightly report on factory-data
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: social
+          POSTGRES_PASSWORD: social
+          POSTGRES_DB: social_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U social" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://social:social@127.0.0.1:5432/social_test
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the factory tests build fixture repos from history
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - id: e2e
+        name: Are there Playwright tests yet?
+        run: echo "count=$(find e2e -name '*.spec.ts' -o -name '*.test.ts' | grep -c . || true)" >> "$GITHUB_OUTPUT"
+      - name: Browsers
+        if: steps.e2e.outputs.count != '0'
+        run: npx playwright install --with-deps chromium
+      - name: Run every suite three times
+        run: |
+          mkdir -p test-results
+          for i in 1 2 3; do
+            npx vitest run --reporter=json --outputFile="test-results/vitest-$i.json" > /dev/null || echo "vitest run $i had failures"
+            if [ "${{ steps.e2e.outputs.count }}" != "0" ]; then
+              PLAYWRIGHT_JSON_OUTPUT_NAME="test-results/e2e-$i.json" npx playwright test --reporter=json > /dev/null || echo "e2e run $i had failures"
+            fi
+          done
+          ls -l test-results
+      - id: flake
+        name: Flake detection (tests with mixed results)
+        run: |
+          set +e
+          npm run --silent factory -- flake test-results/vitest-*.json --out test-results/flake.json; v=$?
+          e=0; if ls test-results/e2e-*.json > /dev/null 2>&1; then npm run --silent factory -- flake test-results/e2e-*.json; e=$?; fi
+          echo "flaky=$(node -e 'console.log(require("./test-results/flake.json").newFlaky.length)')" >> "$GITHUB_OUTPUT"
+          exit $(( v || e ))
+      - id: collection
+        name: Collection check (files on disk == files executed, per level)
+        if: always()
+        run: |
+          reports=(test-results/vitest-1.json)
+          if [ -f test-results/e2e-1.json ]; then reports+=(test-results/e2e-1.json); fi
+          npm run --silent factory -- collection "${reports[@]}" --out test-results/collection.json
+          echo "tests=$(node -e 'console.log(require("./test-results/vitest-1.json").numTotalTests)')" >> "$GITHUB_OUTPUT"
+          echo "skipped=$(node -e 'const r=require("./test-results/vitest-1.json");console.log((r.numPendingTests||0)+(r.numTodoTests||0))')" >> "$GITHUB_OUTPUT"
+      - name: Quarantine list (fields and expiry; quarantined failures do not gate)
+        if: always()
+        run: npm run --silent factory -- quarantine --report test-results/vitest-1.json
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: tests-3x
+          result: ${{ job.status }}
+          started-at: ${{ steps.start.outputs.at }}
+          tests-run: ${{ steps.collection.outputs.tests }}
+          tests-skipped: ${{ steps.collection.outputs.skipped }}
+          extra: |
+            flaky=${{ steps.flake.outputs.flaky }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-test-results
+          path: test-results/
+          retention-days: 14
+
+  mutation:
+    name: mutation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write # metrics line
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: files
+        name: Source files changed in the last day
+        run: |
+          files=$(git log --since="25 hours ago" --name-only --pretty=format: | sort -u \
+            | grep -E '^(app/src|packages/[^/]+/src)/.*\.(ts|tsx)$' | grep -Ev '\.test\.|\.gen\.|/routes/' \
+            | while read -r f; do [ -f "$f" ] && echo "$f"; done | paste -sd, - || true)
+          echo "list=$files" >> "$GITHUB_OUTPUT"
+          echo "changed source files: ${files:-none}"
+      - name: Nothing to mutate
+        if: steps.files.outputs.list == ''
+        run: echo "::notice title=mutation::No source file under app/src or packages/*/src changed in the last day; skipped."
+      - uses: actions/setup-node@v4
+        if: steps.files.outputs.list != ''
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Install (Stryker is installed for this run only; npm 11, see docs/runbooks/agent-lanes.md)
+        if: steps.files.outputs.list != ''
+        run: npm ci && npx -y npm@11 install --no-save @stryker-mutator/core@10.1.1 @stryker-mutator/vitest-runner@10.1.1
+      - id: stryker
+        name: Stryker on the changed files
+        if: steps.files.outputs.list != ''
+        continue-on-error: true # advisory (plan 5.5 L5c)
+        env:
+          MUTATE: ${{ steps.files.outputs.list }}
+        run: |
+          npx stryker run stryker.config.json --mutate "$MUTATE"
+          node -e 'const r=require("./reports/mutation/mutation.json");let k=0,t=0;for(const f of Object.values(r.files))for(const m of f.mutants){if(["Killed","Timeout"].includes(m.status))k++;if(!["NoCoverage","Ignored","CompileError","RuntimeError"].includes(m.status))t++;}console.log("score="+(t?Math.round(100*k/t):0))' >> "$GITHUB_OUTPUT"
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: mutation
+          result: ${{ steps.files.outputs.list == '' && 'skipped' || (steps.stryker.outcome == 'success' && 'success' || 'failure') }}
+          started-at: ${{ steps.start.outputs.at }}
+          extra: |
+            mutation_score=${{ steps.stryker.outputs.score }}
+
+  audit:
+    name: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # metrics line
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - id: audit
+        name: npm audit (runtime dependencies, high and critical fail)
+        run: |
+          npm audit --omit=dev --audit-level=high
+          echo "--- development dependencies (report only) ---"
+          npm audit --audit-level=critical || true
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: audit
+          result: ${{ job.status }}
+          started-at: ${{ steps.start.outputs.at }}
+
+  contract-drift:
+    name: contract-drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # metrics line
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - id: drift
+        name: Pinned contract vs the reader's default branch
+        env:
+          READER_CONTRACT_URL: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/reader-next/reader-next/contract/surface-host.v1.ts
+        run: |
+          pinned=packages/host-contract/pinned/surface-host.v1.ts
+          if [ ! -f "$pinned" ]; then echo "::notice title=contract drift::No pinned contract yet ($pinned arrives with P1); skipped."; echo "state=skipped" >> "$GITHUB_OUTPUT"; exit 0; fi
+          code=$(curl -sS --max-time 20 -o /tmp/reader-contract.ts -w '%{http_code}' "$READER_CONTRACT_URL" || echo 000)
+          if [ "$code" != "200" ]; then echo "::notice title=contract drift::The reader has no published contract at $READER_CONTRACT_URL (HTTP $code; the reader seam A1 has not landed); skipped."; echo "state=skipped" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if diff -u "$pinned" /tmp/reader-contract.ts; then echo "state=same" >> "$GITHUB_OUTPUT"; else
+            echo "::error title=contract drift::The reader's contract differs from the pinned copy. Fix: run the contract-sync skill against the reader's commit and review the change."
+            echo "state=drift" >> "$GITHUB_OUTPUT"; exit 1; fi
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: contract-drift
+          result: ${{ steps.drift.outputs.state == 'skipped' && 'skipped' || job.status }}
+          started-at: ${{ steps.start.outputs.at }}
+
+  docs-freshness:
+    name: docs-freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # metrics line and the published report
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: QUALITY_SCORE.md is current
+        run: npm run --silent factory -- quality-score --check
+      - name: Atlas
+        run: npm run --silent factory -- atlas
+      - name: Publish the quality score with metrics columns to factory-data (reports/)
+        if: always()
+        run: |
+          if git fetch --quiet --depth=1 origin factory-data:refs/remotes/origin/factory-data 2>/dev/null; then
+            git worktree add --quiet /tmp/fd origin/factory-data
+          else
+            mkdir -p /tmp/fd/metrics
+          fi
+          gh issue list --label escaped --state open --json number,labels > /tmp/escaped.json 2>/dev/null || echo "[]" > /tmp/escaped.json
+          cp /tmp/escaped.json escaped.json
+          npm run --silent factory -- quality-score --metrics /tmp/fd/metrics --escaped escaped.json --out /tmp/QUALITY_SCORE.md
+          node factory/metrics.mjs publish --file /tmp/QUALITY_SCORE.md --to reports/QUALITY_SCORE.md --soft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: docs-freshness
+          result: ${{ job.status }}
+          started-at: ${{ steps.start.outputs.at }}
+
+  doctor:
+    name: doctor
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write # metrics line
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Factory doctor, in full (runs every guard's negative test)
+        run: npm run factory -- doctor
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: doctor
+          result: ${{ job.status }}
+          started-at: ${{ steps.start.outputs.at }}
+
+  holdout-list:
+    name: holdout-list
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # metrics line on a skip
+    outputs:
+      run: ${{ steps.pre.outputs.run }}
+      model: ${{ steps.pre.outputs.model }}
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pre
+        name: Decide whether holdout scenarios run
+        env:
+          HAS_ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          HAS_HOLDOUT_DEPLOY_KEY: ${{ secrets.HOLDOUT_DEPLOY_KEY != '' }}
+          HOLDOUT_REPO: ${{ vars.HOLDOUT_REPO }}
+          STAGING_URL: ${{ vars.STAGING_URL }}
+          AGENT_MODEL: ${{ vars.HOLDOUT_MODEL }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: node factory/preflight.mjs holdout
+      - name: Record the skip
+        if: steps.pre.outputs.run != 'true'
+        uses: ./.github/actions/metrics
+        with:
+          job: holdout
+          result: skipped
+          extra: |
+            reason=${{ steps.pre.outputs.rule }}
+      - name: Check out the holdout repository (deploy key, this workflow only)
+        if: steps.pre.outputs.run == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.HOLDOUT_REPO }}
+          ssh-key: ${{ secrets.HOLDOUT_DEPLOY_KEY }}
+          path: holdout
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: steps.pre.outputs.run == 'true'
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - id: list
+        name: Validate the scenarios and list their ids (never their text)
+        if: steps.pre.outputs.run == 'true'
+        run: |
+          npm ci
+          npm run --silent factory -- holdout validate holdout/scenarios
+          ids=$(node -e 'const fs=require("fs"),Y=require("yaml");console.log(JSON.stringify(fs.readdirSync("holdout/scenarios").filter(f=>/\.ya?ml$/.test(f)).map(f=>Y.parse(fs.readFileSync("holdout/scenarios/"+f,"utf8")).id)))')
+          echo "matrix={\"scenario\":$ids,\"trial\":[1,2,3]}" >> "$GITHUB_OUTPUT"
+
+  holdout-trial:
+    name: holdout-trial
+    needs: holdout-list
+    if: needs.holdout-list.outputs.run == 'true'
+    runs-on: ubuntu-latest # every trial is a fresh runner and a fresh browser context: a clean trial
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix: ${{ fromJson(needs.holdout-list.outputs.matrix) }}
+    permissions:
+      contents: read
+      id-token: write # OIDC, when configured instead of an API key
+    env:
+      SCENARIO: ${{ matrix.scenario }}
+      TRIAL: ${{ matrix.trial }}
+      STAGING_URL: ${{ vars.STAGING_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out the holdout repository (deploy key, this workflow only)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.HOLDOUT_REPO }}
+          ssh-key: ${{ secrets.HOLDOUT_DEPLOY_KEY }}
+          path: holdout
+          persist-credentials: false
+      - name: Browser
+        run: npx -y playwright@1.65.1 install --with-deps chromium
+      - name: Evaluate (drive the staging build; observe, do not grade)
+        continue-on-error: true
+        uses: anthropics/claude-code-action@acfe7992852970efb4fee683d63d628e3e52df67 # v1.0.286
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_federation_rule_id: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          anthropic_organization_id: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allow_fork_prs: "false"
+          prompt: |
+            Follow factory/prompts/holdout-evaluator.md. Scenario file: holdout/scenarios/ (the one whose id is ${{ matrix.scenario }}).
+            Trial ${{ matrix.trial }} of 3. Staging build: ${{ vars.STAGING_URL }}. Write holdout-out/${{ matrix.scenario }}-t${{ matrix.trial }}.observed.json.
+          claude_args: >-
+            --model ${{ needs.holdout-list.outputs.model }}
+            --max-turns 60
+            --permission-mode default
+            --mcp-config '{"mcpServers":{"playwright":{"command":"npx","args":["-y","@playwright/mcp@0.0.86","--headless","--isolated"]}}}'
+            --allowedTools "Read,Glob,Write(holdout-out/**),mcp__playwright__browser_navigate,mcp__playwright__browser_navigate_back,mcp__playwright__browser_snapshot,mcp__playwright__browser_click,mcp__playwright__browser_type,mcp__playwright__browser_fill_form,mcp__playwright__browser_press_key,mcp__playwright__browser_wait_for,mcp__playwright__browser_take_screenshot,mcp__playwright__browser_resize"
+            --disallowedTools "Edit,Bash"
+      - name: Judge (one judge per rubric dimension, each a fresh subagent)
+        continue-on-error: true
+        uses: anthropics/claude-code-action@acfe7992852970efb4fee683d63d628e3e52df67 # v1.0.286
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_federation_rule_id: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          anthropic_organization_id: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allow_fork_prs: "false"
+          prompt: |
+            Follow factory/prompts/holdout-judge.md. Scenario ${{ matrix.scenario }}, trial ${{ matrix.trial }}. Observations:
+            holdout-out/${{ matrix.scenario }}-t${{ matrix.trial }}.observed.json. Write holdout-out/${{ matrix.scenario }}-t${{ matrix.trial }}.json.
+          claude_args: >-
+            --model ${{ needs.holdout-list.outputs.model }}
+            --max-turns 30
+            --permission-mode default
+            --allowedTools "Read,Glob,Task,Write(holdout-out/**)"
+            --disallowedTools "Edit,Bash"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: holdout-${{ matrix.scenario }}-t${{ matrix.trial }}
+          path: holdout-out/
+          retention-days: 30
+
+  holdout-score:
+    name: holdout-score
+    needs: [holdout-list, holdout-trial]
+    if: always() && needs.holdout-list.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # metrics line
+      issues: write
+    steps:
+      - id: start
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - name: Check out the holdout repository (deploy key, this workflow only)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.HOLDOUT_REPO }}
+          ssh-key: ${{ secrets.HOLDOUT_DEPLOY_KEY }}
+          path: holdout
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: holdout-H-*
+          path: holdout-results
+          merge-multiple: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - id: score
+        name: Satisfaction score (3 clean trials per scenario; pass, fail or unknown per rubric line)
+        run: |
+          set +e
+          mkdir -p holdout-results
+          rm -f holdout-results/*.observed.json
+          npm run --silent factory -- holdout score holdout/scenarios holdout-results --out score.json; s=$?
+          echo "satisfaction=$(node -e 'console.log(Math.round(100*require("./score.json").satisfaction))' 2>/dev/null)" >> "$GITHUB_OUTPUT"
+          exit $s
+      - name: One issue per failed scenario (symptom and observed steps; never the scenario text)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run --silent factory -- holdout issues holdout/scenarios holdout-results holdout-issues
+          for f in holdout-issues/*.md; do
+            [ -f "$f" ] || continue
+            gh issue create --title "$(head -1 "$f")" --body "$(tail -n +3 "$f")"
+          done
+      - name: Record metrics
+        if: always()
+        uses: ./.github/actions/metrics
+        with:
+          job: holdout
+          result: ${{ job.status }}
+          started-at: ${{ steps.start.outputs.at }}
+          model: ${{ needs.holdout-list.outputs.model }}
+          extra: |
+            satisfaction=${{ steps.score.outputs.satisfaction }}

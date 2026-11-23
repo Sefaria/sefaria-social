@@ -4,7 +4,7 @@ title: Who is in the room, live, in the lobby and the mini view
 status: proposed
 features: [ROOM-012]
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [room]
+surfaces: [room-lobby]
 risk: normal
 contract_impact: none
 ---

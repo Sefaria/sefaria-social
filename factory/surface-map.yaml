@@ -1,0 +1,98 @@
+# Path → QA surface (plan 5.5, agent QA L5a). The surfaces a pull request touches are derived from its changed files through
+# this fixed map, never from the PR description. `npm run factory -- surfaces --base <ref>` prints them.
+#
+# - `surfaces`: each surface a persona can reach, with the globs that belong to it and how a runner reaches it.
+# - `shared`: code used by several surfaces. A changed shared file maps to every surface whose files import it (transitively,
+#   through relative and `~/` imports). Shared code with no importer maps to no surface.
+# - `ignore`: files with no user-facing surface (docs, specs, the factory, tests, tooling).
+# A changed product file (app/, packages/, harness/, e2e/) that matches none of these fails the derivation: add it here.
+# Surface keys are the values specs and atlas entries use in `surfaces:` (doctor checks that every one exists here).
+
+surfaces:
+  feed:
+    description: The social feed at /social (R6), its cards and their enlarge transition.
+    reach: "harness: /social"
+    paths:
+      - "app/src/features/feed/**"
+      - "app/src/routes/social.index.tsx"
+  room-lobby:
+    description: A room's lobby at /social/r/$roomId (who is here, what is being learned, Join).
+    reach: "harness: /social/r/<roomId>"
+    paths:
+      - "app/src/features/room/**"
+      - "app/src/routes/social.r.*"
+  shiur:
+    description: A shiur page at /social/s/$shiurId (scheduled, live, recorded).
+    reach: "harness: /social/s/<shiurId>"
+    paths:
+      - "app/src/features/shiur/**"
+      - "app/src/routes/social.s.*"
+  settings:
+    description: Social settings at /social/settings.
+    reach: "harness: /social/settings"
+    paths:
+      - "app/src/routes/social.settings*"
+      - "app/src/features/settings/**"
+  session:
+    description: Being in a room from any reader route — follow, enlarge, minimise, the persistent mount.
+    reach: "harness: any reader route with a social ctx value; two browser contexts"
+    paths:
+      - "app/src/features/session/**"
+      - "packages/session/**"
+      - "packages/relay/**"
+  presence:
+    description: Presence on segments and the presence list.
+    reach: "harness: a reader route inside a room; two browser contexts"
+    paths:
+      - "app/src/features/presence/**"
+  host-integration:
+    description: Mounting in the reader page, host-bridged navigation, Back and Forward, the not-found page under /social.
+    reach: "harness: load, navigate, Back, Forward, an unknown /social path"
+    paths:
+      - "app/src/surface/**"
+      - "app/src/routes/__root.tsx"
+      - "app/src/routes/social.$*"
+      - "app/src/router.tsx"
+      - "app/src/routeTree.gen.ts"
+      - "packages/host-contract/**"
+      - "harness/**"
+  identity:
+    description: Signing in as a persona, signed-out visitors, token refresh, refusal of protected routes.
+    reach: "API and harness: persona session route (test environment only), then any protected page"
+    paths:
+      - "app/src/server/auth/**"
+      - "app/src/routes/api/v1/session*"
+  api:
+    description: The social API (/api/v1/*), webhooks and health, reached by a persona with its token.
+    reach: "API: requests with the persona's bearer token"
+    paths:
+      - "app/src/routes/api/**"
+      - "app/src/server/**"
+
+shared:
+  - "app/src/lib/**"
+  - "app/src/ui/**"
+  - "app/src/features/host/**"
+  - "app/src/features/shell/**"
+  - "app/src/features/api/**"
+  - "packages/api-client/**"
+
+ignore:
+  - "docs/**"
+  - "specs/**"
+  - "factory/**"
+  - ".claude/**"
+  - ".github/**"
+  - "test/**"
+  - "e2e/**"
+  - "**/*.md"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/package.json"
+  - "package-lock.json"
+  - "app/tsconfig.json"
+  - "app/vite.config.ts"
+  - "app/vite.surface.config.ts"
+  - "app/surface-build.ts"
+  - "app/drizzle.config.ts"
+  - "app/scripts/**"
