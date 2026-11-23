@@ -2,7 +2,6 @@
   title: Minified surface build and the size budget check
   acs: [AC-001, AC-002, AC-003]
   files:
-    - "factory/test/release-fixtures.mjs"
     - "app/vite.surface.config.ts"
     - "app/surface-budget.json"
     - "app/scripts/release/budget.ts"

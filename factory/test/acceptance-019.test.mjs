@@ -2,12 +2,62 @@
 // ci.yml, so they load on the merge base and fail there on an assertion. AC-001 (the real minified build) is
 // app/src/surface/minify.contract.test.ts.
 // @feature OPS-019 Surface bundle size budget checked in CI
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import YAML from "yaml";
 import { REPO } from "./helpers.mjs";
-import { makeBuild, release, tempDir } from "./release-fixtures.mjs";
+
+// ── Release fixtures (the same block in acceptance-019/020/021: prove-red copies only test files onto the merge base, so a
+// shared helper module would not load there). A fake surface build and runners for the release CLI and scripts/rollback,
+// driven as child processes only. ──────────────────────────────────────────────────────────────────────────────────────────
+const made = [];
+afterEach(() => {
+  while (made.length) rmSync(made.pop(), { recursive: true, force: true });
+});
+
+function tempDir(prefix = "release-") {
+  const dir = mkdtempSync(path.join(tmpdir(), prefix));
+  made.push(dir);
+  return dir;
+}
+
+const sri = (body) => `sha384-${createHash("sha384").update(body).digest("base64")}`;
+
+/**
+ * A surface build in `dir`: an entry, `chunks` (name → source), one stylesheet, a source map that the manifest does not list,
+ * and manifest.json. Returns the manifest.
+ */
+function makeBuild(dir, version, { entry = "export default { id: 'social' };\n", chunks = { a: "export const a = 1;\n" } } = {}) {
+  mkdirSync(path.join(dir, "assets"), { recursive: true });
+  const files = [];
+  const put = (rel, body) => {
+    writeFileSync(path.join(dir, rel), body);
+    return { path: rel, integrity: sri(Buffer.from(body)) };
+  };
+  const e = put("assets/surface.e1.js", entry);
+  for (const [name, body] of Object.entries(chunks)) files.push(put(`assets/chunk.${name}.js`, body));
+  files.push(put("assets/social.c1.css", ".social{color:red}\n"));
+  writeFileSync(path.join(dir, "assets/surface.e1.js.map"), '{"version":3}');
+  const manifest = { version, contract: 1, entry: e.path, integrity: e.integrity, files, css: ["assets/social.c1.css"] };
+  writeFileSync(path.join(dir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+  return manifest;
+}
+
+const TSX = path.join(REPO, "node_modules", ".bin", "tsx");
+const RELEASE_CLI = path.join(REPO, "app", "scripts", "release", "cli.ts");
+
+/** `npm run release -- <args>`, with RELEASE_TARGET set to `target` (or unset when null). */
+function release(args, { target, cwd = REPO } = {}) {
+  const env = { ...process.env };
+  delete env.RELEASE_TARGET;
+  if (target) env.RELEASE_TARGET = target;
+  const r = spawnSync(TSX, [RELEASE_CLI, ...args], { cwd, env, encoding: "utf8", timeout: 60_000 });
+  return { code: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "", out: `${r.stdout ?? ""}${r.stderr ?? ""}` };
+}
 
 const budgetFile = (dir, limits) => {
   const file = path.join(dir, "budget.json");

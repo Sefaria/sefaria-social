@@ -3,7 +3,6 @@
   acs: [AC-001, AC-002]
   files:
     - "factory/test/doctor-lanes.test.mjs"
-    - "factory/test/release-fixtures.mjs"
     - "Dockerfile"
     - ".dockerignore"
     - "app/scripts/start.mjs"

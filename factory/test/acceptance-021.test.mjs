@@ -3,12 +3,39 @@
 // `container` job, not here); AC-003 reads the Helm values sketch against the server's configuration. CLI and file reads
 // only, so they load on the merge base and fail there on an assertion.
 // @feature OPS-021 Server container image and standalone Helm values
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import YAML from "yaml";
 import { REPO } from "./helpers.mjs";
-import { release, tempDir } from "./release-fixtures.mjs";
+
+// ── Release fixtures (the same block in acceptance-019/020/021: prove-red copies only test files onto the merge base, so a
+// shared helper module would not load there). A fake surface build and runners for the release CLI and scripts/rollback,
+// driven as child processes only. ──────────────────────────────────────────────────────────────────────────────────────────
+const made = [];
+afterEach(() => {
+  while (made.length) rmSync(made.pop(), { recursive: true, force: true });
+});
+
+function tempDir(prefix = "release-") {
+  const dir = mkdtempSync(path.join(tmpdir(), prefix));
+  made.push(dir);
+  return dir;
+}
+
+const TSX = path.join(REPO, "node_modules", ".bin", "tsx");
+const RELEASE_CLI = path.join(REPO, "app", "scripts", "release", "cli.ts");
+
+/** `npm run release -- <args>`, with RELEASE_TARGET set to `target` (or unset when null). */
+function release(args, { target, cwd = REPO } = {}) {
+  const env = { ...process.env };
+  delete env.RELEASE_TARGET;
+  if (target) env.RELEASE_TARGET = target;
+  const r = spawnSync(TSX, [RELEASE_CLI, ...args], { cwd, env, encoding: "utf8", timeout: 60_000 });
+  return { code: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "", out: `${r.stdout ?? ""}${r.stderr ?? ""}` };
+}
 
 const PINNED = "node:22.23.5-bookworm-slim@sha256:" + "a".repeat(64);
 const GOOD = [
