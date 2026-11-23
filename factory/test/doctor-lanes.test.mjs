@@ -116,7 +116,7 @@ describe("doctor: agent lanes", () => {
     edit(
       root,
       ".github/workflows/ci.yml",
-      "needs: [changes, static, unit, build, integration, contract, e2e-harness, spec-gate, prove-red, result]",
+      "needs: [changes, static, unit, build, spec-gate, prove-red, result]",
       "needs: [changes]",
     );
     expect(checkResultNeeds(root)).toEqual([
