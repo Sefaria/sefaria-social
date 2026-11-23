@@ -396,7 +396,7 @@ jobs:
     # One metrics line per job of this run (plan 5.8, 5.9), appended to the factory-data branch with the workflow token (which
     # does not trigger CI). A reporter: it needs `result`, so it is not in result.needs and never blocks a merge (doctor allows
     # exactly this). Fork PRs get a read-only token, so they are skipped on purpose. A refused push is a warning, not a failure.
-    needs: [changes, static, unit, build, integration, contract, e2e-harness, spec-gate, prove-red, result]
+    needs: [changes, static, unit, build, spec-gate, prove-red, result]
     if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 5
