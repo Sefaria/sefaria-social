@@ -56,7 +56,7 @@ export async function startRelay(): Promise<Relay> {
       modules: true,
       script: await bundleWorker(),
       compatibilityDate: "2026-10-01",
-      durableObjects: { ROOMS: "Room" },
+      durableObjects: { ROOMS: "Room", TOMBSTONES: "Tombstones" },
       bindings: { ALLOWED_ORIGINS: ORIGIN, JWKS_URL: jwksUrl, TOKEN_ISSUER: ISSUER, RELAY_INTERNAL_SECRET: SECRET },
     }),
   );

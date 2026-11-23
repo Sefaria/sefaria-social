@@ -317,14 +317,16 @@
       "area": "ident",
       "name": "Relay drops a deleted user",
       "description": "Internal drop-user call closes the user's sockets and refuses their upgrades for 30 minutes.",
-      "status": "planned",
+      "status": "built",
       "spec": "010",
       "acs": [
         "010/AC-005"
       ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "packages/relay/src/relay.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -638,14 +640,16 @@
       "area": "sess",
       "name": "Relay status read for cards",
       "description": "Internal status of a room: ref and title from the spotlight stream's summary slice and the participant count.",
-      "status": "planned",
+      "status": "built",
       "spec": "010",
       "acs": [
         "010/AC-004"
       ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "packages/relay/src/relay.test.ts"
+      ],
       "since": null,
       "changed": []
     },

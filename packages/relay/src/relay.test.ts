@@ -109,4 +109,69 @@ describe("relay", () => {
       expect(lastParticipants(peer)).toEqual([expect.objectContaining({ id: "4242", name: "Test Learner" })]),
     );
   });
+
+  // @feature SESS-042 Relay status read for cards
+  // @ac 010/AC-004
+  it("answers the status read from the spotlight's summary slice and the joined count, only with the secret", async () => {
+    expect(Object.keys(workers), "packages/relay/src/worker.ts exists").toEqual(["./worker.ts"]);
+    const { connect, join, lastParticipants, SECRET } = support;
+    const read = async (room: string, secret: string | null) => {
+      const res = await relay.mf.dispatchFetch(`http://relay.test/internal/status/${room}`, {
+        headers: secret === null ? {} : { Authorization: `Bearer ${secret}` },
+      });
+      return { status: res.status, body: await res.json() };
+    };
+    expect(await read("room-empty-0001", SECRET)).toEqual({ status: 200, body: { ref: null, title: null, participants: 0 } });
+
+    const leader = await connect(relay.mf, "/r/room-status-01", { protocols: protocolsFor(await relay.token({ sub: "4242" })) });
+    leader.send(join("4242"));
+    const summary = { "social.summary": { v: 1, value: { ref: "Genesis 1", title: "Genesis 1" } } };
+    leader.send({
+      ch: "state",
+      body: { type: "keyframe", seq: 0, t: 0, snapshot: { v: 1, url: "/Genesis.1", nav: null, slices: summary } },
+    });
+    const other = await connect(relay.mf, "/r/room-status-01", { protocols: protocolsFor(await relay.token({ sub: "5151" })) });
+    other.send(join("5151"));
+    await vi.waitFor(() => expect(lastParticipants(other)).toHaveLength(2));
+
+    expect(await read("room-status-01", SECRET)).toEqual({
+      status: 200,
+      body: { ref: "Genesis 1", title: "Genesis 1", participants: 2 },
+    });
+    expect((await read("room-status-01", null)).status).toBe(401);
+    expect((await read("room-status-01", "wrong-secret-same-len")).status).toBe(401);
+  });
+
+  // @feature IDENT-043 Relay drops a deleted user
+  // @ac 010/AC-005
+  it("closes a deleted user's sockets and refuses their upgrades everywhere; without the secret it drops nobody", async () => {
+    expect(Object.keys(workers), "packages/relay/src/worker.ts exists").toEqual(["./worker.ts"]);
+    const { connect, join, lastParticipants, SECRET } = support;
+    const drop = async (secret: string | null, userId: string) => {
+      const res = await relay.mf.dispatchFetch("http://relay.test/internal/drop-user", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...(secret === null ? {} : { Authorization: `Bearer ${secret}` }) },
+        body: JSON.stringify({ userId, rooms: ["room-drop-0001"] }),
+      });
+      await res.arrayBuffer();
+      return res.status;
+    };
+    const doomed = await connect(relay.mf, "/r/room-drop-0001", { protocols: protocolsFor(await relay.token({ sub: "7777" })) });
+    const stays = await connect(relay.mf, "/r/room-drop-0001", { protocols: protocolsFor(await relay.token({ sub: "8888" })) });
+    doomed.send(join("7777"));
+    stays.send(join("8888"));
+    await vi.waitFor(() => expect(lastParticipants(stays)).toHaveLength(2));
+
+    // Without the secret: refused, nobody dropped.
+    expect(await drop(null, "7777")).toBe(401);
+    expect(await drop("not-the-secret", "8888")).toBe(401);
+    expect([doomed.closed, stays.closed]).toEqual([false, false]);
+
+    expect(await drop(SECRET, "7777")).toBe(200);
+    await vi.waitFor(() => expect(doomed.closed).toBe(true));
+    await vi.waitFor(() => expect(lastParticipants(stays)?.map((p) => p.id)).toEqual(["8888"]));
+    const again = await connect(relay.mf, "/r/room-elsewhere1", { protocols: protocolsFor(await relay.token({ sub: "7777" })) });
+    const other = await connect(relay.mf, "/r/room-elsewhere1", { protocols: protocolsFor(await relay.token({ sub: "8888" })) });
+    expect([again.status, other.status]).toEqual([401, 101]);
+  });
 });

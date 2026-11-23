@@ -5,10 +5,24 @@
  */
 import { DurableObject } from "cloudflare:workers";
 import { createRoom, LIMITS_FOR_RELAY, type Outgoing, type Room as PureRoom } from "./room";
+import {
+  DROP_PATH,
+  INTERNAL_PREFIX,
+  STATUS_PATH,
+  TOMBSTONE_MS,
+  authorized,
+  dropUserBody,
+  summaryOf,
+  type RoomStatus,
+} from "./internal";
 import { SUBPROTOCOL, identityFrom, identityHeaders, tokenFromProtocols, verifyToken, type Identity } from "./auth";
 
 export interface Env {
   ROOMS: DurableObjectNamespace<Room>;
+  /** One object (name "global") holding recently deleted users. */
+  TOMBSTONES: DurableObjectNamespace<Tombstones>;
+  /** Shared with the social server for the internal routes. Unset: they refuse everything. */
+  RELAY_INTERNAL_SECRET?: string;
   /** Exact origins, comma-separated; "https://*.suffix" allows any subdomain of suffix. */
   ALLOWED_ORIGINS: string;
   /** Django's JWKS (`https://<sefaria>/.well-known/sefaria-social-jwks.json`). Unset: every upgrade is refused. */
@@ -44,6 +58,7 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     if (url.pathname === "/health") return new Response("ok");
+    if (url.pathname.startsWith(INTERNAL_PREFIX)) return internal(req, url, env);
     const match = ROOM_PATH.exec(url.pathname);
     if (!match) return new Response("not found", { status: 404 });
     if (req.headers.get("Upgrade")?.toLowerCase() !== "websocket") return new Response("expected a WebSocket", { status: 426 });
@@ -52,9 +67,33 @@ export default {
     const token = tokenFromProtocols(req.headers.get("Sec-WebSocket-Protocol"));
     const identity = token ? await verifyToken(token, env) : null;
     if (!identity) return new Response("unauthorized", { status: 401 });
+    if (await tombstones(env).isDropped(identity.userId)) return new Response("unauthorized", { status: 401 });
     return forwardToRoom(env, match[1]!, req, identity);
   },
 } satisfies ExportedHandler<Env>;
+
+const tombstones = (env: Env) => env.TOMBSTONES.get(env.TOMBSTONES.idFromName("global"));
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "cache-control": "no-store" } });
+
+/** The server's routes: the status read and the drop of a deleted user. */
+async function internal(req: Request, url: URL, env: Env): Promise<Response> {
+  if (!authorized(req, env.RELAY_INTERNAL_SECRET)) return json({ error: "unauthorized" }, 401);
+  const status = STATUS_PATH.exec(url.pathname);
+  if (status && req.method === "GET") return json(await env.ROOMS.get(env.ROOMS.idFromName(status[1]!)).status());
+  if (url.pathname === DROP_PATH && req.method === "POST") {
+    let body;
+    try {
+      body = dropUserBody.parse(await req.json());
+    } catch {
+      return json({ error: "invalid" }, 400);
+    }
+    await tombstones(env).drop(body.userId, Date.now() + TOMBSTONE_MS);
+    const closed = await Promise.all(body.rooms.map((r) => env.ROOMS.get(env.ROOMS.idFromName(r)).dropUser(body.userId)));
+    return json({ dropped: body.userId, sockets: closed.reduce((a, b) => a + b, 0) });
+  }
+  return json({ error: "not found" }, 404);
+}
 
 /** Hands the upgrade to the room's object with the verified identity in internal headers (overwriting any the client sent). */
 function forwardToRoom(env: Env, roomId: string, req: Request, identity: Identity): Promise<Response> {
@@ -88,18 +127,43 @@ export class Room extends DurableObject<Env> {
       if (typeof e.data !== "string") return; // the protocol is JSON text; the room checks size and shape
       this.deliver(this.room.handle(conn, withIdentity(e.data, identity)));
     });
-    const gone = () => {
-      if (!this.sockets.delete(conn)) return;
-      this.users.delete(conn);
-      this.deliver(this.room.disconnect(conn));
-      if (this.sockets.size === 0 && this.ticker) {
-        clearInterval(this.ticker); // nothing keeps the object now: it shuts down and the room goes with it
-        this.ticker = null;
-      }
-    };
+    const gone = () => this.gone(conn);
     server.addEventListener("close", gone);
     server.addEventListener("error", gone);
     return new Response(null, { status: 101, webSocket: client, headers: { "Sec-WebSocket-Protocol": SUBPROTOCOL } });
+  }
+
+  /** The status cards read (plan 4.5): the spotlight stream's summary slice and how many are joined. */
+  async status(): Promise<RoomStatus> {
+    const snap = this.room.snapshot();
+    const lead = snap.spotlight ? snap.streams[snap.spotlight]?.snapshot : null;
+    return { ...summaryOf(lead?.slices), participants: snap.participants.length };
+  }
+
+  /** Close every socket of a deleted user (plan 6.3). Returns how many were closed. */
+  async dropUser(userId: string): Promise<number> {
+    let closed = 0;
+    for (const [conn, who] of [...this.users]) {
+      if (who.userId !== userId) continue;
+      try {
+        this.sockets.get(conn)?.close(4001, "account deleted");
+      } catch {
+        // already closing
+      }
+      this.gone(conn);
+      closed++;
+    }
+    return closed;
+  }
+
+  private gone(conn: string) {
+    if (!this.sockets.delete(conn)) return;
+    this.users.delete(conn);
+    this.deliver(this.room.disconnect(conn));
+    if (this.sockets.size === 0 && this.ticker) {
+      clearInterval(this.ticker); // nothing keeps the object now: it shuts down and the room goes with it
+      this.ticker = null;
+    }
   }
 
   private deliver(out: Outgoing[]) {
@@ -133,4 +197,19 @@ export function withIdentity(text: string, identity: Identity): string {
     return text;
   v.body.participant = { ...(v.body.participant as object), id: identity.userId, name: identity.name };
   return JSON.stringify(v);
+}
+
+/** Users deleted recently, refused at upgrade until their tokens cannot be valid any more. Stored, so an eviction keeps them. */
+export class Tombstones extends DurableObject<Env> {
+  async drop(userId: string, until: number): Promise<void> {
+    await this.ctx.storage.put(`u:${userId}`, until);
+  }
+
+  async isDropped(userId: string): Promise<boolean> {
+    const until = await this.ctx.storage.get<number>(`u:${userId}`);
+    if (until === undefined) return false;
+    if (until > Date.now()) return true;
+    await this.ctx.storage.delete(`u:${userId}`);
+    return false;
+  }
 }
