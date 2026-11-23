@@ -35,7 +35,7 @@
         "001/AC-003"
       ],
       "surfaces": [
-        "host"
+        "host-integration"
       ],
       "depends_on": {
         "host_contract": "1.0"
@@ -59,7 +59,7 @@
         "001/AC-004"
       ],
       "surfaces": [
-        "host"
+        "host-integration"
       ],
       "depends_on": {
         "host_contract": "1.0"
@@ -88,7 +88,7 @@
         "002/AC-010"
       ],
       "surfaces": [
-        "host"
+        "host-integration"
       ],
       "depends_on": {
         "host_contract": "1.0"
@@ -113,7 +113,7 @@
         "002/AC-001"
       ],
       "surfaces": [
-        "host"
+        "host-integration"
       ],
       "depends_on": {
         "host_contract": "1.0"
@@ -135,7 +135,7 @@
         "002/AC-011"
       ],
       "surfaces": [
-        "host"
+        "host-integration"
       ],
       "depends_on": {
         "host_contract": "1.0"
@@ -180,7 +180,7 @@
         "002/AC-003"
       ],
       "surfaces": [
-        "host"
+        "host-integration"
       ],
       "depends_on": {
         "host_contract": "1.0"
@@ -203,7 +203,7 @@
         "002/AC-012"
       ],
       "surfaces": [
-        "room"
+        "room-lobby"
       ],
       "depends_on": {
         "host_contract": "1.0"

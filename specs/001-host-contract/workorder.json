@@ -4,7 +4,7 @@
   "title": "Social builds against a pinned copy of the reader's SurfaceHost contract and a fake host typed from it",
   "approved": true,
   "approved_by": "akiva@sefaria.org",
-  "spec_sha": "sha256:8a3186b19463a7027d5770799e1b2c765b1fa663584ea883d9961bf5f53d30f6",
+  "spec_sha": "sha256:bb6fbc833074c9e710f113d1c37f12dcc8e6bcf7c7a7631d7e35acd00a7e01f1",
   "feature_sha": "sha256:f0cb4f76ef8024d5928c8e16d154ed9c76338c93a5273f6c0026228385cd4935",
   "tasks_sha": "sha256:9c8a94136fba20df3faef778da0f7f50e1bb662577de8cc60fe9eaf6e921edb3",
   "risk": "high",
