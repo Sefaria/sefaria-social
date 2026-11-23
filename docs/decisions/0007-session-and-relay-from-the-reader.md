@@ -34,6 +34,9 @@ websocket`), and their tests. Not copied: `local-room.ts` (in-tab BroadcastChann
 })`, `dispatchFetch` with `Upgrade: websocket`), with the Worker bundled by esbuild in the test's setup. That is still
   the Workers runtime; it gives up per-test storage isolation, which these tests do not need. Revisit when the pool
   supports Vitest 5.
+- Miniflare version: 5.20261119.0-beta, the one wrangler 4.166 itself runs (npm's `latest` tag is still 4.x). Its options
+  are a new shape; the tests pass the v4 shape through its exported `convertV4MiniflareOptions`. The e2e stack and
+  `npm run relay:dev` use `wrangler dev`.
 
 ## Consequences
 
