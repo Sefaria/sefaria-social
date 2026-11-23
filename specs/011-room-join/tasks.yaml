@@ -55,6 +55,7 @@
   acs: [AC-006]
   files:
     - "app/src/features/api/**"
+    - "app/src/features/host/**"
     - "app/src/features/room/**"
     - "app/src/features/shell/strings.ts"
     - "app/src/surface/entry.ts"

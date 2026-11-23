@@ -482,7 +482,7 @@
       "area": "room",
       "name": "Lobby Join button",
       "description": "A non-member on /social/r/<id> sees Join; signed-out viewers are sent to sign in.",
-      "status": "planned",
+      "status": "built",
       "spec": "011",
       "acs": [
         "011/AC-006"
@@ -491,7 +491,9 @@
         "room"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/room/RoomLobbyPage.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

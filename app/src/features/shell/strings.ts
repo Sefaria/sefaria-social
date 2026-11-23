@@ -19,6 +19,12 @@ const STRINGS = {
     reload: "Sefaria was updated. Please reload the page to use Social.",
     inRoom: "You are in a room",
     backToRoom: "Back to the room",
+    loading: "Loading…",
+    joinRoom: "Join this room",
+    invited: "You have the link to this room. Join to learn with the people in it.",
+    join: "Join",
+    roomNotFound: "This room does not exist, or its link is wrong.",
+    roomError: "The room could not be loaded. Try again in a moment.",
   },
   hebrew: {
     nav: "חברתי",
@@ -37,6 +43,12 @@ const STRINGS = {
     reload: "ספריא עודכנה. יש לרענן את העמוד כדי להשתמש בחברתי.",
     inRoom: "את/ה בחדר",
     backToRoom: "חזרה לחדר",
+    loading: "טוען…",
+    joinRoom: "הצטרפות לחדר",
+    invited: "יש לך קישור לחדר הזה. אפשר להצטרף וללמוד עם האנשים שבו.",
+    join: "הצטרפות",
+    roomNotFound: "החדר הזה לא קיים, או שהקישור שגוי.",
+    roomError: "לא ניתן לטעון את החדר. כדאי לנסות שוב בעוד רגע.",
   },
 } as const satisfies Record<InterfaceLang, unknown>;
 
