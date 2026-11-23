@@ -1,7 +1,7 @@
 ---
 id: "002"
 title: The social surface mounts in a fake reader page and every R6 page loads and deep-links under /social
-status: proposed
+status: approved
 features: [HOST-003, HOST-004, HOST-005, HOST-006, HOST-007, ROOM-001, SHIUR-001]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [host-integration, feed, room-lobby, shiur, settings]

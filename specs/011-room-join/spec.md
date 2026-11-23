@@ -1,7 +1,7 @@
 ---
 id: "011"
 title: Joining a room from its link, the room status passthrough, and the lobby's Join
-status: proposed
+status: approved
 features: [ROOM-011, API-045, IDENT-049, ROOM-044]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [room-lobby, api]

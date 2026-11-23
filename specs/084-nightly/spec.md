@@ -1,7 +1,7 @@
 ---
 id: "084"
 title: The nightly finds flaky and uncollected tests and keeps quarantines honest
-status: proposed
+status: approved
 features: [OPS-087, OPS-088, OPS-089]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

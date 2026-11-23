@@ -1,7 +1,7 @@
 ---
 id: "008"
 title: Account deletion in Sefaria removes the user's social data
-status: proposed
+status: approved
 features: [IDENT-008]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

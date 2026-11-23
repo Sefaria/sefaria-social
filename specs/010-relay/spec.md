@@ -1,7 +1,7 @@
 ---
 id: "010"
 title: Room relay on Cloudflare with a token check, a status read and a drop for deleted users
-status: proposed
+status: approved
 features: [SESS-010, IDENT-041, SESS-042, IDENT-043]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

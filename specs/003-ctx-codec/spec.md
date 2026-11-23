@@ -1,7 +1,7 @@
 ---
 id: "003"
 title: Social reads and writes its room or shiur context in the reader's reserved ctx parameter
-status: proposed
+status: approved
 features: [SESS-001]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session]

@@ -1,7 +1,7 @@
 ---
 id: "085"
 title: A weekly retro reports the factory's numbers and last week's actions
-status: proposed
+status: approved
 features: [OPS-090]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

@@ -1,7 +1,7 @@
 ---
 id: "015"
 title: The feed — what is live, scheduled and recent for the viewer, at /social
-status: proposed
+status: approved
 features: [FEED-015, FEED-051]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, api]
