@@ -108,6 +108,19 @@ Source for most items: `docs/PLAN.md` section 9.
 - [ ] **Licence of the copied code**: `packages/session` and `packages/relay` start from Sefaria-Project (GPL-3.0);
       confirm it fits the social repo's licence once D1 is decided (decision 0007). Added by P3.
 
+## Added by P4 (feed and cards)
+
+- [ ] **Approve specs 015–018** (`specs/015-feed`, `016-light-cards`, `017-source-text`, `018-enlarge-transition`): review
+      each with its code, then run the approve and compile commands for each, and commit. Until then `spec-gate` on the P4
+      PR fails only with "spec NNN not approved" (it also lists the specs merged in from P1, P3 and F2). Added by P4.
+- [ ] **Decide where cards get text in the reader** (decision 0009): social requests `/api/v3/texts/…` from the reader
+      page's own origin. Confirm the reader serves (or proxies) that path in every environment, including local
+      development; otherwise propose `sefariaOrigin` in `host.config` for contract v1.1. Added by P4.
+- [ ] **Review the visual baselines** in `e2e/feed-visual.spec.ts-snapshots/` (English, Hebrew, dark; darwin and linux).
+      They were produced by the P4 worker on the harness, not checked by a designer. Added by P4.
+- [ ] **Hebrew strings for the feed** in `app/src/features/shell/strings.ts` (`feed*`, `card*`) were written by the P4
+      worker; have a Hebrew speaker review them. Added by P4.
+
 ## Added by F2 (agent lanes, metrics, nightly, retro, holdout)
 
 Every agent job skips with a notice until its inputs exist; nothing here blocks a PR. Details: `docs/runbooks/agent-lanes.md`.

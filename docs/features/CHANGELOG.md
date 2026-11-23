@@ -3,6 +3,15 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-23 — SESS-055 "Enlarging from a card lands on its source without a reload": built (spec 018, task T-002).
+- 2026-11-23 — FEED-018 "Enlarge from a card with a view transition": built (spec 018, task T-001).
+- 2026-11-23 — FEED-053 "Prefetch on visibility and on press": built (spec 017, tasks T-001, T-002).
+- 2026-11-23 — FEED-017 "Source-text renderer from the public text API": built (spec 017, task T-001).
+- 2026-11-23 — FEED-052 "A feed of live cards opens no sockets": built (spec 016, tasks T-002, T-003).
+- 2026-11-23 — FEED-016 "Light card: article with one stretched link and status in words": built (spec 016, tasks T-002, T-003).
+- 2026-11-23 — SESS-054 "Stream summary carries heRef and the source's title": built (spec 016, task T-001).
+- 2026-11-23 — FEED-051 "Feed page at /social": built (spec 015, task T-002).
+- 2026-11-23 — FEED-015 "Feed API: live, scheduled and recent for the viewer": built (spec 015, task T-001).
 - 2026-11-23 — OPS-092 "Idempotent QA seed and schema-checked reset": built (spec 082, tasks T-001, T-002).
 - 2026-11-23 — IDENT-082 "Test-only persona sessions": built (spec 082, tasks T-001, T-002).
 - 2026-11-23 — SESS-050 "Two learners in one room on the harness": built (spec 014, task T-002).

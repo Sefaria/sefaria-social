@@ -11,5 +11,11 @@ npm run harness                                  # http://localhost:3300/social 
 npm run test:e2e                                 # builds both, then Playwright (desktop + phone, English + Hebrew)
 ```
 
-Tests set the interface language or a viewer before load with `window.__HARNESS_CONFIG__ = { interfaceLang, viewer }`
-(Playwright `addInitScript`); the page also has controls for both. `window.__fakeHost` exposes the fake for debugging.
+Tests set the interface language, the theme or a viewer before load with
+`window.__HARNESS_CONFIG__ = { interfaceLang, theme, viewer }` (Playwright `addInitScript`); the page also has controls for
+the language and the viewer. `window.__fakeHost` exposes the fake for debugging.
+
+- The page carries a copy of the reader's design tokens (`src/reader-tokens.css`) and sets `data-theme` on `<html>` like the
+  reader, so social's markup looks as it does in the reader in light, dark and sepia.
+- `serve.mjs` answers Sefaria's public text API (`/api/v3/texts/<ref>`) from recorded answers in `fixtures/texts/` (public
+  data, trimmed). Record another ref with `node harness/fixtures/record-texts.mjs "<ref>"`; an unrecorded ref is 404.
