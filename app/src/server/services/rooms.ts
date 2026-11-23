@@ -5,6 +5,7 @@ import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import { roomMembers, rooms } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { relayStatus, type RoomStatusDto } from "./relay";
 import { upsertDisplay } from "./users";
 
 export interface RoomDto {
@@ -112,4 +113,10 @@ export async function leaveRoom(identity: Identity, roomId: string, db: Db = get
     if (m.role === "owner") throw new ApiError(403, "room.owner_cannot_leave");
     await tx.delete(roomMembers).where(and(eq(roomMembers.roomId, roomId), eq(roomMembers.userId, identity.userId)));
   });
+}
+
+/** A room's live status (spec 011): members only, then the relay's status read (outside any transaction). */
+export async function getRoomStatus(identity: Identity, roomId: string, db: Db = getDb()): Promise<RoomStatusDto> {
+  await membership(db, identity, roomId);
+  return relayStatus(roomId);
 }

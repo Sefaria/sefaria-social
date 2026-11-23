@@ -29,7 +29,7 @@ participants}` from the relay's internal status read (2 s timeout, one retry on 
   `{live: false, ref: null, title: null, participants: 0}` when the relay is not configured or does not answer; a
   non-member gets 404 `room.not_found`.
 - AC-004 WHEN the account-deletion webhook deletes a user THE SYSTEM SHALL, after the deletion has committed, ask the relay
-  to drop that user from every room they were a member of; a relay failure is logged (`relay_drop_failed`) and does not
+  to drop that user from every room they were a member of; a relay failure is logged (`relay.drop_failed`) and does not
   undo the deletion or fail the webhook.
 - AC-005 WHEN a request carries an `Origin` listed in `SOCIAL_ALLOWED_ORIGINS` THE SYSTEM SHALL answer its CORS preflight
   with 204 (no token needed) and add `Access-Control-Allow-Origin` with that origin to every API response; a request from

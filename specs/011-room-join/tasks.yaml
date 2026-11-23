@@ -24,6 +24,7 @@
     - "app/src/server/services/relay.ts"
     - "app/src/server/services/rooms.ts"
     - "app/src/server/http/**"
+    - "app/src/server/log/logger.ts"
     - "app/src/server/config.ts"
     - "app/src/routes/api/v1/rooms.$roomId.status.ts"
     - "app/src/routeTree.gen.ts"
@@ -42,6 +43,7 @@
     - "app/src/server/webhooks/**"
     - "app/src/server/services/users.ts"
     - "app/src/server/services/relay.ts"
+    - "app/src/server/log/logger.ts"
     - "app/src/api.join.int.test.ts"
     - "test/integration/**"
   depends_on: [T-002]

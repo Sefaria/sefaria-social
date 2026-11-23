@@ -66,3 +66,99 @@ describe("spec 011: joining", () => {
     expect(await h.sql("select user_id from room_members where room_id = $1", [room.id])).toEqual([{ user_id: "5151" }]);
   });
 });
+
+/** The real relay (packages/relay) in workerd, wired to the server through RELAY_INTERNAL_URL and the shared secret. */
+async function withRelay() {
+  const support = await import("../../packages/relay/test-support/relay");
+  const relay = await support.startRelay();
+  process.env.RELAY_INTERNAL_URL = relay.url.href;
+  process.env.RELAY_INTERNAL_SECRET = support.SECRET;
+  const protocols = async (sub: string) => ["sefaria-social.v1", `bearer.${await relay.token({ sub })}`];
+  return { support, relay, protocols };
+}
+
+function withoutRelay() {
+  delete process.env.RELAY_INTERNAL_URL;
+  delete process.env.RELAY_INTERNAL_SECRET;
+}
+
+describe("spec 011: status and CORS", () => {
+  // @feature API-045 Room status passthrough and CORS for the reader's origins
+  // @ac 011/AC-003
+  it("reads a member's room status from the relay, falls back when the relay is down, and hides it from non-members", async () => {
+    expect(served("GET", "/api/v1/rooms/$roomId/status"), "GET /api/v1/rooms/$roomId/status is served").toBeTypeOf("function");
+    const { support, relay, protocols } = await withRelay();
+    try {
+      const h = await load(); // after the relay env is set: the harness resets the cached config
+      const owner = await h.token(5151);
+      const stranger = await h.token(6161);
+      const room = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "Bereshit" } })).json as Room;
+
+      const leader = await support.connect(relay.mf, `/r/${room.id}`, { protocols: await protocols("5151") });
+      leader.send(support.join("5151"));
+      const slices = { "social.summary": { v: 1, value: { ref: "Genesis 1", title: "Genesis 1" } } };
+      leader.send({
+        ch: "state",
+        body: { type: "keyframe", seq: 0, t: 0, snapshot: { v: 1, url: "/Genesis.1", nav: null, slices } },
+      });
+      const statusOf = async (token: string) => h.call("GET", `/api/v1/rooms/${room.id}/status`, { token });
+      await expect
+        .poll(async () => (await statusOf(owner)).json)
+        .toEqual({
+          live: true,
+          ref: "Genesis 1",
+          title: "Genesis 1",
+          participants: 1,
+        });
+      expect((await statusOf(stranger)).status).toBe(404);
+
+      await relay.close();
+      expect(await statusOf(owner)).toMatchObject({
+        status: 200,
+        json: { live: false, ref: null, title: null, participants: 0 },
+      });
+    } finally {
+      withoutRelay();
+      await relay.close().catch(() => undefined);
+    }
+  }, 60_000);
+
+  // @feature API-045 Room status passthrough and CORS for the reader's origins
+  // @ac 011/AC-005
+  it("answers preflights and adds CORS headers only for the configured origins", async () => {
+    expect(served("GET", "/api/v1/rooms/$roomId/status"), "GET /api/v1/rooms/$roomId/status is served").toBeTypeOf("function");
+    process.env.SOCIAL_ALLOWED_ORIGINS = "https://www.sefaria.org, https://www.sefaria.org.il";
+    try {
+      const h = await load();
+      const token = await h.token(4242);
+      const pre = (origin: string) =>
+        h.call("OPTIONS", "/api/v1/rooms", {
+          headers: { origin, "access-control-request-method": "POST", "access-control-request-headers": "authorization" },
+        });
+      const ok = await pre("https://www.sefaria.org");
+      const evil = await pre("https://evil.example");
+      expect({ status: ok.status, origin: ok.headers.get("access-control-allow-origin") }).toEqual({
+        status: 204,
+        origin: "https://www.sefaria.org",
+      });
+      expect(ok.headers.get("access-control-allow-methods")).toBe("GET, POST");
+      expect(ok.headers.get("access-control-allow-headers")).toContain("authorization");
+      expect({ status: evil.status, origin: evil.headers.get("access-control-allow-origin") }).toEqual({
+        status: 204,
+        origin: null,
+      });
+
+      const listed = await h.call("GET", "/api/v1/rooms", { token, headers: { origin: "https://www.sefaria.org.il" } });
+      const refused = await h.call("GET", "/api/v1/rooms", { headers: { origin: "https://www.sefaria.org.il" } });
+      const foreign = await h.call("GET", "/api/v1/rooms", { token, headers: { origin: "https://evil.example" } });
+      expect([listed.status, refused.status, foreign.status]).toEqual([200, 401, 200]);
+      expect([listed, refused, foreign].map((r) => r.headers.get("access-control-allow-origin"))).toEqual([
+        "https://www.sefaria.org.il",
+        "https://www.sefaria.org.il",
+        null,
+      ]);
+    } finally {
+      delete process.env.SOCIAL_ALLOWED_ORIGINS;
+    }
+  });
+});

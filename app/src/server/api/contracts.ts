@@ -18,6 +18,13 @@ export const Room = z.object({
   updatedAt: z.iso.datetime({ offset: true }),
 });
 
+export const RoomStatus = z.object({
+  live: z.boolean(),
+  ref: z.string().nullable(),
+  title: z.string().nullable(),
+  participants: z.int().nonnegative(),
+});
+
 export const RoomList = z.object({ rooms: z.array(Room) });
 
 export const RoomInput = z.strictObject({ title: z.string().trim().min(1).max(120) });
@@ -123,6 +130,18 @@ export const leaveRoom = defineEndpoint({
   responses: { 204: { description: "Left." } },
 });
 
+export const getRoomStatus = defineEndpoint({
+  operationId: "getRoomStatus",
+  method: "GET",
+  path: "/api/v1/rooms/{roomId}/status",
+  summary:
+    "What a room is learning now and how many are in it, from the relay. Members only. Not live when the relay is unreachable.",
+  tags: ["rooms"],
+  params: RoomParams,
+  errors: [404],
+  responses: { 200: { description: "The room's live status.", schema: RoomStatus } },
+});
+
 export const userDeleted = defineEndpoint({
   operationId: "userDeletedWebhook",
   method: "POST",
@@ -144,5 +163,6 @@ export const ENDPOINTS = [
   deleteRoom,
   joinRoom,
   leaveRoom,
+  getRoomStatus,
   userDeleted,
 ] as const;

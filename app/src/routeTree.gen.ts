@@ -19,6 +19,7 @@ import { Route as SocialSShiurIdRouteImport } from './routes/social.s.$shiurId'
 import { Route as ApiV1InternalUserDeletedRouteImport } from './routes/api/v1/internal.user-deleted'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
 import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/rooms.$roomId.members'
+import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
 import { Route as ApiV1RoomsRoomIdMembersMeRouteImport } from './routes/api/v1/rooms.$roomId.members.me'
 
 const SocialIndexRoute = SocialIndexRouteImport.update({
@@ -72,6 +73,11 @@ const ApiV1RoomsRoomIdMembersRoute = ApiV1RoomsRoomIdMembersRouteImport.update({
   path: '/members',
   getParentRoute: () => ApiV1RoomsRoomIdRoute,
 } as any)
+const ApiV1RoomsRoomIdStatusRoute = ApiV1RoomsRoomIdStatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => ApiV1RoomsRoomIdRoute,
+} as any)
 const ApiV1RoomsRoomIdMembersMeRoute =
   ApiV1RoomsRoomIdMembersMeRouteImport.update({
     id: '/me',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
+  '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
 export interface FileRoutesByTo {
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
+  '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
 export interface FileRoutesById {
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
+  '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
 export interface FileRouteTypes {
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/api/v1/internal/user-deleted'
     | '/api/v1/rooms/$roomId'
     | '/api/v1/rooms/$roomId/members'
+    | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/members/me'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/api/v1/internal/user-deleted'
     | '/api/v1/rooms/$roomId'
     | '/api/v1/rooms/$roomId/members'
+    | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/members/me'
   id:
     | '__root__'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
     | '/api/v1/internal/user-deleted'
     | '/api/v1/rooms/$roomId'
     | '/api/v1/rooms/$roomId/members'
+    | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/members/me'
   fileRoutesById: FileRoutesById
 }
@@ -244,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdMembersRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdRoute
     }
+    '/api/v1/rooms/$roomId/status': {
+      id: '/api/v1/rooms/$roomId/status'
+      path: '/status'
+      fullPath: '/api/v1/rooms/$roomId/status'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdStatusRouteImport
+      parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
     '/api/v1/rooms/$roomId/members/me': {
       id: '/api/v1/rooms/$roomId/members/me'
       path: '/me'
@@ -270,10 +289,12 @@ const ApiV1RoomsRoomIdMembersRouteWithChildren =
 
 interface ApiV1RoomsRoomIdRouteChildren {
   ApiV1RoomsRoomIdMembersRoute: typeof ApiV1RoomsRoomIdMembersRouteWithChildren
+  ApiV1RoomsRoomIdStatusRoute: typeof ApiV1RoomsRoomIdStatusRoute
 }
 
 const ApiV1RoomsRoomIdRouteChildren: ApiV1RoomsRoomIdRouteChildren = {
   ApiV1RoomsRoomIdMembersRoute: ApiV1RoomsRoomIdMembersRouteWithChildren,
+  ApiV1RoomsRoomIdStatusRoute: ApiV1RoomsRoomIdStatusRoute,
 }
 
 const ApiV1RoomsRoomIdRouteWithChildren =

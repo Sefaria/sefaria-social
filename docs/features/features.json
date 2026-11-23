@@ -45,7 +45,7 @@
       "area": "api",
       "name": "Room status passthrough and CORS for the reader's origins",
       "description": "GET /api/v1/rooms/{roomId}/status from the relay with timeout, retry and fallback; CORS from SOCIAL_ALLOWED_ORIGINS.",
-      "status": "planned",
+      "status": "built",
       "spec": "011",
       "acs": [
         "011/AC-003",
@@ -55,7 +55,9 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.join.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },

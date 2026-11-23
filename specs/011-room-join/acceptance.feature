@@ -27,7 +27,7 @@ Feature: Joining a room from its link, the room status passthrough, and the lobb
     Given user 4242 is a member of two rooms
     When the deletion webhook for 4242 is processed
     Then the relay is asked to drop 4242 from both rooms
-    And with the relay failing the webhook still answers "processed" and logs relay_drop_failed
+    And with the relay failing the webhook still answers "processed" and logs relay.drop_failed
 
   @AC-005
   Scenario: Browsers on the reader's origin may call the API

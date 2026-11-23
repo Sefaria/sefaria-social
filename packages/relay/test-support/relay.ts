@@ -33,6 +33,8 @@ export async function bundleWorker(): Promise<string> {
 
 export interface Relay {
   mf: Miniflare;
+  /** The relay's HTTP address (workerd listening on a local port), for callers outside the test process's dispatchFetch. */
+  url: URL;
   /** Signs a Sefaria-style identity token (plan 6.1) with the test key, or with `key` (a key the JWKS does not hold). */
   token(claims: { sub: string; name?: string; expSeconds?: number; iss?: string; aud?: string }, key?: JoseKey): Promise<string>;
   otherKey: JoseKey;
@@ -60,10 +62,11 @@ export async function startRelay(): Promise<Relay> {
       bindings: { ALLOWED_ORIGINS: ORIGIN, JWKS_URL: jwksUrl, TOKEN_ISSUER: ISSUER, RELAY_INTERNAL_SECRET: SECRET },
     }),
   );
-  await mf.ready;
+  const url = await mf.ready;
 
   return {
     mf,
+    url,
     otherKey: other.privateKey,
     async token({ sub, name = "Test Learner", expSeconds = 600, iss = ISSUER, aud = "sefaria-social" }, key = privateKey) {
       const now = Math.floor(Date.now() / 1000);
