@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sefaria.org/schemas/social/features.schema.json",
+  "title": "docs/features/features.json",
+  "description": "The feature atlas (plan 5.10): one entry per feature a user or another system can observe. Ids are never reused or renumbered.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$comment", "features"],
+  "properties": {
+    "$comment": { "type": "string" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "area",
+          "name",
+          "description",
+          "status",
+          "spec",
+          "acs",
+          "surfaces",
+          "depends_on",
+          "tests",
+          "since",
+          "changed"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^(FEED|ROOM|SHIUR|SESS|IDENT|HOST|API|OPS)-\\d{3}$" },
+          "area": { "enum": ["feed", "room", "shiur", "sess", "ident", "host", "api", "ops"] },
+          "name": { "type": "string", "minLength": 3 },
+          "description": { "type": "string" },
+          "status": { "enum": ["planned", "built", "verified", "retired"] },
+          "spec": { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^\\d{3}$" }] },
+          "acs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^\\d{3}/AC-\\d{3}$" } },
+          "surfaces": { "type": "array", "items": { "type": "string" } },
+          "depends_on": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "host_contract": { "type": "string" },
+              "api": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "tests": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+          "since": { "oneOf": [{ "type": "null" }, { "type": "string" }] },
+          "changed": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["spec", "date"],
+              "properties": {
+                "spec": { "type": "string", "pattern": "^\\d{3}$" },
+                "date": { "oneOf": [{ "type": "null" }, { "type": "string" }] }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

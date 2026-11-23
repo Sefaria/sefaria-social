@@ -37,3 +37,14 @@ Source for most items: `docs/PLAN.md` section 9.
       default. Added by F0.
 - [ ] Decisions with no default (plan section 9): chat retention, moderation and minors; audio/video provider; profiles and follow
       graph source; who does deployment infrastructure; whether the reader accepts `ctx` and the surface loader. Added by F0.
+
+## Added by F1 (the factory)
+
+- [ ] **Create the team `@Sefaria/sefaria-social-owners` and name its owners.** `.github/CODEOWNERS` uses it as a placeholder
+      for `specs/**` and every protected path (plan 5.6). Until it exists, code-owner review cannot be required. Added by F1.
+- [ ] **Require code owner review** in the `main` ruleset once the team exists (CODEOWNERS is in place). Added by F1.
+- [ ] **Approve spec 000** (`specs/000-hello-surface/`): review it, then run
+      `npm run factory -- approve 000 --by <your email>` and `npm run factory -- compile 000` from your own terminal (the
+      command refuses agent sessions and CI), and commit `specs/approvals.json` and the work order. Until then `spec-gate`
+      on the F1 PR fails with "spec 000 not approved", which is expected. Added by F1.
+- [ ] **Name `CLAUDE.md`'s owner** in the file once the owners are decided (plan 5.7). Added by F1.

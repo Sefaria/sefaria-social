@@ -1,0 +1,18 @@
+# Code owners (plan sections 5.2 and 5.6). A human owner's approving review is required for these paths once the ruleset
+# requires code owners. The team is a placeholder until the owners are named: see docs/runbooks/setup-checklist.md
+# ("create this team and name owners"). `npm run factory -- doctor` fails if a protected path loses its owner.
+
+# Specs are open to agents to draft; agreement is a human owner's review, recorded by `npm run factory -- approve`.
+/specs/                              @Sefaria/sefaria-social-owners
+
+# Protected paths (factory/lib/paths.mjs, PROTECTED).
+/.github/                            @Sefaria/sefaria-social-owners
+/.claude/                            @Sefaria/sefaria-social-owners
+/factory/                            @Sefaria/sefaria-social-owners
+/CLAUDE.md                           @Sefaria/sefaria-social-owners
+/REVIEW.md                           @Sefaria/sefaria-social-owners
+/app/src/server/auth/                @Sefaria/sefaria-social-owners
+/app/src/server/webhooks/            @Sefaria/sefaria-social-owners
+/app/src/server/db/migrations/       @Sefaria/sefaria-social-owners
+/packages/host-contract/pinned/      @Sefaria/sefaria-social-owners
+/packages/relay/wrangler.toml        @Sefaria/sefaria-social-owners

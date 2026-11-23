@@ -2,8 +2,9 @@ import { defineConfig } from "vitest/config";
 import viteReact from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 
-// Two projects. `architecture` (L0, the static job): structural rules over the source tree. `unit` (L1, the unit job): unit and
-// component tests next to the code. Every test has a time limit; a hung test fails instead of holding CI.
+// Three projects. `architecture` (L0, the static job): structural rules over the source tree. `factory` (L0, the static job):
+// the factory's own tests — every gate, hook and doctor rule with its negative test, in fixture git repos. `unit` (L1, the unit
+// job): unit and component tests next to the code. Every test has a time limit; a hung test fails instead of holding CI.
 export default defineConfig({
   resolve: { alias: { "~": fileURLToPath(new URL("./app/src", import.meta.url)) } },
   test: {
@@ -16,6 +17,16 @@ export default defineConfig({
           name: "architecture",
           environment: "node",
           include: ["test/architecture/**/*.test.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "factory",
+          environment: "node",
+          include: ["factory/test/**/*.test.mjs"],
+          // Fixture repos run git and child processes; prove-red runs vitest inside a worktree.
+          testTimeout: 60_000,
         },
       },
       {

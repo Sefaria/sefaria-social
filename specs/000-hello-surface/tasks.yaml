@@ -1,0 +1,11 @@
+- id: T-001
+  title: FeedPage shows the surface name and contract version
+  acs: [AC-001]
+  files:
+    - "app/src/lib/surface-info.ts"
+    - "app/src/features/feed/FeedPage.tsx"
+    - "app/src/features/feed/FeedPage.test.tsx"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- FeedPage", "npm run typecheck"]
+  completes: [HOST-000]

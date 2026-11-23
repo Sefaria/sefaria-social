@@ -1,6 +1,7 @@
 # CI (plan section 5.8). The only required check is `result`; it aggregates every other job.
-# Jobs today: changes → static (typecheck, lint, format, architecture tests) → unit → build → result.
-# Later milestones add integration, contract, e2e-harness, spec-gate and prove-red; each must be added to `result`'s `needs`.
+# Jobs today: changes → static (typecheck, lint, format, architecture + factory tests, doctor, atlas) → unit → build,
+# spec-gate (no spec, no code) and prove-red (acceptance tests are red on the merge base) → result.
+# Later milestones add integration, contract and e2e-harness; each must be added to `result`'s `needs` (doctor checks this).
 name: ci
 
 on:
@@ -61,9 +62,11 @@ jobs:
     name: static
     needs: changes
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the atlas PR checks and the factory's fixture repos need history
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -77,6 +80,28 @@ jobs:
         run: npm run format:check
       - name: Architecture tests
         run: npx vitest run --project architecture --reporter=default --reporter=junit --outputFile.junit=test-results/architecture.xml
+      - name: Factory tests (every gate, hook and doctor rule with its negative test)
+        run: npx vitest run --project factory --reporter=default --reporter=junit --outputFile.junit=test-results/factory.xml
+      - name: Factory doctor
+        # --skip-tests: the guard negative tests just ran in the step above; the nightly runs doctor in full.
+        run: npm run factory -- doctor --skip-tests
+      - name: Feature atlas
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          MQ_BASE: ${{ github.event.merge_group.base_sha }}
+        run: |
+          case "$EVENT" in
+            pull_request) BASE="$PR_BASE" ;;
+            merge_group) BASE="$MQ_BASE" ;;
+            *) BASE="" ;;
+          esac
+          if [ -n "$BASE" ] && git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            npm run factory -- atlas --base "$BASE"
+          else
+            echo "No PR base (event: $EVENT); checking the atlas without the PR-level checks."
+            npm run factory -- atlas
+          fi
 
   unit:
     name: unit
@@ -118,9 +143,53 @@ jobs:
           }
       # The surface build (vite.surface.config.ts) is added by spike S1.
 
+  spec-gate:
+    name: spec-gate
+    # No spec, no code (plan 5.4). Runs on every PR and merge-queue run, docs-only included (it decides the lane itself).
+    # On a push to main it is skipped on purpose: the change already passed the gate in the merge queue.
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0 # trailers and the merge base come from history
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Spec gate
+        env:
+          FACTORY_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        run: npm run factory -- gate --base "$FACTORY_BASE"
+
+  prove-red:
+    name: prove-red
+    # Red before green (plan 5.5 rule 2): new or changed @ac tests must fail on the merge base, on an assertion.
+    needs: [changes, static]
+    if: needs.changes.outputs.code == 'true' && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Prove red
+        env:
+          FACTORY_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        run: npm run factory -- prove-red --base "$FACTORY_BASE"
+
   result:
     name: result
-    needs: [changes, static, unit, build]
+    needs: [changes, static, unit, build, spec-gate, prove-red]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -132,11 +201,18 @@ jobs:
           STATIC: ${{ needs.static.result }}
           UNIT: ${{ needs.unit.result }}
           BUILD: ${{ needs.build.result }}
+          SPEC_GATE: ${{ needs.spec-gate.result }}
+          PROVE_RED: ${{ needs.prove-red.result }}
+          EVENT: ${{ github.event_name }}
         run: |
           # Policy:
           # - changes and static must succeed on every run. Skipped or cancelled counts as failure.
           # - unit and build must succeed, except that `skipped` is accepted when the changes filter decided on purpose that
           #   only docs changed (CODE == false). A skip for any other reason (for example a failed dependency) is a failure.
+          # - spec-gate must succeed on pull_request and merge_group. `skipped` is accepted only on a push to main, where its
+          #   `if` skips it on purpose (the change passed the gate in the merge queue).
+          # - prove-red must succeed, except `skipped` on a push to main (skipped on purpose) or when the changes filter
+          #   decided only docs changed (CODE == false). A skip for any other reason is a failure.
           # - cancelled is always a failure (a superseded PR run is cancelled as a whole, so this result is never the last word).
           fail=0
           must_succeed() { if [ "$2" != "success" ]; then echo "::error::$1 is '$2' (must be success)"; fail=1; else echo "$1: success"; fi; }
@@ -149,4 +225,8 @@ jobs:
           must_succeed static "$STATIC"
           filterable unit "$UNIT"
           filterable build "$BUILD"
+          if [ "$SPEC_GATE" = "skipped" ] && [ "$EVENT" = "push" ]; then echo "spec-gate: skipped on push to main (on purpose)"
+          else must_succeed spec-gate "$SPEC_GATE"; fi
+          if [ "$PROVE_RED" = "skipped" ] && [ "$EVENT" = "push" ]; then echo "prove-red: skipped on push to main (on purpose)"
+          else filterable prove-red "$PROVE_RED"; fi
           exit $fail
