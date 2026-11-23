@@ -1,0 +1,7 @@
+{
+  "name": "@sefaria-social/harness",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Fake reader page that loads the social surface (plan section 4.6). Empty until milestone P1."
+}

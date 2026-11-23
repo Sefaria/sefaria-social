@@ -1,0 +1,12 @@
+node_modules
+dist
+.output
+.tanstack
+test-results
+playwright-report
+package-lock.json
+app/src/routeTree.gen.ts
+# The owner's plan is kept exactly as written.
+docs/PLAN.md
+# R1–R18 are kept verbatim from docs/PLAN.md section 4.3.
+.claude/rules/routing.md

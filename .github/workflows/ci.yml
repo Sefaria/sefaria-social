@@ -1,0 +1,152 @@
+# CI (plan section 5.8). The only required check is `result`; it aggregates every other job.
+# Jobs today: changes → static (typecheck, lint, format, architecture tests) → unit → build → result.
+# Later milestones add integration, contract, e2e-harness, spec-gate and prove-red; each must be added to `result`'s `needs`.
+name: ci
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  # Pull requests: a new push cancels the superseded run. main and the merge queue: every run completes.
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: "22"
+  CI: "true"
+
+jobs:
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        name: Decide whether code changed
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          MQ_BASE: ${{ github.event.merge_group.base_sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          # Docs-only changes (Markdown anywhere, and docs/**) skip unit and build. Anything else, or any doubt, runs everything.
+          case "$EVENT" in
+            pull_request) BASE="$PR_BASE" ;;
+            merge_group) BASE="$MQ_BASE" ;;
+            *) BASE="$PUSH_BEFORE" ;;
+          esac
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            echo "No usable base ($BASE); running everything."
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only "$BASE" HEAD)
+          echo "Changed files:"; echo "$CHANGED"
+          CODE=$(echo "$CHANGED" | grep -Ev '(^docs/|\.md$)' | grep -c . || true)
+          if [ "$CODE" -gt 0 ]; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
+          echo "code files changed: $CODE"
+
+  static:
+    name: static
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint (warnings fail)
+        run: npm run lint
+      - name: Format check
+        run: npm run format:check
+      - name: Architecture tests
+        run: npx vitest run --project architecture --reporter=default --reporter=junit --outputFile.junit=test-results/architecture.xml
+
+  unit:
+    name: unit
+    needs: [changes, static]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Unit tests
+        run: npx vitest run --project unit --reporter=default --reporter=junit --outputFile.junit=test-results/unit.xml
+
+  build:
+    name: build
+    needs: [changes, static]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Start build
+        run: npm run build
+      - name: Generated route tree is committed
+        run: |
+          # The router plugin regenerates app/src/routeTree.gen.ts during the build; a difference means it was not committed.
+          git diff --exit-code -- app/src/routeTree.gen.ts || {
+            echo "::error file=app/src/routeTree.gen.ts::The generated route tree is out of date. Fix: run 'npm run build' and commit app/src/routeTree.gen.ts."
+            exit 1
+          }
+      # The surface build (vite.surface.config.ts) is added by spike S1.
+
+  result:
+    name: result
+    needs: [changes, static, unit, build]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Aggregate
+        env:
+          CODE: ${{ needs.changes.outputs.code }}
+          CHANGES: ${{ needs.changes.result }}
+          STATIC: ${{ needs.static.result }}
+          UNIT: ${{ needs.unit.result }}
+          BUILD: ${{ needs.build.result }}
+        run: |
+          # Policy:
+          # - changes and static must succeed on every run. Skipped or cancelled counts as failure.
+          # - unit and build must succeed, except that `skipped` is accepted when the changes filter decided on purpose that
+          #   only docs changed (CODE == false). A skip for any other reason (for example a failed dependency) is a failure.
+          # - cancelled is always a failure (a superseded PR run is cancelled as a whole, so this result is never the last word).
+          fail=0
+          must_succeed() { if [ "$2" != "success" ]; then echo "::error::$1 is '$2' (must be success)"; fail=1; else echo "$1: success"; fi; }
+          filterable() {
+            if [ "$2" = "success" ]; then echo "$1: success"
+            elif [ "$2" = "skipped" ] && [ "$CODE" = "false" ]; then echo "$1: skipped by the changes filter (docs only)"
+            else echo "::error::$1 is '$2' (changes.code=$CODE)"; fail=1; fi
+          }
+          must_succeed changes "$CHANGES"
+          must_succeed static "$STATIC"
+          filterable unit "$UNIT"
+          filterable build "$BUILD"
+          exit $fail
