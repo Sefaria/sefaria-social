@@ -1,0 +1,39 @@
+/* The feed's sections (spec 015). Reader design tokens only (plan 4.7). */
+.feed {
+  display: grid;
+  gap: var(--sefaria-space-6, 1.5rem);
+  max-inline-size: 48rem;
+}
+
+.section {
+  display: grid;
+  gap: var(--sefaria-space-3, 0.75rem);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sefaria-color-text-strong, inherit);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--sefaria-space-3, 0.75rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.empty,
+.signedOut p {
+  margin: 0;
+  color: var(--sefaria-color-text-secondary, inherit);
+}
+
+.signedOut {
+  display: grid;
+  justify-items: start;
+  gap: var(--sefaria-space-3, 0.75rem);
+}

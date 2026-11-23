@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:314ad00a550d947ace943329fb52e1ba435d317c7bc3f50ec076509b0a48c5aa",
   "feature_sha": "sha256:efccfcebe2a901168efcf8c9f1dba1df55af56c106d96d7909819c1f2968f7a4",
-  "tasks_sha": "sha256:cc117ea9213d2dab375ec8767540ab8d8996af9f349801293db63e4fc38f8dc8",
+  "tasks_sha": "sha256:6f47b26fc51b48722bcf9c6185f2d88aa2dfe604b5014be650a8b518686e3010",
   "risk": "normal",
   "features": [
     "FEED-015",
@@ -53,6 +53,7 @@
       "files": [
         "app/src/features/feed/**",
         "app/src/routes/social.index.tsx",
+        "app/src/surface/route-tree.tsx",
         "app/src/features/shell/strings.ts"
       ],
       "depends_on": [

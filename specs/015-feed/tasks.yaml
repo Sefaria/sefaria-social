@@ -23,6 +23,7 @@
   files:
     - "app/src/features/feed/**"
     - "app/src/routes/social.index.tsx"
+    - "app/src/surface/route-tree.tsx"
     - "app/src/features/shell/strings.ts"
   depends_on: [T-001]
   parallel: false
