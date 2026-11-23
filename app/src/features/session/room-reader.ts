@@ -2,13 +2,16 @@
 // reads the reader's state to publish it and applies others' state to follow them, through one ReaderStateApi. This file
 // builds that api from the host's real one:
 //   - Reading (publish view, R14): the url without any `ctx`, only the slices that are moment-scoped in this reader, no
-//     search words in `nav`, plus the `social.summary` slice ({ref, title}) so the relay and cards never read snapshots.
+//     search words in `nav`, plus the `social.summary` slice ({ref, heRef, title}) so the relay and cards never read
+//     snapshots (plan 4.5). heRef and title come from the text API's answer for the ref (spec 016); until it has answered
+//     they are null and the ref, and the stream is republished when it lands.
 //   - Applying (follow gate, R13): only the slices that are moment-scoped in THIS reader are kept (personal slices such as
 //     settings, and slices this reader does not have, are dropped), with origin "follow". While the gate is closed (the
 //     viewer is in the lobby, or broke away) nothing is applied: the state is held, so entering can apply it at once (R9).
 import { diff, isEmptyChange, parseSnapshot } from "@sefaria-social/session";
 import type { ApplyResult, ReaderSnapshot, ReaderStateApi, SnapshotChange } from "@sefaria-social/session";
 import type { ReaderStateApi as HostReaderStateApi, WorkspaceCommands } from "@sefaria-social/host-contract";
+import type { TextSource } from "~/lib/sefaria-text";
 
 export const SUMMARY_SLICE = "social.summary";
 const CTX_PARAM = "ctx";
@@ -39,8 +42,20 @@ function withoutTerms(nav: unknown): unknown {
   return rest;
 }
 
-/** `ref` and `title` for the summary slice: the reader's first panel, else the address's first path segment. */
-export function summaryOf(url: string, commands?: Pick<WorkspaceCommands, "current">): { ref: string; title: string } | null {
+export interface Summary {
+  ref: string;
+  heRef: string | null;
+  title: string;
+}
+
+/** Where a summary's names come from: the page's text source (lib/sefaria-text.ts). */
+export type RefTitles = Pick<TextSource, "titles" | "prefetch" | "subscribe">;
+
+/**
+ * The summary slice: `ref` from the reader's first panel, else the address's first path segment; `heRef` and `title` from
+ * the text API's answer for that ref when it has landed (asking for it otherwise), else null and the ref.
+ */
+export function summaryOf(url: string, commands?: Pick<WorkspaceCommands, "current">, titles?: RefTitles): Summary | null {
   let ref: string | undefined;
   try {
     ref = Object.values(commands?.current().panels ?? {})[0]?.ref;
@@ -57,7 +72,9 @@ export function summaryOf(url: string, commands?: Pick<WorkspaceCommands, "curre
     }
   }
   const clipped = ref.slice(0, 300);
-  return { ref: clipped, title: clipped };
+  const named = titles?.titles(clipped) ?? null;
+  if (titles && !named) titles.prefetch(clipped);
+  return { ref: clipped, heRef: named?.heRef?.slice(0, 300) ?? null, title: (named?.title ?? clipped).slice(0, 300) };
 }
 
 /**
@@ -68,11 +85,12 @@ export function outgoing(
   snapshot: ReaderSnapshot,
   moment: ReadonlySet<string>,
   commands?: Pick<WorkspaceCommands, "current">,
+  titles?: RefTitles,
 ): ReaderSnapshot {
   const url = withoutAnyCtx(snapshot.url);
   const slices: ReaderSnapshot["slices"] = {};
   for (const [id, value] of Object.entries(snapshot.slices)) if (moment.has(id) && id !== SUMMARY_SLICE) slices[id] = value;
-  const summary = summaryOf(url, commands);
+  const summary = summaryOf(url, commands, titles);
   if (summary) slices[SUMMARY_SLICE] = { v: 1, value: summary };
   return { v: 1, url, nav: withoutTerms(snapshot.nav), slices };
 }
@@ -97,6 +115,8 @@ export interface RoomReaderOptions {
   /** Apply what arrives now? (expanded in this room's context and following) */
   isOpen(): boolean;
   commands?: Pick<WorkspaceCommands, "current">;
+  /** Names for the summary (heRef, title); without it the summary has heRef null and the ref as its title. */
+  titles?: RefTitles;
 }
 
 /**
@@ -113,7 +133,8 @@ export function roomReader(real: HostReaderStateApi, opts: RoomReaderOptions): R
     return (await real.applySnapshot(s, { origin: "follow", persist: false })) as ApplyResult;
   };
 
-  const publish = (): ReaderSnapshot => outgoing(real.getSnapshot({ scope: "moment" }), momentSliceIds(real), opts.commands);
+  const publish = (): ReaderSnapshot =>
+    outgoing(real.getSnapshot({ scope: "moment" }), momentSliceIds(real), opts.commands, opts.titles);
 
   const api: ReaderStateApi = {
     getSnapshot: () => publish(),
@@ -131,15 +152,19 @@ export function roomReader(real: HostReaderStateApi, opts: RoomReaderOptions): R
     },
     subscribe(onChange, _filter) {
       let last = publish();
-      return real.subscribe(
-        () => {
-          const now = publish();
-          const change: SnapshotChange = diff(last, now);
-          last = now;
-          if (!isEmptyChange(change)) onChange(change, now);
-        },
-        { scope: "moment" },
-      );
+      const check = () => {
+        const now = publish();
+        const change: SnapshotChange = diff(last, now);
+        last = now;
+        if (!isEmptyChange(change)) onChange(change, now);
+      };
+      const offReader = real.subscribe(check, { scope: "moment" });
+      // The summary's names land later than the move that asked for them: publish them without waiting for another move.
+      const offTitles = opts.titles?.subscribe(check);
+      return () => {
+        offReader();
+        offTitles?.();
+      };
     },
     onLocalInput: (cb) => real.onLocalInput(cb),
     get applying() {

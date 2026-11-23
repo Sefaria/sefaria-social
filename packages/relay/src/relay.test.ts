@@ -121,7 +121,10 @@ describe("relay", () => {
       });
       return { status: res.status, body: await res.json() };
     };
-    expect(await read("room-empty-0001", SECRET)).toEqual({ status: 200, body: { ref: null, title: null, participants: 0 } });
+    expect(await read("room-empty-0001", SECRET)).toEqual({
+      status: 200,
+      body: { ref: null, heRef: null, title: null, participants: 0 },
+    });
 
     const leader = await connect(relay.mf, "/r/room-status-01", { protocols: protocolsFor(await relay.token({ sub: "4242" })) });
     leader.send(join("4242"));
@@ -136,10 +139,39 @@ describe("relay", () => {
 
     expect(await read("room-status-01", SECRET)).toEqual({
       status: 200,
-      body: { ref: "Genesis 1", title: "Genesis 1", participants: 2 },
+      body: { ref: "Genesis 1", heRef: null, title: "Genesis 1", participants: 2 },
     });
     expect((await read("room-status-01", null)).status).toBe(401);
     expect((await read("room-status-01", "wrong-secret-same-len")).status).toBe(401);
+  });
+
+  // @feature SESS-054 Stream summary carries heRef and the source's title
+  // @ac 016/AC-004
+  it("passes the summary's heRef on in the status read, and refuses one that is not a short string", async () => {
+    expect(Object.keys(workers), "packages/relay/src/worker.ts exists").toEqual(["./worker.ts"]);
+    const { connect, join, lastParticipants, SECRET } = support;
+    const read = async (room: string) =>
+      (
+        await relay.mf.dispatchFetch(`http://relay.test/internal/status/${room}`, {
+          headers: { Authorization: `Bearer ${SECRET}` },
+        })
+      ).json();
+    const publish = async (room: string, value: unknown) => {
+      const peer = await connect(relay.mf, `/r/${room}`, { protocols: protocolsFor(await relay.token({ sub: "4242" })) });
+      peer.send(join("4242"));
+      const slices = { "social.summary": { v: 1, value } };
+      peer.send({
+        ch: "state",
+        body: { type: "keyframe", seq: 0, t: 0, snapshot: { v: 1, url: "/Genesis.1", nav: null, slices } },
+      });
+      await vi.waitFor(() => expect(lastParticipants(peer)).toHaveLength(1));
+    };
+    await publish("room-heref-001", { ref: "Genesis 1", heRef: "בראשית א׳", title: "Genesis" });
+    await publish("room-heref-002", { ref: "Genesis 1", heRef: { html: "<b>x</b>" }, title: "Genesis" });
+    await vi.waitFor(async () =>
+      expect(await read("room-heref-001")).toEqual({ ref: "Genesis 1", heRef: "בראשית א׳", title: "Genesis", participants: 1 }),
+    );
+    expect(await read("room-heref-002")).toEqual({ ref: "Genesis 1", heRef: null, title: "Genesis", participants: 1 });
   });
 
   // @feature IDENT-043 Relay drops a deleted user

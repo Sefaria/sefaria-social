@@ -109,6 +109,7 @@ describe("spec 011: status and CORS", () => {
         .toEqual({
           live: true,
           ref: "Genesis 1",
+          heRef: null,
           title: "Genesis 1",
           participants: 1,
         });
@@ -117,7 +118,7 @@ describe("spec 011: status and CORS", () => {
       await relay.close();
       expect(await statusOf(owner)).toMatchObject({
         status: 200,
-        json: { live: false, ref: null, title: null, participants: 0 },
+        json: { live: false, ref: null, heRef: null, title: null, participants: 0 },
       });
     } finally {
       withoutRelay();

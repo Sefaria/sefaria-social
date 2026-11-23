@@ -3,8 +3,10 @@
 import { describe, expect, it } from "vitest";
 import { createFakeHost } from "@sefaria-social/host-contract/fake-host";
 import type * as RoomReaderModule from "./room-reader";
+import type * as TextModule from "~/lib/sefaria-text";
 
 const modules = import.meta.glob<typeof RoomReaderModule>("./room-reader.ts");
+const textModules = import.meta.glob<typeof TextModule>("../../lib/sefaria-text.ts");
 async function load() {
   const mod = await modules["./room-reader.ts"]?.();
   expect(mod, "app/src/features/session/room-reader.ts exists").toBeDefined();
@@ -84,7 +86,7 @@ describe("room reader", () => {
       nav: { nav: "go" },
       slices: {
         "sefaria.scroll": { v: 1, value: { seg: 4 } },
-        "social.summary": { v: 1, value: { ref: "Genesis 3", title: "Genesis 3" } },
+        "social.summary": { v: 1, value: { ref: "Genesis 3", heRef: null, title: "Genesis 3" } },
       },
     });
     expect(JSON.stringify(out)).not.toMatch(/ctx|fontSize|light/);
@@ -98,6 +100,31 @@ describe("room reader", () => {
     fake.localMove("/Genesis.4");
     expect(seen.map((s) => JSON.parse(s).url)).toEqual(["/Genesis.4"]);
     expect(seen.join()).not.toMatch(/ctx|sefaria\.settings/);
-    expect(JSON.parse(seen[0]!).slices["social.summary"].value).toEqual({ ref: "Genesis 4", title: "Genesis 4" });
+    expect(JSON.parse(seen[0]!).slices["social.summary"].value).toEqual({ ref: "Genesis 4", heRef: null, title: "Genesis 4" });
+  });
+
+  // @feature SESS-054 Stream summary carries heRef and the source's title
+  // @ac 016/AC-004
+  it("adds heRef and the source's title from the text API's answer, and republishes when it lands without another move", async () => {
+    const { roomReader } = await load();
+    const text = await textModules["../../lib/sefaria-text.ts"]?.();
+    expect(text, "app/src/lib/sefaria-text.ts exists").toBeDefined();
+    const answer = { ref: "Genesis 1", heRef: "בראשית א׳", indexTitle: "Genesis", versions: [] };
+    let land: () => void = () => undefined;
+    const titles = text!.createTextSource({
+      fetch: () => new Promise((resolve) => (land = () => resolve(new Response(JSON.stringify(answer))))),
+    });
+    const fake = createFakeHost({ url: "/Genesis.1", slices: { "sefaria.scroll": { v: 1, value: { seg: 1 } } } });
+    const reader = roomReader(fake.host.reader.state, { isOpen: () => false, titles });
+    const summaries: unknown[] = [];
+    reader.api.subscribe((_c, s) => summaries.push(s.slices["social.summary"]?.value));
+    expect(reader.api.getSnapshot().slices["social.summary"]?.value).toEqual({
+      ref: "Genesis 1",
+      heRef: null,
+      title: "Genesis 1",
+    });
+    expect(titles.requests()).toEqual({ "Genesis 1": 1 });
+    land();
+    await expect.poll(() => summaries).toEqual([{ ref: "Genesis 1", heRef: "בראשית א׳", title: "Genesis" }]);
   });
 });

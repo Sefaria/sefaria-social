@@ -10,6 +10,7 @@ import {
   type StateTransport,
 } from "@sefaria-social/session";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
+import { pageTextSource } from "~/lib/sefaria-text";
 import { roomReader, type RoomReader } from "./room-reader";
 
 export const RELAY_SUBPROTOCOL = "sefaria-social.v1";
@@ -66,7 +67,11 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
       RELAY_SUBPROTOCOL,
       `bearer.${await host.viewer.identityToken()}`,
     ]);
-    const reader = roomReader(host.reader.state, { isOpen: () => policy.isOpen(roomId), commands: host.reader.commands });
+    const reader = roomReader(host.reader.state, {
+      isOpen: () => policy.isOpen(roomId),
+      commands: host.reader.commands,
+      titles: pageTextSource(),
+    });
     // The relay replaces id and name with the token's; sending the same values keeps the client's idea of "self" right.
     // Everyone may lead (the relay cannot see room roles yet; decision 0008).
     const self = { id: String(viewer.id), name: viewer.name, isHost: true, canLead: true };
