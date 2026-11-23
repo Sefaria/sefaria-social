@@ -431,6 +431,285 @@
       ],
       "since": null,
       "changed": []
+    },
+    {
+      "id": "IDENT-082",
+      "area": "ident",
+      "name": "Test-only persona sessions",
+      "description": "POST /api/test/persona issues a persona session only when the environment name matches the test pattern and the shared-secret header matches; 403 otherwise, and a test proves production refuses it. Built by P3.",
+      "status": "planned",
+      "spec": "082",
+      "acs": [
+        "082/AC-001",
+        "082/AC-002",
+        "082/AC-003"
+      ],
+      "surfaces": [
+        "identity",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-080",
+      "area": "ops",
+      "name": "Agent lanes skip with a notice when credentials are absent",
+      "description": "Review, QA, security, retro and holdout lanes run factory/preflight.mjs first; with no Anthropic credential (or on a fork, or for a bot) they skip with a notice naming the missing secret, and never fail a PR for it.",
+      "status": "built",
+      "spec": "080",
+      "acs": [
+        "080/AC-001",
+        "080/AC-002",
+        "080/AC-003",
+        "080/AC-006"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-080.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-081",
+      "area": "ops",
+      "name": "Agent jobs are capped, gated and hold no deploy credentials",
+      "description": "factory doctor fails when an agent job lacks a time limit, a turn limit, a model, a tool list, a preflight gate, fork refusal or a pinned action, or reads any secret beyond the Anthropic key and the workflow token; workflows are linted by actionlint and doctor.",
+      "status": "built",
+      "spec": "080",
+      "acs": [
+        "080/AC-004",
+        "080/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-080.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-082",
+      "area": "ops",
+      "name": "QA surfaces derived from the diff through the surface map",
+      "description": "npm run factory -- surfaces maps changed files to QA surfaces through factory/surface-map.yaml (shared code to every importer); an unmapped product file fails; doctor checks spec and atlas surfaces exist in the map.",
+      "status": "built",
+      "spec": "081",
+      "acs": [
+        "081/AC-001",
+        "081/AC-002",
+        "081/AC-003"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-081.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-083",
+      "area": "ops",
+      "name": "QA recount applies what a pass means",
+      "description": "npm run factory -- qa-recount counts the runner evidence: retries are failed-then-recovered, unreachable surfaces cannot-reach, passes need an evidence line; a surface with no journey blocks the report.",
+      "status": "built",
+      "spec": "081",
+      "acs": [
+        "081/AC-004",
+        "081/AC-005",
+        "081/AC-006"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-081.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-084",
+      "area": "ops",
+      "name": "Agent QA lane posts one evidence comment",
+      "description": "agent-qa.yml builds the environment in the job (Postgres service, qa:* scripts), runs planner, runner and skeptic as separate agents, and posts one evidence comment and one issue per failure.",
+      "status": "built",
+      "spec": "081",
+      "acs": [
+        "081/AC-007"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-081.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-085",
+      "area": "ops",
+      "name": "CI appends metrics lines to the factory-data branch",
+      "description": "factory/metrics.mjs validates JSON lines and appends them to factory-data metrics/YYYY-MM.jsonl (created as an orphan branch by the first workflow write); ci.yml metrics job and the composite action write one line per job.",
+      "status": "built",
+      "spec": "083",
+      "acs": [
+        "083/AC-001",
+        "083/AC-002",
+        "083/AC-003",
+        "083/AC-004",
+        "083/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-083.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-086",
+      "area": "ops",
+      "name": "Quality score generated per surface",
+      "description": "npm run factory -- quality-score writes docs/QUALITY_SCORE.md (test files per level per surface); --check fails when it is stale; the nightly publishes the version with flake and escaped-defect columns.",
+      "status": "built",
+      "spec": "083",
+      "acs": [
+        "083/AC-006"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-083.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-087",
+      "area": "ops",
+      "name": "Nightly flake detection over three runs",
+      "description": "nightly.yml runs every suite three times and lists tests with mixed results; also mutation, audit, contract drift, docs freshness and doctor; e2e-reader.yml (L4b) is disabled until the reader seam lands.",
+      "status": "built",
+      "spec": "084",
+      "acs": [
+        "084/AC-001",
+        "084/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-084.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-088",
+      "area": "ops",
+      "name": "Collection check: test files on disk equal files executed",
+      "description": "npm run factory -- collection fails when a test file on disk was not executed by any runner, per level.",
+      "status": "built",
+      "spec": "084",
+      "acs": [
+        "084/AC-002"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-084.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-089",
+      "area": "ops",
+      "name": "Quarantine list with reason, issue and expiry",
+      "description": "factory/quarantine.yaml entries need a reason, an issue link and an expiry within 30 days; expired entries fail; a quarantined failure is a notice, any other failure fails.",
+      "status": "built",
+      "spec": "084",
+      "acs": [
+        "084/AC-003",
+        "084/AC-004"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-084.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-090",
+      "area": "ops",
+      "name": "Weekly retro numbers from the metrics store",
+      "description": "npm run factory -- retro computes the week numbers, past action items and recurring problems from factory-data; retro.yml publishes them weekly and runs the retro agent behind its preflight.",
+      "status": "built",
+      "spec": "085",
+      "acs": [
+        "085/AC-001",
+        "085/AC-002",
+        "085/AC-003",
+        "085/AC-004",
+        "085/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-085.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-091",
+      "area": "ops",
+      "name": "Holdout scenarios scored from three clean trials",
+      "description": "npm run factory -- holdout validates scenario files, scores three clean trials (pass, fail or unknown per rubric line) and writes issue bodies with scenario text redacted; nightly.yml checks out the holdout repo with a deploy key and skips with a notice until it exists.",
+      "status": "built",
+      "spec": "086",
+      "acs": [
+        "086/AC-001",
+        "086/AC-002",
+        "086/AC-003",
+        "086/AC-004",
+        "086/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-086.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-092",
+      "area": "ops",
+      "name": "QA seed and reset scripts",
+      "description": "npm run qa:seed is idempotent per scenario; npm run qa:reset leaves zero rows in every table, checked against the schema. Built by P3.",
+      "status": "planned",
+      "spec": "082",
+      "acs": [
+        "082/AC-004",
+        "082/AC-005"
+      ],
+      "surfaces": [
+        "identity",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
     }
   ]
 }

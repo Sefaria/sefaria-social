@@ -1,0 +1,11 @@
+# Flaky tests (plan 5.5 rule 8). A quarantined test still runs and reports; it does not gate. Each entry needs the test's full
+# name ("<file> > <describe> > <title>"), a reason, an issue link and an expiry date (at most 30 days out). An agent may add an
+# entry; only a human removes the gate permanently. An expired entry fails `npm run factory -- quarantine` (nightly), so a
+# quarantine is never forgotten. Example (keep the list empty when nothing is quarantined):
+#
+# - test: "app/src/features/feed/FeedPage.test.tsx > FeedPage > shows the surface line"
+#   reason: "times out on the shared runner about once in 40 runs; the wait is on a fixed timer"
+#   issue: https://github.com/Sefaria/sefaria-social/issues/1
+#   added: 2026-11-23
+#   expires: 2026-12-23
+quarantine: []

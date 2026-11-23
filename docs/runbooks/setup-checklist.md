@@ -49,6 +49,59 @@ Source for most items: `docs/PLAN.md` section 9.
       on the F1 PR fails with "spec 000 not approved", which is expected. Added by F1.
 - [ ] **Name `CLAUDE.md`'s owner** in the file once the owners are decided (plan 5.7). Added by F1.
 
+## Added by F2 (agent lanes, metrics, nightly, retro, holdout)
+
+Every agent job skips with a notice until its inputs exist; nothing here blocks a PR. Details: `docs/runbooks/agent-lanes.md`.
+
+- [ ] **Anthropic credential for Actions**, one of: the repository secret `ANTHROPIC_API_KEY` (all lanes), or the repository
+      variables `ANTHROPIC_FEDERATION_RULE_ID` and `ANTHROPIC_ORGANIZATION_ID` for OIDC workload identity federation (review, QA,
+      retro, holdout; the security review accepts only the API key). Federation setup: register the GitHub issuer, a service
+      account and a rule matching `repo:Sefaria/sefaria-social:` in the Claude Console. Added by F2.
+- [ ] **Model variables** (optional; default `claude-opus-5-5` everywhere): `REVIEWER_MODEL` (decision D7, keep Opus-class),
+      `QA_MODEL`, `SECURITY_REVIEW_MODEL`, `RETRO_MODEL`, `HOLDOUT_MODEL`. Added by F2.
+- [ ] **Workflow token may write**: Settings → Actions → General → Workflow permissions must allow `contents: write` when a
+      workflow asks for it (jobs request it explicitly; the default stays read). Without it, metrics lines are not recorded (each
+      run prints a warning) and `factory-data` is never created. Do **not** create `factory-data` by hand: the first workflow run
+      that records metrics creates it. Added by F2.
+- [ ] **Label `escaped`** (and `surface:<key>` labels) for escaped defects, read by the nightly quality score. Added by F2.
+- [ ] **Holdout repository**, private, for example `Sefaria/sefaria-social-holdout`, with a `scenarios/` folder (format:
+      `docs/runbooks/holdout.md`). Set the repository variable `HOLDOUT_REPO` to its `owner/name`. Building agents' credentials
+      must not be able to read it. Added by F2 (also listed by F0).
+- [ ] **Holdout deploy key**: a read-only deploy key on the holdout repository; its private half as the secret
+      `HOLDOUT_DEPLOY_KEY` in this repository. Only `nightly.yml` (and later `release.yml`) read it; doctor enforces that. Added by F2.
+- [ ] **Staging URL** for the holdout evaluator: repository variable `STAGING_URL` (needs P5's staging deploy). Added by F2.
+- [ ] **First five holdout scenarios** in the holdout repo, written by a human. Five proposals are in the appendix below: move
+      them, rewrite them in your own words, then delete the appendix from this repository. Added by F2.
+- [ ] **Monthly judge calibration**: a holdout owner labels about 20 recorded trials and records agreement (`holdout.md`).
+      Added by F2.
+- [ ] **L4b (`e2e-reader.yml`)** after the reader seam (A1) lands: set `READER_IMAGE` (the reader container at the pinned commit)
+      and `E2E_READER_ENABLED=true`, then add `merge_group` to its triggers. Added by F2.
+- [ ] **Approve specs 080, 081, 083, 084, 085 and 086** (built in the F2 PR) after review. For each NNN run
+      `npm run factory -- approve NNN --by YOUR_EMAIL`, then `npm run factory -- compile NNN`, and commit
+      `specs/approvals.json` and the work orders. Until then `spec-gate` on the F2 PR fails with "spec NNN not approved", which
+      is expected. Spec 082 (test personas) is for P3 to build; approve it before P3 starts. Added by F2.
+
+### Appendix: five proposed holdout scenarios (move to the holdout repository, then delete from here)
+
+These are proposals by the F2 worker for a human to rewrite and own. Once real, they must not live in this repository.
+
+1. **H-001 Visitor opens a shared room link.** Story: a signed-out visitor follows a link to a live room's lobby and wants to know
+   what is being learned and how to take part. Rubric: R1 (outcome) the lobby names the text being learned; R2 (state) the page says
+   that joining needs signing in and offers sign-in; R3 (navigation) after signing in, the visitor lands back on the same lobby.
+2. **H-002 Learner joins and follows.** Story: a signed-in learner joins a room whose host is reading Genesis 1 and expects their
+   reader to show the host's place. Rubric: R1 (outcome) the learner's reader shows the host's ref within a few seconds; R2 (state)
+   when the host moves to the next chapter the learner's reader follows; R3 (state) the learner's own reader settings (language,
+   layout) are unchanged.
+3. **H-003 Leaving with Back.** Story: a learner in a room presses the browser Back button expecting to leave the room and return
+   to where they were reading before. Rubric: R1 (navigation) Back leaves the room view; R2 (state) the reader shows the place the
+   learner was reading before joining; R3 (outcome) the learner is no longer listed as present in the room.
+4. **H-004 Refresh keeps the session.** Story: a learner in a room reloads the page and expects to still be in the room at the same
+   place. Rubric: R1 (resilience) after reload the room is shown as joined without a new Join press; R2 (state) the reader shows the
+   room's current ref; R3 (outcome) the presence list shows the learner once, not twice.
+5. **H-005 Hebrew interface.** Story: a learner using the Hebrew interface opens the feed and a room lobby and expects everything to
+   read naturally right to left. Rubric: R1 (language) the feed's headings and buttons are in Hebrew; R2 (accessibility) the page
+   direction is right to left and focus order follows it; R3 (language) dates and counts are formatted for Hebrew.
+
 ## Added by P1 (contract, harness, routing)
 
 - [ ] **Approve specs 001–004** (`specs/001-host-contract`, `002-surface-harness-routes`, `003-ctx-codec`,

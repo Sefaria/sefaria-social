@@ -3,6 +3,7 @@
 # integration (L2: the API against real Postgres, migrations, OpenAPI breaking check, built-server smoke test),
 # contract (L3) and e2e-harness (L4a); spec-gate (no spec, no code) and prove-red (acceptance tests are red on the merge
 # base) → result. Every job must be added to `result`'s `needs` (doctor checks this).
+# `metrics` (F2) runs after `result` and appends one line per job to the factory-data branch; it never blocks a merge.
 name: ci
 
 on:
@@ -83,6 +84,8 @@ jobs:
         run: npx vitest run --project architecture --reporter=default --reporter=junit --outputFile.junit=test-results/architecture.xml
       - name: Factory tests (every gate, hook and doctor rule with its negative test)
         run: npx vitest run --project factory --reporter=default --reporter=junit --outputFile.junit=test-results/factory.xml
+      - name: Workflows (actionlint, with shellcheck)
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
       - name: Factory doctor
         # --skip-tests: the guard negative tests just ran in the step above; the nightly runs doctor in full.
         run: npm run factory -- doctor --skip-tests
@@ -357,3 +360,23 @@ jobs:
           if [ "$PROVE_RED" = "skipped" ] && [ "$EVENT" = "push" ]; then echo "prove-red: skipped on push to main (on purpose)"
           else filterable prove-red "$PROVE_RED"; fi
           exit $fail
+
+  metrics:
+    name: metrics
+    # One metrics line per job of this run (plan 5.8, 5.9), appended to the factory-data branch with the workflow token (which
+    # does not trigger CI). A reporter: it needs `result`, so it is not in result.needs and never blocks a merge (doctor allows
+    # exactly this). Fork PRs get a read-only token, so they are skipped on purpose. A refused push is a warning, not a failure.
+    needs: [changes, static, unit, build, spec-gate, prove-red, result]
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Append one line per job to factory-data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node factory/metrics.mjs from-run --exclude metrics --soft

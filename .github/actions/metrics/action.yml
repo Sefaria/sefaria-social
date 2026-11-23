@@ -1,0 +1,81 @@
+# Record one metrics line for the current job on the `factory-data` branch (plan 5.8, 5.9). Wraps `node factory/metrics.mjs`.
+# Needs: the repository checked out with its credentials (actions/checkout's default), and `permissions: contents: write` on the
+# job. Never fails the job: when the push is refused (a fork's read-only token, a repository that caps the workflow token at
+# read), it prints a warning and the run goes on. The first run that writes creates the branch.
+name: record metrics
+description: Append one JSON line for this job to the factory-data branch. Never fails the job.
+inputs:
+  job:
+    description: Job name as it appears in the checks list.
+    required: true
+  result:
+    description: "GitHub conclusion: success, failure, cancelled, skipped, neutral, timed_out."
+    required: true
+  started-at:
+    description: Job start as epoch seconds (date +%s in the first step); the duration is computed from it.
+    required: false
+    default: ""
+  model:
+    description: Model id, for agent jobs.
+    required: false
+    default: ""
+  tests-run:
+    description: Number of tests run.
+    required: false
+    default: ""
+  tests-skipped:
+    description: Number of tests skipped.
+    required: false
+    default: ""
+  tests-quarantined:
+    description: Number of quarantined tests that ran.
+    required: false
+    default: ""
+  tokens-in:
+    description: Input tokens, where known.
+    required: false
+    default: ""
+  tokens-out:
+    description: Output tokens, where known.
+    required: false
+    default: ""
+  cost:
+    description: Cost in US dollars, where known.
+    required: false
+    default: ""
+  extra:
+    description: Extra key=value pairs, one per line (for example reason=credentials).
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Append the metrics line
+      shell: bash
+      env:
+        M_JOB: ${{ inputs.job }}
+        M_RESULT: ${{ inputs.result }}
+        M_STARTED: ${{ inputs.started-at }}
+        M_MODEL: ${{ inputs.model }}
+        M_RUN: ${{ inputs.tests-run }}
+        M_SKIPPED: ${{ inputs.tests-skipped }}
+        M_QUARANTINED: ${{ inputs.tests-quarantined }}
+        M_TIN: ${{ inputs.tokens-in }}
+        M_TOUT: ${{ inputs.tokens-out }}
+        M_COST: ${{ inputs.cost }}
+        M_EXTRA: ${{ inputs.extra }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        args=(record --job "$M_JOB" --result "$M_RESULT" --soft)
+        if [ -n "$M_STARTED" ]; then args+=(--duration "$(( $(date +%s) - M_STARTED ))"); fi
+        if [ -n "$M_MODEL" ]; then args+=(--model "$M_MODEL"); fi
+        if [ -n "$M_RUN" ]; then args+=(--tests-run "$M_RUN"); fi
+        if [ -n "$M_SKIPPED" ]; then args+=(--tests-skipped "$M_SKIPPED"); fi
+        if [ -n "$M_QUARANTINED" ]; then args+=(--tests-quarantined "$M_QUARANTINED"); fi
+        if [ -n "$M_TIN" ]; then args+=(--tokens-in "$M_TIN"); fi
+        if [ -n "$M_TOUT" ]; then args+=(--tokens-out "$M_TOUT"); fi
+        if [ -n "$M_COST" ]; then args+=(--cost "$M_COST"); fi
+        while IFS= read -r kv; do
+          if [ -n "$kv" ]; then args+=(--extra "$kv"); fi
+        done <<< "$M_EXTRA"
+        node "$GITHUB_WORKSPACE/factory/metrics.mjs" "${args[@]}"
