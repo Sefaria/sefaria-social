@@ -63,3 +63,6 @@ Newest first. Corrections made by a script in `docs/features/tools/` name the sc
 - 2026-11-23 — OPS-091 "Holdout scenarios scored from three clean trials": built (spec 086, T-001).
 - 2026-11-23 — IDENT-082 "Test-only persona sessions" and OPS-092 "QA seed and reset scripts": planned (spec 082, for P3).
 - 2026-11-23 — HOST-000 "Social page shows the surface name and contract version": built (spec 000, task T-001).
+- 2026-11-23 — OPS-019 "Surface bundle size budget checked in CI": built (spec 019, T-001..T-002).
+- 2026-11-23 — OPS-020 "Release pipeline with versioned assets, a stable pointer and rollback": built (spec 020, T-001..T-003).
+- 2026-11-23 — OPS-021 "Server container image and standalone Helm values": built (spec 021, T-001..T-002).

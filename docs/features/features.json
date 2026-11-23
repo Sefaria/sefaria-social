@@ -574,6 +574,72 @@
       "changed": []
     },
     {
+      "id": "OPS-019",
+      "area": "ops",
+      "name": "Surface bundle size budget checked in CI",
+      "description": "The surface build is fully minified (rolldown output.minify; no pure annotations), and `npm run surface:budget` checks the files the manifest lists (raw and gzip) against app/surface-budget.json in CI's build job, failing with the fix when a budget is exceeded.",
+      "status": "built",
+      "spec": "019",
+      "acs": [
+        "019/AC-001",
+        "019/AC-002",
+        "019/AC-003",
+        "019/AC-004"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/minify.contract.test.ts",
+        "factory/test/acceptance-019.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-020",
+      "area": "ops",
+      "name": "Release pipeline with versioned assets, a stable pointer and rollback",
+      "description": "`npm run release -- publish|promote|rollback|status|smoke|serve` over a storage target (file:<dir> works; bucket:<name> is a stub until hosting exists): immutable uploads under v/<version>/, a smoke-tested stable/manifest.json pointer with known-good history, scripts/rollback, release.yml on main (rehearsal on a folder; real steps skip with a notice without their configuration), and an e2e release and rollback through the harness.",
+      "status": "built",
+      "spec": "020",
+      "acs": [
+        "020/AC-001",
+        "020/AC-002",
+        "020/AC-003",
+        "020/AC-004",
+        "020/AC-005",
+        "020/AC-006"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-020.test.mjs",
+        "e2e/release.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-021",
+      "area": "ops",
+      "name": "Server container image and standalone Helm values",
+      "description": "A pinned, non-root Dockerfile with a /api/v1/health HEALTHCHECK running app/scripts/start.mjs (and app/scripts/migrate.mjs), its rules checked by `release check-dockerfile`, CI's container job running the image against Postgres, and deploy/helm/values.yaml for a standalone namespace.",
+      "status": "built",
+      "spec": "021",
+      "acs": [
+        "021/AC-001",
+        "021/AC-002",
+        "021/AC-003"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "factory/test/acceptance-021.test.mjs"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "OPS-080",
       "area": "ops",
       "name": "Agent lanes skip with a notice when credentials are absent",
