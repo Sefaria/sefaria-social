@@ -201,3 +201,11 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       Added by P5.
 - [ ] **SRI in Firefox and Safari**: the integrity checks are proven in Chromium only (A1's e2e and `e2e/release.spec.ts`).
       Run the release e2e with Playwright's firefox and webkit projects once, or check by hand. Added by P5.
+
+## Added by spec 022 (Coolify previews)
+
+- [ ] **Approve spec 022** after review: `npm run factory -- approve 022 --by YOUR_EMAIL`, then `npm run factory -- compile 022`,
+      and commit `specs/approvals.json` and the work order. Until then `spec-gate` on the spec 022 PR fails with "spec 022 not
+      approved". Added by spec 022.
+- [ ] **Coolify app** `sefaria/sefaria-social` with previews, domains and variables as in `docs/runbooks/previews.md`. After the
+      spec 022 PR merges, switch its branch to `main`. Added by spec 022.

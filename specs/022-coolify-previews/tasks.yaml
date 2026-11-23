@@ -1,0 +1,13 @@
+- id: T-001
+  title: Compose file, surface and relay images for Coolify, and the previews runbook
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "docker-compose.yaml"
+    - "deploy/coolify/**"
+    - "docs/runbooks/previews.md"
+    - "docs/runbooks/setup-checklist.md"
+    - "factory/test/acceptance-022.test.mjs"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory"]
+  completes: [OPS-022]
