@@ -1,7 +1,7 @@
 ---
 id: "007"
 title: Rooms API with ownership checks, OpenAPI document and generated client
-status: proposed
+status: approved
 features: [ROOM-007, API-007]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

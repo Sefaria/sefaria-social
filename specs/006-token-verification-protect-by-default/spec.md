@@ -1,7 +1,7 @@
 ---
 id: "006"
 title: Identity token verification and protect-by-default API
-status: proposed
+status: approved
 features: [IDENT-006, API-006]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []
