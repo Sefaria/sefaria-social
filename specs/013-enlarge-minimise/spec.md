@@ -4,7 +4,7 @@ title: Enlarge into a room's reader context and minimise out of it (R8–R14)
 status: approved
 features: [SESS-013, SESS-046, SESS-047, SESS-048]
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [room, persistent]
+surfaces: [room-lobby, session]
 risk: high
 contract_impact: none
 ---

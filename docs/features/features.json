@@ -732,7 +732,7 @@
         "011/AC-002"
       ],
       "surfaces": [
-        "room"
+        "room-lobby"
       ],
       "depends_on": {},
       "tests": [
@@ -754,7 +754,7 @@
         "012/AC-003"
       ],
       "surfaces": [
-        "room"
+        "room-lobby"
       ],
       "depends_on": {},
       "tests": [
@@ -774,7 +774,7 @@
         "011/AC-006"
       ],
       "surfaces": [
-        "room"
+        "room-lobby"
       ],
       "depends_on": {},
       "tests": [
@@ -881,8 +881,8 @@
         "013/AC-002"
       ],
       "surfaces": [
-        "room",
-        "persistent"
+        "room-lobby",
+        "session"
       ],
       "depends_on": {},
       "tests": [
@@ -904,8 +904,8 @@
         "014/AC-003"
       ],
       "surfaces": [
-        "room",
-        "persistent"
+        "room-lobby",
+        "session"
       ],
       "depends_on": {},
       "tests": [
@@ -962,7 +962,7 @@
         "013/AC-003"
       ],
       "surfaces": [
-        "persistent"
+        "session"
       ],
       "depends_on": {},
       "tests": [
@@ -982,7 +982,7 @@
         "013/AC-004"
       ],
       "surfaces": [
-        "persistent"
+        "session"
       ],
       "depends_on": {},
       "tests": [
@@ -1003,7 +1003,7 @@
         "013/AC-006"
       ],
       "surfaces": [
-        "persistent"
+        "session"
       ],
       "depends_on": {},
       "tests": [
@@ -1023,8 +1023,8 @@
         "014/AC-004"
       ],
       "surfaces": [
-        "room",
-        "persistent"
+        "room-lobby",
+        "session"
       ],
       "depends_on": {},
       "tests": [

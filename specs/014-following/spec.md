@@ -4,7 +4,7 @@ title: Following someone in a room through the reader state API, proven with two
 status: approved
 features: [SESS-014, SESS-050]
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [room, persistent]
+surfaces: [room-lobby, session]
 risk: high
 contract_impact: none
 ---

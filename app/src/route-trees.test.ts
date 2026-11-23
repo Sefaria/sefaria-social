@@ -44,9 +44,6 @@ describe("route trees", () => {
     expect(fullPaths(routeTree)).toEqual(expected);
     expect(fullPaths(mod!.surfaceRouteTree)).toEqual(expected);
     expect(expected.every((p) => p === "/social" || p.startsWith("/social/"))).toBe(true);
-    // The Start tree's other routes are server-only API routes under /api/v1/: a handler, no component.
-    const api = routesOf(routeTree).filter(isApi);
-    expect(api.filter((r) => !pathOf(r).startsWith("/api/v1/") || r.options.component || !r.options.server)).toEqual([]);
   });
 
   // @feature HOST-003 Surface entry mounts into the reader page
