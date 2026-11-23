@@ -1,0 +1,36 @@
+{
+  "ref": "Berakhot 2a",
+  "heRef": "ברכות ב׳ א",
+  "title": "Berakhot 2a",
+  "heTitle": "ברכות",
+  "indexTitle": "Berakhot",
+  "heIndexTitle": "ברכות",
+  "versions": [
+    {
+      "language": "he",
+      "direction": "rtl",
+      "versionTitle": "William Davidson Edition - Vocalized Aramaic",
+      "text": [
+        "מֵאֵימָתַי קוֹרִין אֶת שְׁמַע בָּעֲרָבִין? מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן. עַד סוֹף הָאַשְׁמוּרָה הָרִאשׁוֹנָה. דִּבְרֵי רַבִּי אֱלִיעֶזֶר.",
+        "וַחֲכָמִים אוֹמְרִים: עַד חֲצוֹת.",
+        "רַבָּן גַּמְלִיאֵל אוֹמֵר עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.",
+        "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה, אָמְרוּ לוֹ: לֹא קָרִינוּ אֶת שְׁמַע, אָמַר לָהֶם: אִם לֹא עָלָה עַמּוּד הַשַּׁחַר חַיָּיבִין אַתֶּם לִקְרוֹת. וְלֹא זוֹ בִּלְבַד אָמְרוּ, אֶלָּא כָּל מַה שֶּׁאָמְרוּ חֲכָמִים ״עַד חֲצוֹת״, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.",
+        "הֶקְטֵר חֲלָבִים וְאֵבָרִים, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר וְכָל הַנֶּאֱכָלִים לְיוֹם אֶחָד, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר. אִם כֵּן, לָמָה אָמְרוּ חֲכָמִים ״עַד חֲצוֹת״ — כְּדֵי לְהַרְחִיק אָדָם מִן הָעֲבֵירָה:",
+        "גְּמָ׳ תַּנָּא הֵיכָא קָאֵי דְּקָתָנֵי ״מֵאֵימָתַי״?"
+      ]
+    },
+    {
+      "language": "en",
+      "direction": "ltr",
+      "versionTitle": "William Davidson Edition - English",
+      "text": [
+        "The beginning of tractate Berakhot, the first tractate in the first of the six orders of Mishna, opens with a discussion of the recitation of Shema, as the recitation of Shema encompasses an acceptance of the yoke of Heaven and of the mitzvot, and as such, forms the basis for all subsequent teachings. The Mishna opens with the laws regarding the appropriate time to recite Shema: MISHNA: From when, that is, from what time, does one recite Shema in the evening? From the time when the priests enter to partake of their teruma. Until when does the time for the recitation of the evening Shema extend? Until the end of the first watch. The term used in the Torah (Deuteronomy 6:7) to indicate the time for the recitation of the evening Shema is beshokhbekha, when you lie down, which refers to the time in which individuals go to sleep. Therefore, the time for the recitation of Shema is the first portion of the night, when individuals typically prepare for sleep. That is the statement of Rabbi Eliezer.",
+        "The Rabbis say: The time for the recitation of the evening Shema is until midnight.",
+        "Rabban Gamliel says: One may recite Shema until dawn, indicating that beshokhbekha is to be understood as a reference to the entire time people sleep in their beds, the whole night.",
+        "The mishna relates that Rabban Gamliel practiced in accordance with his ruling. There was an incident where Rabban Gamliel’s sons returned very late from a wedding hall. They said to him, as they had been preoccupied with celebrating with the groom and bride: We did not recite Shema. He said to them: If the dawn has not yet arrived, you are obligated to recite Shema. Since Rabban Gamliel’s opinion disagreed with that of the Rabbis, he explained to his sons that the Rabbis actually agree with him, and that it is not only with regard to the halakha of the recitation of Shema, but rather, wherever the Sages say until midnight, the mitzva may be performed until dawn.",
+        "Rabban Gamliel cites several cases in support of his claim, such as the burning of fats and limbs on the altar. Due to the quantity of offerings each day, the priests were often unable to complete the burning of all of the fats and limbs, so they continued to be burned into the night, as it is written: “This is the law of the burnt offering: The burnt offering shall remain upon the pyre on the altar all night until morning, while the fire on the altar burns it” (Leviticus 6:2). And, with regard to all sacrifices, such as the sin-offerings and the guilt-offerings that are eaten for one day and night; although the Sages state that they may be eaten only until midnight, by Torah law they may be eaten until dawn. This is in accordance with the verse: “On the day on which it is offered must you eat. Do not leave it until the morning” (Leviticus 7:15). If so, why did the Sages say that they may be eaten only until midnight? This is in order to distance a person from transgression, as if one believes that he has until dawn to perform the mitzva, he might be negligent and postpone it until the opportunity to perform the mitzva has passed.",
+        "GEMARA: The Mishna opens with the laws concerning the appropriate time to recite Shema with the question: From when does one recite Shema in the evening? With regard to this question, the Gemara asks: On the basis of what prior knowledge does the tanna of our mishna ask: From when? It would seem from his question that the obligation to recite Shema in the evening was already established, and that the tanna seeks only to clarify details that relate to it. But our mishna is the very first mishna in the Talmud."
+      ]
+    }
+  ]
+}
