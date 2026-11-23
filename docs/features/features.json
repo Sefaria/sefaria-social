@@ -462,7 +462,7 @@
       "area": "room",
       "name": "Presence list",
       "description": "Who is in the room, live: name, leading, following whom, away; the viewer marked as you.",
-      "status": "planned",
+      "status": "built",
       "spec": "012",
       "acs": [
         "012/AC-001",
@@ -473,7 +473,9 @@
         "room"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/presence/PresenceList.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

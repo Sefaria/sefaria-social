@@ -3,6 +3,8 @@ import { useHost } from "~/features/host/host-context";
 import { useViewer } from "~/features/host/use-viewer";
 import { useRoomsApi, type Room } from "~/features/api/rooms-api";
 import { useStrings } from "~/features/shell/use-strings";
+import { PresenceList } from "~/features/presence/PresenceList";
+import { useRoomHold } from "~/features/session/use-room-session";
 
 type LobbyState =
   | { kind: "loading" }
@@ -23,6 +25,8 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
   const viewer = useViewer();
   const [state, setState] = useState<LobbyState>({ kind: "loading" });
   const [joining, setJoining] = useState(false);
+  // A member's lobby holds the room's connection open (spec 012): who is here, live.
+  useRoomHold(roomId, "lobby", state.kind === "member");
 
   useEffect(() => {
     let live = true;
@@ -77,6 +81,7 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
           </button>
         </section>
       )}
+      {state.kind === "member" && <PresenceList roomId={roomId} />}
       {state.kind === "not-found" && <p role="alert">{t.roomNotFound}</p>}
       {state.kind === "error" && <p role="alert">{t.roomError}</p>}
     </main>

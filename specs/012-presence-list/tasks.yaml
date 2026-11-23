@@ -4,6 +4,9 @@
   files:
     - "app/src/features/session/sessions.ts"
     - "app/src/features/session/test-relay.ts"
+    - "app/src/features/session/test-surface.tsx"
+    - "app/src/features/session/use-room-session.ts"
+    - "packages/session/src/index.ts"
     - "app/src/features/presence/**"
     - "app/src/features/room/**"
     - "app/src/features/shell/strings.ts"
