@@ -10,4 +10,4 @@
 ## Tests
 
 - `features/session/room-reader.test.ts` (AC-005, AC-006, unit).
-- `features/session/controller.test.ts` (AC-001..004, jsdom, fake host, test relay).
+- `surface/room-context.test.tsx` (AC-001..004, jsdom, fake host, test relay).

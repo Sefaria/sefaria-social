@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:b5d982feb18ac6c40c7511e0724e3c543b0a3f903de8f466b79372dd43c53ed9",
   "feature_sha": "sha256:04795ab8b96931e07fd3eb6841657148f9ae13b3e0dcd9b0c70db693baffe140",
-  "tasks_sha": "sha256:a8bffedef36f0ff93972c8f7a9f2bd6c0fb396d45b5bf6a4a62eb0165233edcf",
+  "tasks_sha": "sha256:b9bdfa7bd7f212a332edea181ec686f864b75ec505d2e26ce387a44bd2410061",
   "risk": "high",
   "features": [
     "SESS-014",
@@ -24,6 +24,8 @@
         "app/src/features/session/**",
         "app/src/features/presence/**",
         "app/src/surface/persistent.tsx",
+        "app/src/surface/room-context.test.tsx",
+        "app/src/surface/room-following.test.tsx",
         "app/src/features/shell/strings.ts"
       ],
       "depends_on": [],

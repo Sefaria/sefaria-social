@@ -5,6 +5,8 @@
     - "app/src/features/session/**"
     - "app/src/features/presence/**"
     - "app/src/surface/persistent.tsx"
+    - "app/src/surface/room-context.test.tsx"
+    - "app/src/surface/room-following.test.tsx"
     - "app/src/features/shell/strings.ts"
   depends_on: []
   parallel: false

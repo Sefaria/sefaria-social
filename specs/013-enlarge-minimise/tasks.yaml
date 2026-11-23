@@ -17,6 +17,7 @@
     - "app/src/features/session/**"
     - "app/src/features/room/**"
     - "app/src/features/shell/strings.ts"
+    - "app/src/surface/room-context.test.tsx"
   depends_on: [T-001]
   parallel: false
   verify: ["npm test -- controller", "npm run typecheck"]
@@ -27,6 +28,8 @@
   files:
     - "app/src/features/session/**"
     - "app/src/surface/persistent.tsx"
+    - "app/src/surface/room-context.test.tsx"
+    - "app/src/surface/room-following.test.tsx"
     - "app/src/features/shell/strings.ts"
   depends_on: [T-002]
   parallel: false
@@ -38,6 +41,8 @@
   files:
     - "app/src/features/session/**"
     - "app/src/surface/persistent.tsx"
+    - "app/src/surface/room-context.test.tsx"
+    - "app/src/surface/room-following.test.tsx"
     - "app/src/surface/entry.ts"
   depends_on: [T-003]
   parallel: false

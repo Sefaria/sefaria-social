@@ -9,5 +9,5 @@
 
 ## Tests
 
-- `features/session/following.test.tsx` (AC-001..003, jsdom, fake host, test relay).
+- `surface/room-following.test.tsx` (AC-001..003, jsdom, fake host, test relay).
 - `e2e/rooms.spec.ts` (AC-004, Playwright, harness).
