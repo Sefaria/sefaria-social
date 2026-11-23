@@ -612,7 +612,7 @@
       "area": "sess",
       "name": "Follow, follow again and lead",
       "description": "Following the spotlight or a picked participant through applySnapshot; breaking away and coming back; taking the lead.",
-      "status": "planned",
+      "status": "built",
       "spec": "014",
       "acs": [
         "014/AC-001",
@@ -624,7 +624,9 @@
         "persistent"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/session/following.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

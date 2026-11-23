@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-23 — SESS-014 "Follow, follow again and lead": built (spec 014, task T-001).
 - 2026-11-23 — SESS-047 "Reconnect from ctx alone on a cold load": built (spec 013, tasks T-002, T-003, T-004).
 - 2026-11-23 — SESS-046 "Minimise to the own place or the lobby": built (spec 013, tasks T-002, T-003, T-004).
 - 2026-11-23 — SESS-013 "Enlarge into a room's reader context": built (spec 013, tasks T-002, T-003, T-004).
