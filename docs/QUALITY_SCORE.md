@@ -8,12 +8,12 @@ the version with those columns to the `factory-data` branch (`reports/QUALITY_SC
 
 | Surface | Features | L0 | L1 | L2 | L3 | L4a | Quarantined | Escaped (open) | Flaky (nightly) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| feed | 1 | 0 | 1 | 0 | 0 | 0 | 0 | n/a | n/a |
-| room-lobby | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | n/a |
-| shiur | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | n/a |
-| settings | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | n/a |
-| session | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | n/a |
-| presence | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | n/a |
-| host-integration | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | n/a |
-| identity | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | n/a |
-| api | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | n/a |
+| feed | 9 | 0 | 7 | 0 | 0 | 2 | 0 | n/a | n/a |
+| room-lobby | 7 | 0 | 6 | 0 | 0 | 2 | 0 | n/a | n/a |
+| shiur | 1 | 0 | 1 | 0 | 0 | 1 | 0 | n/a | n/a |
+| settings | 1 | 0 | 1 | 0 | 0 | 1 | 0 | n/a | n/a |
+| session | 13 | 0 | 24 | 0 | 0 | 2 | 0 | n/a | n/a |
+| presence | 0 | 0 | 1 | 0 | 0 | 0 | 0 | n/a | n/a |
+| host-integration | 6 | 0 | 10 | 0 | 0 | 1 | 0 | n/a | n/a |
+| identity | 1 | 0 | 2 | 0 | 0 | 0 | 0 | n/a | n/a |
+| api | 3 | 0 | 9 | 0 | 0 | 0 | 0 | n/a | n/a |
