@@ -1,7 +1,7 @@
 ---
 id: "083"
 title: CI records metrics on the factory-data branch and the quality score is generated
-status: proposed
+status: approved
 features: [OPS-085, OPS-086]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

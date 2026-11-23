@@ -1,7 +1,7 @@
 ---
 id: "081"
 title: Agent QA tests the surfaces a pull request touches and reports one recount
-status: proposed
+status: approved
 features: [OPS-082, OPS-083, OPS-084]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

@@ -1,7 +1,7 @@
 ---
 id: "086"
 title: Holdout scenarios are judged in three clean trials without leaking their text
-status: proposed
+status: approved
 features: [OPS-091]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []
