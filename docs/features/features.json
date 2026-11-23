@@ -316,10 +316,13 @@
         "app/src/surface/mount.contract.test.tsx",
         "app/src/surface/host-history.test.ts",
         "app/src/route-trees.test.ts",
-        "e2e/harness.spec.ts"
+        "e2e/harness.spec.ts",
+        "app/src/features/host/use-viewer.test.tsx"
       ],
       "since": null,
-      "changed": []
+      "changed": [
+        "2026-11-23: useViewer settles when viewer.get() returns a new object per call"
+      ]
     },
     {
       "id": "HOST-004",

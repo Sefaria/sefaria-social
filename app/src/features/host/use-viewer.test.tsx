@@ -11,6 +11,7 @@ import { useViewer, type Viewer } from "./use-viewer";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 describe("useViewer", () => {
+  // @feature HOST-003 Surface entry mounts into the reader page
   it("settles when viewer.get() returns a new object each call, and updates when the viewer changes", async () => {
     const fake = createFakeHost({ viewer: { id: 4242, name: "Test Learner" } });
     const original = fake.host.viewer.get;

@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-23 — HOST-003 "Surface entry mounts into the reader page": corrected (spec 002, task T-001): useViewer settles when the host's viewer.get() returns a new object per call; test app/src/features/host/use-viewer.test.tsx.
 - 2026-11-23 — SESS-055 "Enlarging from a card lands on its source without a reload": built (spec 018, task T-002).
 - 2026-11-23 — FEED-018 "Enlarge from a card with a view transition": built (spec 018, task T-001).
 - 2026-11-23 — FEED-053 "Prefetch on visibility and on press": built (spec 017, tasks T-001, T-002).
