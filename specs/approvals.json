@@ -24,6 +24,26 @@
     "sha": "sha256:a38e2a7034293cc3e97c5d63bdd17a02d265418af70aac9e5c7d2e45db5695dc",
     "at": "2026-11-23T07:58:56Z"
   },
+  "005": {
+    "by": "akiva@sefaria.org",
+    "sha": "sha256:a5dc514bce1792007948fac4932a6d065373f01bc83aa143220ef75f12ad7897",
+    "at": "2026-11-23T07:58:59Z"
+  },
+  "006": {
+    "by": "akiva@sefaria.org",
+    "sha": "sha256:b25ccfe4c624639538bf6f13ae935f3ed0c5f7c59e8cb3f58d44d0c42274460c",
+    "at": "2026-11-23T07:59:00Z"
+  },
+  "007": {
+    "by": "akiva@sefaria.org",
+    "sha": "sha256:0bca3193232122f9b786e6b4fd18c58fc190004b98b4537bb59da7986861fcd7",
+    "at": "2026-11-23T07:59:00Z"
+  },
+  "008": {
+    "by": "akiva@sefaria.org",
+    "sha": "sha256:4e1df78b31e9576c5fbbd23148503888b427bbb69997542e9365a3fe51c28e19",
+    "at": "2026-11-23T07:59:01Z"
+  },
   "080": {
     "by": "akiva@sefaria.org",
     "sha": "sha256:161659f5086167027455f42bfa675a3cc99656ec60b52102cdf1a93f4016afcf",

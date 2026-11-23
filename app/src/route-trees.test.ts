@@ -9,16 +9,32 @@ import { getRouter } from "./router";
 
 const surfaceTrees = import.meta.glob<typeof import("./surface/route-tree")>("./surface/route-tree.tsx");
 
-/** Every route's full path, as the router computes it (route objects get their paths when a router is built). */
-function fullPaths(tree: AnyRoute): string[] {
+/** Every route of a tree, built into a router (route objects get their full paths when a router is built). */
+function routesOf(tree: AnyRoute): AnyRoute[] {
   const router = createRouter({ routeTree: tree, history: createMemoryHistory({ initialEntries: ["/"] }) });
-  return Object.values(router.routesById as Record<string, AnyRoute>)
-    .filter((r) => !r.isRoot)
-    .map((r) => (r.fullPath as string).replace(/(.)\/$/, "$1"))
+  return Object.values(router.routesById as Record<string, AnyRoute>).filter((r) => !r.isRoot);
+}
+const pathOf = (r: AnyRoute) => (r.fullPath as string).replace(/(.)\/$/, "$1");
+/** Server API routes (`/api/v1/*`, served by the social server, never by the reader) are not pages; R2 is about pages. */
+const isApi = (r: AnyRoute) => pathOf(r).startsWith("/api/");
+/** Every page route's full path. */
+function fullPaths(tree: AnyRoute): string[] {
+  return routesOf(tree)
+    .filter((r) => !isApi(r))
+    .map(pathOf)
     .sort();
 }
 
 describe("route trees", () => {
+  // @feature OPS-005 Postgres schema, migrations and a public health check
+  // @ac 005/AC-003
+  it("the Start tree's only other routes are server-only API routes under /api/v1/, among them the health endpoint", () => {
+    const api = routesOf(routeTree).filter(isApi);
+    expect(api.map(pathOf)).toContain("/api/v1/health");
+    // a handler and no component: the reader never renders them, and the surface tree has none (R2)
+    expect(api.filter((r) => !pathOf(r).startsWith("/api/v1/") || r.options.component || !r.options.server)).toEqual([]);
+  });
+
   // @feature HOST-003 Surface entry mounts into the reader page
   // @ac 002/AC-008
   it("both trees define exactly the R6 pages plus social's not-found, all under /social (R2)", async () => {

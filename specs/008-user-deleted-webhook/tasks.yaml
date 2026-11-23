@@ -1,0 +1,31 @@
+- id: T-001
+  title: Signed user-deleted webhook with idempotent deletion and a tombstone
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-006]
+  files:
+    - "app/src/server/webhooks/**"
+    - "app/src/server/services/users.ts"
+    - "app/src/server/http/**"
+    - "app/src/server/auth/**"
+    - "app/src/server/api/**"
+    - "app/src/server/config.ts"
+    - "app/src/routes/api/v1/internal.user-deleted.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.user-deleted.int.test.ts"
+    - "test/integration/**"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- api.user-deleted", "npm run typecheck"]
+- id: T-002
+  title: Staff purge-user command for a lost webhook
+  acs: [AC-005]
+  files:
+    - "app/scripts/purge-user.ts"
+    - "app/src/server/services/users.ts"
+    - "app/src/api.user-deleted.int.test.ts"
+    - "package.json"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:integration -- api.user-deleted", "npm run typecheck"]
+  completes: [IDENT-008]
