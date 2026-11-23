@@ -2,7 +2,7 @@
   title: Compose file, surface and relay images for Coolify, and the previews runbook
   acs: [AC-001, AC-002, AC-003]
   files:
-    - "docker-compose.coolify.yml"
+    - "docker-compose.yaml"
     - "deploy/coolify/**"
     - "docs/runbooks/previews.md"
     - "docs/runbooks/setup-checklist.md"

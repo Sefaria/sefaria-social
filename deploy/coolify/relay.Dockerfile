@@ -1,4 +1,4 @@
-# The relay for a Coolify deployment (docker-compose.coolify.yml, spec 022): the Worker in workerd through `wrangler dev`, the
+# The relay for a Coolify deployment (docker-compose.yaml, spec 022): the Worker in workerd through `wrangler dev`, the
 # same local runtime the integration tests and `qa:relay` use. Good for previews and the shared dev deployment; production runs
 # on Cloudflare (docs/runbooks/deploy.md). Room state lives in memory and in /tmp; a restart empties every room.
 FROM node:22.23.5-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee

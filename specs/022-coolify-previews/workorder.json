@@ -3,9 +3,9 @@
   "spec": "022",
   "title": "Coolify deployment — a shared dev backend and a full preview per pull request",
   "approved": false,
-  "spec_sha": "sha256:98eeccb5bc3e3d2bb2fa110bf00a06751446c110fdfe8be968299be8388a437f",
-  "feature_sha": "sha256:82489d7e103d89ac4210f795948faf7921c10444bec6be93c4274b6911dd5f46",
-  "tasks_sha": "sha256:4bdbeb032ffb4c4550ade6ab9ba5365ac7c389dfc22e0bb187b25bdb900afa04",
+  "spec_sha": "sha256:c969deb479a14d066f033367e3347f232d05c7837fba14172509dd5c5427a911",
+  "feature_sha": "sha256:778482666f15530e6a46001c7abc3a54c49854db49ce0b82054a2061332dbacb",
+  "tasks_sha": "sha256:d6075c24136fed22acfcb1a6fb7b7b70dd748360d287345b26b068bb719ae5be",
   "risk": "high",
   "features": [
     "OPS-022"
@@ -20,7 +20,7 @@
         "AC-003"
       ],
       "files": [
-        "docker-compose.coolify.yml",
+        "docker-compose.yaml",
         "deploy/coolify/**",
         "docs/runbooks/previews.md",
         "docs/runbooks/setup-checklist.md",
@@ -39,7 +39,7 @@
   "acs": [
     {
       "ac": "AC-001",
-      "text": "WHEN `docker-compose.coolify.yml` is read THE SYSTEM SHALL define the services `app`, `surface`, `relay` and `postgres`: `app` built from the repository's Dockerfile, applying the committed migrations before it serves and reaching the database and the relay by service name; `postgres` an image pinned by tag and sha256 digest with a health check that `app` waits for; and every secret given as a `${VARIABLE}` reference (Coolify's generated `SERVICE_PASSWORD_*` or a variable set on the app), never a literal value",
+      "text": "WHEN `docker-compose.yaml` is read THE SYSTEM SHALL define the services `app`, `surface`, `relay` and `postgres`: `app` built from the repository's Dockerfile, applying the committed migrations before it serves and reaching the database and the relay by service name; `app`, `surface` and `relay` each asking Coolify for a public domain on the port it serves (`SERVICE_URL_<SERVICE>_<PORT>`); `postgres` an image pinned by tag and sha256 digest with a health check that `app` waits for; and every secret given as a `${VARIABLE}` reference (Coolify's generated `SERVICE_PASSWORD_*` or a variable set on the app), never a literal value",
       "scenarios": [
         "AC-001 the compose file defines the four services"
       ],

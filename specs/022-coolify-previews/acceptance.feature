@@ -2,9 +2,9 @@ Feature: Coolify deployment — a shared dev backend and a full preview per pull
 
   @AC-001
   Scenario: AC-001 the compose file defines the four services
-    Given docker-compose.coolify.yml
+    Given docker-compose.yaml
     When it is read
-    Then app is built from the Dockerfile and migrates before serving, postgres is pinned with a health check app waits for, and every secret is a variable reference
+    Then app is built from the Dockerfile and migrates before serving, app, surface and relay each ask for a domain on their port, postgres is pinned with a health check app waits for, and every secret is a variable reference
 
   @AC-002
   Scenario: AC-002 the surface image serves the release build

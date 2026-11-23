@@ -18,9 +18,10 @@ whose main deployment is the shared dev server, and a preview per pull request a
 
 ## Acceptance criteria
 
-- AC-001 WHEN `docker-compose.coolify.yml` is read THE SYSTEM SHALL define the services `app`, `surface`, `relay` and `postgres`:
+- AC-001 WHEN `docker-compose.yaml` is read THE SYSTEM SHALL define the services `app`, `surface`, `relay` and `postgres`:
   `app` built from the repository's Dockerfile, applying the committed migrations before it serves and reaching the database and
-  the relay by service name; `postgres` an image pinned by tag and sha256 digest with a health check that `app` waits for; and
+  the relay by service name; `app`, `surface` and `relay` each asking Coolify for a public domain on the port it serves
+  (`SERVICE_URL_<SERVICE>_<PORT>`); `postgres` an image pinned by tag and sha256 digest with a health check that `app` waits for; and
   every secret given as a `${VARIABLE}` reference (Coolify's generated `SERVICE_PASSWORD_*` or a variable set on the app), never
   a literal value
 - AC-002 WHEN the surface image is built THE SYSTEM SHALL build the surface with the release build, serve its `manifest.json` with

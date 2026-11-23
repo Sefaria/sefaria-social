@@ -1,7 +1,7 @@
 # Coolify: the shared dev backend and a preview per pull request
 
 Spec 022. The same pattern as the Library Assistant (`sefaria/ai-chatbot:server` on Coolify): one Coolify app builds
-`docker-compose.coolify.yml`. Its main deployment, from `main`, is the shared dev backend that staging and cauldrons use; every
+`docker-compose.yaml`. Its main deployment, from `main`, is the shared dev backend that staging and cauldrons use; every
 pull request gets a preview with its own copy of all four services, and the reader picks one per page.
 
 ## The app
@@ -9,7 +9,7 @@ pull request gets a preview with its own copy of all four services, and the read
 | Setting             | Value                                                                                               |
 | ------------------- | --------------------------------------------------------------------------------------------------- |
 | Coolify app         | `sefaria/sefaria-social` on the Sefaria Dev Server, source: the `coolify-sefaria-github` GitHub App |
-| Build pack          | Docker Compose, `/docker-compose.coolify.yml`, base directory `/`                                   |
+| Build pack          | Docker Compose, `/docker-compose.yaml`, base directory `/`                                          |
 | Branch              | `main` (auto-deploy on push)                                                                        |
 | Preview deployments | on; preview hosts `{{pr_id}}.{{domain}}`                                                            |
 | `app` domain        | `https://api.social.coolifydev.sefaria.org` (port 3200)                                             |
@@ -57,7 +57,7 @@ A page opened with `?social_version=<pr>` (reader-next, outside production) uses
 
 ## Checked by hand (2026-11-23)
 
-`docker compose -f docker-compose.coolify.yml build` and `up` on a laptop: `app` healthy (`/api/v1/health` 200 with the database
+`docker compose -f docker-compose.yaml build` and `up` on a laptop: `app` healthy (`/api/v1/health` 200 with the database
 ok), `surface` healthy (`/manifest.json` 200, `Access-Control-Allow-Origin: *`, `Cache-Control: no-cache`), `relay` healthy
 (`/health` 200), `postgres` healthy. reader-next pointed at the `surface` container through `PUBLIC_SOCIAL_MANIFEST_URL` loaded
 the manifest and every file with integrity checks and mounted the surface.

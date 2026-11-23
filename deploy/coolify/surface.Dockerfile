@@ -1,4 +1,4 @@
-# The surface bundle for a Coolify deployment (docker-compose.coolify.yml, spec 022): the release build of the surface, served
+# The surface bundle for a Coolify deployment (docker-compose.yaml, spec 022): the release build of the surface, served
 # as static files by an unprivileged nginx. One bundle per deployment, at the root: /manifest.json and the files it lists.
 FROM node:22.23.5-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS build
 WORKDIR /src

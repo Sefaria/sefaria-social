@@ -1,6 +1,7 @@
-# Sefaria Social on Coolify (spec 022; docs/runbooks/previews.md). One Coolify app built from this file: its main deployment is
+# Sefaria Social on Coolify (spec 022; docs/runbooks/previews.md). Coolify reads this path by default (/docker-compose.yaml). One Coolify app built from this file: its main deployment is
 # the shared dev backend that staging and cauldrons use, and every pull request gets a preview with its own copy of all four
-# services. Coolify sets each service's public domain (preview hosts are <pr>.<domain>) and supplies the variables below; a
+# services. Each SERVICE_URL_<SERVICE>_<PORT> entry asks Coolify for a public domain on that port (generated under the server's
+# wildcard domain, or the one set in Coolify's Domains; preview hosts are <pr>.<domain>), and Coolify supplies the variables below; a
 # variable set on the app applies to every preview too, so none of them may be specific to one pull request.
 services:
   app:
@@ -10,6 +11,7 @@ services:
       dockerfile: Dockerfile
     command: ["sh", "-c", "node app/scripts/migrate.mjs && exec node app/scripts/start.mjs"]
     environment:
+      SERVICE_URL_APP_3200: ""
       DATABASE_URL: "postgres://social:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/social"
       SOCIAL_JWKS_URL: "${SOCIAL_JWKS_URL}"
       SOCIAL_TOKEN_ISSUER: "${SOCIAL_TOKEN_ISSUER}"
@@ -28,6 +30,8 @@ services:
     build:
       context: .
       dockerfile: deploy/coolify/surface.Dockerfile
+    environment:
+      SERVICE_URL_SURFACE_8080: ""
     expose:
       - "8080"
 
@@ -37,6 +41,7 @@ services:
       context: .
       dockerfile: deploy/coolify/relay.Dockerfile
     environment:
+      SERVICE_URL_RELAY_8787: ""
       ALLOWED_ORIGINS: "${SOCIAL_ALLOWED_ORIGINS}"
       JWKS_URL: "${SOCIAL_JWKS_URL}"
       TOKEN_ISSUER: "${SOCIAL_TOKEN_ISSUER}"

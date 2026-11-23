@@ -34,7 +34,7 @@ const SECRETISH = /(PASSWORD|SECRET|TOKEN|KEY)$/;
 describe("spec 022: Coolify deployment", () => {
   // @ac 022/AC-001
   it("the compose file defines app, surface, relay and postgres, migrates before serving, and takes every secret from a variable", () => {
-    const compose = YAML.parse(read("docker-compose.coolify.yml"));
+    const compose = YAML.parse(read("docker-compose.yaml"));
     expect(Object.keys(compose.services ?? {}).sort()).toEqual(["app", "postgres", "relay", "surface"]);
     const { app, postgres, relay } = compose.services;
     expect(app.build).toMatchObject({ context: ".", dockerfile: "Dockerfile" });
@@ -42,6 +42,9 @@ describe("spec 022: Coolify deployment", () => {
     expect(app.environment.DATABASE_URL).toMatch(/@postgres:5432\//);
     expect(app.environment.RELAY_INTERNAL_URL).toBe("http://relay:8787");
     expect(app.depends_on).toEqual({ postgres: { condition: "service_healthy" } });
+    expect(app.environment).toHaveProperty("SERVICE_URL_APP_3200");
+    expect(compose.services.surface.environment).toHaveProperty("SERVICE_URL_SURFACE_8080");
+    expect(relay.environment).toHaveProperty("SERVICE_URL_RELAY_8787");
     expect(postgres.image).toMatch(/^postgres:[^@\s]+@sha256:[0-9a-f]{64}$/);
     expect(postgres.healthcheck?.test?.join(" ")).toMatch(/pg_isready/);
     for (const [name, svc] of Object.entries(compose.services)) {
