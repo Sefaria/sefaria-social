@@ -30,7 +30,45 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       "insert into shiur_recordings (shiur_id, owner_user_id, storage_key, duration_ms) values ($1, $2, 'recordings/seed-1', 60000), ($1, $3, 'recordings/seed-2', 61000)",
       [shiur!.id, user, other],
     );
-    for (const t of ["user_display", "rooms", "room_members", "shiurim", "shiur_recordings"]) written.add(t);
+    // Social graph and posts (specs 023-026): the user's person profile, an institution they run, a follow, a post, a reply,
+    // a reaction and a notification, each pointing at the other user too, so deleting one user must keep the other's rows.
+    const [profile] = await sql<{ id: string }>(
+      "insert into profiles (kind, user_id, name) values ('person', $1, 'Seed Learner') returning id",
+      [user],
+    );
+    const [inst] = await sql<{ id: string }>("insert into profiles (kind, name) values ('institution', 'Seed Shul') returning id");
+    await sql("insert into profile_admins (profile_id, user_id) values ($1, $2)", [inst!.id, user]);
+    await sql("insert into follows (follower_user_id, profile_id) values ($1, $2)", [other, profile!.id]);
+    const [post] = await sql<{ id: string }>(
+      "insert into posts (author_profile_id, created_by_user_id, body, ref) values ($1, $2, 'Seed post', 'Genesis 1:1') returning id",
+      [profile!.id, user],
+    );
+    await sql("insert into replies (post_id, author_profile_id, created_by_user_id, body) values ($1, $2, $3, 'Seed reply')", [
+      post!.id,
+      profile!.id,
+      user,
+    ]);
+    await sql("insert into reactions (post_id, user_id) values ($1, $2)", [post!.id, other]);
+    await sql("insert into notifications (recipient_user_id, kind, actor_profile_id, post_id) values ($1, 'reaction', $2, $3)", [
+      user,
+      profile!.id,
+      post!.id,
+    ]);
+    for (const t of [
+      "user_display",
+      "rooms",
+      "room_members",
+      "shiurim",
+      "shiur_recordings",
+      "profiles",
+      "profile_admins",
+      "follows",
+      "posts",
+      "replies",
+      "reactions",
+      "notifications",
+    ])
+      written.add(t);
   }
   await sql("insert into deleted_users (user_id, event_id) values ($1, 'seed-event')", [unrelated]);
   await sql("insert into webhook_receipts (event_id, event_type) values ('seed-event', 'user.deleted')");

@@ -98,3 +98,125 @@ export const webhookReceipts = pgTable("webhook_receipts", {
   eventType: text("event_type").notNull(),
   receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ── Social graph and posts (specs 023–026) ────────────────────────────────────────────────────────────────────────────────
+/** A person (one per Sefaria user, created on first use) or an institution (a shul, yeshiva, community; created by staff). */
+export const profiles = pgTable(
+  "profiles",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    kind: text("kind").notNull(),
+    userId: userId("user_id").unique(),
+    name: text("name").notNull(),
+    bio: text("bio").notNull().default(""),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("profiles_kind_idx").on(t.kind)],
+);
+
+/** Who may post as, and is notified for, an institution profile. */
+export const profileAdmins = pgTable(
+  "profile_admins",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    userId: userId("user_id").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.profileId, t.userId] }), index("profile_admins_user_idx").on(t.userId)],
+);
+
+export const follows = pgTable(
+  "follows",
+  {
+    followerUserId: userId("follower_user_id").notNull(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.followerUserId, t.profileId] }), index("follows_profile_idx").on(t.profileId)],
+);
+
+export const posts = pgTable(
+  "posts",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    authorProfileId: uuid("author_profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdByUserId: userId("created_by_user_id").notNull(),
+    body: text("body").notNull(),
+    /** A source citation ("Genesis 1:3"); never library text. */
+    ref: text("ref"),
+    createdAt: createdAt(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("posts_author_created_idx").on(t.authorProfileId, t.createdAt),
+    index("posts_created_idx").on(t.createdAt),
+    index("posts_created_by_idx").on(t.createdByUserId),
+  ],
+);
+
+export const replies = pgTable(
+  "replies",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    authorProfileId: uuid("author_profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdByUserId: userId("created_by_user_id").notNull(),
+    body: text("body").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("replies_post_idx").on(t.postId, t.createdAt),
+    index("replies_author_idx").on(t.authorProfileId),
+    index("replies_created_by_idx").on(t.createdByUserId),
+  ],
+);
+
+/** One "Yasher koach" per person per post. */
+export const reactions = pgTable(
+  "reactions",
+  {
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    userId: userId("user_id").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.postId, t.userId] }), index("reactions_user_idx").on(t.userId)],
+);
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    recipientUserId: userId("recipient_user_id").notNull(),
+    /** follow | reply | reaction | post */
+    kind: text("kind").notNull(),
+    actorProfileId: uuid("actor_profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    postId: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("notifications_recipient_idx").on(t.recipientUserId, t.createdAt),
+    index("notifications_actor_idx").on(t.actorProfileId),
+    index("notifications_post_idx").on(t.postId),
+  ],
+);

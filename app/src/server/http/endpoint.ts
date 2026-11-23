@@ -39,6 +39,8 @@ export interface EndpointSpec {
   /** Defaults to "user": a verified Sefaria identity. */
   access?: Access;
   params?: z.ZodObject;
+  /** Search parameters (each a string or absent); validated like params, unknown ones rejected by a strict schema. */
+  query?: z.ZodObject;
   body?: z.ZodType;
   /** Responses the handler returns. Error responses are added by the OpenAPI generator from `access`, inputs and `errors`. */
   responses: Readonly<Record<number, ResponseSpec>>;
@@ -50,6 +52,7 @@ type AccessOf<S extends EndpointSpec> = S["access"] extends Access ? S["access"]
 
 export interface HandlerInput<S extends EndpointSpec> {
   params: S["params"] extends z.ZodType ? z.output<S["params"]> : Record<string, never>;
+  query: S["query"] extends z.ZodType ? z.output<S["query"]> : Record<string, never>;
   body: S["body"] extends z.ZodType ? z.output<S["body"]> : undefined;
   identity: AccessOf<S> extends "user" ? Identity : undefined;
   correlationId: string;
@@ -171,9 +174,10 @@ export function bind<const S extends EndpointSpec & { access: Access }>(
     run(spec.method, spec.path, ctx, async (correlationId) => {
       const { identity, raw } = await checkAccess(spec.access, ctx.request);
       const params = spec.params ? validate(spec.params, ctx.params ?? {}) : {};
+      const query = spec.query ? validate(spec.query, Object.fromEntries(new URL(ctx.request.url).searchParams)) : {};
       let body: unknown;
       if (spec.body) body = validate(spec.body, parseJson(raw ?? (await readRaw(ctx.request))));
-      const result = (await handler({ params, body, identity, correlationId, request: ctx.request } as HandlerInput<S>)) as {
+      const result = (await handler({ params, query, body, identity, correlationId, request: ctx.request } as HandlerInput<S>)) as {
         status: number;
         body: unknown;
       };

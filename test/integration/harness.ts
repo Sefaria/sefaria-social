@@ -53,7 +53,9 @@ export function handlersOf(route: unknown): Record<string, unknown> {
 
 /** Dispatch like Start: match the path, pick the method's handler (or ANY), call it with the request and params. */
 export async function dispatch(router: object, method: string, path: string, init: CallInit = {}): Promise<CallResult> {
-  const [, params, found] = (router as RouterLike).getMatchedRoutes(path);
+  // Routes match on the path alone; the request keeps the search (query parameters, spec 023's timeline).
+  const pathname = path.split("?")[0]!;
+  const [, params, found] = (router as RouterLike).getMatchedRoutes(pathname);
   const handlers = handlersOf(found);
   const handler = (handlers[method] ?? handlers.ANY) as
     ((ctx: { request: Request; params: Record<string, string>; pathname: string }) => Promise<Response>) | undefined;
@@ -64,7 +66,7 @@ export async function dispatch(router: object, method: string, path: string, ini
   if (body === undefined && init.body !== undefined) body = JSON.stringify(init.body);
   if (body !== undefined && !headers.has("content-type")) headers.set("content-type", "application/json");
   const request = new Request(`http://social.test${path}`, { method, headers, body });
-  const response = await handler({ request, params, pathname: path });
+  const response = await handler({ request, params, pathname });
   const text = await response.text();
   return { status: response.status, headers: response.headers, json: text ? JSON.parse(text) : null };
 }

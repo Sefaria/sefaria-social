@@ -15,11 +15,23 @@ import { Route as SocialSettingsRouteImport } from './routes/social.settings'
 import { Route as ApiV1FeedRouteImport } from './routes/api/v1/feed'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
+import { Route as ApiV1NotificationsRouteImport } from './routes/api/v1/notifications'
+import { Route as ApiV1PostsRouteImport } from './routes/api/v1/posts'
+import { Route as ApiV1ProfilesRouteImport } from './routes/api/v1/profiles'
 import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
+import { Route as ApiV1TimelineRouteImport } from './routes/api/v1/timeline'
 import { Route as SocialRRoomIdRouteImport } from './routes/social.r.$roomId'
 import { Route as SocialSShiurIdRouteImport } from './routes/social.s.$shiurId'
 import { Route as ApiV1InternalUserDeletedRouteImport } from './routes/api/v1/internal.user-deleted'
+import { Route as ApiV1NotificationsReadRouteImport } from './routes/api/v1/notifications.read'
+import { Route as ApiV1PostsPostIdRouteImport } from './routes/api/v1/posts.$postId'
+import { Route as ApiV1ProfilesProfileIdRouteImport } from './routes/api/v1/profiles.$profileId'
+import { Route as ApiV1ProfilesMeRouteImport } from './routes/api/v1/profiles.me'
+import { Route as ApiV1RepliesReplyIdRouteImport } from './routes/api/v1/replies.$replyId'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
+import { Route as ApiV1PostsPostIdReactionRouteImport } from './routes/api/v1/posts.$postId.reaction'
+import { Route as ApiV1PostsPostIdRepliesRouteImport } from './routes/api/v1/posts.$postId.replies'
+import { Route as ApiV1ProfilesProfileIdFollowRouteImport } from './routes/api/v1/profiles.$profileId.follow'
 import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/rooms.$roomId.members'
 import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
 import { Route as ApiV1RoomsRoomIdMembersMeRouteImport } from './routes/api/v1/rooms.$roomId.members.me'
@@ -54,9 +66,29 @@ const ApiV1MeRoute = ApiV1MeRouteImport.update({
   path: '/api/v1/me',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1NotificationsRoute = ApiV1NotificationsRouteImport.update({
+  id: '/api/v1/notifications',
+  path: '/api/v1/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1PostsRoute = ApiV1PostsRouteImport.update({
+  id: '/api/v1/posts',
+  path: '/api/v1/posts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1ProfilesRoute = ApiV1ProfilesRouteImport.update({
+  id: '/api/v1/profiles',
+  path: '/api/v1/profiles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1RoomsRoute = ApiV1RoomsRouteImport.update({
   id: '/api/v1/rooms',
   path: '/api/v1/rooms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1TimelineRoute = ApiV1TimelineRouteImport.update({
+  id: '/api/v1/timeline',
+  path: '/api/v1/timeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialRRoomIdRoute = SocialRRoomIdRouteImport.update({
@@ -75,11 +107,53 @@ const ApiV1InternalUserDeletedRoute =
     path: '/api/v1/internal/user-deleted',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiV1NotificationsReadRoute = ApiV1NotificationsReadRouteImport.update({
+  id: '/read',
+  path: '/read',
+  getParentRoute: () => ApiV1NotificationsRoute,
+} as any)
+const ApiV1PostsPostIdRoute = ApiV1PostsPostIdRouteImport.update({
+  id: '/$postId',
+  path: '/$postId',
+  getParentRoute: () => ApiV1PostsRoute,
+} as any)
+const ApiV1ProfilesProfileIdRoute = ApiV1ProfilesProfileIdRouteImport.update({
+  id: '/$profileId',
+  path: '/$profileId',
+  getParentRoute: () => ApiV1ProfilesRoute,
+} as any)
+const ApiV1ProfilesMeRoute = ApiV1ProfilesMeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => ApiV1ProfilesRoute,
+} as any)
+const ApiV1RepliesReplyIdRoute = ApiV1RepliesReplyIdRouteImport.update({
+  id: '/api/v1/replies/$replyId',
+  path: '/api/v1/replies/$replyId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
   id: '/$roomId',
   path: '/$roomId',
   getParentRoute: () => ApiV1RoomsRoute,
 } as any)
+const ApiV1PostsPostIdReactionRoute =
+  ApiV1PostsPostIdReactionRouteImport.update({
+    id: '/reaction',
+    path: '/reaction',
+    getParentRoute: () => ApiV1PostsPostIdRoute,
+  } as any)
+const ApiV1PostsPostIdRepliesRoute = ApiV1PostsPostIdRepliesRouteImport.update({
+  id: '/replies',
+  path: '/replies',
+  getParentRoute: () => ApiV1PostsPostIdRoute,
+} as any)
+const ApiV1ProfilesProfileIdFollowRoute =
+  ApiV1ProfilesProfileIdFollowRouteImport.update({
+    id: '/follow',
+    path: '/follow',
+    getParentRoute: () => ApiV1ProfilesProfileIdRoute,
+  } as any)
 const ApiV1RoomsRoomIdMembersRoute = ApiV1RoomsRoomIdMembersRouteImport.update({
   id: '/members',
   path: '/members',
@@ -104,11 +178,23 @@ export interface FileRoutesByFullPath {
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
+  '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
+  '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/timeline': typeof ApiV1TimelineRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
+  '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
+  '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
+  '/api/v1/profiles/$profileId': typeof ApiV1ProfilesProfileIdRouteWithChildren
+  '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
+  '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
+  '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
+  '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
@@ -120,11 +206,23 @@ export interface FileRoutesByTo {
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
+  '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
+  '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/timeline': typeof ApiV1TimelineRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
+  '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
+  '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
+  '/api/v1/profiles/$profileId': typeof ApiV1ProfilesProfileIdRouteWithChildren
+  '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
+  '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
+  '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
+  '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
@@ -137,11 +235,23 @@ export interface FileRoutesById {
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
+  '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
+  '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/timeline': typeof ApiV1TimelineRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
+  '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
+  '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
+  '/api/v1/profiles/$profileId': typeof ApiV1ProfilesProfileIdRouteWithChildren
+  '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
+  '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
+  '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
+  '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
@@ -155,11 +265,23 @@ export interface FileRouteTypes {
     | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/me'
+    | '/api/v1/notifications'
+    | '/api/v1/posts'
+    | '/api/v1/profiles'
     | '/api/v1/rooms'
+    | '/api/v1/timeline'
     | '/social/r/$roomId'
     | '/social/s/$shiurId'
     | '/api/v1/internal/user-deleted'
+    | '/api/v1/notifications/read'
+    | '/api/v1/posts/$postId'
+    | '/api/v1/profiles/$profileId'
+    | '/api/v1/profiles/me'
+    | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/posts/$postId/reaction'
+    | '/api/v1/posts/$postId/replies'
+    | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/members/me'
@@ -171,11 +293,23 @@ export interface FileRouteTypes {
     | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/me'
+    | '/api/v1/notifications'
+    | '/api/v1/posts'
+    | '/api/v1/profiles'
     | '/api/v1/rooms'
+    | '/api/v1/timeline'
     | '/social/r/$roomId'
     | '/social/s/$shiurId'
     | '/api/v1/internal/user-deleted'
+    | '/api/v1/notifications/read'
+    | '/api/v1/posts/$postId'
+    | '/api/v1/profiles/$profileId'
+    | '/api/v1/profiles/me'
+    | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/posts/$postId/reaction'
+    | '/api/v1/posts/$postId/replies'
+    | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/members/me'
@@ -187,11 +321,23 @@ export interface FileRouteTypes {
     | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/me'
+    | '/api/v1/notifications'
+    | '/api/v1/posts'
+    | '/api/v1/profiles'
     | '/api/v1/rooms'
+    | '/api/v1/timeline'
     | '/social/r/$roomId'
     | '/social/s/$shiurId'
     | '/api/v1/internal/user-deleted'
+    | '/api/v1/notifications/read'
+    | '/api/v1/posts/$postId'
+    | '/api/v1/profiles/$profileId'
+    | '/api/v1/profiles/me'
+    | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/posts/$postId/reaction'
+    | '/api/v1/posts/$postId/replies'
+    | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/members/me'
@@ -204,10 +350,15 @@ export interface RootRouteChildren {
   ApiV1FeedRoute: typeof ApiV1FeedRoute
   ApiV1HealthRoute: typeof ApiV1HealthRoute
   ApiV1MeRoute: typeof ApiV1MeRoute
+  ApiV1NotificationsRoute: typeof ApiV1NotificationsRouteWithChildren
+  ApiV1PostsRoute: typeof ApiV1PostsRouteWithChildren
+  ApiV1ProfilesRoute: typeof ApiV1ProfilesRouteWithChildren
   ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
+  ApiV1TimelineRoute: typeof ApiV1TimelineRoute
   SocialRRoomIdRoute: typeof SocialRRoomIdRoute
   SocialSShiurIdRoute: typeof SocialSShiurIdRoute
   ApiV1InternalUserDeletedRoute: typeof ApiV1InternalUserDeletedRoute
+  ApiV1RepliesReplyIdRoute: typeof ApiV1RepliesReplyIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -254,11 +405,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/notifications': {
+      id: '/api/v1/notifications'
+      path: '/api/v1/notifications'
+      fullPath: '/api/v1/notifications'
+      preLoaderRoute: typeof ApiV1NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/posts': {
+      id: '/api/v1/posts'
+      path: '/api/v1/posts'
+      fullPath: '/api/v1/posts'
+      preLoaderRoute: typeof ApiV1PostsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/profiles': {
+      id: '/api/v1/profiles'
+      path: '/api/v1/profiles'
+      fullPath: '/api/v1/profiles'
+      preLoaderRoute: typeof ApiV1ProfilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/rooms': {
       id: '/api/v1/rooms'
       path: '/api/v1/rooms'
       fullPath: '/api/v1/rooms'
       preLoaderRoute: typeof ApiV1RoomsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/timeline': {
+      id: '/api/v1/timeline'
+      path: '/api/v1/timeline'
+      fullPath: '/api/v1/timeline'
+      preLoaderRoute: typeof ApiV1TimelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/social/r/$roomId': {
@@ -282,12 +461,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1InternalUserDeletedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/notifications/read': {
+      id: '/api/v1/notifications/read'
+      path: '/read'
+      fullPath: '/api/v1/notifications/read'
+      preLoaderRoute: typeof ApiV1NotificationsReadRouteImport
+      parentRoute: typeof ApiV1NotificationsRoute
+    }
+    '/api/v1/posts/$postId': {
+      id: '/api/v1/posts/$postId'
+      path: '/$postId'
+      fullPath: '/api/v1/posts/$postId'
+      preLoaderRoute: typeof ApiV1PostsPostIdRouteImport
+      parentRoute: typeof ApiV1PostsRoute
+    }
+    '/api/v1/profiles/$profileId': {
+      id: '/api/v1/profiles/$profileId'
+      path: '/$profileId'
+      fullPath: '/api/v1/profiles/$profileId'
+      preLoaderRoute: typeof ApiV1ProfilesProfileIdRouteImport
+      parentRoute: typeof ApiV1ProfilesRoute
+    }
+    '/api/v1/profiles/me': {
+      id: '/api/v1/profiles/me'
+      path: '/me'
+      fullPath: '/api/v1/profiles/me'
+      preLoaderRoute: typeof ApiV1ProfilesMeRouteImport
+      parentRoute: typeof ApiV1ProfilesRoute
+    }
+    '/api/v1/replies/$replyId': {
+      id: '/api/v1/replies/$replyId'
+      path: '/api/v1/replies/$replyId'
+      fullPath: '/api/v1/replies/$replyId'
+      preLoaderRoute: typeof ApiV1RepliesReplyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/rooms/$roomId': {
       id: '/api/v1/rooms/$roomId'
       path: '/$roomId'
       fullPath: '/api/v1/rooms/$roomId'
       preLoaderRoute: typeof ApiV1RoomsRoomIdRouteImport
       parentRoute: typeof ApiV1RoomsRoute
+    }
+    '/api/v1/posts/$postId/reaction': {
+      id: '/api/v1/posts/$postId/reaction'
+      path: '/reaction'
+      fullPath: '/api/v1/posts/$postId/reaction'
+      preLoaderRoute: typeof ApiV1PostsPostIdReactionRouteImport
+      parentRoute: typeof ApiV1PostsPostIdRoute
+    }
+    '/api/v1/posts/$postId/replies': {
+      id: '/api/v1/posts/$postId/replies'
+      path: '/replies'
+      fullPath: '/api/v1/posts/$postId/replies'
+      preLoaderRoute: typeof ApiV1PostsPostIdRepliesRouteImport
+      parentRoute: typeof ApiV1PostsPostIdRoute
+    }
+    '/api/v1/profiles/$profileId/follow': {
+      id: '/api/v1/profiles/$profileId/follow'
+      path: '/follow'
+      fullPath: '/api/v1/profiles/$profileId/follow'
+      preLoaderRoute: typeof ApiV1ProfilesProfileIdFollowRouteImport
+      parentRoute: typeof ApiV1ProfilesProfileIdRoute
     }
     '/api/v1/rooms/$roomId/members': {
       id: '/api/v1/rooms/$roomId/members'
@@ -312,6 +547,70 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface ApiV1NotificationsRouteChildren {
+  ApiV1NotificationsReadRoute: typeof ApiV1NotificationsReadRoute
+}
+
+const ApiV1NotificationsRouteChildren: ApiV1NotificationsRouteChildren = {
+  ApiV1NotificationsReadRoute: ApiV1NotificationsReadRoute,
+}
+
+const ApiV1NotificationsRouteWithChildren =
+  ApiV1NotificationsRoute._addFileChildren(ApiV1NotificationsRouteChildren)
+
+interface ApiV1PostsPostIdRouteChildren {
+  ApiV1PostsPostIdReactionRoute: typeof ApiV1PostsPostIdReactionRoute
+  ApiV1PostsPostIdRepliesRoute: typeof ApiV1PostsPostIdRepliesRoute
+}
+
+const ApiV1PostsPostIdRouteChildren: ApiV1PostsPostIdRouteChildren = {
+  ApiV1PostsPostIdReactionRoute: ApiV1PostsPostIdReactionRoute,
+  ApiV1PostsPostIdRepliesRoute: ApiV1PostsPostIdRepliesRoute,
+}
+
+const ApiV1PostsPostIdRouteWithChildren =
+  ApiV1PostsPostIdRoute._addFileChildren(ApiV1PostsPostIdRouteChildren)
+
+interface ApiV1PostsRouteChildren {
+  ApiV1PostsPostIdRoute: typeof ApiV1PostsPostIdRouteWithChildren
+}
+
+const ApiV1PostsRouteChildren: ApiV1PostsRouteChildren = {
+  ApiV1PostsPostIdRoute: ApiV1PostsPostIdRouteWithChildren,
+}
+
+const ApiV1PostsRouteWithChildren = ApiV1PostsRoute._addFileChildren(
+  ApiV1PostsRouteChildren,
+)
+
+interface ApiV1ProfilesProfileIdRouteChildren {
+  ApiV1ProfilesProfileIdFollowRoute: typeof ApiV1ProfilesProfileIdFollowRoute
+}
+
+const ApiV1ProfilesProfileIdRouteChildren: ApiV1ProfilesProfileIdRouteChildren =
+  {
+    ApiV1ProfilesProfileIdFollowRoute: ApiV1ProfilesProfileIdFollowRoute,
+  }
+
+const ApiV1ProfilesProfileIdRouteWithChildren =
+  ApiV1ProfilesProfileIdRoute._addFileChildren(
+    ApiV1ProfilesProfileIdRouteChildren,
+  )
+
+interface ApiV1ProfilesRouteChildren {
+  ApiV1ProfilesProfileIdRoute: typeof ApiV1ProfilesProfileIdRouteWithChildren
+  ApiV1ProfilesMeRoute: typeof ApiV1ProfilesMeRoute
+}
+
+const ApiV1ProfilesRouteChildren: ApiV1ProfilesRouteChildren = {
+  ApiV1ProfilesProfileIdRoute: ApiV1ProfilesProfileIdRouteWithChildren,
+  ApiV1ProfilesMeRoute: ApiV1ProfilesMeRoute,
+}
+
+const ApiV1ProfilesRouteWithChildren = ApiV1ProfilesRoute._addFileChildren(
+  ApiV1ProfilesRouteChildren,
+)
 
 interface ApiV1RoomsRoomIdMembersRouteChildren {
   ApiV1RoomsRoomIdMembersMeRoute: typeof ApiV1RoomsRoomIdMembersMeRoute
@@ -359,10 +658,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1FeedRoute: ApiV1FeedRoute,
   ApiV1HealthRoute: ApiV1HealthRoute,
   ApiV1MeRoute: ApiV1MeRoute,
+  ApiV1NotificationsRoute: ApiV1NotificationsRouteWithChildren,
+  ApiV1PostsRoute: ApiV1PostsRouteWithChildren,
+  ApiV1ProfilesRoute: ApiV1ProfilesRouteWithChildren,
   ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,
+  ApiV1TimelineRoute: ApiV1TimelineRoute,
   SocialRRoomIdRoute: SocialRRoomIdRoute,
   SocialSShiurIdRoute: SocialSShiurIdRoute,
   ApiV1InternalUserDeletedRoute: ApiV1InternalUserDeletedRoute,
+  ApiV1RepliesReplyIdRoute: ApiV1RepliesReplyIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

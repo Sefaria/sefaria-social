@@ -24,7 +24,7 @@ function schemaOf(schema: z.ZodType, io: "input" | "output"): Json {
 
 function errorStatuses(e: EndpointSpec & { access: string }): number[] {
   const s = new Set<number>(e.errors ?? []);
-  if (e.params || e.body) s.add(400);
+  if (e.params || e.query || e.body) s.add(400);
   if (e.body) s.add(413);
   if (e.access !== "public") s.add(401).add(503);
   return [...s].filter((code) => !(code in e.responses)).sort((a, b) => a - b);
@@ -32,13 +32,14 @@ function errorStatuses(e: EndpointSpec & { access: string }): number[] {
 
 function operation(e: EndpointSpec & { access: string }): Json {
   const op: Json = { operationId: e.operationId, summary: e.summary, tags: [...e.tags] };
+  const parameters: Json[] = [];
   if (e.params)
-    op.parameters = Object.entries(e.params.shape).map(([name, s]) => ({
-      name,
-      in: "path",
-      required: true,
-      schema: schemaOf(s as z.ZodType, "input"),
-    }));
+    for (const [name, s] of Object.entries(e.params.shape))
+      parameters.push({ name, in: "path", required: true, schema: schemaOf(s as z.ZodType, "input") });
+  if (e.query)
+    for (const [name, s] of Object.entries(e.query.shape))
+      parameters.push({ name, in: "query", required: !(s as z.ZodType).safeParse(undefined).success, schema: schemaOf(s as z.ZodType, "input") });
+  if (parameters.length) op.parameters = parameters;
   if (e.body) op.requestBody = { required: true, content: { "application/json": { schema: schemaOf(e.body, "input") } } };
   const responses: Json = {};
   for (const [status, spec] of Object.entries(e.responses))
