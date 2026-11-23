@@ -7,11 +7,13 @@ import path from "node:path";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createTextSource, type TextSource } from "~/lib/sefaria-text";
+import type { TextSource } from "~/lib/sefaria-text";
+import type * as TextModule from "~/lib/sefaria-text";
 import type * as SourceTextModule from "./SourceText";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const mods = import.meta.glob<typeof SourceTextModule>("./SourceText.tsx");
+const textMods = import.meta.glob<typeof TextModule>("../lib/sefaria-text.ts");
 const FIXTURES = path.resolve(import.meta.dirname, "../../../harness/fixtures/texts");
 const fixture = (name: string) => readFileSync(path.join(FIXTURES, name), "utf8");
 
@@ -51,6 +53,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** The text module, through import.meta.glob: on a base without it the assertion fails, not the import. */
+async function textModule() {
+  const mod = await textMods["../lib/sefaria-text.ts"]?.();
+  expect(mod, "app/src/lib/sefaria-text.ts exists").toBeDefined();
+  return mod!;
+}
+
 async function mount(source: TextSource, refs: string[], interfaceLang: "english" | "hebrew" = "english") {
   const mod = await mods["./SourceText.tsx"]?.();
   expect(mod, "app/src/ui/SourceText.tsx exists").toBeDefined();
@@ -71,8 +80,8 @@ async function mount(source: TextSource, refs: string[], interfaceLang: "english
   return el;
 }
 
-const recorded = () =>
-  createTextSource({
+const recorded = async () =>
+  (await textModule()).createTextSource({
     fetch: async (url) => new Response(fixture(url.includes("Genesis") ? "Genesis_1.json" : "Psalms_23.json")),
   });
 
@@ -80,7 +89,7 @@ describe("SourceText", () => {
   // @feature FEED-017 Source-text renderer from the public text API
   // @ac 017/AC-001
   it("renders the first segments in Hebrew and English, each with its own lang and dir, Hebrew first in Hebrew", async () => {
-    const el = await mount(recorded(), ["Genesis 1"], "hebrew");
+    const el = await mount(await recorded(), ["Genesis 1"], "hebrew");
     await vi.waitFor(() => expect(el.querySelector("[data-source-text]")?.getAttribute("data-source-text")).toBe("ready"));
     const blocks = [...el.querySelectorAll("[data-source-text] p")];
     expect(blocks.map((p) => [p.getAttribute("lang"), p.getAttribute("dir")])).toEqual([
@@ -94,7 +103,7 @@ describe("SourceText", () => {
   // @feature FEED-017 Source-text renderer from the public text API
   // @ac 017/AC-001
   it("puts English first in the English interface", async () => {
-    const el = await mount(recorded(), ["Genesis 1"], "english");
+    const el = await mount(await recorded(), ["Genesis 1"], "english");
     await vi.waitFor(() => expect(el.querySelectorAll("[data-source-text] p")).toHaveLength(2));
     expect([...el.querySelectorAll("[data-source-text] p")].map((p) => p.getAttribute("lang"))).toEqual(["en", "he"]);
   });
@@ -109,6 +118,7 @@ describe("SourceText", () => {
       ],
     });
     const answers = [new Response(evil), new Response('{"error":"no"}')];
+    const { createTextSource } = await textModule();
     const el = await mount(createTextSource({ fetch: async () => answers.shift()! }), ["Genesis 1:1", "Nowhere 1"]);
     await vi.waitFor(() =>
       expect([...el.querySelectorAll("[data-source-text]")].map((d) => d.getAttribute("data-source-text"))).toEqual([
@@ -125,7 +135,7 @@ describe("SourceText", () => {
   // @ac 017/AC-003
   it("requests nothing until the text is within 200px of the viewport, then one request per ref", async () => {
     vi.stubGlobal("IntersectionObserver", FakeObserver);
-    const source = recorded();
+    const source = await recorded();
     const el = await mount(source, ["Genesis 1", "Genesis 1"]);
     expect(source.requests()).toEqual({});
     expect(FakeObserver.all.map((o) => o.opts?.rootMargin)).toEqual(["200px", "200px"]);
