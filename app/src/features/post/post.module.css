@@ -163,3 +163,8 @@ a.time:hover {
   block-size: 40px;
   border-radius: 50%;
 }
+
+/* No excerpt to show (a commentary section, a text the API cannot give): the citation alone, without an empty gap. */
+.source [data-source-text="unavailable"] {
+  display: none;
+}

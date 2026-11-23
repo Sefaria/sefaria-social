@@ -63,6 +63,7 @@ export function Composer({ onPosted }: { onPosted: (post: Post) => void }) {
       });
       onPosted(post);
       setBody("");
+      setRef(readingRef(host));
     } catch {
       setError(t.postFailed);
     } finally {
