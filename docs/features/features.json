@@ -101,8 +101,8 @@
         "host_contract": "1.0"
       },
       "tests": [
-        "packages/host-contract/src/schemas.test.ts",
-        "packages/host-contract/src/pin.test.ts"
+        "packages/host-contract/src/pin.test.ts",
+        "packages/host-contract/src/schemas.test.ts"
       ],
       "since": null,
       "changed": []
@@ -154,9 +154,9 @@
         "host_contract": "1.0"
       },
       "tests": [
-        "app/src/surface/mount.contract.test.tsx",
-        "app/src/surface/host-history.test.ts",
         "app/src/route-trees.test.ts",
+        "app/src/surface/host-history.test.ts",
+        "app/src/surface/mount.contract.test.tsx",
         "e2e/harness.spec.ts"
       ],
       "since": null,
@@ -351,6 +351,29 @@
       "changed": []
     },
     {
+      "id": "IDENT-082",
+      "area": "ident",
+      "name": "Test-only persona sessions",
+      "description": "POST /api/test/persona (QA server only: SOCIAL_ENV ^test(-|$) and x-qa-persona-secret) returns a persona token and a one-time harness sign-in URL; GET /api/v1/me; never in the production build.",
+      "status": "built",
+      "spec": "082",
+      "acs": [
+        "082/AC-001",
+        "082/AC-002",
+        "082/AC-003"
+      ],
+      "surfaces": [
+        "identity",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/qa.personas.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "OPS-005",
       "area": "ops",
       "name": "Postgres schema, migrations and a public health check",
@@ -387,6 +410,25 @@
       "depends_on": {},
       "tests": [
         "app/src/api.ops.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-092",
+      "area": "ops",
+      "name": "Idempotent QA seed and schema-checked reset",
+      "description": "npm run qa:seed creates nothing the second time; npm run qa:reset leaves zero rows in every table the schema lists.",
+      "status": "built",
+      "spec": "082",
+      "acs": [
+        "082/AC-004",
+        "082/AC-005"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "app/src/qa.personas.int.test.ts"
       ],
       "since": null,
       "changed": []
@@ -602,7 +644,7 @@
       ],
       "depends_on": {},
       "tests": [
-        "app/src/features/session/controller.test.tsx"
+        "app/src/surface/room-context.test.tsx"
       ],
       "since": null,
       "changed": []
@@ -625,7 +667,7 @@
       ],
       "depends_on": {},
       "tests": [
-        "app/src/features/session/following.test.tsx"
+        "app/src/surface/room-following.test.tsx"
       ],
       "since": null,
       "changed": []
@@ -682,7 +724,7 @@
       ],
       "depends_on": {},
       "tests": [
-        "app/src/features/session/controller.test.tsx"
+        "app/src/surface/room-context.test.tsx"
       ],
       "since": null,
       "changed": []
@@ -702,7 +744,7 @@
       ],
       "depends_on": {},
       "tests": [
-        "app/src/features/session/controller.test.tsx"
+        "app/src/surface/room-context.test.tsx"
       ],
       "since": null,
       "changed": []

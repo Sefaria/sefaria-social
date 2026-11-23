@@ -27,6 +27,31 @@ declare global {
 const SAMPLE_VIEWER = { id: 1, name: "Test Learner" } as const;
 const $ = <T extends Element>(sel: string) => document.querySelector<T>(sel)!;
 const config = window.__HARNESS_CONFIG__ ?? {};
+
+/**
+ * Agent QA's one-time sign-in (spec 082): `/social?qa-ticket=<ticket>` from the QA server's persona route. The harness plays
+ * the reader, so it redeems the ticket for the persona's token and drops the parameter from its own address.
+ */
+async function redeemQaTicket(): Promise<void> {
+  const params = new URLSearchParams(location.search);
+  const ticket = params.get("qa-ticket");
+  if (!ticket) return;
+  params.delete("qa-ticket");
+  history.replaceState(history.state, "", `${location.pathname}${params.size ? `?${params}` : ""}${location.hash}`);
+  const api = config.apiOrigin ?? "http://127.0.0.1:3200";
+  const res = await fetch(`${api}/api/test/persona/redeem`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ ticket }),
+  });
+  if (!res.ok) return;
+  const persona = (await res.json()) as { userId: number; name: string; token: string };
+  config.viewer = { id: persona.userId, name: persona.name };
+  config.token = persona.token;
+  config.apiOrigin = api;
+  config.relayOrigin ??= "ws://127.0.0.1:8787";
+}
+await redeemQaTicket();
 const fake = createFakeHost({
   history: createBrowserFakeHistory(),
   ui: { interfaceLang: config.interfaceLang ?? "english" },

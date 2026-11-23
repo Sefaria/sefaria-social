@@ -5,7 +5,7 @@
 //
 //   npx tsx e2e/stack/start.ts     (after `npm run build`; needs Postgres: E2E_DATABASE_URL, default a local *_e2e_test db)
 import { spawn, type ChildProcess } from "node:child_process";
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -13,6 +13,7 @@ import { exportJWK, generateKeyPair } from "jose";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { runMigrations } from "../../app/src/server/db/migrate";
+import { nodeHandler } from "../../app/scripts/node-serve";
 import { STACK } from "./config";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -59,21 +60,6 @@ async function waitFor(url: string, ms: number) {
     if (Date.now() > until) throw new Error(`${url} did not come up within ${ms} ms`);
     await new Promise((r) => setTimeout(r, 250));
   }
-}
-
-/** Node http → the Start server's fetch handler. */
-function serveFetch(handler: { fetch(req: Request): Promise<Response> }) {
-  return async (req: IncomingMessage, res: ServerResponse) => {
-    const chunks: Buffer[] = [];
-    for await (const c of req) chunks.push(c as Buffer);
-    const headers = new Headers();
-    for (const [k, v] of Object.entries(req.headers)) if (typeof v === "string") headers.set(k, v);
-    const method = req.method ?? "GET";
-    const body = chunks.length && method !== "GET" && method !== "HEAD" ? Buffer.concat(chunks) : undefined;
-    const response = await handler.fetch(new Request(`http://${req.headers.host}${req.url}`, { method, headers, body }));
-    res.writeHead(response.status, Object.fromEntries(response.headers));
-    res.end(Buffer.from(await response.arrayBuffer()));
-  };
 }
 
 await freshDatabase(STACK.databaseUrl);
@@ -135,6 +121,6 @@ Object.assign(process.env, {
   LOG_LEVEL: "warn",
 });
 const server = (await import(pathToFileURL(path.join(root, "app", "dist", "server", "server.js")).href)).default;
-createServer(serveFetch(server)).listen(STACK.apiPort, "127.0.0.1", () =>
+createServer(nodeHandler((req) => server.fetch(req))).listen(STACK.apiPort, "127.0.0.1", () =>
   console.log(`e2e stack: API http://127.0.0.1:${STACK.apiPort}, relay ws://127.0.0.1:${STACK.relayPort}`),
 );

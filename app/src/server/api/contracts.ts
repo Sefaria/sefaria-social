@@ -25,6 +25,8 @@ export const RoomStatus = z.object({
   participants: z.int().nonnegative(),
 });
 
+export const Me = z.object({ userId: z.int().positive(), name: z.string() });
+
 export const RoomList = z.object({ rooms: z.array(Room) });
 
 export const RoomInput = z.strictObject({ title: z.string().trim().min(1).max(120) });
@@ -53,6 +55,15 @@ export const getHealth = defineEndpoint({
     200: { description: "The database answers.", schema: Health },
     503: { description: "The database does not answer within 2 seconds.", schema: Health },
   },
+});
+
+export const getMe = defineEndpoint({
+  operationId: "getMe",
+  method: "GET",
+  path: "/api/v1/me",
+  summary: "Who the token says the caller is. Proves a session is authenticated (spec 082).",
+  tags: ["identity"],
+  responses: { 200: { description: "The caller.", schema: Me } },
 });
 
 export const listRooms = defineEndpoint({
@@ -156,6 +167,7 @@ export const userDeleted = defineEndpoint({
 /** Every endpoint, in document order. The route-enumeration test checks this list against the served route tree. */
 export const ENDPOINTS = [
   getHealth,
+  getMe,
   listRooms,
   createRoom,
   getRoom,
