@@ -259,13 +259,16 @@ These rules go, numbered, into `docs/ROUTING.md` and `.claude/rules/routing.md`.
   (`app/src/surface/host-history.ts`): `getLocation` reads `host.location.get()`; `push` and `replace` call `host.navigate`;
   it notifies on `host.location.subscribe`. `[CHECK]` the current `@tanstack/history` custom-history API.
 - **R5.** In standalone mode (development, previews) the same routes run under a normal browser history at `/social`.
-- **R6.** Path grammar, complete for v1:
+- **R6.** Path grammar (the feed's pages joined with specs 023, 025 and 026):
 
   | Path | Page |
   |---|---|
-  | `/social` | Feed |
+  | `/social` | Feed: the composer and timeline beside the viewer's rooms and Who to follow |
   | `/social/r/$roomId` | Room lobby: who is here, what is being learned, Join |
   | `/social/s/$shiurId` | Shiur page: scheduled, live, or recorded |
+  | `/social/p/$postId` | A post on its own page, with its replies (spec 023) |
+  | `/social/u/$profileId` | A person's or an institution's profile (spec 025) |
+  | `/social/notifications` | Activity: the viewer's notifications (spec 026) |
   | `/social/settings` | Social settings |
 
   Ids match `^[A-Za-z0-9_-]{8,128}$` (the relay's existing path rule `[VERIFIED reader-next/relay/worker.ts:14]`). Anything else
