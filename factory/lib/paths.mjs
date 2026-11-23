@@ -42,6 +42,7 @@ export const TEST_GLOBS = [
   "harness/**/*.test.{ts,tsx,mjs,js}",
   "e2e/**/*.{spec,test}.{ts,tsx,mjs,js}",
   "test/**/*.test.{ts,tsx,mjs,js}",
+  "factory/test/**/*.test.mjs", // the factory's own features (OPS-*) are tested here
 ];
 
 export const isProtected = (file) => matchAny(PROTECTED, file);

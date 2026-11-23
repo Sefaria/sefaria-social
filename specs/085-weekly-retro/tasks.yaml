@@ -1,0 +1,16 @@
+- id: T-001
+  title: Retro numbers, fixture run, retro skill and retro.yml
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "factory/retro.mjs"
+    - "factory/cli.mjs"
+    - "factory/test/retro.test.mjs"
+    - "factory/test/acceptance-085.test.mjs"
+    - "factory/test/fixtures/metrics/*.jsonl"
+    - "factory/test/fixtures/retros/*.md"
+    - ".claude/skills/retro/SKILL.md"
+    - ".github/workflows/retro.yml"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-090]

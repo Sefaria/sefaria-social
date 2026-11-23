@@ -1,0 +1,28 @@
+- id: T-001
+  title: Metrics writer, composite action and ci.yml reporter job
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "factory/metrics.mjs"
+    - "factory/cli.mjs"
+    - "factory/doctor.mjs"
+    - "factory/test/metrics.test.mjs"
+    - "factory/test/doctor-lanes.test.mjs"
+    - "factory/test/acceptance-083.test.mjs"
+    - ".github/actions/metrics/action.yml"
+    - ".github/workflows/ci.yml"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-085]
+- id: T-002
+  title: Quality score generator
+  acs: [AC-006]
+  files:
+    - "factory/quality-score.mjs"
+    - "factory/cli.mjs"
+    - "factory/test/quality-score.test.mjs"
+    - "factory/test/acceptance-083.test.mjs"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-086]

@@ -1,0 +1,26 @@
+- id: T-001
+  title: Collection check, flake detection and quarantine
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "factory/test-health.mjs"
+    - "factory/quarantine.yaml"
+    - "factory/cli.mjs"
+    - "factory/test/test-health.test.mjs"
+    - "factory/test/acceptance-084.test.mjs"
+    - ".claude/rules/tests.md"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-088, OPS-089]
+- id: T-002
+  title: nightly.yml, disabled e2e-reader.yml and the Stryker config
+  acs: [AC-001, AC-005]
+  files:
+    - ".github/workflows/nightly.yml"
+    - ".github/workflows/e2e-reader.yml"
+    - "stryker.config.json"
+    - "factory/test/acceptance-084.test.mjs"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:factory", "npm run factory -- doctor --skip-tests"]
+  completes: [OPS-087]

@@ -25,6 +25,7 @@
   files:
     - "app/src/server/http/**"
     - "app/src/server/log/**"
+    - "app/src/route-trees.test.ts"
     - "app/src/server/services/health.ts"
     - "app/src/server/services/health.test.ts"
     - "app/src/routes/api/v1/health.ts"

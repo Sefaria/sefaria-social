@@ -26,6 +26,15 @@ function fullPaths(tree: AnyRoute): string[] {
 }
 
 describe("route trees", () => {
+  // @feature OPS-005 Postgres schema, migrations and a public health check
+  // @ac 005/AC-003
+  it("the Start tree's only other routes are server-only API routes under /api/v1/, among them the health endpoint", () => {
+    const api = routesOf(routeTree).filter(isApi);
+    expect(api.map(pathOf)).toContain("/api/v1/health");
+    // a handler and no component: the reader never renders them, and the surface tree has none (R2)
+    expect(api.filter((r) => !pathOf(r).startsWith("/api/v1/") || r.options.component || !r.options.server)).toEqual([]);
+  });
+
   // @feature HOST-003 Surface entry mounts into the reader page
   // @ac 002/AC-008
   it("both trees define exactly the R6 pages plus social's not-found, all under /social (R2)", async () => {

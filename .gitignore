@@ -12,6 +12,10 @@ playwright-report/
 .env.*
 !.env.example
 .DS_Store
+# Agent QA and mutation testing outputs (agent-qa.yml, nightly.yml).
+/qa/
+/reports/
+/.stryker-tmp/
 
 # The relay's local secrets and wrangler state
 packages/relay/.dev.vars

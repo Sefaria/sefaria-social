@@ -1,0 +1,47 @@
+# A holdout scenario failed on staging (plan 5.5 L5b). The nightly files these with `npm run factory -- holdout issues`, which
+# redacts scenario text; this form is for a human filing one by hand. Never paste the scenario's story or rubric: building
+# agents read issues, and a scenario they can read is no longer a holdout.
+name: Holdout failure
+description: A holdout scenario failed on the staging build. Describe the symptom only; never the scenario text.
+title: "Holdout H-xxx: failed on staging"
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not paste the scenario's story or rubric.** Describe what a user would see. The scenario stays in the holdout
+        repository; a holdout owner can share details with a human fixer privately.
+  - type: input
+    id: scenario
+    attributes:
+      label: Scenario id
+      description: Only the id, for example H-003.
+      placeholder: H-003
+    validations:
+      required: true
+  - type: textarea
+    id: symptom
+    attributes:
+      label: Symptom
+      description: What went wrong, as a user would see it. No rubric wording.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps observed
+      description: The steps as performed on staging, with what each showed.
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: Staging build
+      description: Commit or release on staging when it failed, and the nightly run link.
+  - type: dropdown
+    id: trials
+    attributes:
+      label: Failed trials (of 3 clean trials)
+      options: ["1", "2", "3"]
+    validations:
+      required: true
