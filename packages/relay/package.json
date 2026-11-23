@@ -18,5 +18,8 @@
     "esbuild": "0.28.2",
     "miniflare": "5.20261119.0-beta",
     "wrangler": "^4.166.0"
+  },
+  "exports": {
+    "./test-support": "./test-support/relay.ts"
   }
 }

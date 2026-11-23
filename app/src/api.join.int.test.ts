@@ -4,11 +4,12 @@
 import { describe, expect, it } from "vitest";
 import { getRouter } from "~/router";
 
+/** The handler for `method` on the route whose path is exactly `path` (a parent route's fuzzy match does not count). */
 function served(method: string, path: string): unknown {
   const [, , route] = getRouter().getMatchedRoutes(path);
-  const handlers = (route as { options?: { server?: { handlers?: Record<string, unknown> } } } | undefined)?.options?.server
-    ?.handlers;
-  return handlers?.[method];
+  const r = route as { fullPath?: string; options?: { server?: { handlers?: Record<string, unknown> } } } | undefined;
+  if (r?.fullPath?.replace(/\/$/, "") !== path) return undefined;
+  return r.options?.server?.handlers?.[method];
 }
 
 const relayClients = import.meta.glob<Record<string, unknown>>("./server/services/relay.ts");
@@ -70,7 +71,7 @@ describe("spec 011: joining", () => {
 
 /** The real relay (packages/relay) in workerd, wired to the server through RELAY_INTERNAL_URL and the shared secret. */
 async function withRelay() {
-  const support = await import("../../packages/relay/test-support/relay");
+  const support = await import("@sefaria-social/relay/test-support");
   const relay = await support.startRelay();
   process.env.RELAY_INTERNAL_URL = relay.url.href;
   process.env.RELAY_INTERNAL_SECRET = support.SECRET;

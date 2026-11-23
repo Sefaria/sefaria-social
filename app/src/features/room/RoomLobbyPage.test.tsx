@@ -5,12 +5,15 @@ import { act, createElement, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createFakeHost } from "@sefaria-social/host-contract/fake-host";
-import { HostContext } from "~/features/host/host-context";
-import { RoomLobbyPage } from "./RoomLobbyPage";
 import type * as RoomsApiModule from "~/features/api/rooms-api";
+import type * as HostContextModule from "~/features/host/host-context";
+import type * as LobbyModule from "./RoomLobbyPage";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+// App modules through import.meta.glob: on the merge base (no surface yet) the first assertion fails instead of the import.
 const apiModules = import.meta.glob<typeof RoomsApiModule>("../api/rooms-api.ts");
+const hostModules = import.meta.glob<typeof HostContextModule>("../host/host-context.tsx");
+const lobbyModules = import.meta.glob<typeof LobbyModule>("./RoomLobbyPage.tsx");
 
 const ROOM_ID = "6f1c2d3e-4b5a-4c6d-8e7f-001122334455";
 const room = {
@@ -43,6 +46,8 @@ async function render(node: ReactNode) {
 async function setup(viewer: { id: number; name: string } | null, joinAnswer: "joined" | "not-found") {
   const mod = await apiModules["../api/rooms-api.ts"]?.();
   expect(mod, "app/src/features/api/rooms-api.ts exists").toBeDefined();
+  const { HostContext } = (await hostModules["../host/host-context.tsx"]!())!;
+  const { RoomLobbyPage } = (await lobbyModules["./RoomLobbyPage.tsx"]!())!;
   const fake = createFakeHost({ url: `/social/r/${ROOM_ID}`, viewer });
   const api: RoomsApiModule.RoomsApi = {
     getRoom: vi.fn(async () => ({ kind: "missing" as const })),
