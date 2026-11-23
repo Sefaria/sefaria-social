@@ -42,7 +42,9 @@
     "build:surface": "npm run build:surface -w app",
     "build:harness": "npm run build -w @sefaria-social/harness",
     "harness": "npm run serve -w @sefaria-social/harness",
-    "test:contract": "vitest run --project contract && npm run check -w @sefaria-social/host-contract"
+    "test:contract": "vitest run --project contract && npm run check -w @sefaria-social/host-contract",
+    "release": "tsx app/scripts/release/cli.ts",
+    "surface:budget": "tsx app/scripts/release/cli.ts budget"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
