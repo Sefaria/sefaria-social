@@ -7,6 +7,8 @@ import type { paths } from "./schema";
 export type { components, operations, paths } from "./schema";
 /** A room as the API returns it. */
 export type Room = paths["/api/v1/rooms/{roomId}"]["get"]["responses"][200]["content"]["application/json"];
+/** The viewer's feed (spec 015). */
+export type Feed = paths["/api/v1/feed"]["get"]["responses"][200]["content"]["application/json"];
 
 export interface ApiClientOptions {
   /** Origin of the social server, for example https://social.sefaria.org */
