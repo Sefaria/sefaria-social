@@ -1,7 +1,7 @@
 ---
 id: "021"
 title: Server container — pinned, non-root image with a health check, and a standalone Helm values sketch
-status: proposed
+status: approved
 features: [OPS-021]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

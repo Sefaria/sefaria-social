@@ -1,7 +1,7 @@
 ---
 id: "000"
 title: Social page shows the surface name and contract version
-status: proposed
+status: approved
 features: [HOST-000]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed]

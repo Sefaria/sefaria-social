@@ -1,7 +1,7 @@
 ---
 id: "080"
 title: Agent lanes run capped and skip cleanly without credentials
-status: proposed
+status: approved
 features: [OPS-080, OPS-081]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

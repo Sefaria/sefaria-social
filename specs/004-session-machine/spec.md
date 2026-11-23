@@ -1,7 +1,7 @@
 ---
 id: "004"
 title: The enlarge and minimise lifecycle is a state machine that refuses illegal moves
-status: proposed
+status: approved
 features: [SESS-002]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session]

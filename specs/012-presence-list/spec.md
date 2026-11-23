@@ -1,7 +1,7 @@
 ---
 id: "012"
 title: Who is in the room, live, in the lobby and the mini view
-status: proposed
+status: approved
 features: [ROOM-012]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [room-lobby]

@@ -1,7 +1,7 @@
 ---
 id: "017"
 title: The source-text renderer, and prefetch on visibility and press
-status: proposed
+status: approved
 features: [FEED-017, FEED-053]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, session]

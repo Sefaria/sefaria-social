@@ -1,7 +1,7 @@
 ---
 id: "016"
 title: Light cards — a room's place and who is there, with no reader and no socket
-status: proposed
+status: approved
 features: [FEED-016, FEED-052, SESS-054]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, session]

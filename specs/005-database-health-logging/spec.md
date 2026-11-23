@@ -1,7 +1,7 @@
 ---
 id: "005"
 title: Database, migrations, health check and request logging
-status: proposed
+status: approved
 features: [OPS-005, OPS-015]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

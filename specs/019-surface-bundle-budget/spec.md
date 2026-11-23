@@ -1,7 +1,7 @@
 ---
 id: "019"
 title: The surface bundle is minified and held to a size budget in CI
-status: proposed
+status: approved
 features: [OPS-019]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

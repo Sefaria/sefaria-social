@@ -1,7 +1,7 @@
 ---
 id: "020"
 title: Release pipeline — immutable versioned assets, a stable manifest pointer, smoke tests and rollback
-status: proposed
+status: approved
 features: [OPS-020]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

@@ -1,7 +1,7 @@
 ---
 id: "018"
 title: Enlarge from a card onto the card's source, with a transition and no reload
-status: proposed
+status: approved
 features: [FEED-018, SESS-055]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, session]
