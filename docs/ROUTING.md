@@ -34,6 +34,9 @@ is `app/src/surface/host-history.ts`. The scan covers `app/src`, `packages/sessi
 - **R4.** In surface mode, the router is created with `basepath: "/social"` and a **host-bridged history**
   (`app/src/surface/host-history.ts`): `getLocation` reads `host.location.get()`; `push` and `replace` call `host.navigate`;
   it notifies on `host.location.subscribe`. `[CHECK]` the current `@tanstack/history` custom-history API.
+  _Resolved by S1 ([decision 0003](decisions/0003-two-builds.md), proposed): the API is `createHistory`; the surface router
+  has **no basepath** and its route tree uses the same `/social/…` paths as the Start app's file routes, so shared links build
+  the same address in both modes. Tests: `app/src/surface/host-history.test.ts`, `app/src/surface/mount.contract.test.tsx`._
 - **R5.** In standalone mode (development, previews) the same routes run under a normal browser history at `/social`.
 - **R6.** Path grammar, complete for v1:
 

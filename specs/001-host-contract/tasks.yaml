@@ -1,0 +1,32 @@
+- id: T-001
+  title: Pin the reader's contract, runtime schemas and the pin check
+  acs: [AC-001, AC-003]
+  files:
+    - "packages/host-contract/package.json"
+    - "packages/host-contract/pinned/*"
+    - "packages/host-contract/scripts/pin.mjs"
+    - "packages/host-contract/src/contract.ts"
+    - "packages/host-contract/src/schemas.ts"
+    - "packages/host-contract/src/conformance.ts"
+    - "packages/host-contract/src/index.ts"
+    - "packages/host-contract/src/schemas.test.ts"
+    - "packages/host-contract/src/pin.test.ts"
+    - "package.json"
+    - "package-lock.json"
+    - "tsconfig.json"
+    - "eslint.config.mjs"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:contract", "npm run typecheck"]
+  completes: [HOST-001]
+- id: T-002
+  title: Fake host typed from the pinned contract
+  acs: [AC-002, AC-004]
+  files:
+    - "packages/host-contract/src/fake-host.ts"
+    - "packages/host-contract/src/fake-host.test.ts"
+    - "packages/host-contract/src/pin.test.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:contract", "npm run typecheck"]
+  completes: [HOST-002]
