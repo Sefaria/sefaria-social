@@ -104,15 +104,14 @@ describe("spec 011: status and CORS", () => {
         body: { type: "keyframe", seq: 0, t: 0, snapshot: { v: 1, url: "/Genesis.1", nav: null, slices } },
       });
       const statusOf = async (token: string) => h.call("GET", `/api/v1/rooms/${room.id}/status`, { token });
-      await expect
-        .poll(async () => (await statusOf(owner)).json)
-        .toEqual({
-          live: true,
-          ref: "Genesis 1",
-          heRef: null,
-          title: "Genesis 1",
-          participants: 1,
-        });
+      await expect.poll(async () => ((await statusOf(owner)).json as { live: boolean }).live).toBe(true);
+      expect((await statusOf(owner)).json).toEqual({
+        live: true,
+        ref: "Genesis 1",
+        heRef: null,
+        title: "Genesis 1",
+        participants: 1,
+      });
       expect((await statusOf(stranger)).status).toBe(404);
 
       await relay.close();
