@@ -40,7 +40,6 @@ jobs:
       ASSETS_READY: ${{ vars.RELEASE_TARGET != '' && secrets.RELEASE_STORAGE_CREDENTIALS != '' }}
       DEPLOY_READY: ${{ vars.SERVER_IMAGE_REPOSITORY != '' && vars.DEPLOY_WORKLOAD_IDENTITY_PROVIDER != '' && vars.DEPLOY_SERVICE_ACCOUNT != '' }}
       SMOKE_READY: ${{ vars.SOCIAL_ASSET_BASE_URL != '' && vars.SOCIAL_API_ORIGIN != '' }}
-      REHEARSAL_TARGET: ${{ runner.temp }}/release-rehearsal
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -69,6 +68,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
+          REHEARSAL_TARGET="$RUNNER_TEMP/release-rehearsal"
           export RELEASE_TARGET="file:$REHEARSAL_TARGET"
           mkdir -p "$REHEARSAL_TARGET"
           npm run -s release -- serve --dir "$REHEARSAL_TARGET" --port 3410 &
