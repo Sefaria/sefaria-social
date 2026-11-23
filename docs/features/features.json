@@ -298,7 +298,7 @@
       "area": "ident",
       "name": "Relay accepts only verified Sefaria tokens",
       "description": "Token from Sec-WebSocket-Protocol verified against the JWKS on upgrade; the token decides the participant's id and name.",
-      "status": "planned",
+      "status": "built",
       "spec": "010",
       "acs": [
         "010/AC-002",
@@ -306,7 +306,9 @@
       ],
       "surfaces": [],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "packages/relay/src/relay.test.ts"
+      ],
       "since": null,
       "changed": []
     },

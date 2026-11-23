@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-23 — IDENT-041 "Relay accepts only verified Sefaria tokens": built (spec 010, task T-002).
 - 2026-11-23 — SESS-010 "Relay: one Durable Object per room in the Workers runtime": built (spec 010, task T-001).
 - 2026-11-23 — SESS-040 "Protocol fixtures keep social's and the reader's copies in step": built (spec 009, task T-003).
 - 2026-11-23 — SESS-009 "Room protocol and client in packages/session": built (spec 009, tasks T-001, T-002).

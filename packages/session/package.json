@@ -6,7 +6,8 @@
   "description": "The room protocol and client (state, control, presence and chat channels), started from the reader's src/lib/session and its reader-state core. See packages/session/SOURCE.json.",
   "exports": {
     ".": "./src/index.ts",
-    "./room": "./src/room.ts"
+    "./room": "./src/room.ts",
+    "./protocol": "./src/protocol.ts"
   },
   "dependencies": {
     "zod": "^4.6.7"
