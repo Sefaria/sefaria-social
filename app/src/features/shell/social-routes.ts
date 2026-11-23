@@ -5,11 +5,17 @@ import { notFound } from "@tanstack/react-router";
 import { z } from "zod";
 import { isId } from "~/lib/ids";
 
-/** R6, complete for v1. Every path is under /social (R2); anything else under /social is social's not-found page. */
+/**
+ * R6. Every path is under /social (R2); anything else under /social is social's not-found page. Posts, profiles and the
+ * activity page joined the grammar with specs 023, 025 and 026.
+ */
 export const SOCIAL_PATHS = {
   feed: "/social/",
   room: "/social/r/$roomId",
   shiur: "/social/s/$shiurId",
+  post: "/social/p/$postId",
+  profile: "/social/u/$profileId",
+  notifications: "/social/notifications",
   settings: "/social/settings",
   notFound: "/social/$",
 } as const;

@@ -26,9 +26,10 @@ type Post = {
 const MISSING = "6f1c2d3e-4b5a-4c6d-8e7f-001122334455";
 
 async function institution(h: H, name: string, admin?: number): Promise<string> {
-  const [row] = await h.sql<{ id: string }>("insert into profiles (kind, name, bio) values ('institution', $1, '') returning id", [
-    name,
-  ]);
+  const [row] = await h.sql<{ id: string }>(
+    "insert into profiles (kind, name, bio) values ('institution', $1, '') returning id",
+    [name],
+  );
   if (admin) await h.sql("insert into profile_admins (profile_id, user_id) values ($1, $2)", [row!.id, admin]);
   return row!.id;
 }
@@ -155,11 +156,20 @@ describe("spec 024: replies and reactions", () => {
     const author = await h.token(4242);
     const fan = await h.token(5151);
     const p = (await post(h, author, { body: "Yasher koach?" })).json as Post;
-    expect((await h.call("PUT", `/api/v1/posts/${p.id}/reaction`, { token: fan })).json).toEqual({ reacted: true, reactionCount: 1 });
-    expect((await h.call("PUT", `/api/v1/posts/${p.id}/reaction`, { token: fan })).json).toEqual({ reacted: true, reactionCount: 1 });
+    expect((await h.call("PUT", `/api/v1/posts/${p.id}/reaction`, { token: fan })).json).toEqual({
+      reacted: true,
+      reactionCount: 1,
+    });
+    expect((await h.call("PUT", `/api/v1/posts/${p.id}/reaction`, { token: fan })).json).toEqual({
+      reacted: true,
+      reactionCount: 1,
+    });
     const seen = (await h.call("GET", "/api/v1/timeline?tab=everyone", { token: fan })).json as { posts: Post[] };
     expect([seen.posts[0]!.reacted, seen.posts[0]!.reactionCount]).toEqual([true, 1]);
-    expect((await h.call("DELETE", `/api/v1/posts/${p.id}/reaction`, { token: fan })).json).toEqual({ reacted: false, reactionCount: 0 });
+    expect((await h.call("DELETE", `/api/v1/posts/${p.id}/reaction`, { token: fan })).json).toEqual({
+      reacted: false,
+      reactionCount: 0,
+    });
     expect((await h.call("PUT", `/api/v1/posts/${MISSING}/reaction`, { token: fan })).status).toBe(404);
   });
 });

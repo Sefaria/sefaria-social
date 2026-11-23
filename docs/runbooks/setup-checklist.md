@@ -209,3 +209,12 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       approved". Added by spec 022.
 - [ ] **Coolify app** `sefaria/sefaria-social` with previews, domains and variables as in `docs/runbooks/previews.md`. After the
       spec 022 PR merges, switch its branch to `main`. Added by spec 022.
+
+## Added by specs 023–028 (feed v1)
+
+- [ ] **Approve specs 023, 024, 025, 026, 027 and 028** after review: for each NNN run
+      `npm run factory -- approve NNN --by YOUR_EMAIL`, then `npm run factory -- compile NNN`, and commit `specs/approvals.json`
+      and the work orders. Until then `spec-gate` on the feed PR fails with "spec NNN not approved". Added by specs 023–028.
+- [ ] **Linux visual baselines** for `e2e/feed-visual.spec.ts`: the feed moved into the home page's rail, so the linux PNGs
+      must be regenerated in CI (or a Linux Playwright container) and committed; the darwin ones were regenerated locally.
+      Added by spec 023.

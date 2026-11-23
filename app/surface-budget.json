@@ -1,8 +1,8 @@
 {
-  "$comment": "Size budgets of the surface bundle in bytes (spec 019), checked by `npm run surface:budget` in CI's build job. Set with 10–17 % headroom over the minified build of 2026-11-23 (entry 76.8 kB gzip, largest chunk 25.8 kB, total 145.2 kB gzip / 452 kB raw, 10 files). Raise a limit only with a reviewer's agreement and the reason in the PR.",
+  "$comment": "Size budgets of the surface bundle in bytes (spec 019), checked by `npm run surface:budget` in CI's build job. Set with 10–17 % headroom over the minified build of 2026-11-23 (entry 76.8 kB gzip, largest chunk 25.8 kB, total 145.2 kB gzip / 452 kB raw, 10 files). Raised 2026-11-24 for posts, replies, profiles and activity (specs 023–027): their pages load as separate chunks, so the entry is unchanged and only the totals grew (total 169 kB gzip / 522 kB raw, 26 files); new limits keep about 12 % headroom. Raise a limit only with a reviewer's agreement and the reason in the PR.",
   "entryGzip": 85000,
   "largestChunkGzip": 30000,
-  "totalGzip": 160000,
-  "totalRaw": 520000,
-  "files": 24
+  "totalGzip": 190000,
+  "totalRaw": 590000,
+  "files": 30
 }

@@ -27,3 +27,7 @@ itself, never the home page.
 ## Out of scope
 
 - Embeds for other websites, link previews (Open Graph) for social pages, sharing rooms and shiurim.
+
+## Notes for the planner
+
+- `app/src/features/share/share.ts` builds the links; `ShareMenu.tsx` is a small popover with role=menu, never a modal.

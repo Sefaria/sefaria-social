@@ -1,7 +1,9 @@
-/* Social's frame. Reader design tokens only (plan 4.7); no literal colours, no global selectors. */
+/* Social's frame. Reader design tokens only (plan 4.7), each with a light fallback; no global selectors. */
 .frame {
   padding: var(--sefaria-space-4, 1rem);
   font-family: var(--sefaria-font-ui-en, sans-serif);
+  color: var(--sefaria-color-text, #121212);
+  -webkit-font-smoothing: antialiased;
 }
 
 .frame:lang(he) {
@@ -10,16 +12,37 @@
 
 .nav {
   display: flex;
-  gap: var(--sefaria-space-4, 1rem);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-1, 4px) var(--sefaria-space-5, 20px);
   padding-block-end: var(--sefaria-space-2, 0.5rem);
   margin-block-end: var(--sefaria-space-4, 1rem);
   border-block-end: 1px solid var(--sefaria-color-border, currentColor);
 }
 
 .navLink {
-  color: var(--sefaria-color-link, inherit);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 40px;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--sefaria-radius-xs, 2px);
+}
+
+.navLink:hover {
+  color: var(--sefaria-color-text, #121212);
+}
+
+.navLink:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1976d2);
+  outline-offset: 2px;
 }
 
 .navLink[data-status="active"] {
+  color: var(--sefaria-color-brand, #18345d);
   font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--sefaria-color-brand, #18345d);
 }

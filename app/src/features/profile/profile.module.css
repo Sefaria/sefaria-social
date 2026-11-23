@@ -1,0 +1,168 @@
+/* Profiles, follows and suggestions (spec 025). */
+.page {
+  display: grid;
+  max-inline-size: 640px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sefaria-space-4, 16px);
+  align-items: start;
+  padding-block: var(--sefaria-space-5, 20px);
+  border-block-end: 1px solid var(--sefaria-color-border, #e6e6e6);
+}
+
+.heroText {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  min-inline-size: 0;
+}
+
+.heroActions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+@media (min-width: 640px) {
+  .hero {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .heroActions {
+    grid-column: auto;
+  }
+}
+
+.name {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--sefaria-color-text, #121212);
+  overflow-wrap: anywhere;
+}
+
+.bio {
+  margin: 0;
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--sefaria-color-text, #121212);
+}
+
+.counts {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.posts {
+  display: grid;
+}
+
+.postsTitle {
+  margin: 0;
+  padding-block: var(--sefaria-space-3, 12px);
+  border-block-end: 1px solid var(--sefaria-color-border, #e6e6e6);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.postList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.followWrap {
+  display: inline-flex;
+}
+
+.unfollowLabel {
+  display: none;
+}
+
+.followingButton:hover .followLabel {
+  display: none;
+}
+
+.followingButton:hover .unfollowLabel {
+  display: inline;
+  color: var(--sefaria-color-danger, #c03522);
+}
+
+.rail {
+  display: grid;
+  gap: var(--sefaria-space-3, 12px);
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sefaria-color-text, #121212);
+}
+
+.railList {
+  display: grid;
+  gap: var(--sefaria-space-3, 12px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.railEmpty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.suggestion {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--sefaria-space-3, 12px);
+}
+
+.suggestionText {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.suggestionName {
+  overflow: hidden;
+  color: var(--sefaria-color-text, #121212);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestionName:hover {
+  text-decoration: underline;
+}
+
+.suggestionMeta {
+  font-size: 13px;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.form {
+  display: grid;
+  gap: var(--sefaria-space-4, 16px);
+  max-inline-size: 32rem;
+}
+
+.formBar {
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-3, 12px);
+}

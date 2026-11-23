@@ -26,7 +26,10 @@ export async function ownersOf(db: Executor, profileId: string): Promise<number[
   const [p] = await db.select({ userId: profiles.userId }).from(profiles).where(eq(profiles.id, profileId));
   if (!p) return [];
   if (p.userId !== null) return [p.userId];
-  const admins = await db.select({ userId: profileAdmins.userId }).from(profileAdmins).where(eq(profileAdmins.profileId, profileId));
+  const admins = await db
+    .select({ userId: profileAdmins.userId })
+    .from(profileAdmins)
+    .where(eq(profileAdmins.profileId, profileId));
   return admins.map((a) => a.userId);
 }
 
@@ -102,4 +105,3 @@ export async function markAllRead(identity: Identity, db: Db = getDb()): Promise
 }
 
 const snippet = (body: string) => (body.length > SNIPPET ? `${body.slice(0, SNIPPET - 1).trimEnd()}…` : body);
-

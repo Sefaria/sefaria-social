@@ -1,0 +1,16 @@
+- id: T-001
+  title: The demo scenario, the seed's social rows, and seeding for a real account
+  acs: [AC-001, AC-002]
+  files:
+    - "app/src/server/db/qa-seed.ts"
+    - "app/scripts/qa-seed.ts"
+    - "e2e/qa/seeds/demo.json"
+    - "app/src/qa.demo.int.test.ts"
+    - "docs/runbooks/demo.md"
+    - "docs/runbooks/setup-checklist.md"
+    - "docs/features/**"
+    - "docs/PLAN.md"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration"]
+  completes: [OPS-093]

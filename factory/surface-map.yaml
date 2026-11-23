@@ -40,6 +40,24 @@ surfaces:
       - "app/src/features/session/**"
       - "packages/session/**"
       - "packages/relay/**"
+  post:
+    description: A post on its own page at /social/p/$postId (specs 023, 024) — the post, its source, replies, Yasher koach, Share.
+    reach: "harness: /social/p/<postId> (signed in; a post made through the API)"
+    paths:
+      - "app/src/features/post/**"
+      - "app/src/routes/social.p.*"
+  profile:
+    description: A person's or an institution's profile at /social/u/$profileId, Follow, and Who to follow (spec 025).
+    reach: "harness: /social/u/<profileId>, or the feed's rail"
+    paths:
+      - "app/src/features/profile/**"
+      - "app/src/routes/social.u.*"
+  notifications:
+    description: The activity page at /social/notifications and the unread badge in social's navigation (spec 026).
+    reach: "harness: /social/notifications after another persona follows, replies or reacts"
+    paths:
+      - "app/src/features/notifications/**"
+      - "app/src/routes/social.notifications*"
   presence:
     description: Presence on segments and the presence list.
     reach: "harness: a reader route inside a room; two browser contexts"
@@ -75,6 +93,7 @@ shared:
   - "app/src/features/host/**"
   - "app/src/features/shell/**"
   - "app/src/features/api/**"
+  - "app/src/features/share/**"
   - "packages/api-client/**"
 
 ignore:
@@ -94,5 +113,6 @@ ignore:
   - "app/vite.config.ts"
   - "app/vite.surface.config.ts"
   - "app/surface-build.ts"
+  - "app/surface-budget.json"
   - "app/drizzle.config.ts"
   - "app/scripts/**"

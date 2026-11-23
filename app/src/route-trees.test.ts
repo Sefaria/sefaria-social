@@ -40,7 +40,16 @@ describe("route trees", () => {
   it("both trees define exactly the R6 pages plus social's not-found, all under /social (R2)", async () => {
     const mod = await surfaceTrees["./surface/route-tree.tsx"]?.();
     expect(mod, "app/src/surface/route-tree.tsx exists").toBeDefined();
-    const expected = ["/social", "/social/$", "/social/r/$roomId", "/social/s/$shiurId", "/social/settings"];
+    const expected = [
+      "/social",
+      "/social/$",
+      "/social/notifications",
+      "/social/p/$postId",
+      "/social/r/$roomId",
+      "/social/s/$shiurId",
+      "/social/settings",
+      "/social/u/$profileId",
+    ];
     expect(fullPaths(routeTree)).toEqual(expected);
     expect(fullPaths(mod!.surfaceRouteTree)).toEqual(expected);
     expect(expected.every((p) => p === "/social" || p.startsWith("/social/"))).toBe(true);

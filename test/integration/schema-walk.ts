@@ -36,7 +36,9 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       "insert into profiles (kind, user_id, name) values ('person', $1, 'Seed Learner') returning id",
       [user],
     );
-    const [inst] = await sql<{ id: string }>("insert into profiles (kind, name) values ('institution', 'Seed Shul') returning id");
+    const [inst] = await sql<{ id: string }>(
+      "insert into profiles (kind, name) values ('institution', 'Seed Shul') returning id",
+    );
     await sql("insert into profile_admins (profile_id, user_id) values ($1, $2)", [inst!.id, user]);
     await sql("insert into follows (follower_user_id, profile_id) values ($1, $2)", [other, profile!.id]);
     const [post] = await sql<{ id: string }>(

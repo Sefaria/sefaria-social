@@ -1,0 +1,165 @@
+/* Posts (specs 023–024). White paper, ink-blue for the one primary action, the text face for what people wrote, the interface
+   face for everything else. Posts are separated by a 1px rule, never boxed. */
+.post {
+  container: post / inline-size;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sefaria-space-3, 12px);
+  padding-block: var(--sefaria-space-4, 16px);
+  border-block-end: 1px solid var(--sefaria-color-border, #e6e6e6);
+}
+
+.standalone {
+  padding-block: var(--sefaria-space-5, 20px);
+}
+
+.avatarLink {
+  display: block;
+  border-radius: var(--sefaria-radius-round, 50%);
+}
+
+.main {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+  min-inline-size: 0;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.author {
+  color: var(--sefaria-color-text, #121212);
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.author:hover {
+  text-decoration: underline;
+}
+
+.dot,
+.time {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+a.time:hover {
+  text-decoration: underline;
+}
+
+.body {
+  margin: 0;
+  color: var(--sefaria-color-text, #121212);
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 18px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.body:dir(rtl),
+.body:lang(he) {
+  font-family: var(--sefaria-font-text-he, "Taamey Frank", serif);
+  font-size: 20px;
+}
+
+.standalone .body {
+  font-size: 21px;
+}
+
+.source {
+  display: grid;
+  gap: 6px;
+  margin: var(--sefaria-space-1, 4px) 0 0;
+  padding-block: 2px;
+  padding-inline-start: var(--sefaria-space-3, 12px);
+  border-inline-start: 2px solid var(--sefaria-color-highlight, #ddeeff);
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--sefaria-color-text-dark-grey, #333333);
+}
+
+.sourceRef {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sefaria-font-ui-en, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--sefaria-color-brand, #18345d);
+}
+
+.sourceRef a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sourceRef a:hover {
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-1, 4px);
+  margin-inline-start: calc(-1 * var(--sefaria-space-2, 8px));
+}
+
+.push {
+  margin-inline-start: auto;
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+}
+
+.reaction[aria-pressed="true"] svg {
+  color: var(--sefaria-color-attention, #cb6158);
+}
+
+@container post (max-width: 420px) {
+  .reactionLabel {
+    display: none;
+  }
+}
+
+.inlineError {
+  color: var(--sefaria-color-danger, #c03522);
+  font-size: 13px;
+}
+
+.confirm {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+  padding: var(--sefaria-space-3, 12px);
+  border-radius: var(--sefaria-radius-lg, 8px);
+  background: var(--sefaria-color-danger-bg, #fdeeee);
+  font-size: 15px;
+}
+
+.confirm p {
+  margin: 0;
+}
+
+.confirmActions {
+  display: flex;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.skeletonAvatar {
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 50%;
+}

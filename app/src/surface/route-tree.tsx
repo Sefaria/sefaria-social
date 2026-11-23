@@ -34,6 +34,9 @@ const feedRoute = createRoute({
 const RoomLobbyPage = lazyRouteComponent(() => import("~/features/room/RoomLobbyPage"), "RoomLobbyPage");
 const ShiurPage = lazyRouteComponent(() => import("~/features/shiur/ShiurPage"), "ShiurPage");
 const SettingsPage = lazyRouteComponent(() => import("~/features/settings/SettingsPage"), "SettingsPage");
+const PostPage = lazyRouteComponent(() => import("~/features/post/PostPage"), "PostPage");
+const ProfilePage = lazyRouteComponent(() => import("~/features/profile/ProfilePage"), "ProfilePage");
+const ActivityPage = lazyRouteComponent(() => import("~/features/notifications/ActivityPage"), "ActivityPage");
 
 const roomRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -55,6 +58,33 @@ const shiurRoute = createRoute({
   },
 });
 
+const postRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SOCIAL_PATHS.post,
+  validateSearch: validateNoSearch,
+  beforeLoad: ({ params }) => requireId(params.postId),
+  component: function PostRoute() {
+    return <PostPage postId={postRoute.useParams().postId} />;
+  },
+});
+
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SOCIAL_PATHS.profile,
+  validateSearch: validateNoSearch,
+  beforeLoad: ({ params }) => requireId(params.profileId),
+  component: function ProfileRoute() {
+    return <ProfilePage profileId={profileRoute.useParams().profileId} />;
+  },
+});
+
+const notificationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SOCIAL_PATHS.notifications,
+  validateSearch: validateNoSearch,
+  component: ActivityPage,
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SOCIAL_PATHS.settings,
@@ -71,4 +101,13 @@ const notFoundRoute = createRoute({
   component: SocialNotFound,
 });
 
-export const surfaceRouteTree = rootRoute.addChildren([feedRoute, roomRoute, shiurRoute, settingsRoute, notFoundRoute]);
+export const surfaceRouteTree = rootRoute.addChildren([
+  feedRoute,
+  roomRoute,
+  shiurRoute,
+  postRoute,
+  profileRoute,
+  notificationsRoute,
+  settingsRoute,
+  notFoundRoute,
+]);

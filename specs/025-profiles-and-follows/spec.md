@@ -43,3 +43,9 @@ first screen must suggest whom to follow rather than leave them in front of an e
 
 - Creating institution profiles from the interface (they are created by staff or the demo seed), avatars and images, blocking
   and muting, follower lists, private profiles.
+
+## Notes for the planner
+
+- A person's profile is created lazily (`app/src/server/services/person-profile.ts`), shared by posts and profiles so neither
+  service imports the other. Institutions and their administrators come from SQL (staff) or the demo seed (spec 028).
+- The viewer's own profile is read once and shared (`app/src/features/profile/use-me.ts`) by the nav, the composer and settings.

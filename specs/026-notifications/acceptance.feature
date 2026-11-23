@@ -16,7 +16,7 @@ Feature: Notifications
   Scenario: AC-003 the unread badge in social's navigation
     Given a teacher with two unread notifications
     When they open any social page
-    Then the navigation shows Notifications with a badge of 2 whose accessible name includes the number
+    Then the navigation shows Activity with a badge of 2 whose accessible name includes the number
 
   @AC-004
   Scenario: AC-004 the notifications page

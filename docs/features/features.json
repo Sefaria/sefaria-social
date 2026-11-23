@@ -221,6 +221,171 @@
       "changed": []
     },
     {
+      "id": "FEED-060",
+      "area": "feed",
+      "name": "Posts and the timeline — share a Torah thought, anchored to a source, and read what the people you follow share",
+      "description": "",
+      "status": "planned",
+      "spec": "023",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "post",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-061",
+      "area": "feed",
+      "name": "Posts and the timeline — share a Torah thought, anchored to a source, and read what the people you follow share",
+      "description": "",
+      "status": "planned",
+      "spec": "023",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "post",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-062",
+      "area": "feed",
+      "name": "Posts and the timeline — share a Torah thought, anchored to a source, and read what the people you follow share",
+      "description": "",
+      "status": "planned",
+      "spec": "023",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "post",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-063",
+      "area": "feed",
+      "name": "Posts and the timeline — share a Torah thought, anchored to a source, and read what the people you follow share",
+      "description": "",
+      "status": "planned",
+      "spec": "023",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "post",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-064",
+      "area": "feed",
+      "name": "Replies and reactions — answer a post, and say \"Yasher koach\"",
+      "description": "",
+      "status": "planned",
+      "spec": "024",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "post",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-065",
+      "area": "feed",
+      "name": "Replies and reactions — answer a post, and say \"Yasher koach\"",
+      "description": "",
+      "status": "planned",
+      "spec": "024",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "post",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-066",
+      "area": "feed",
+      "name": "Notifications — know when someone follows you, answers you, appreciates you, or a teacher you follow posts",
+      "description": "",
+      "status": "planned",
+      "spec": "026",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "notifications",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-067",
+      "area": "feed",
+      "name": "Notifications — know when someone follows you, answers you, appreciates you, or a teacher you follow posts",
+      "description": "",
+      "status": "planned",
+      "spec": "026",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "notifications",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-068",
+      "area": "feed",
+      "name": "Sharing — send a post or a profile anywhere, with a link that opens it",
+      "description": "",
+      "status": "planned",
+      "spec": "027",
+      "acs": [
+        "027/AC-001",
+        "027/AC-002"
+      ],
+      "surfaces": [
+        "feed",
+        "post",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",
@@ -535,6 +700,82 @@
       "tests": [
         "app/src/qa.personas.int.test.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-100",
+      "area": "ident",
+      "name": "Profiles and follows — people and institutions, a page for each, and one-tap follow",
+      "description": "",
+      "status": "planned",
+      "spec": "025",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "profile",
+        "settings",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-101",
+      "area": "ident",
+      "name": "Profiles and follows — people and institutions, a page for each, and one-tap follow",
+      "description": "",
+      "status": "planned",
+      "spec": "025",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "profile",
+        "settings",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-102",
+      "area": "ident",
+      "name": "Profiles and follows — people and institutions, a page for each, and one-tap follow",
+      "description": "",
+      "status": "planned",
+      "spec": "025",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "profile",
+        "settings",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-103",
+      "area": "ident",
+      "name": "Profiles and follows — people and institutions, a page for each, and one-tap follow",
+      "description": "",
+      "status": "planned",
+      "spec": "025",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "profile",
+        "settings",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
@@ -923,6 +1164,23 @@
       "tests": [
         "app/src/qa.personas.int.test.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-093",
+      "area": "ops",
+      "name": "Demo content — a seeded beit midrash so the feed is alive on the first visit",
+      "description": "",
+      "status": "planned",
+      "spec": "028",
+      "acs": [
+        "028/AC-001",
+        "028/AC-002"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },

@@ -1,0 +1,23 @@
+- id: T-001
+  title: Profiles, follows and suggestions, API and interface (profile page, Who to follow, settings, Post as)
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005, AC-006]
+  files:
+    - "app/src/server/services/profiles.ts"
+    - "app/src/server/services/person-profile.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/profiles.ts"
+    - "app/src/routes/api/v1/profiles.me.ts"
+    - "app/src/routes/api/v1/profiles.$profileId.ts"
+    - "app/src/routes/api/v1/profiles.$profileId.follow.ts"
+    - "app/src/routes/social.u.*"
+    - "app/src/routeTree.gen.ts"
+    - "packages/api-client/**"
+    - "app/src/features/profile/**"
+    - "app/src/features/settings/**"
+    - "app/src/features/post/Composer.tsx"
+    - "app/src/api.profiles.int.test.ts"
+    - "e2e/social.spec.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration", "npm run typecheck", "npm run test:e2e"]
+  completes: [IDENT-100, IDENT-101, IDENT-102, IDENT-103]

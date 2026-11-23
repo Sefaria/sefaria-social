@@ -185,7 +185,10 @@ export async function deletePost(identity: Identity, postId: string, db: Db = ge
     const p = await livePost(tx, postId);
     const allowed = p.createdByUserId === identity.userId || (await canActAs(tx, identity.userId, p.authorProfileId));
     if (!allowed) throw new ApiError(403, "post.forbidden");
-    await tx.update(posts).set({ deletedAt: sql`now()` }).where(eq(posts.id, postId));
+    await tx
+      .update(posts)
+      .set({ deletedAt: sql`now()` })
+      .where(eq(posts.id, postId));
   });
 }
 
@@ -248,7 +251,10 @@ export async function deleteReply(identity: Identity, replyId: string, db: Db = 
 
 // ── Reactions ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 async function reactionCount(db: Db, postId: string): Promise<number> {
-  const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(reactions).where(eq(reactions.postId, postId));
+  const [c] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(reactions)
+    .where(eq(reactions.postId, postId));
   return c?.n ?? 0;
 }
 

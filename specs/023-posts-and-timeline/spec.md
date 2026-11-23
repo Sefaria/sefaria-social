@@ -26,7 +26,7 @@ form.
   `asProfileId` is absent) and answer 201 with the post as the timeline shows it; an empty or too-long body or ref answers 400
   `request.invalid`, and an `asProfileId` the viewer does not administer answers 403 `post.forbidden`.
 - AC-002 WHEN a signed-in viewer calls `GET /api/v1/timeline?tab=following` THE SYSTEM SHALL answer 200 with `{posts,
-  nextCursor}`: the posts of the profiles the viewer follows and of the viewer's own profile, newest first, at most 20 per page,
+nextCursor}`: the posts of the profiles the viewer follows and of the viewer's own profile, newest first, at most 20 per page,
   each with its id, body, ref, author (profile id, kind, name), created time, reply count, reaction count and whether the
   viewer has reacted; `tab=everyone` answers the same shape for all posts; `before=<cursor>` returns the next older page and
   `nextCursor` is null on the last page; deleted posts never appear.
@@ -49,7 +49,11 @@ form.
   with the full date in the `<time>` element's `datetime` and title; every control is reachable by keyboard with a visible focus
   ring, and the timeline is a list of `<article>` elements.
 
-## Design notes (for the planner)
+## Out of scope
+
+- Media uploads and rich embeds, editing a post, drafts, mentions and hashtags, ranking (the timeline is time-ordered).
+
+## Notes for the planner
 
 - Sefaria's look: white paper, ink-blue (`--sefaria-color-brand`) for the one primary action per view, serif
   (`--sefaria-font-text-*`) for what people wrote and for sources, sans for the interface; no card inside a card; separate posts
@@ -57,7 +61,3 @@ form.
   `prefers-reduced-motion`.
 - Layout: a two-column page on wide screens (timeline column, rooms rail of about 300px); one column on phones with the rooms
   rail collapsed above the timeline.
-
-## Out of scope
-
-- Media uploads and rich embeds, editing a post, drafts, mentions and hashtags, ranking (the timeline is time-ordered).

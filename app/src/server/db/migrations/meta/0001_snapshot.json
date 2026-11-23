@@ -82,12 +82,8 @@
           "name": "follows_profile_id_profiles_id_fk",
           "tableFrom": "follows",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -95,10 +91,7 @@
       "compositePrimaryKeys": {
         "follows_follower_user_id_profile_id_pk": {
           "name": "follows_follower_user_id_profile_id_pk",
-          "columns": [
-            "follower_user_id",
-            "profile_id"
-          ]
+          "columns": ["follower_user_id", "profile_id"]
         }
       },
       "uniqueConstraints": {},
@@ -213,12 +206,8 @@
           "name": "notifications_actor_profile_id_profiles_id_fk",
           "tableFrom": "notifications",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "actor_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -226,12 +215,8 @@
           "name": "notifications_post_id_posts_id_fk",
           "tableFrom": "notifications",
           "tableTo": "posts",
-          "columnsFrom": [
-            "post_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["post_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -349,12 +334,8 @@
           "name": "posts_author_profile_id_profiles_id_fk",
           "tableFrom": "posts",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "author_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["author_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -404,12 +385,8 @@
           "name": "profile_admins_profile_id_profiles_id_fk",
           "tableFrom": "profile_admins",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -417,10 +394,7 @@
       "compositePrimaryKeys": {
         "profile_admins_profile_id_user_id_pk": {
           "name": "profile_admins_profile_id_user_id_pk",
-          "columns": [
-            "profile_id",
-            "user_id"
-          ]
+          "columns": ["profile_id", "user_id"]
         }
       },
       "uniqueConstraints": {},
@@ -502,9 +476,7 @@
         "profiles_user_id_unique": {
           "name": "profiles_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         }
       },
       "policies": {},
@@ -557,12 +529,8 @@
           "name": "reactions_post_id_posts_id_fk",
           "tableFrom": "reactions",
           "tableTo": "posts",
-          "columnsFrom": [
-            "post_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["post_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -570,10 +538,7 @@
       "compositePrimaryKeys": {
         "reactions_post_id_user_id_pk": {
           "name": "reactions_post_id_user_id_pk",
-          "columns": [
-            "post_id",
-            "user_id"
-          ]
+          "columns": ["post_id", "user_id"]
         }
       },
       "uniqueConstraints": {},
@@ -682,12 +647,8 @@
           "name": "replies_post_id_posts_id_fk",
           "tableFrom": "replies",
           "tableTo": "posts",
-          "columnsFrom": [
-            "post_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["post_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -695,12 +656,8 @@
           "name": "replies_author_profile_id_profiles_id_fk",
           "tableFrom": "replies",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "author_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["author_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -763,12 +720,8 @@
           "name": "room_members_room_id_rooms_id_fk",
           "tableFrom": "room_members",
           "tableTo": "rooms",
-          "columnsFrom": [
-            "room_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -776,10 +729,7 @@
       "compositePrimaryKeys": {
         "room_members_room_id_user_id_pk": {
           "name": "room_members_room_id_user_id_pk",
-          "columns": [
-            "room_id",
-            "user_id"
-          ]
+          "columns": ["room_id", "user_id"]
         }
       },
       "uniqueConstraints": {},
@@ -936,12 +886,8 @@
           "name": "shiur_recordings_shiur_id_shiurim_id_fk",
           "tableFrom": "shiur_recordings",
           "tableTo": "shiurim",
-          "columnsFrom": [
-            "shiur_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["shiur_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1052,12 +998,8 @@
           "name": "shiurim_room_id_rooms_id_fk",
           "tableFrom": "shiurim",
           "tableTo": "rooms",
-          "columnsFrom": [
-            "room_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }

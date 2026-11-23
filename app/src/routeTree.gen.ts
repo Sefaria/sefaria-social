@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SocialIndexRouteImport } from './routes/social.index'
 import { Route as SocialSplatRouteImport } from './routes/social.$'
+import { Route as SocialNotificationsRouteImport } from './routes/social.notifications'
 import { Route as SocialSettingsRouteImport } from './routes/social.settings'
 import { Route as ApiV1FeedRouteImport } from './routes/api/v1/feed'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
@@ -20,8 +21,10 @@ import { Route as ApiV1PostsRouteImport } from './routes/api/v1/posts'
 import { Route as ApiV1ProfilesRouteImport } from './routes/api/v1/profiles'
 import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
 import { Route as ApiV1TimelineRouteImport } from './routes/api/v1/timeline'
+import { Route as SocialPPostIdRouteImport } from './routes/social.p.$postId'
 import { Route as SocialRRoomIdRouteImport } from './routes/social.r.$roomId'
 import { Route as SocialSShiurIdRouteImport } from './routes/social.s.$shiurId'
+import { Route as SocialUProfileIdRouteImport } from './routes/social.u.$profileId'
 import { Route as ApiV1InternalUserDeletedRouteImport } from './routes/api/v1/internal.user-deleted'
 import { Route as ApiV1NotificationsReadRouteImport } from './routes/api/v1/notifications.read'
 import { Route as ApiV1PostsPostIdRouteImport } from './routes/api/v1/posts.$postId'
@@ -44,6 +47,11 @@ const SocialIndexRoute = SocialIndexRouteImport.update({
 const SocialSplatRoute = SocialSplatRouteImport.update({
   id: '/social/$',
   path: '/social/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialNotificationsRoute = SocialNotificationsRouteImport.update({
+  id: '/social/notifications',
+  path: '/social/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialSettingsRoute = SocialSettingsRouteImport.update({
@@ -91,6 +99,11 @@ const ApiV1TimelineRoute = ApiV1TimelineRouteImport.update({
   path: '/api/v1/timeline',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SocialPPostIdRoute = SocialPPostIdRouteImport.update({
+  id: '/social/p/$postId',
+  path: '/social/p/$postId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SocialRRoomIdRoute = SocialRRoomIdRouteImport.update({
   id: '/social/r/$roomId',
   path: '/social/r/$roomId',
@@ -99,6 +112,11 @@ const SocialRRoomIdRoute = SocialRRoomIdRouteImport.update({
 const SocialSShiurIdRoute = SocialSShiurIdRouteImport.update({
   id: '/social/s/$shiurId',
   path: '/social/s/$shiurId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialUProfileIdRoute = SocialUProfileIdRouteImport.update({
+  id: '/social/u/$profileId',
+  path: '/social/u/$profileId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1InternalUserDeletedRoute =
@@ -173,6 +191,7 @@ const ApiV1RoomsRoomIdMembersMeRoute =
 
 export interface FileRoutesByFullPath {
   '/social/$': typeof SocialSplatRoute
+  '/social/notifications': typeof SocialNotificationsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -183,8 +202,10 @@ export interface FileRoutesByFullPath {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
+  '/social/u/$profileId': typeof SocialUProfileIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
@@ -201,6 +222,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/social/$': typeof SocialSplatRoute
+  '/social/notifications': typeof SocialNotificationsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -211,8 +233,10 @@ export interface FileRoutesByTo {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
+  '/social/u/$profileId': typeof SocialUProfileIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
@@ -230,6 +254,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/social/$': typeof SocialSplatRoute
+  '/social/notifications': typeof SocialNotificationsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -240,8 +265,10 @@ export interface FileRoutesById {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
+  '/social/u/$profileId': typeof SocialUProfileIdRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
@@ -260,6 +287,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/social/$'
+    | '/social/notifications'
     | '/social/settings'
     | '/social/'
     | '/api/v1/feed'
@@ -270,8 +298,10 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/p/$postId'
     | '/social/r/$roomId'
     | '/social/s/$shiurId'
+    | '/social/u/$profileId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
@@ -288,6 +318,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/social/$'
+    | '/social/notifications'
     | '/social/settings'
     | '/social'
     | '/api/v1/feed'
@@ -298,8 +329,10 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/p/$postId'
     | '/social/r/$roomId'
     | '/social/s/$shiurId'
+    | '/social/u/$profileId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
@@ -316,6 +349,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/social/$'
+    | '/social/notifications'
     | '/social/settings'
     | '/social/'
     | '/api/v1/feed'
@@ -326,8 +360,10 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/p/$postId'
     | '/social/r/$roomId'
     | '/social/s/$shiurId'
+    | '/social/u/$profileId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
@@ -345,6 +381,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   SocialSplatRoute: typeof SocialSplatRoute
+  SocialNotificationsRoute: typeof SocialNotificationsRoute
   SocialSettingsRoute: typeof SocialSettingsRoute
   SocialIndexRoute: typeof SocialIndexRoute
   ApiV1FeedRoute: typeof ApiV1FeedRoute
@@ -355,8 +392,10 @@ export interface RootRouteChildren {
   ApiV1ProfilesRoute: typeof ApiV1ProfilesRouteWithChildren
   ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
   ApiV1TimelineRoute: typeof ApiV1TimelineRoute
+  SocialPPostIdRoute: typeof SocialPPostIdRoute
   SocialRRoomIdRoute: typeof SocialRRoomIdRoute
   SocialSShiurIdRoute: typeof SocialSShiurIdRoute
+  SocialUProfileIdRoute: typeof SocialUProfileIdRoute
   ApiV1InternalUserDeletedRoute: typeof ApiV1InternalUserDeletedRoute
   ApiV1RepliesReplyIdRoute: typeof ApiV1RepliesReplyIdRoute
 }
@@ -375,6 +414,13 @@ declare module '@tanstack/react-router' {
       path: '/social/$'
       fullPath: '/social/$'
       preLoaderRoute: typeof SocialSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/notifications': {
+      id: '/social/notifications'
+      path: '/social/notifications'
+      fullPath: '/social/notifications'
+      preLoaderRoute: typeof SocialNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/social/settings': {
@@ -440,6 +486,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1TimelineRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/social/p/$postId': {
+      id: '/social/p/$postId'
+      path: '/social/p/$postId'
+      fullPath: '/social/p/$postId'
+      preLoaderRoute: typeof SocialPPostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/social/r/$roomId': {
       id: '/social/r/$roomId'
       path: '/social/r/$roomId'
@@ -452,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/social/s/$shiurId'
       fullPath: '/social/s/$shiurId'
       preLoaderRoute: typeof SocialSShiurIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/u/$profileId': {
+      id: '/social/u/$profileId'
+      path: '/social/u/$profileId'
+      fullPath: '/social/u/$profileId'
+      preLoaderRoute: typeof SocialUProfileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/internal/user-deleted': {
@@ -653,6 +713,7 @@ const ApiV1RoomsRouteWithChildren = ApiV1RoomsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   SocialSplatRoute: SocialSplatRoute,
+  SocialNotificationsRoute: SocialNotificationsRoute,
   SocialSettingsRoute: SocialSettingsRoute,
   SocialIndexRoute: SocialIndexRoute,
   ApiV1FeedRoute: ApiV1FeedRoute,
@@ -663,8 +724,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1ProfilesRoute: ApiV1ProfilesRouteWithChildren,
   ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,
   ApiV1TimelineRoute: ApiV1TimelineRoute,
+  SocialPPostIdRoute: SocialPPostIdRoute,
   SocialRRoomIdRoute: SocialRRoomIdRoute,
   SocialSShiurIdRoute: SocialSShiurIdRoute,
+  SocialUProfileIdRoute: SocialUProfileIdRoute,
   ApiV1InternalUserDeletedRoute: ApiV1InternalUserDeletedRoute,
   ApiV1RepliesReplyIdRoute: ApiV1RepliesReplyIdRoute,
 }

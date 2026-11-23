@@ -1,0 +1,10 @@
+- id: T-001
+  title: The share menu for posts and profiles
+  acs: [AC-001, AC-002]
+  files:
+    - "app/src/features/share/**"
+    - "e2e/social.spec.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm test", "npm run test:e2e"]
+  completes: [FEED-068]

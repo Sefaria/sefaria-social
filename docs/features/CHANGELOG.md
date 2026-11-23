@@ -3,6 +3,20 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — OPS-093 "Demo content: a seeded community for the first visit": built (spec 028).
+- 2026-11-24 — IDENT-103 "Who to follow": built (spec 025).
+- 2026-11-24 — IDENT-102 "One-tap follow": built (spec 025).
+- 2026-11-24 — IDENT-101 "A profile page: kind, bio, counts, follow state and posts": built (spec 025).
+- 2026-11-24 — IDENT-100 "Person and institution profiles": built (spec 025).
+- 2026-11-24 — FEED-068 "Share a post or a profile": built (spec 027).
+- 2026-11-24 — FEED-067 "The notifications list, unread count and the activity page": built (spec 026).
+- 2026-11-24 — FEED-066 "Notifications for follows, replies, reactions and new posts": built (spec 026).
+- 2026-11-24 — FEED-065 "Yasher koach: one reaction per person, optimistic in the interface": built (spec 024).
+- 2026-11-24 — FEED-064 "Replies under a post": built (spec 024).
+- 2026-11-24 — FEED-063 "The composer and the timeline on /social": built (spec 023).
+- 2026-11-24 — FEED-062 "A post's own page and deleting a post": built (spec 023).
+- 2026-11-24 — FEED-061 "The timeline: Following and Everyone, newest first, in pages": built (spec 023).
+- 2026-11-24 — FEED-060 "Posts with an optional source, written as a person or an institution": built (spec 023).
 - 2026-11-23 — OPS-022 "Coolify deployment with a preview per pull request": built (spec 022, task T-001).
 - 2026-11-23 — HOST-003 "Surface entry mounts into the reader page": corrected (spec 002, task T-001): useViewer settles when the host's viewer.get() returns a new object per call; test app/src/features/host/use-viewer.test.tsx.
 - 2026-11-23 — SESS-055 "Enlarging from a card lands on its source without a reload": built (spec 018, task T-002).

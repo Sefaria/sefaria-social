@@ -1,0 +1,50 @@
+- id: T-001
+  title: Social schema and migration, posts and timeline API, query parameters for contracts, deletion coverage
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/api/openapi.ts"
+    - "app/src/server/http/endpoint.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/services/posts.ts"
+    - "app/src/server/services/person-profile.ts"
+    - "app/src/server/services/users.ts"
+    - "app/src/routes/api/v1/posts.ts"
+    - "app/src/routes/api/v1/posts.$postId.ts"
+    - "app/src/routes/api/v1/timeline.ts"
+    - "app/src/routeTree.gen.ts"
+    - "packages/api-client/**"
+    - "test/integration/harness.ts"
+    - "test/integration/schema-walk.ts"
+    - "app/src/api.posts.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.user-deleted.int.test.ts"
+    - "app/src/db.int.test.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration", "npm run typecheck", "npm run api:breaking"]
+  completes: [FEED-060, FEED-061, FEED-062]
+- id: T-002
+  title: The home page, composer, timeline, post page and the shared interface kit
+  acs: [AC-004, AC-005, AC-006]
+  files:
+    - "app/src/features/feed/**"
+    - "app/src/features/post/**"
+    - "app/src/features/api/**"
+    - "app/src/features/shell/**"
+    - "app/src/ui/**"
+    - "app/src/routes/social.p.*"
+    - "app/src/surface/route-tree.tsx"
+    - "app/src/route-trees.test.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/surface-budget.json"
+    - "factory/surface-map.yaml"
+    - "e2e/social.spec.ts"
+    - "e2e/feed-visual.spec.ts-snapshots/**"
+    - "playwright.config.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test", "npm run typecheck", "npm run test:e2e"]
+  completes: [FEED-063]

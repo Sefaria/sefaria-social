@@ -7,9 +7,7 @@ import * as notificationsService from "~/server/services/notifications";
 export const Route = createFileRoute("/api/v1/notifications")({
   server: {
     handlers: serve({
-      GET: bind(listNotifications, async ({ identity }) =>
-        reply(200, await notificationsService.listNotifications(identity)),
-      ),
+      GET: bind(listNotifications, async ({ identity }) => reply(200, await notificationsService.listNotifications(identity))),
     }),
   },
 });

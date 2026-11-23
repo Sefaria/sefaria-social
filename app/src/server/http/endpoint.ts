@@ -177,7 +177,14 @@ export function bind<const S extends EndpointSpec & { access: Access }>(
       const query = spec.query ? validate(spec.query, Object.fromEntries(new URL(ctx.request.url).searchParams)) : {};
       let body: unknown;
       if (spec.body) body = validate(spec.body, parseJson(raw ?? (await readRaw(ctx.request))));
-      const result = (await handler({ params, query, body, identity, correlationId, request: ctx.request } as HandlerInput<S>)) as {
+      const result = (await handler({
+        params,
+        query,
+        body,
+        identity,
+        correlationId,
+        request: ctx.request,
+      } as HandlerInput<S>)) as {
         status: number;
         body: unknown;
       };

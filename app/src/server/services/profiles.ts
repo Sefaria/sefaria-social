@@ -70,7 +70,11 @@ export async function updateMe(identity: Identity, input: { name?: string; bio?:
   const set: Partial<{ name: string; bio: string }> = {};
   if (input.name !== undefined) set.name = input.name;
   if (input.bio !== undefined) set.bio = input.bio;
-  if (Object.keys(set).length) await db.update(profiles).set({ ...set, updatedAt: sql`now()` }).where(eq(profiles.id, own.id));
+  if (Object.keys(set).length)
+    await db
+      .update(profiles)
+      .set({ ...set, updatedAt: sql`now()` })
+      .where(eq(profiles.id, own.id));
   return getMe(identity, db);
 }
 
@@ -85,7 +89,10 @@ export async function getProfile(
 }
 
 async function followerCount(db: Executor, profileId: string): Promise<number> {
-  const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(follows).where(eq(follows.profileId, profileId));
+  const [c] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(follows)
+    .where(eq(follows.profileId, profileId));
   return c?.n ?? 0;
 }
 
@@ -123,12 +130,7 @@ export async function suggested(identity: Identity, db: Db = getDb()): Promise<P
   const rows = await db
     .select({ id: profiles.id })
     .from(profiles)
-    .where(
-      and(
-        notInArray(profiles.id, followed),
-        sql`(${profiles.userId} is null or ${profiles.userId} <> ${identity.userId})`,
-      ),
-    )
+    .where(and(notInArray(profiles.id, followed), sql`(${profiles.userId} is null or ${profiles.userId} <> ${identity.userId})`))
     .orderBy(
       sql`case when ${profiles.kind} = 'institution' then 0 else 1 end`,
       desc(sql`(select count(*) from ${follows} where ${follows.profileId} = ${profiles.id})`),

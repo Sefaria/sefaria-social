@@ -37,3 +37,8 @@ light signal of appreciation without writing anything. Sefaria's word for that s
 ## Out of scope
 
 - Nested replies (one level only), several reaction kinds, editing a reply, notifying (spec 026 does).
+
+## Notes for the planner
+
+- Replies and reactions live in `app/src/server/services/posts.ts` beside posts; counts are subqueries on the timeline's query.
+- The reaction button updates optimistically (`app/src/features/post/ReactionButton.tsx`); replies are listed on the post page.

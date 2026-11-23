@@ -38,7 +38,12 @@ function operation(e: EndpointSpec & { access: string }): Json {
       parameters.push({ name, in: "path", required: true, schema: schemaOf(s as z.ZodType, "input") });
   if (e.query)
     for (const [name, s] of Object.entries(e.query.shape))
-      parameters.push({ name, in: "query", required: !(s as z.ZodType).safeParse(undefined).success, schema: schemaOf(s as z.ZodType, "input") });
+      parameters.push({
+        name,
+        in: "query",
+        required: !(s as z.ZodType).safeParse(undefined).success,
+        schema: schemaOf(s as z.ZodType, "input"),
+      });
   if (parameters.length) op.parameters = parameters;
   if (e.body) op.requestBody = { required: true, content: { "application/json": { schema: schemaOf(e.body, "input") } } };
   const responses: Json = {};

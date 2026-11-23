@@ -1,0 +1,115 @@
+/* The composer (spec 023). Quiet until used: no box, a rule beneath, the text face for what the learner writes. */
+.composer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sefaria-space-3, 12px);
+  padding-block: var(--sefaria-space-4, 16px);
+  border-block-end: 1px solid var(--sefaria-color-border, #e6e6e6);
+}
+
+.avatarSkeleton {
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 50%;
+}
+
+.fields {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+  min-inline-size: 0;
+}
+
+.body {
+  inline-size: 100%;
+  min-block-size: 3.2em;
+  box-sizing: border-box;
+  padding: 6px 0;
+  border: 0;
+  resize: none;
+  background: transparent;
+  color: var(--sefaria-color-text, #121212);
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.body::placeholder {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.body:focus-visible {
+  outline: none;
+}
+
+.composer:focus-within {
+  border-block-end-color: var(--sefaria-color-brand, #18345d);
+}
+
+.source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sefaria-color-brand, #18345d);
+}
+
+.ref {
+  flex: 1;
+  min-inline-size: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--sefaria-color-border, #e6e6e6);
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: var(--sefaria-color-surface-subtle, #fbfbfa);
+  color: var(--sefaria-color-text, #121212);
+  font: inherit;
+  font-size: 14px;
+}
+
+.ref:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1976d2);
+  outline-offset: 0;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-3, 12px);
+}
+
+.as {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.as select {
+  padding: 6px 8px;
+  border: 1px solid var(--sefaria-color-border, #e6e6e6);
+  border-radius: var(--sefaria-radius-md, 6px);
+  background: var(--sefaria-color-surface, #ffffff);
+  color: var(--sefaria-color-text, #121212);
+  font: inherit;
+}
+
+.push {
+  flex: 1;
+}
+
+.left {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.warn {
+  color: var(--sefaria-color-danger, #c03522);
+  font-weight: 600;
+}
+
+.error {
+  margin: 0;
+  color: var(--sefaria-color-danger, #c03522);
+  font-size: 14px;
+}

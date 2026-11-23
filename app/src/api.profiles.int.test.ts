@@ -27,9 +27,10 @@ type Me = Profile & { administers: { id: string; name: string }[] };
 const MISSING = "6f1c2d3e-4b5a-4c6d-8e7f-001122334455";
 
 async function institution(h: H, name: string, admin?: number): Promise<string> {
-  const [row] = await h.sql<{ id: string }>("insert into profiles (kind, name, bio) values ('institution', $1, 'A place of learning') returning id", [
-    name,
-  ]);
+  const [row] = await h.sql<{ id: string }>(
+    "insert into profiles (kind, name, bio) values ('institution', $1, 'A place of learning') returning id",
+    [name],
+  );
   if (admin) await h.sql("insert into profile_admins (profile_id, user_id) values ($1, $2)", [row!.id, admin]);
   return row!.id;
 }
@@ -44,12 +45,24 @@ describe("spec 025: profiles and follows", () => {
     const token = await h.token(4242, { name: "Dina Learner" });
     const first = await h.call("GET", "/api/v1/profiles/me", { token });
     expect(first.status).toBe(200);
-    expect(first.json).toMatchObject({ kind: "person", name: "Dina Learner", bio: "", followers: 0, following: 0, isOwn: true, administers: [] });
+    expect(first.json).toMatchObject({
+      kind: "person",
+      name: "Dina Learner",
+      bio: "",
+      followers: 0,
+      following: 0,
+      isOwn: true,
+      administers: [],
+    });
     expect(await h.sql("select count(*)::int as n from profiles where user_id = 4242")).toEqual([{ n: 1 }]);
     const shul = await institution(h, "Kehilat Ohr", 4242);
     const saved = await h.call("PATCH", "/api/v1/profiles/me", { token, body: { bio: "  Daf Yomi every morning  " } });
     expect(saved.status).toBe(200);
-    expect(saved.json).toMatchObject({ name: "Dina Learner", bio: "Daf Yomi every morning", administers: [{ id: shul, name: "Kehilat Ohr" }] });
+    expect(saved.json).toMatchObject({
+      name: "Dina Learner",
+      bio: "Daf Yomi every morning",
+      administers: [{ id: shul, name: "Kehilat Ohr" }],
+    });
     expect((await h.call("PATCH", "/api/v1/profiles/me", { token, body: { name: "" } })).status).toBe(400);
     expect((await h.call("PATCH", "/api/v1/profiles/me", { token, body: { bio: "x".repeat(301) } })).status).toBe(400);
   });
@@ -67,7 +80,14 @@ describe("spec 025: profiles and follows", () => {
     const res = await h.call("GET", `/api/v1/profiles/${shul}`, { token: viewer });
     expect(res.status).toBe(200);
     const data = res.json as { profile: Profile; posts: { body: string }[] };
-    expect(data.profile).toMatchObject({ kind: "institution", name: "Beit Midrash Ohel", followers: 0, viewerFollows: false, isOwn: false, canManage: false });
+    expect(data.profile).toMatchObject({
+      kind: "institution",
+      name: "Beit Midrash Ohel",
+      followers: 0,
+      viewerFollows: false,
+      isOwn: false,
+      canManage: false,
+    });
     expect(data.posts.map((p) => p.body)).toEqual(["Parsha sheet is up", "Shiur moved to 8"]);
     const asAdmin = (await h.call("GET", `/api/v1/profiles/${shul}`, { token: admin })).json as { profile: Profile };
     expect(asAdmin.profile.canManage).toBe(true);
@@ -83,10 +103,19 @@ describe("spec 025: profiles and follows", () => {
     const teacher = await h.token(5151, { name: "Teacher" });
     const learner = await h.token(4242, { name: "Learner" });
     const tp = await me(h, teacher);
-    expect((await h.call("PUT", `/api/v1/profiles/${tp.id}/follow`, { token: learner })).json).toEqual({ following: true, followers: 1 });
-    expect((await h.call("PUT", `/api/v1/profiles/${tp.id}/follow`, { token: learner })).json).toEqual({ following: true, followers: 1 });
+    expect((await h.call("PUT", `/api/v1/profiles/${tp.id}/follow`, { token: learner })).json).toEqual({
+      following: true,
+      followers: 1,
+    });
+    expect((await h.call("PUT", `/api/v1/profiles/${tp.id}/follow`, { token: learner })).json).toEqual({
+      following: true,
+      followers: 1,
+    });
     expect((await me(h, learner)).following).toBe(1);
-    expect((await h.call("DELETE", `/api/v1/profiles/${tp.id}/follow`, { token: learner })).json).toEqual({ following: false, followers: 0 });
+    expect((await h.call("DELETE", `/api/v1/profiles/${tp.id}/follow`, { token: learner })).json).toEqual({
+      following: false,
+      followers: 0,
+    });
     const self = await h.call("PUT", `/api/v1/profiles/${tp.id}/follow`, { token: teacher });
     expect([self.status, (self.json as { error: { code: string } }).error.code]).toEqual([400, "follow.self"]);
     expect((await h.call("PUT", `/api/v1/profiles/${MISSING}/follow`, { token: learner })).status).toBe(404);
@@ -138,16 +167,20 @@ describe("spec 026: notifications", () => {
     const shul = await institution(h, "Shul", 6161);
     await h.call("PUT", `/api/v1/profiles/${tp.id}/follow`, { token: learner });
     await h.call("PUT", `/api/v1/profiles/${shul}/follow`, { token: fan });
-    const p = (await h.call("POST", "/api/v1/posts", { token: teacher, body: { body: "Teacher's thought" } })).json as { id: string };
+    const p = (await h.call("POST", "/api/v1/posts", { token: teacher, body: { body: "Teacher's thought" } })).json as {
+      id: string;
+    };
     await h.call("POST", `/api/v1/posts/${p.id}/replies`, { token: learner, body: { body: "Beautiful" } });
     await h.call("PUT", `/api/v1/posts/${p.id}/reaction`, { token: learner });
     await h.call("DELETE", `/api/v1/posts/${p.id}/reaction`, { token: learner });
     await h.call("POST", `/api/v1/posts/${p.id}/replies`, { token: teacher, body: { body: "Thanks" } });
     await h.call("POST", "/api/v1/posts", { token: gabbai, body: { body: "Kiddush after davening", asProfileId: shul } });
     const kinds = async (token: string) =>
-      ((await h.call("GET", "/api/v1/notifications", { token })).json as { notifications: { kind: string; actor: { name: string } | null }[] }).notifications.map(
-        (n) => `${n.kind}:${n.actor?.name}`,
-      );
+      (
+        (await h.call("GET", "/api/v1/notifications", { token })).json as {
+          notifications: { kind: string; actor: { name: string } | null }[];
+        }
+      ).notifications.map((n) => `${n.kind}:${n.actor?.name}`);
     expect(await kinds(teacher)).toEqual(["reaction:Learner", "reply:Learner", "follow:Learner"]);
     expect(await kinds(learner)).toEqual(["post:Teacher"]);
     expect(await kinds(fan)).toEqual(["post:Shul"]);
@@ -163,12 +196,17 @@ describe("spec 026: notifications", () => {
     const learner = await h.token(4242, { name: "Learner" });
     const tp = await me(h, teacher);
     await h.call("PUT", `/api/v1/profiles/${tp.id}/follow`, { token: learner });
-    const p = (await h.call("POST", "/api/v1/posts", { token: teacher, body: { body: "On the first verse" } })).json as { id: string };
+    const p = (await h.call("POST", "/api/v1/posts", { token: teacher, body: { body: "On the first verse" } })).json as {
+      id: string;
+    };
     await h.call("POST", `/api/v1/posts/${p.id}/replies`, { token: learner, body: { body: "Yes" } });
     await h.call("PUT", `/api/v1/posts/${p.id}/reaction`, { token: learner });
     const res = await h.call("GET", "/api/v1/notifications", { token: teacher });
     expect(res.status).toBe(200);
-    const data = res.json as { notifications: { kind: string; read: boolean; post: { id: string; snippet: string } | null }[]; unread: number };
+    const data = res.json as {
+      notifications: { kind: string; read: boolean; post: { id: string; snippet: string } | null }[];
+      unread: number;
+    };
     expect(data.unread).toBe(3);
     expect(data.notifications.map((n) => n.kind)).toEqual(["reaction", "reply", "follow"]);
     expect(data.notifications[0]!.post).toEqual({ id: p.id, snippet: "On the first verse" });

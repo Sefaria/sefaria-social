@@ -28,3 +28,8 @@ scenarios idempotently; this adds one.
 ## Out of scope
 
 - Seeding production, seeding rooms and shiurim (existing scenarios do).
+
+## Notes for the planner
+
+- The QA seed (`app/src/server/db/qa-seed.ts`) gains profiles, administrators, follows, posts, replies, reactions and notifications,
+  each with stable ids and "on conflict do nothing"; `joinScenario` adds a real account. Times are minutes before seeding.

@@ -9,6 +9,24 @@ export type { components, operations, paths } from "./schema";
 export type Room = paths["/api/v1/rooms/{roomId}"]["get"]["responses"][200]["content"]["application/json"];
 /** The viewer's feed (spec 015). */
 export type Feed = paths["/api/v1/feed"]["get"]["responses"][200]["content"]["application/json"];
+/** A page of the timeline (spec 023). */
+export type Timeline = paths["/api/v1/timeline"]["get"]["responses"][200]["content"]["application/json"];
+/** A post as the timeline shows it (spec 023). */
+export type Post = Timeline["posts"][number];
+/** One post with its replies (specs 023, 024). */
+export type PostWithReplies = paths["/api/v1/posts/{postId}"]["get"]["responses"][200]["content"]["application/json"];
+/** A reply (spec 024). */
+export type Reply = PostWithReplies["replies"][number];
+/** A profile with its latest posts (spec 025). */
+export type ProfileWithPosts = paths["/api/v1/profiles/{profileId}"]["get"]["responses"][200]["content"]["application/json"];
+/** A person's or an institution's profile (spec 025). */
+export type Profile = ProfileWithPosts["profile"];
+/** The viewer's own profile (spec 025). */
+export type MyProfile = paths["/api/v1/profiles/me"]["get"]["responses"][200]["content"]["application/json"];
+/** The viewer's notifications (spec 026). */
+export type NotificationList = paths["/api/v1/notifications"]["get"]["responses"][200]["content"]["application/json"];
+/** One notification (spec 026). */
+export type Notification = NotificationList["notifications"][number];
 
 export interface ApiClientOptions {
   /** Origin of the social server, for example https://social.sefaria.org */
