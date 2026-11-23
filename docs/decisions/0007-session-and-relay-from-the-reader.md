@@ -30,7 +30,7 @@ websocket`), and their tests. Not copied: `local-room.ts` (in-tab BroadcastChann
   every case the reader now answers differently. `src/protocol.contract.test.ts` (contract project, CI `contract` job)
   replays the recorded results against this package, so a change here that alters a result fails CI.
 - Relay tests: `@cloudflare/vitest-pool-workers` 0.23 requires Vitest `^4.1`; this repo is on Vitest 5. The relay tests
-  therefore run in Node and drive workerd through Miniflare 4 (`new Miniflare({ modules: true, scriptPath, durableObjects
+  therefore run in Node and drive workerd through Miniflare (`new Miniflare({ modules: true, scriptPath, durableObjects
 })`, `dispatchFetch` with `Upgrade: websocket`), with the Worker bundled by esbuild in the test's setup. That is still
   the Workers runtime; it gives up per-test storage isolation, which these tests do not need. Revisit when the pool
   supports Vitest 5.

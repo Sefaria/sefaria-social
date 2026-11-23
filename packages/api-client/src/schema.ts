@@ -34,6 +34,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who the token says the caller is. Proves a session is authenticated (spec 082). */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/rooms": {
         parameters: {
             query?: never;
@@ -232,6 +249,47 @@ export interface operations {
             };
             /** @description The request body is larger than 64 KiB (request.too_large). */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        name: string;
+                        userId: number;
+                    };
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
