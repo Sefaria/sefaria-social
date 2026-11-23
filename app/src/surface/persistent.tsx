@@ -1,13 +1,18 @@
 import { useSyncExternalStore } from "react";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
 import { HostLink } from "~/features/host/HostLink";
+import { FollowBar, MiniView } from "~/features/session/FollowBar";
+import { useLiveRooms, useRoomController } from "~/features/session/use-room-session";
 import { useStrings } from "~/features/shell/use-strings";
 import { decodeCtx } from "~/lib/ctx";
 
 /**
- * The persistent mount's content (routing rule R18): it is independent of the route and renders nothing unless the reader is
- * in a social context (`ctx=social.room.<id>` or `ctx=social.shiur.<id>`). The context comes from the address alone (R11).
- * For now it shows a link back to the room or shiur page; the mini view and follow bar arrive with the rooms specs.
+ * The persistent mount's content (routing rules R11, R12, R18). It is independent of the route:
+ *  - in a room's context (`ctx=social.room.<id>`, read from the address alone, R11): the follow bar; the room controller
+ *    reconnects to the room from that value on a cold load;
+ *  - elsewhere, with a room the viewer entered and has not left: the mini view (Enlarge, Leave);
+ *  - otherwise nothing (R18).
+ * Shiur contexts show only the way back until shiurim are built.
  */
 export function PersistentView({ host }: { host: SurfaceHost }) {
   const raw = useSyncExternalStore(
@@ -16,12 +21,16 @@ export function PersistentView({ host }: { host: SurfaceHost }) {
     () => null,
   );
   const t = useStrings();
+  const { controller } = useRoomController(); // creating it starts the ctx watch (R11)
+  const live = useLiveRooms(controller);
   const context = decodeCtx(raw); // untrusted: decodeCtx validates the value's grammar
-  if (!context) return null;
-  const page = context.kind === "room" ? `/social/r/${context.id}` : `/social/s/${context.id}`;
-  return (
-    <div data-social-persistent={context.kind}>
-      <span>{t.inRoom}</span> <HostLink to={page}>{t.backToRoom}</HostLink>
-    </div>
-  );
+  if (context?.kind === "room") return <FollowBar roomId={context.id} />;
+  if (context)
+    return (
+      <div data-social-persistent={context.kind}>
+        <span>{t.inRoom}</span> <HostLink to={`/social/s/${context.id}`}>{t.backToRoom}</HostLink>
+      </div>
+    );
+  if (live.length) return <MiniView roomIds={live} />;
+  return null;
 }

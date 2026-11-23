@@ -590,7 +590,7 @@
       "area": "sess",
       "name": "Enlarge into a room's reader context",
       "description": "R9 and R10: own place kept, target snapshot, push with ctx, apply on context ready; streamed moves replace; Back leaves.",
-      "status": "planned",
+      "status": "built",
       "spec": "013",
       "acs": [
         "013/AC-001",
@@ -601,7 +601,9 @@
         "persistent"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/session/controller.test.tsx"
+      ],
       "since": null,
       "changed": []
     },
@@ -668,7 +670,7 @@
       "area": "sess",
       "name": "Minimise to the own place or the lobby",
       "description": "R12: push the own place without ctx or the lobby; the persistent mount shows the mini view.",
-      "status": "planned",
+      "status": "built",
       "spec": "013",
       "acs": [
         "013/AC-003"
@@ -677,7 +679,9 @@
         "persistent"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/session/controller.test.tsx"
+      ],
       "since": null,
       "changed": []
     },
@@ -686,7 +690,7 @@
       "area": "sess",
       "name": "Reconnect from ctx alone on a cold load",
       "description": "R11: the persistent mount connects from the ctx value alone.",
-      "status": "planned",
+      "status": "built",
       "spec": "013",
       "acs": [
         "013/AC-004"
@@ -695,7 +699,9 @@
         "persistent"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/session/controller.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

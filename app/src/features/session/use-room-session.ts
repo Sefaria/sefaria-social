@@ -2,6 +2,8 @@ import { useEffect, useSyncExternalStore } from "react";
 import type { SessionState } from "@sefaria-social/session";
 import { useHost } from "~/features/host/host-context";
 import { roomSessionsFor, type Hold, type RoomSession } from "./sessions";
+import { roomControllerFor, type RoomController } from "./controller";
+import { INITIAL_SESSION, type SessionView } from "./machine";
 
 const noop = () => () => undefined;
 
@@ -32,4 +34,26 @@ export function useSessionState(session: RoomSession | null): SessionState | nul
     () => session?.client.getState() ?? null,
     () => null,
   );
+}
+
+/** The host's room controller and its view (null in standalone mode). */
+export function useRoomController(): { controller: RoomController | null; view: SessionView } {
+  const host = useHost();
+  const controller = host ? roomControllerFor(host) : null;
+  const view = useSyncExternalStore(
+    controller ? (cb) => controller.subscribe(cb) : noop,
+    () => controller?.view() ?? INITIAL_SESSION,
+    () => INITIAL_SESSION,
+  );
+  return { controller, view };
+}
+
+/** The rooms the viewer entered and has not left; re-renders when that changes. */
+export function useLiveRooms(controller: RoomController | null): string[] {
+  const key = useSyncExternalStore(
+    controller ? (cb) => controller.subscribe(cb) : noop,
+    () => controller?.liveRooms().join(",") ?? "",
+    () => "",
+  );
+  return key ? key.split(",") : [];
 }
