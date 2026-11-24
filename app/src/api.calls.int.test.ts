@@ -135,3 +135,52 @@ describe("spec 033: call tokens", () => {
     for (const r of [none, expired, wrongAudience]) expect(JSON.stringify(r.json)).not.toContain('"token"');
   });
 });
+
+describe("spec 033: the calls switch", () => {
+  // @feature SESS-056 Calls switch and the room's calls field
+  // @ac 033/AC-005
+  it("says calls are unavailable, and refuses tokens with 503, unless switched on and fully configured", async () => {
+    expect(served("POST", PATH), `POST ${PATH} is served`).toBeTypeOf("function");
+    const { h } = await load();
+    const { resetConfig } = await import("~/server/config");
+    const owner = await h.token(5151);
+    const room = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "Calls" } })).json as Room;
+
+    const on = await h.call("GET", `/api/v1/rooms/${room.id}`, { token: owner });
+    expect((on.json as { calls?: unknown }).calls).toEqual({ available: true });
+
+    const saved = { ...process.env };
+    try {
+      for (const off of [
+        { CALLS_ENABLED: undefined },
+        { CALLS_ENABLED: "yes" },
+        { LIVEKIT_URL: undefined },
+        { LIVEKIT_API_KEY: undefined },
+        { LIVEKIT_API_SECRET: undefined },
+      ]) {
+        Object.assign(process.env, saved);
+        for (const [k, v] of Object.entries(off))
+          if (v === undefined) delete process.env[k];
+          else process.env[k] = v;
+        resetConfig();
+        const label = JSON.stringify(off);
+        const token = await h.call("POST", `/api/v1/rooms/${room.id}/call/token`, { token: owner });
+        expect([token.status, (token.json as { error?: { code?: string } }).error?.code], label).toEqual([
+          503,
+          "call.unavailable",
+        ]);
+        const read = await h.call("GET", `/api/v1/rooms/${room.id}`, { token: owner });
+        expect([read.status, (read.json as { calls?: unknown }).calls], label).toEqual([200, { available: false }]);
+        const list = await h.call("GET", "/api/v1/rooms", { token: owner });
+        expect(
+          (list.json as { rooms: { calls?: unknown }[] }).rooms.map((r) => r.calls),
+          label,
+        ).toEqual([{ available: false }]);
+      }
+    } finally {
+      for (const k of Object.keys(process.env)) if (!(k in saved)) delete process.env[k];
+      Object.assign(process.env, saved);
+      resetConfig();
+    }
+  });
+});

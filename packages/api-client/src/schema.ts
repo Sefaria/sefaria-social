@@ -1888,6 +1888,9 @@ export interface operations {
                 content: {
                     "application/json": {
                         rooms: {
+                            calls: {
+                                available: boolean;
+                            };
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: uuid */
@@ -1944,6 +1947,9 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        calls: {
+                            available: boolean;
+                        };
                         /** Format: date-time */
                         createdAt: string;
                         /** Format: uuid */
@@ -2013,6 +2019,9 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        calls: {
+                            available: boolean;
+                        };
                         /** Format: date-time */
                         createdAt: string;
                         /** Format: uuid */
@@ -2153,6 +2162,9 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        calls: {
+                            available: boolean;
+                        };
                         /** Format: date-time */
                         createdAt: string;
                         /** Format: uuid */
@@ -2304,6 +2316,9 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        calls: {
+                            available: boolean;
+                        };
                         /** Format: date-time */
                         createdAt: string;
                         /** Format: uuid */

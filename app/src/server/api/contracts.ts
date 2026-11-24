@@ -16,6 +16,8 @@ export const Room = z.object({
   role: z.enum(["owner", "member"]),
   createdAt: z.iso.datetime({ offset: true }),
   updatedAt: z.iso.datetime({ offset: true }),
+  /** Whether this server offers calls (spec 033): LiveKit configured and CALLS_ENABLED=true. */
+  calls: z.object({ available: z.boolean() }),
 });
 
 /** A LiveKit token for one room's call (spec 033). The token is a bearer credential: keep it in memory only. */

@@ -5,7 +5,7 @@ import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import { roomMembers, rooms } from "../db/schema";
 import { ApiError } from "../http/errors";
-import { callsConfig, mintCallToken, type CallTokenDto } from "./livekit";
+import { callsAvailable, callsConfig, mintCallToken, type CallTokenDto } from "./livekit";
 import { relayStatus, type RoomStatusDto } from "./relay";
 import { upsertDisplay } from "./users";
 
@@ -16,6 +16,7 @@ export interface RoomDto {
   role: "owner" | "member";
   createdAt: string;
   updatedAt: string;
+  calls: { available: boolean };
 }
 
 const columns = {
@@ -36,6 +37,7 @@ const toDto = (r: Row): RoomDto => ({
   role: r.role === "owner" ? "owner" : "member",
   createdAt: r.createdAt.toISOString(),
   updatedAt: r.updatedAt.toISOString(),
+  calls: { available: callsAvailable() },
 });
 
 export async function createRoom(identity: Identity, title: string, db: Db = getDb()): Promise<RoomDto> {

@@ -1913,7 +1913,7 @@
       "area": "sess",
       "name": "Calls switch and the room's calls field",
       "description": "Calls are available only with LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET set and CALLS_ENABLED=true; otherwise the token request is 503 call.unavailable. Every room response carries calls.available.",
-      "status": "planned",
+      "status": "built",
       "spec": "033",
       "acs": [
         "033/AC-005",
@@ -1925,7 +1925,10 @@
         "identity"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.calls.int.test.ts",
+        "app/src/api.contract.test.ts"
+      ],
       "since": null,
       "changed": []
     },
