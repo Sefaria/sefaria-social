@@ -1,0 +1,68 @@
+- id: T-001
+  title: Signed LiveKit webhooks into a call status per room
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/server/http/endpoint.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/services/livekit.ts"
+    - "app/src/server/services/calls.ts"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/api/openapi.ts"
+    - "app/src/server/log/logger.ts"
+    - "app/src/routes/api/v1/internal.livekit.webhook.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.call-status.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "test/integration/harness.ts"
+    - "test/integration/schema-walk.ts"
+    - "docs/runbooks/server.md"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- api.call-status api.routes", "npm run typecheck", "npm run test:contract"]
+- id: T-002
+  title: The lobby and room cards say how many are on a call
+  acs: [AC-004]
+  files:
+    - "app/src/server/services/calls.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/services/feed.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/api.call-status.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.feed.int.test.ts"
+    - "app/src/api.join.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/room/RoomLobbyPage.tsx"
+    - "app/src/features/room/RoomLobbyPage.test.tsx"
+    - "app/src/features/feed/FeedCard.tsx"
+    - "app/src/features/feed/FeedCard.test.tsx"
+    - "app/src/features/feed/**"
+    - "app/src/features/shell/strings.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify:
+    ["npm run test:integration -- api.call-status api.feed api.join", "npm test -- RoomLobbyPage FeedCard", "npm run typecheck"]
+  completes: [ROOM-045]
+- id: T-003
+  title: A deleted account is removed from every live call
+  acs: [AC-005, AC-006]
+  files:
+    - "app/src/server/webhooks/user-deleted.ts"
+    - "app/src/server/services/livekit.ts"
+    - "app/src/server/services/calls.ts"
+    - "app/src/server/log/logger.ts"
+    - "app/src/api.call-status.int.test.ts"
+    - "app/src/api.user-deleted.int.test.ts"
+    - "test/integration/harness.ts"
+    - "test/integration/schema-walk.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:integration -- api.call-status api.user-deleted", "npm run typecheck"]
+  completes: [API-047]

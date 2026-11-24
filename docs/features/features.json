@@ -85,6 +85,31 @@
       "changed": []
     },
     {
+      "id": "API-047",
+      "area": "api",
+      "name": "LiveKit webhooks, call status, and deletion leaving calls",
+      "description": "POST /api/v1/internal/livekit/webhook verified with the LiveKit secret, idempotent on the event id, keeps call_status (live, participants) per room; a deleted account is removed from every live call through LiveKit, a failure retried once and logged without stopping the deletion.",
+      "status": "planned",
+      "spec": "038",
+      "acs": [
+        "038/AC-001",
+        "038/AC-002",
+        "038/AC-003",
+        "038/AC-005",
+        "038/AC-006"
+      ],
+      "surfaces": [
+        "api",
+        "room-lobby",
+        "feed",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "FEED-015",
       "area": "feed",
       "name": "Feed API: live, scheduled and recent for the viewer",
@@ -1542,6 +1567,27 @@
       "tests": [
         "app/src/features/room/RoomLobbyPage.test.tsx"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-045",
+      "area": "room",
+      "name": "N on a call in the lobby and on cards",
+      "description": "The lobby and live room cards say how many are on the room call, and nothing when no call is live or LiveKit is not configured.",
+      "status": "planned",
+      "spec": "038",
+      "acs": [
+        "038/AC-004"
+      ],
+      "surfaces": [
+        "api",
+        "room-lobby",
+        "feed",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
