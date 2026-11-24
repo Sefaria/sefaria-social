@@ -65,7 +65,7 @@
       "id": "API-046",
       "area": "api",
       "name": "Call token endpoint for room members",
-      "description": "POST /api/v1/rooms/{roomId}/call/token: a member gets a 10-minute LiveKit token for that room only, identity u:<user id>, role in metadata, publish microphone, camera and screen share, no data; 404 for non-members, 401 without identity, rate limited, secrets never logged.",
+      "description": "POST /api/v1/rooms/{roomId}/call/token: a member gets a 10-minute LiveKit token for that room only, identity u:<user id>, role in metadata, publish microphone, camera and screen share, no data; 404 for non-members and missing rooms alike, 401 without identity.",
       "status": "planned",
       "spec": "033",
       "acs": [
