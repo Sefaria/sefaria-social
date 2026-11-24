@@ -62,6 +62,77 @@
       "changed": []
     },
     {
+      "id": "API-046",
+      "area": "api",
+      "name": "Call token endpoint for room members",
+      "description": "POST /api/v1/rooms/{roomId}/call/token: a member gets a 10-minute LiveKit token for that room only, identity u:<user id>, role in metadata, publish microphone, camera and screen share, no data; 404 for non-members and missing rooms alike, 401 without identity.",
+      "status": "planned",
+      "spec": "033",
+      "acs": [
+        "033/AC-001",
+        "033/AC-002",
+        "033/AC-003",
+        "033/AC-004"
+      ],
+      "surfaces": [
+        "session",
+        "api",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "API-047",
+      "area": "api",
+      "name": "LiveKit webhooks, call status, and deletion leaving calls",
+      "description": "POST /api/v1/internal/livekit/webhook verified with the LiveKit secret, idempotent on the event id, keeps call_status (live, participants) per room; a deleted account is removed from every live call through LiveKit, a failure retried once and logged without stopping the deletion.",
+      "status": "planned",
+      "spec": "038",
+      "acs": [
+        "038/AC-001",
+        "038/AC-002",
+        "038/AC-003",
+        "038/AC-005",
+        "038/AC-006"
+      ],
+      "surfaces": [
+        "api",
+        "room-lobby",
+        "feed",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "API-048",
+      "area": "api",
+      "name": "Owner mutes or removes a call participant",
+      "description": "POST .../call/mute and .../call/remove, owner only (403 member, 404 outsider, 503 when calls are off), through LiveKit server API; removal keeps them in the room and refuses their call tokens for 15 minutes (call_removals).",
+      "status": "planned",
+      "spec": "039",
+      "acs": [
+        "039/AC-001",
+        "039/AC-002",
+        "039/AC-003",
+        "039/AC-004",
+        "039/AC-005"
+      ],
+      "surfaces": [
+        "session",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "FEED-015",
       "area": "feed",
       "name": "Feed API: live, scheduled and recent for the viewer",
@@ -737,6 +808,29 @@
       "changed": []
     },
     {
+      "id": "HOST-008",
+      "area": "host",
+      "name": "SurfaceHost 1.2 chrome insets for the call window",
+      "description": "The pinned contract is SurfaceHost 1.2 with an optional ui.chrome (the reader chrome insets); the call window keeps inside the viewport minus them and re-places when they change, falls back to a 64px top inset on an older reader, and reports bad values once. The fake host offers settable insets and a 1.1 variant.",
+      "status": "planned",
+      "spec": "036",
+      "acs": [
+        "036/AC-001",
+        "036/AC-002",
+        "036/AC-003",
+        "036/AC-004",
+        "036/AC-005"
+      ],
+      "surfaces": [
+        "host-integration",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "IDENT-006",
       "area": "ident",
       "name": "Sefaria identity token verified on every API call",
@@ -1353,6 +1447,45 @@
       "changed": []
     },
     {
+      "id": "OPS-094",
+      "area": "ops",
+      "name": "Call chunk budget",
+      "description": "The LiveKit call chunk (assets/call.*.js) has its own gzip limit and is left out of the surface totals; the entry may grow at most 4 kB over its size before calls.",
+      "status": "planned",
+      "spec": "040",
+      "acs": [
+        "040/AC-001"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-095",
+      "area": "ops",
+      "name": "Two-browser call journey on a local LiveKit",
+      "description": "The e2e stack runs LiveKit in development mode; two Chromium contexts with fake cameras join one room call on desktop and phone: video and audio arrive, mute shows, the call survives moving, leaving keeps the room.",
+      "status": "planned",
+      "spec": "040",
+      "acs": [
+        "040/AC-002",
+        "040/AC-003",
+        "040/AC-004",
+        "040/AC-005"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "ROOM-001",
       "area": "room",
       "name": "Room lobby page at /social/r/$roomId",
@@ -1457,6 +1590,27 @@
       "tests": [
         "app/src/features/room/RoomLobbyPage.test.tsx"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-045",
+      "area": "room",
+      "name": "N on a call in the lobby and on cards",
+      "description": "The lobby and live room cards say how many are on the room call, and nothing when no call is live or LiveKit is not configured.",
+      "status": "planned",
+      "spec": "038",
+      "acs": [
+        "038/AC-004"
+      ],
+      "surfaces": [
+        "api",
+        "room-lobby",
+        "feed",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
@@ -1749,6 +1903,180 @@
       "tests": [
         "e2e/feed.spec.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-056",
+      "area": "sess",
+      "name": "Calls switch and the room's calls field",
+      "description": "Calls are available only with LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET set and CALLS_ENABLED=true; otherwise the token request is 503 call.unavailable. Every room response carries calls.available.",
+      "status": "planned",
+      "spec": "033",
+      "acs": [
+        "033/AC-005",
+        "033/AC-008"
+      ],
+      "surfaces": [
+        "session",
+        "api",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-057",
+      "area": "sess",
+      "name": "Call state machine and controller",
+      "description": "One call per tab, tied to a room session: pre-join, connecting, in call, reconnecting with a fresh token (30 s, then Rejoin), ended. Leaving the call keeps the room; leaving the room ends the call first. Reports carry no personal data.",
+      "status": "planned",
+      "spec": "034",
+      "acs": [
+        "034/AC-001",
+        "034/AC-007",
+        "034/AC-008",
+        "034/AC-011",
+        "034/AC-012"
+      ],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-058",
+      "area": "sess",
+      "name": "Join a call with devices off, and talk",
+      "description": "Join call in the lobby and the follow bar when calls are available; a pre-join step with microphone and camera off, device choosers and a preview; denied permission still lets you listen; tiles, microphone, camera and screen share controls.",
+      "status": "planned",
+      "spec": "034",
+      "acs": [
+        "034/AC-002",
+        "034/AC-004",
+        "034/AC-005",
+        "034/AC-006"
+      ],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-059",
+      "area": "sess",
+      "name": "Calls load on demand and survive reading",
+      "description": "No LiveKit code, connection or device request before Join call; the call stays connected through every in-reader navigation; a reload offers Join call and never rejoins by itself.",
+      "status": "planned",
+      "spec": "034",
+      "acs": [
+        "034/AC-003",
+        "034/AC-009",
+        "034/AC-010"
+      ],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-060",
+      "area": "sess",
+      "name": "Floating call window: place, move, resize",
+      "description": "The call floats over the reader in a fixed window, top inline-end by default; sizes pill, small, medium, large; dragged by its handle and snapped to a corner; resized within limits; kept on screen; its place remembered; hidden tiles send no video. The text column never moves.",
+      "status": "planned",
+      "spec": "035",
+      "acs": [
+        "035/AC-001",
+        "035/AC-002",
+        "035/AC-003",
+        "035/AC-004",
+        "035/AC-005",
+        "035/AC-006",
+        "035/AC-007",
+        "035/AC-011"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-061",
+      "area": "sess",
+      "name": "Call window by keyboard and screen reader",
+      "description": "Arrow keys move the window from its handle, a menu offers corners and sizes, moves are announced politely, Escape collapses to the pill without trapping focus, controls are 24 px with focus rings and names, and reduced motion turns animation off.",
+      "status": "planned",
+      "spec": "035",
+      "acs": [
+        "035/AC-008",
+        "035/AC-009",
+        "035/AC-010"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-062",
+      "area": "sess",
+      "name": "The call on a phone: a docked strip",
+      "description": "Below 600px the call is a full-width strip under the top inset: 48px collapsed (avatars, speaking, microphone, Leave, Expand; no video received), the active speaker at 16:9 when expanded. Rotating switches between strip and window without touching the call. After the browser pauses a background tab, one Resume button restarts audio.",
+      "status": "planned",
+      "spec": "037",
+      "acs": [
+        "037/AC-001",
+        "037/AC-002",
+        "037/AC-003",
+        "037/AC-004",
+        "037/AC-005"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-063",
+      "area": "sess",
+      "name": "Owner tile menu, and what the muted and removed see",
+      "description": "An owner sees a menu on every other tile (mute microphone, turn off camera, stop screen share, remove); the muted are told the host muted them and can unmute; the removed are told so and stay in the room.",
+      "status": "planned",
+      "spec": "039",
+      "acs": [
+        "039/AC-006",
+        "039/AC-007"
+      ],
+      "surfaces": [
+        "session",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },

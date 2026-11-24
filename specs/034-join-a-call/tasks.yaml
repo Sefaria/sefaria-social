@@ -1,0 +1,52 @@
+- id: T-001
+  title: The call state machine and its transition table
+  acs: [AC-001]
+  files:
+    - "app/src/features/av/machine.ts"
+    - "app/src/features/av/machine.test.ts"
+    - "app/src/features/av/README.md"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- features/av/machine", "npm run typecheck"]
+- id: T-002
+  title: The media seam, the LiveKit engine loaded on demand, and the call controller
+  acs: [AC-007, AC-008, AC-011, AC-012]
+  files:
+    - "app/src/features/av/media.ts"
+    - "app/src/features/av/livekit-engine.ts"
+    - "app/src/features/av/load-livekit.ts"
+    - "app/src/features/av/call-controller.ts"
+    - "app/src/features/av/call-controller.test.ts"
+    - "app/src/features/av/test-media.ts"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/session/sessions.ts"
+    - "app/src/features/session/controller.ts"
+    - "app/package.json"
+    - "package-lock.json"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- features/av", "npm test -- features/session", "npm run typecheck"]
+  completes: [SESS-057]
+- id: T-003
+  title: Join call, the pre-join step, tiles and controls in the persistent mount
+  acs: [AC-002, AC-003, AC-004, AC-005, AC-006, AC-009, AC-010]
+  files:
+    - "app/src/features/av/CallButton.tsx"
+    - "app/src/features/av/CallPanel.tsx"
+    - "app/src/features/av/PreJoin.tsx"
+    - "app/src/features/av/Tiles.tsx"
+    - "app/src/features/av/Controls.tsx"
+    - "app/src/features/av/use-call.ts"
+    - "app/src/features/av/av.module.css"
+    - "app/src/features/av/call-controller.ts"
+    - "app/src/features/av/test-media.ts"
+    - "app/src/features/room/RoomLobbyPage.tsx"
+    - "app/src/features/room/RoomLobbyPage.test.tsx"
+    - "app/src/features/session/FollowBar.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/persistent.tsx"
+    - "app/src/surface/call.test.tsx"
+  depends_on: [T-002]
+  parallel: false
+  verify: ["npm test -- surface/call features/av features/room", "npm run typecheck", "npm run test:arch"]
+  completes: [SESS-058, SESS-059]

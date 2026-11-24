@@ -1,0 +1,30 @@
+- id: T-001
+  title: The docked strip on narrow screens, collapsed and expanded, switching frames without touching the call
+  acs: [AC-001, AC-002, AC-003, AC-005]
+  files:
+    - "app/src/features/av/CallStrip.tsx"
+    - "app/src/features/av/strip.module.css"
+    - "app/src/features/av/CallFrame.tsx"
+    - "app/src/features/av/CallPanel.tsx"
+    - "app/src/features/av/CallWindow.tsx"
+    - "app/src/features/av/Tiles.tsx"
+    - "app/src/features/av/Pill.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/call-strip.test.tsx"
+    - "e2e/calls.spec.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- surface/call-strip surface/call", "npm run typecheck"]
+- id: T-002
+  title: Resume a call the browser paused in the background
+  acs: [AC-004]
+  files:
+    - "app/src/features/av/use-paused.ts"
+    - "app/src/features/av/CallPanel.tsx"
+    - "app/src/features/av/CallStrip.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/call-strip.test.tsx"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- surface/call-strip", "npm run typecheck"]
+  completes: [SESS-062]

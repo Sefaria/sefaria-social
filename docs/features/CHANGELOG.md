@@ -3,6 +3,14 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — API-048, SESS-063: planned (spec 039), named by `tools/2026-11-24-name-039-entries.mjs`.
+- 2026-11-24 — API-047, ROOM-045: planned (spec 038), named by `tools/2026-11-24-name-038-entries.mjs`.
+- 2026-11-24 — SESS-062: planned (spec 037), named by `tools/2026-11-24-name-037-entries.mjs`.
+- 2026-11-24 — HOST-008: planned (spec 036), named by `tools/2026-11-24-name-036-entries.mjs`.
+- 2026-11-24 — SESS-060, SESS-061: planned (spec 035), named by `tools/2026-11-24-name-035-entries.mjs`.
+- 2026-11-24 — OPS-094, OPS-095: planned (spec 040), named by `tools/2026-11-24-name-040-entries.mjs`.
+- 2026-11-24 — SESS-057, SESS-058, SESS-059: planned (spec 034), named by `tools/2026-11-24-name-034-entries.mjs`.
+- 2026-11-24 — API-046 "Call token endpoint for room members" and SESS-056 "Calls switch and the room's calls field": planned (spec 033), named by `tools/2026-11-24-name-033-entries.mjs`.
 - 2026-11-24 — FEED-073 "The conversation, ordered like X's": built (spec 031).
 - 2026-11-24 — FEED-072 "For you: the timeline ranked like X's": built (spec 031).
 - 2026-11-24 — FEED-071 "Quote a post": built (spec 030).

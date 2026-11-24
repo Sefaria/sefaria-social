@@ -1,0 +1,44 @@
+- id: T-001
+  title: Owner-only mute and remove endpoints, the removal window, and the token refusing removed users
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/services/livekit.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/services/users.ts"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/routes/api/v1/rooms.$roomId.call.mute.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.call.remove.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.moderation.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/db.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "test/integration/schema-walk.ts"
+    - "docs/runbooks/server.md"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- api.moderation api.user-deleted db", "npm run test:contract", "npm run typecheck"]
+  completes: [API-048]
+- id: T-002
+  title: The owner's tile menu, and what the muted and the removed see
+  acs: [AC-006, AC-007]
+  files:
+    - "app/src/features/av/media.ts"
+    - "app/src/features/av/livekit-engine.ts"
+    - "app/src/features/av/test-media.ts"
+    - "app/src/features/av/call-controller.ts"
+    - "app/src/features/av/Tiles.tsx"
+    - "app/src/features/av/TileMenu.tsx"
+    - "app/src/features/av/CallPanel.tsx"
+    - "app/src/features/av/av.module.css"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/call-moderation.test.tsx"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- surface/call-moderation surface/call features/av", "npm run typecheck"]
+  completes: [SESS-063]

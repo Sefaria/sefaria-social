@@ -1,0 +1,44 @@
+- id: T-001
+  title: Window geometry, placement and the saved position
+  acs: [AC-002, AC-006, AC-007]
+  files:
+    - "app/src/features/av/window-geometry.ts"
+    - "app/src/features/av/window-geometry.test.ts"
+    - "app/src/features/av/insets.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- features/av/window-geometry", "npm run typecheck"]
+- id: T-002
+  title: The floating window with sizes, keyboard moves, menu and visible tiles
+  acs: [AC-003, AC-008, AC-009, AC-010, AC-011]
+  files:
+    - "app/src/features/av/CallWindow.tsx"
+    - "app/src/features/av/window.module.css"
+    - "app/src/features/av/CallPanel.tsx"
+    - "app/src/features/av/Tiles.tsx"
+    - "app/src/features/av/Controls.tsx"
+    - "app/src/features/av/av.module.css"
+    - "app/src/features/av/use-call.ts"
+    - "app/src/features/av/insets.ts"
+    - "app/src/features/av/window-geometry.ts"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/call-window.test.tsx"
+    - "app/src/features/av/CallSlot.tsx"
+    - "app/src/features/av/Pill.tsx"
+    - "app/src/surface/persistent.tsx"
+    - "app/src/surface/call.test.tsx"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- surface/call features/av", "npm run typecheck", "npm run test:arch"]
+  completes: [SESS-061]
+- id: T-003
+  title: The window over a real page, dragged and resized
+  acs: [AC-001, AC-004, AC-005]
+  files:
+    - "e2e/call-window.spec.ts"
+    - "app/src/features/av/CallWindow.tsx"
+    - "app/src/features/av/window.module.css"
+  depends_on: [T-002]
+  parallel: false
+  verify: ["npx playwright test e2e/call-window.spec.ts --project desktop"]
+  completes: [SESS-060]
