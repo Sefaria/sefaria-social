@@ -1,7 +1,7 @@
 ---
 id: "024"
 title: Replies and reactions — answer a post, and say "Yasher koach"
-status: proposed
+status: approved
 features: [FEED-064, FEED-065]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, post, api]

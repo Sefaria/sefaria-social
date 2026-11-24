@@ -1,7 +1,7 @@
 ---
 id: "028"
 title: Demo content — a seeded beit midrash so the feed is alive on the first visit
-status: proposed
+status: approved
 features: [OPS-093]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: []

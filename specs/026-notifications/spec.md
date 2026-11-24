@@ -1,7 +1,7 @@
 ---
 id: "026"
 title: Notifications — know when someone follows you, answers you, appreciates you, or a teacher you follow posts
-status: proposed
+status: approved
 features: [FEED-066, FEED-067]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, notifications, api]

@@ -1,7 +1,7 @@
 ---
 id: "025"
 title: Profiles and follows — people and institutions, a page for each, and one-tap follow
-status: proposed
+status: approved
 features: [IDENT-100, IDENT-101, IDENT-102, IDENT-103]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, profile, settings, api]

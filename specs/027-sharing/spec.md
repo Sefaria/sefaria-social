@@ -1,7 +1,7 @@
 ---
 id: "027"
 title: Sharing — send a post or a profile anywhere, with a link that opens it
-status: proposed
+status: approved
 features: [FEED-068]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, post, profile]
