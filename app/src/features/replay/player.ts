@@ -120,6 +120,11 @@ export function createReplayPlayer({
       return;
     }
     if (point.key === lastKey) return;
+    // A point on Social's own pages (the recorder was in the lobby) is not a text: the reader stays where it is.
+    if (isSocialPage(point.snapshot.url)) {
+      lastKey = point.key;
+      return;
+    }
     run(point);
   };
 
@@ -228,4 +233,20 @@ export function createReplayPlayer({
       listeners.clear();
     },
   };
+}
+
+/** Social's own pages (`/social`, `/social/...`): never a place to take the reader during a replay. */
+export function isSocialPage(url: string): boolean {
+  const path = url.split(/[?#]/)[0] ?? "";
+  return path === "/social" || path.startsWith("/social/");
+}
+
+/** Where a replay opens the reader: the first recorded text that is not one of Social's own pages, or null when there is none. */
+export function firstTextOf(track: { messages: readonly { type: string; snapshot?: { url: string } }[] }): string | null {
+  for (const m of track.messages) if (m.type === "keyframe" && m.snapshot && !isSocialPage(m.snapshot.url)) return m.snapshot.url;
+  for (const m of track.messages) {
+    const change = (m as { change?: { url?: string } }).change;
+    if (m.type === "change" && change?.url && !isSocialPage(change.url)) return change.url;
+  }
+  return null;
 }

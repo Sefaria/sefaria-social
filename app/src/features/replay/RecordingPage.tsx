@@ -7,6 +7,7 @@ import { useStrings } from "~/features/shell/use-strings";
 import { ReplayApiError, type RecordingMeta } from "./replay-api";
 import { replayControllerFor } from "./replay-controller";
 import { parseStateTrack } from "./state-track";
+import { firstTextOf } from "./player";
 import { formatDate, formatLength, useReplayApi, withRecordingCtx } from "./use-replay";
 import styles from "./replay.module.css";
 
@@ -108,9 +109,9 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
     setBusy(true);
     try {
       const track = parseStateTrack(await api.getState(recordingId));
-      const first = track.messages[0];
-      if (first?.type !== "keyframe") throw new Error("no keyframe");
-      host.navigate(withRecordingCtx(first.snapshot.url, recordingId));
+      // The first recorded text (a recording started in the lobby begins on Social's own page, which is not one).
+      const first = firstTextOf(track);
+      if (first) host.navigate(withRecordingCtx(first, recordingId));
       void replayControllerFor(host).open(recordingId, { autoplay: true });
     } catch {
       setFailed("play");

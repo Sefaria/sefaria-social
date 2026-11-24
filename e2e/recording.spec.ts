@@ -60,19 +60,19 @@ test.describe("recording a room's session and playing it back", () => {
     const room = (await created.json()) as { id: string };
     expect((await api(member.token, "POST", `/api/v1/rooms/${room.id}/members`)).status).toBeLessThan(300);
 
-    // The owner enters the room (leading the reader), then joins the call with the camera on.
-    await owner.page.goto(`/social/r/${room.id}`);
-    await owner.page.getByRole("button", { name: "Enter the room" }).click();
-    await expect(location(owner.page)).toHaveText(new RegExp(`ctx=social\\.room\\.${room.id}`));
-    await move(owner.page, "/Genesis.1");
+    // The owner joins the room's call with the camera on, then enters the room (leading the reader) and reads Genesis 1.
     await owner.page.goto(`/social/r/${room.id}`);
     await owner.page.locator('[data-social-page="room"] [data-action="join-call"]').click();
     await owner.page.locator('[data-action="toggle-camera"]').click();
     await owner.page.locator('[data-action="join-now"]').click();
     await expect(owner.page.locator('section[data-social-call="in-call"]')).toBeVisible({ timeout: 20_000 });
+    await owner.page.getByRole("button", { name: "Enter the room" }).click();
+    await expect(location(owner.page)).toHaveText(new RegExp(`ctx=social\\.room\\.${room.id}`));
+    await move(owner.page, "/Genesis.1");
+    await expect(location(owner.page)).toHaveText(new RegExp(`^/Genesis\\.1\\?`));
 
-    // Record: everyone in the room is told (AC-006), the reader moves, then Stop.
-    await owner.page.locator('[data-social-page="room"] [data-action="record"]').click();
+    // Record from the call window while reading: everyone in the room is told (AC-006), the reader moves, then Stop.
+    await owner.page.locator('section[data-social-call="in-call"] [data-action="record"]').click();
     await expect(owner.page.locator("[data-recording-badge]").first()).toBeVisible({ timeout: 15_000 });
     const running = (await (await api(member.token, "GET", `/api/v1/rooms/${room.id}`)).json()) as { recording?: boolean };
     expect(running.recording, "the room says it is being recorded").toBe(true);
@@ -82,13 +82,15 @@ test.describe("recording a room's session and playing it back", () => {
     await owner.page.locator('[data-action="stop-recording"]').first().click();
     await expect(owner.page.locator('[data-action="record"]').first()).toBeVisible({ timeout: 30_000 });
 
-    // The server holds a ready recording: media chunks and a state track from keyframe to keyframe (AC-007).
-    const list = (await (await api(member.token, "GET", `/api/v1/rooms/${room.id}/recordings`)).json()) as {
-      recordings: { id: string; status: string; durationMs: number | null }[];
-    };
-    expect(list.recordings).toHaveLength(1);
-    const rec = list.recordings[0]!;
-    expect(rec.status).toBe("ready");
+    // The server holds a ready recording (the last chunk and finish arrive after Stop): media chunks and a state track from
+    // keyframe to keyframe (AC-007).
+    type Listed = { id: string; status: string; durationMs: number | null; mediaBytes?: number };
+    const listed = async () =>
+      ((await (await api(member.token, "GET", `/api/v1/rooms/${room.id}/recordings`)).json()) as { recordings: Listed[] }).recordings;
+    await expect.poll(async () => (await listed())[0]?.status, { timeout: 20_000 }).toBe("ready");
+    const recordings = await listed();
+    expect(recordings).toHaveLength(1);
+    const rec = recordings[0]!;
     expect(rec.durationMs ?? 0).toBeGreaterThan(5_000);
     const track = (await (await api(member.token, "GET", `/api/v1/recordings/${rec.id}/state`)).json()) as {
       v: number;
