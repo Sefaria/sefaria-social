@@ -1,7 +1,7 @@
 ---
 id: "030"
 title: Repost and quote — share a post as it is, or with your own words on top
-status: proposed
+status: approved
 features: [FEED-070, FEED-071]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, post]
