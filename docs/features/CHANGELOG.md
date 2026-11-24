@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — OPS-094, OPS-095: planned (spec 040), named by `tools/2026-11-24-name-040-entries.mjs`.
 - 2026-11-24 — SESS-057, SESS-058, SESS-059: planned (spec 034), named by `tools/2026-11-24-name-034-entries.mjs`.
 - 2026-11-24 — API-046 "Call token endpoint for room members" and SESS-056 "Calls switch and the room's calls field": planned (spec 033), named by `tools/2026-11-24-name-033-entries.mjs`.
 - 2026-11-24 — FEED-073 "The conversation, ordered like X's": built (spec 031).

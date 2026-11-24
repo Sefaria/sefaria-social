@@ -1,0 +1,28 @@
+- id: T-001
+  title: The call chunk gets its own budget and the entry's growth is capped
+  acs: [AC-001]
+  files:
+    - "app/vite.surface.config.ts"
+    - "app/scripts/release/budget.ts"
+    - "app/surface-budget.json"
+    - "factory/test/acceptance-040.test.mjs"
+  depends_on: []
+  parallel: false
+  verify:
+    ["npx vitest run --project factory factory/test/acceptance-040.test.mjs", "npm run build:surface", "npm run surface:budget"]
+  completes: [OPS-094]
+- id: T-002
+  title: A local LiveKit in the e2e stack and the two-browser call journey
+  acs: [AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "e2e/stack/start.ts"
+    - "e2e/stack/config.ts"
+    - "e2e/calls.spec.ts"
+    - "e2e/README.md"
+    - "playwright.config.ts"
+    - "docker-compose.yaml"
+    - "factory/test/acceptance-040.test.mjs"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npx vitest run --project factory factory/test/acceptance-040.test.mjs", "npx playwright test e2e/calls.spec.ts"]
+  completes: [OPS-095]
