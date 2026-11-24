@@ -3,6 +3,9 @@
 // Never log a value from here; the webhook secret and the database URL are secrets.
 import { z } from "zod";
 
+/** Coolify substitutes "" for a variable not set on the app: an empty value means unset (spec 040). */
+const emptyIsUnset = (v: unknown) => (v === "" ? undefined : v);
+
 const Env = z.object({
   /** Postgres connection string, for example postgres://user:pass@host:5432/sefaria_social. */
   DATABASE_URL: z.string().min(1).default("postgres://localhost:5432/sefaria_social"),
@@ -21,12 +24,12 @@ const Env = z.object({
   /** Origins whose pages may call the API from a browser (CORS), comma-separated: the reader's origins. */
   SOCIAL_ALLOWED_ORIGINS: z.string().optional(),
   /** The LiveKit server clients connect to (spec 033), for example wss://sefaria.livekit.cloud. */
-  LIVEKIT_URL: z.url({ protocol: /^wss?$/ }).optional(),
+  LIVEKIT_URL: z.preprocess(emptyIsUnset, z.url({ protocol: /^wss?$/ }).optional()),
   /** LiveKit API key and secret: they sign call tokens. Secret; never sent to a browser or logged. */
-  LIVEKIT_API_KEY: z.string().min(1).optional(),
-  LIVEKIT_API_SECRET: z.string().min(1).optional(),
+  LIVEKIT_API_KEY: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
+  LIVEKIT_API_SECRET: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
   /** Calls are offered only when this is exactly "true" and the three LiveKit variables are set. */
-  CALLS_ENABLED: z.string().optional(),
+  CALLS_ENABLED: z.preprocess(emptyIsUnset, z.string().optional()),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 

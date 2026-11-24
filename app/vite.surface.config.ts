@@ -35,7 +35,12 @@ export default defineConfig({
     rolldownOptions: {
       output: {
         entryFileNames: "assets/surface.[hash].js",
-        chunkFileNames: "assets/chunk.[hash].js",
+        // The chunk holding LiveKit (reached only through features/av/load-livekit.ts) is named apart, so its size is
+        // budgeted on its own (spec 040; app/scripts/release/budget.ts).
+        chunkFileNames: (chunk) =>
+          chunk.moduleIds.some((id) => id.includes("/livekit-client/") || id.endsWith("/features/av/livekit-engine.ts"))
+            ? "assets/call.[hash].js"
+            : "assets/chunk.[hash].js",
         assetFileNames: "assets/social.[hash][extname]",
         minify: true,
         // No /*#__PURE__*/ annotations or JSDoc in shipped code; licence comments stay.
