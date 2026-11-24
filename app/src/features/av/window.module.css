@@ -1,0 +1,150 @@
+/* The call window (spec 035): fixed over the reader, never in its layout. Box from features/av/window-geometry.ts. */
+.window {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--sefaria-color-text);
+  background: var(--sefaria-color-surface);
+  border: 1px solid var(--sefaria-color-border-strong);
+  border-radius: var(--sefaria-radius-lg);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 18%);
+  contain: layout paint;
+  /* Size changes animate; position does not: a drag moves the window with transform and the release commits left/top
+     at once, so the window is exactly where the pointer left it, then in its corner. */
+  transition:
+    width 150ms ease,
+    height 150ms ease;
+}
+
+.dragging {
+  transition: none;
+  user-select: none;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-1);
+  padding: 0 var(--sefaria-space-1);
+  min-height: 32px;
+  border-block-end: 1px solid var(--sefaria-color-border);
+}
+
+.handle {
+  flex: 1;
+  min-height: 32px;
+  text-align: start;
+  cursor: grab;
+  touch-action: none;
+  background: none;
+  border: 0;
+  color: var(--sefaria-color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.dragging .handle {
+  cursor: grabbing;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.menu {
+  position: absolute;
+  inset-block-start: 32px;
+  inset-inline-end: var(--sefaria-space-1);
+  z-index: 1;
+  display: grid;
+  padding: var(--sefaria-space-1);
+  background: var(--sefaria-color-surface);
+  border: 1px solid var(--sefaria-color-border-strong);
+  border-radius: var(--sefaria-radius-lg);
+}
+
+.menu button {
+  text-align: start;
+  background: none;
+  border: 0;
+  padding: var(--sefaria-space-1) var(--sefaria-space-2);
+}
+
+.resize {
+  position: absolute;
+  inset-block-end: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: none;
+  border: 0;
+  touch-action: none;
+}
+
+.resizeLeft {
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.resizeRight {
+  right: 0;
+  cursor: nwse-resize;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-1);
+  height: 100%;
+  padding: 0 var(--sefaria-space-2);
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  color: var(--sefaria-color-on-brand);
+  background: var(--sefaria-color-brand);
+  outline: 2px solid transparent;
+}
+
+.avatar[data-speaking="true"] {
+  outline-color: var(--sefaria-color-focus);
+}
+
+.more {
+  font-size: 0.8125rem;
+  color: var(--sefaria-color-text-muted);
+}
+
+.status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.window button {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.window button:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window {
+    transition: none;
+  }
+}
