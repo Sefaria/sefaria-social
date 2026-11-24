@@ -24,7 +24,7 @@ a real two-browser lane to run against.
   PATH, otherwise `docker run livekit/livekit-server:v1.13.11 --dev --bind 0.0.0.0 --node-ip 127.0.0.1` with ports 7880,
   7881 and 7882/udp. It waits for `http://127.0.0.1:7880`. The Start server gets `LIVEKIT_URL=ws://127.0.0.1:7880`,
   `LIVEKIT_API_KEY=devkey`, `LIVEKIT_API_SECRET=secret` (LiveKit's fixed development pair) and `CALLS_ENABLED=true`. Ports in
-  `e2e/stack/config.ts`. `docker-compose.yaml` gains the same service for local development.
+  `e2e/stack/config.ts`. `docker-compose.yaml` is the Coolify deployment (LiveKit Cloud there), so it gains no LiveKit service; instead its `app` service lists `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `CALLS_ENABLED`, because Coolify passes a variable into a service only when the file names it. Coolify substitutes an empty string for an unset variable, so `app/src/server/config.ts` treats an empty call variable as unset (unit test `config.test.ts`); otherwise an unset variable would stop the server from starting.
 - `e2e/calls.spec.ts`, on the desktop and phone projects: Chromium with `--use-fake-device-for-media-stream` and
   `--use-fake-ui-for-media-stream`, and `camera` and `microphone` permissions. Two contexts, A and B, in one room. Assertions
   go through the page, not test hooks: B's tile for A has a `video` element whose `videoWidth` is above 0 (frames arrived), and

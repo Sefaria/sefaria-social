@@ -21,6 +21,8 @@
     - "e2e/README.md"
     - "playwright.config.ts"
     - "docker-compose.yaml"
+    - "app/src/server/config.ts"
+    - "app/src/server/config.test.ts"
     - "factory/test/acceptance-040.test.mjs"
   depends_on: [T-001]
   parallel: false

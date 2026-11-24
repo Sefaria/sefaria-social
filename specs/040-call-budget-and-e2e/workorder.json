@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:effb8474f7d4df0a7b44bd62fb57002e0482ed6d734a26aa10239d53f720c3ff",
   "feature_sha": "sha256:a403a617c4e8fd002898422e12777d126738becbd457c6e79f0e918dfdd6a97e",
-  "tasks_sha": "sha256:c81b30bb20e7adf3134e007277266f9252f609ae8346cadc72e2aa678e07c8cd",
+  "tasks_sha": "sha256:8654ffe5df3fb73e35b62473a395b429c779b6a12648fc6fdac7b7b0589aae9a",
   "risk": "high",
   "features": [
     "OPS-094",
@@ -51,6 +51,8 @@
         "e2e/README.md",
         "playwright.config.ts",
         "docker-compose.yaml",
+        "app/src/server/config.ts",
+        "app/src/server/config.test.ts",
         "factory/test/acceptance-040.test.mjs"
       ],
       "depends_on": [
