@@ -39,7 +39,9 @@ export interface FileSize {
   call: boolean;
 }
 
-export const BUDGET_KEYS: (keyof Budget)[] = ["entryGzip", "largestChunkGzip", "totalGzip", "totalRaw", "files"];
+/** The five shared budgets (required in every budget file). */
+export type SharedKey = "entryGzip" | "largestChunkGzip" | "totalGzip" | "totalRaw" | "files";
+export const BUDGET_KEYS: SharedKey[] = ["entryGzip", "largestChunkGzip", "totalGzip", "totalRaw", "files"];
 
 export async function readBudget(file: string): Promise<Budget> {
   const json = JSON.parse(await readFile(file, "utf8")) as Partial<Budget>;
@@ -64,7 +66,7 @@ export async function measure(buildDir: string): Promise<{ sizes: FileSize[]; mi
 }
 
 /** The five shared budgets, over every file but the call chunk. */
-export function totals(all: FileSize[]): Budget {
+export function totals(all: FileSize[]): Pick<Budget, SharedKey> {
   const sizes = all.filter((s) => !s.call);
   const chunks = sizes.filter((s) => !s.entry);
   return {
@@ -77,7 +79,7 @@ export function totals(all: FileSize[]): Budget {
 }
 
 const kB = (n: number) => `${(n / 1000).toFixed(1)} kB`;
-const fmt = (k: keyof Budget, n: number) => (k === "files" ? String(n) : kB(n));
+const fmt = (k: SharedKey, n: number) => (k === "files" ? String(n) : kB(n));
 
 export async function checkBudget(
   buildDir: string,

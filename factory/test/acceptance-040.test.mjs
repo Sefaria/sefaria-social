@@ -7,7 +7,6 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import YAML from "yaml";
 import { REPO } from "./helpers.mjs";
 
 // ── Release fixtures (the same block in acceptance-019/020/021: prove-red copies only test files onto the merge base, so a
