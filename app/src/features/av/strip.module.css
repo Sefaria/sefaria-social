@@ -1,0 +1,47 @@
+/* The call on a phone (spec 037): docked under the reader's top inset, full width. */
+.strip {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--sefaria-color-text);
+  background: var(--sefaria-color-surface);
+  border-block-end: 1px solid var(--sefaria-color-border-strong);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+}
+
+.collapsed {
+  flex-direction: row;
+}
+
+.bar {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--sefaria-space-1);
+}
+
+.speaker {
+  width: 100%;
+}
+
+.speaker video {
+  aspect-ratio: 16 / 9;
+}
+
+.leave {
+  margin-inline-start: auto;
+  margin-inline-end: var(--sefaria-space-2);
+}
+
+.strip button {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.strip button:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus);
+  outline-offset: 2px;
+}

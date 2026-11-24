@@ -38,7 +38,16 @@ function Video({
 }
 
 /** How many tiles each window size holds (spec 035 AC-003); the rest show as "+N". */
-export const TILE_LIMIT: Record<SizeName, number> = { pill: 0, small: 4, medium: 4, large: 9, custom: 4 };
+export const TILE_LIMIT: Record<SizeName | "strip", number> = { pill: 0, small: 4, medium: 4, large: 9, custom: 4, strip: 1 };
+
+/** The phone strip's one tile: whoever is speaking, else the first other person, else the viewer (spec 037). */
+export function speakerFirst(participants: CallParticipant[]): CallParticipant[] {
+  const rank = (p: CallParticipant) => (!p.local && p.speaking ? 0 : !p.local ? 1 : 2);
+  return participants
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => rank(a.p) - rank(b.p) || a.i - b.i)
+    .map(({ p }) => p);
+}
 
 /** The viewer first, then whoever is speaking, then everyone else, in a stable order. */
 export function tileOrder(participants: CallParticipant[]): CallParticipant[] {
@@ -57,7 +66,7 @@ export function tileOrder(participants: CallParticipant[]): CallParticipant[] {
 export function Tiles({ controller, participants }: { controller: CallController; participants: CallParticipant[] }) {
   const t = useStrings();
   const size = useCallWindowSize();
-  const ordered = tileOrder(participants);
+  const ordered = size === "strip" ? speakerFirst(participants) : tileOrder(participants);
   const shown = ordered.slice(0, TILE_LIMIT[size]);
   const more = ordered.length - shown.length;
   const visibleKey = shown

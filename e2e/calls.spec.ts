@@ -54,7 +54,11 @@ async function joinCall(page: Page, roomId: string) {
   await page.locator('[data-action="toggle-camera"]').click();
   await expect(page.locator("video[data-preview]")).toBeVisible();
   await page.locator('[data-action="join-now"]').click();
-  await expect(page.locator('[data-social-call="in-call"]')).toBeVisible({ timeout: 15_000 });
+  // On a phone the call docks as a strip that starts collapsed, receiving no video (spec 037): expand it to see the tiles.
+  const strip = page.locator('[data-call-strip][data-expanded="false"]');
+  await expect(page.locator('[data-social-call="in-call"]').or(strip).first()).toBeVisible({ timeout: 15_000 });
+  if (await strip.isVisible()) await strip.locator('[data-action="expand-call"]').click();
+  await expect(page.locator('section[data-social-call="in-call"]')).toBeVisible();
 }
 
 /** Frames from that participant's camera have arrived in this page. */

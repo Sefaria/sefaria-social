@@ -31,11 +31,13 @@ const toPhysical = (c: Corner, dir: Dir): Physical => {
   return `${v}-${(s === "start") === (dir === "ltr") ? "left" : "right"}`;
 };
 
-/** The window's size, for what goes inside it (how many tiles, the pill). */
-export const CallWindowSize = createContext<SizeName>("small");
+/** The frame's size, for what goes inside it (how many tiles, the pill): a window size, or the phone strip (spec 037). */
+export type FrameSize = SizeName | "strip";
+export const CallWindowSize = createContext<FrameSize>("small");
 export const useCallWindowSize = () => useContext(CallWindowSize);
 
-function useViewport() {
+/** The viewport's size, following resizes and rotation. */
+export function useViewport() {
   const read = () => ({
     width: typeof window === "undefined" ? 1280 : window.innerWidth,
     height: typeof window === "undefined" ? 800 : window.innerHeight,
