@@ -79,9 +79,10 @@ test.describe("posts, replies and Yasher koach", () => {
     await postWith(page, thought).locator("[data-post-link]").click();
     await expect(page).toHaveURL(/\/social\/p\/[0-9a-f-]{36}$/);
     await expect(mount(page).locator("[data-social-page=post] [data-post-body]")).toHaveText(thought);
+    // spec 029: the source opens beside the page (the reader slides it in); the page stays
     await mount(page).locator("[data-post-source] a").click();
-    await expect(location(page)).toHaveText(/^\/Genesis/);
-    await page.goBack();
+    await expect(page.locator("[data-harness=calls]")).toContainText("openBeside /Genesis");
+    await expect(location(page)).toHaveText(/^\/social\/p\//);
     await page.goto("/social/p/6f1c2d3e-4b5a-4c6d-8e7f-001122334455");
     await expect(mount(page).locator("[data-post-missing]")).toBeVisible();
     await context.close();
@@ -238,6 +239,61 @@ test.describe("sharing", () => {
     await page.keyboard.press("Escape");
     await expect(menu).toHaveCount(0);
     await expect(share.locator("[data-action=share]")).toBeFocused();
+    await context.close();
+  });
+});
+
+test.describe("a source beside the feed", () => {
+  // @feature FEED-069 Open a source beside the feed
+  // @ac 029/AC-001
+  test("clicking a post's source asks the reader to open it beside the page; a 1.0 reader goes there instead", async ({
+    browser,
+  }) => {
+    const me = persona("Beside Learner");
+    await api(await tokenFor(me), "POST", "/api/v1/posts", { body: `Light first ${me.id}`, ref: "Genesis 1:3" });
+    const { page, context } = await as(browser, me);
+    await page.goto("/social");
+    const source = postWith(page, `Light first ${me.id}`).locator("[data-post-source] a");
+    await expect(source).toHaveAttribute("href", /^\/Genesis/);
+    const href = await source.getAttribute("href");
+    await source.click();
+    await expect(page.locator("[data-harness=calls]")).toContainText(`openBeside ${href}`);
+    await expect(location(page)).toHaveText("/social");
+    await expect(postWith(page, `Light first ${me.id}`)).toBeVisible();
+    await context.close();
+
+    const old = await as(browser, me, { besideSupported: false });
+    await old.page.goto("/social");
+    await postWith(old.page, `Light first ${me.id}`).locator("[data-post-source] a").click();
+    await expect(old.page.locator("[data-harness=calls]")).toContainText("commands.go /Genesis");
+    await expect(location(old.page)).toHaveText(/^\/Genesis/);
+    await old.context.close();
+  });
+
+  // @feature FEED-069 Open a source beside the feed
+  // @ac 029/AC-002
+  test("the home page lays out by its own width: two columns in a wide frame, one in a 480px column on the same window", async ({
+    browser,
+  }, info) => {
+    test.skip(info.project.name !== "desktop", "a wide window is the point");
+    const me = persona("Column Learner");
+    const { page, context } = await as(browser, me);
+    await page.goto("/social");
+    const column = mount(page).locator("[data-social-home] > div").first();
+    const rail = mount(page).locator("[data-social-home] > aside").first();
+    await expect(rail).toBeVisible();
+    await expect(column).toBeVisible();
+    const wide = [await column.boundingBox(), await rail.boundingBox()];
+    expect(wide[1]!.x).toBeGreaterThan(wide[0]!.x + wide[0]!.width - 1); // the rail beside the timeline
+    // the reader's column beside a text is narrower than the window (spec 029): the page follows its frame
+    await mount(page).evaluate((el) => {
+      (el as HTMLElement).style.width = "480px";
+    });
+    await expect.poll(async () => (await rail.boundingBox())!.x).toBeLessThan(wide[1]!.x);
+    const narrow = [await column.boundingBox(), await rail.boundingBox()];
+    expect(Math.abs(narrow[0]!.x - narrow[1]!.x)).toBeLessThan(2); // one column
+    expect(narrow[1]!.y).toBeLessThan(narrow[0]!.y); // rooms above the timeline, as on a phone
+    expect(narrow[0]!.width).toBeLessThanOrEqual(480);
     await context.close();
   });
 });

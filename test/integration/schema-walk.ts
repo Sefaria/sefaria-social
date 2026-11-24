@@ -51,6 +51,8 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       user,
     ]);
     await sql("insert into reactions (post_id, user_id) values ($1, $2)", [post!.id, other]);
+    // spec 030: the user reposts their own post
+    await sql("insert into reposts (post_id, profile_id, created_by_user_id) values ($1, $2, $3)", [post!.id, profile!.id, user]);
     await sql("insert into notifications (recipient_user_id, kind, actor_profile_id, post_id) values ($1, 'reaction', $2, $3)", [
       user,
       profile!.id,
@@ -68,6 +70,7 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       "posts",
       "replies",
       "reactions",
+      "reposts",
       "notifications",
     ])
       written.add(t);

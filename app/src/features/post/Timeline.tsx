@@ -1,6 +1,6 @@
-// The timeline (spec 023 AC-002, AC-004): Following (the default) and Everyone, newest first, 20 at a time with "Show more";
-// skeleton rows while the first page loads, an invitation when there is nothing to show, and an alert when it cannot load.
-// A post the viewer just wrote appears at the top at once.
+// The timeline (spec 023 AC-002, AC-004; spec 031): Following (the default; newest first, with the network's reposts) and For you
+// (ranked for the viewer), 20 at a time with "Show more"; skeleton rows while the first page loads, an invitation when there is
+// nothing to show, and an alert when it cannot load. A post or quote the viewer just wrote appears at the top at once.
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Post, TimelineTab } from "~/features/api/social-api";
 import { useSocialApi } from "~/features/api/social-api";
@@ -36,10 +36,14 @@ export function Timeline({ latest }: { latest: Post | null }) {
     };
   }, [api, tab]);
 
+  const prepend = useCallback(
+    (post: Post) =>
+      setState((s) => (s.kind === "ready" && !s.posts.some((p) => p.id === post.id) ? { ...s, posts: [post, ...s.posts] } : s)),
+    [],
+  );
   useEffect(() => {
-    if (!latest) return;
-    setState((s) => (s.kind === "ready" && !s.posts.some((p) => p.id === latest.id) ? { ...s, posts: [latest, ...s.posts] } : s));
-  }, [latest]);
+    if (latest) prepend(latest);
+  }, [latest, prepend]);
 
   const showMore = useCallback(async () => {
     if (!api || state.kind !== "ready" || !state.next) return;
@@ -129,7 +133,7 @@ export function Timeline({ latest }: { latest: Post | null }) {
             <ul className={styles.list} data-timeline-list="">
               {state.posts.map((p) => (
                 <li key={p.id}>
-                  <PostCard post={p} onDeleted={removed} />
+                  <PostCard post={p} onDeleted={removed} onQuoted={prepend} />
                 </li>
               ))}
             </ul>

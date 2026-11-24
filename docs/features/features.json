@@ -424,6 +424,122 @@
       "changed": []
     },
     {
+      "id": "FEED-069",
+      "area": "feed",
+      "name": "Open a source beside the feed",
+      "description": "A post's source opens beside the page through contract 1.1 host.openBeside (the reader slides the text in and keeps the page mounted in a column); a 1.0 reader gets commands.go. The pages lay out by their own width (container queries), so they fit the column.",
+      "status": "built",
+      "spec": "029",
+      "acs": [
+        "029/AC-001",
+        "029/AC-002"
+      ],
+      "surfaces": [
+        "feed",
+        "post",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/host/ReaderRefLink.test.tsx",
+        "e2e/social.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-070",
+      "area": "feed",
+      "name": "Repost a post",
+      "description": "A profile reposts a post unchanged to its followers (one per profile per post, undoable); the network's reposts appear in Following with who reposted them; every post carries its repost count and whether the viewer reposted it.",
+      "status": "built",
+      "spec": "030",
+      "acs": [
+        "030/AC-001",
+        "030/AC-003"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.repost.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-071",
+      "area": "feed",
+      "name": "Quote a post",
+      "description": "A learner posts their own words carrying another post; the quoted post shows inside the quote (unavailable once deleted) and counts its quotes. The demo community has reposts and quotes.",
+      "status": "built",
+      "spec": "030",
+      "acs": [
+        "030/AC-002",
+        "030/AC-004",
+        "030/AC-005"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.repost.int.test.ts",
+        "app/src/features/post/RepostQuote.test.tsx",
+        "app/src/qa.demo.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-072",
+      "area": "feed",
+      "name": "For you: the timeline ranked like X's",
+      "description": "The second tab ranks recent posts per viewer with X's heavy-ranker sum and published weights, a 24-hour half-life from the latest boost, out-of-network × 0.75 unless the network reposted it, and author diversity.",
+      "status": "built",
+      "spec": "031",
+      "acs": [
+        "031/AC-001",
+        "031/AC-002",
+        "031/AC-004"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/server/services/ranking.test.ts",
+        "app/src/api.repost.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-073",
+      "area": "feed",
+      "name": "The conversation, ordered like X's",
+      "description": "Replies under a post: the post's author's first, then from profiles the viewer follows, then the rest, oldest first within each.",
+      "status": "built",
+      "spec": "031",
+      "acs": [
+        "031/AC-003"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.repost.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",

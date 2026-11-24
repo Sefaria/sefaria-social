@@ -26,6 +26,10 @@ const PATHS: Record<string, ReactNode> = {
   check: <path d="M5 12.5 10 17l9-10" />,
   dots: <path d="M6 12h.01M12 12h.01M18 12h.01" strokeWidth={3} />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
+  // Repost: two arrows passing each other round a loop (spec 030).
+  repost: <path d="M7 4 4 7l3 3M4 7h11a4 4 0 0 1 4 4v1M17 20l3-3-3-3M20 17H9a4 4 0 0 1-4-4v-1" />,
+  // Quote: a speech mark beside lines of text.
+  quote: <path d="M5 11h4v5H5v-5Zm0 0c0-3 1-4.5 3-5M12 9h7M12 13h7M12 17h5" />,
 };
 
 export type IconName = keyof typeof PATHS;

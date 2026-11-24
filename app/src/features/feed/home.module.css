@@ -28,7 +28,9 @@
   min-inline-size: 0;
 }
 
-@media (min-width: 1000px) {
+/* two columns from a 760px frame (a 420px timeline beside the 300px rail): the window-wide 1000px of before, minus the reader's
+   chrome; the column beside a text (at most 540px, spec 029) gets one */
+@container social (min-width: 760px) {
   .home {
     grid-template-columns: minmax(0, 640px) 300px;
     grid-template-rows: auto 1fr;
