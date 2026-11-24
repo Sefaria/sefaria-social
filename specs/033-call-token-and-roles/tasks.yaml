@@ -38,6 +38,7 @@
     - "packages/api-client/openapi.json"
     - "packages/api-client/src/schema.ts"
     - "app/src/features/room/RoomLobbyPage.test.tsx"
+    - "app/src/features/presence/PresenceList.test.tsx"
   depends_on: [T-001]
   parallel: false
   verify:
