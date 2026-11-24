@@ -4,6 +4,7 @@ import { useViewer } from "~/features/host/use-viewer";
 import { useRoomsApi, type Room } from "~/features/api/rooms-api";
 import { useStrings } from "~/features/shell/use-strings";
 import { PresenceList } from "~/features/presence/PresenceList";
+import { CallButton } from "~/features/av/CallButton";
 import { useRoomController, useRoomHold } from "~/features/session/use-room-session";
 
 type LobbyState =
@@ -87,6 +88,7 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
           <button type="button" data-action="enter" onClick={() => void controller?.enlarge(roomId)}>
             {t.enter}
           </button>
+          <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
           <PresenceList roomId={roomId} />
         </>
       )}

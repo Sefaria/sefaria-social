@@ -1966,7 +1966,7 @@
       "area": "sess",
       "name": "Join a call with devices off, and talk",
       "description": "Join call in the lobby and the follow bar when calls are available; a pre-join step with microphone and camera off, device choosers and a preview; denied permission still lets you listen; tiles, microphone, camera and screen share controls.",
-      "status": "planned",
+      "status": "built",
       "spec": "034",
       "acs": [
         "034/AC-002",
@@ -1979,7 +1979,9 @@
         "room-lobby"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/surface/call.test.tsx"
+      ],
       "since": null,
       "changed": []
     },
@@ -1988,7 +1990,7 @@
       "area": "sess",
       "name": "Calls load on demand and survive reading",
       "description": "No LiveKit code, connection or device request before Join call; the call stays connected through every in-reader navigation; a reload offers Join call and never rejoins by itself.",
-      "status": "planned",
+      "status": "built",
       "spec": "034",
       "acs": [
         "034/AC-003",
@@ -2000,7 +2002,9 @@
         "room-lobby"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/surface/call.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

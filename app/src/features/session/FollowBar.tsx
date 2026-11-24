@@ -1,3 +1,4 @@
+import { CallButton } from "~/features/av/CallButton";
 import { HostLink } from "~/features/host/HostLink";
 import { PresenceList } from "~/features/presence/PresenceList";
 import { useStrings } from "~/features/shell/use-strings";
@@ -46,6 +47,7 @@ export function FollowBar({ roomId }: { roomId: string }) {
         </button>
       )}
       <HostLink to={`/social/r/${roomId}`}>{t.backToRoom}</HostLink>
+      <CallButton roomId={roomId} />
       <PresenceList roomId={roomId} onFollow={(id) => controller?.follow(id)} />
     </div>
   );
