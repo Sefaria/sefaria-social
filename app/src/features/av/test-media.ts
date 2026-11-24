@@ -26,6 +26,8 @@ export interface FakeCall extends CallMedia {
   /** Play the network: reconnecting, back, or gone (with the server's reason). */
   drop(state: ConnectionState, reason?: DisconnectReason): void;
   blockAudio(blocked: boolean): void;
+  /** Play the owner muting one of the viewer's tracks through the server (spec 039). */
+  muteByHost(source: "microphone" | "camera" | "screen_share"): void;
 }
 
 export interface FakeEngine extends MediaEngine {
@@ -106,6 +108,7 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
       let audioBlocked = false;
       const listeners = new Set<() => void>();
       const connListeners = new Set<(s: ConnectionState, r?: DisconnectReason) => void>();
+      const hostMuteListeners = new Set<(s: "microphone" | "camera" | "screen_share") => void>();
       const emit = () => [...listeners].forEach((cb) => cb());
       const call: FakeCall = {
         options,
@@ -121,6 +124,17 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
         onConnection(cb) {
           connListeners.add(cb);
           return () => void connListeners.delete(cb);
+        },
+        onMutedByHost(cb) {
+          hostMuteListeners.add(cb);
+          return () => void hostMuteListeners.delete(cb);
+        },
+        muteByHost(source) {
+          if (source === "microphone") local.mic = false;
+          else if (source === "camera") local.camera = false;
+          else local.screen = false;
+          [...hostMuteListeners].forEach((cb) => cb(source));
+          emit();
         },
         async setMicrophone(on) {
           call.calls.mic.push(on);

@@ -2105,7 +2105,7 @@
       "area": "sess",
       "name": "Owner tile menu, and what the muted and removed see",
       "description": "An owner sees a menu on every other tile (mute microphone, turn off camera, stop screen share, remove); the muted are told the host muted them and can unmute; the removed are told so and stay in the room.",
-      "status": "planned",
+      "status": "built",
       "spec": "039",
       "acs": [
         "039/AC-006",
@@ -2116,7 +2116,9 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/surface/call-moderation.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

@@ -22,7 +22,15 @@ const BACKOFF_MS = [1_000, 2_000, 4_000, 8_000];
 
 export interface CallDeps {
   host: SurfaceHost;
-  api: { getCallToken?(roomId: string): Promise<CallTokenResult> };
+  api: {
+    getCallToken?(roomId: string): Promise<CallTokenResult>;
+    moderate?(
+      roomId: string,
+      action: "mute" | "remove",
+      participant: string,
+      source?: "microphone" | "camera" | "screen_share",
+    ): Promise<"ok" | "not-in-call" | "forbidden" | "unavailable">;
+  };
   loadEngine: LoadEngine;
   sessions: { acquire(roomId: string, hold: "call"): () => void };
   rooms: { onLeave(cb: (roomId: string) => void): () => void };
@@ -40,6 +48,12 @@ export interface CallController {
   canShareScreen(): boolean;
   /** The connected call, for tiles and controls. */
   media(): CallMedia | null;
+  /** The viewer's role in the call, from the token's metadata (display only; the server checks every action). */
+  role(): "owner" | "member" | null;
+  /** A notice for the viewer: the owner muted them (spec 039), cleared when they turn the microphone on. */
+  notice(): "muted-by-host" | null;
+  /** The owner mutes a participant's track or removes them from the call (spec 039). */
+  moderate(action: "mute" | "remove", participant: string, source?: "microphone" | "camera" | "screen_share"): Promise<void>;
   open(roomId: string): Promise<void>;
   choose(devices: DeviceChoice): void;
   cancel(): void;
@@ -52,6 +66,18 @@ export interface CallController {
   cancelSwitch(): void;
   dismiss(): void;
   dispose(): void;
+}
+
+/** The role the server wrote into the call token's metadata (spec 033); null if it cannot be read. Not a security check. */
+function roleOf(token: string): "owner" | "member" | null {
+  try {
+    const part = token.split(".")[1] ?? "";
+    const json = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
+    const meta = JSON.parse((JSON.parse(json) as { metadata?: string }).metadata ?? "{}") as { role?: unknown };
+    return meta.role === "owner" || meta.role === "member" ? meta.role : null;
+  } catch {
+    return null;
+  }
 }
 
 const ALL_OFF: DeviceChoice = { mic: false, camera: false, audioDeviceId: null, videoDeviceId: null, permission: "unknown" };
@@ -73,6 +99,8 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
   let deadline: ReturnType<typeof setTimeout> | null = null;
   let attempt = 0;
   let generation = 0; // bumps on every leave or switch, so a late connect from an old attempt is dropped
+  let role: "owner" | "member" | null = null;
+  let notice: "muted-by-host" | null = null;
 
   const emit = () => [...listeners].forEach((cb) => cb());
   const step = (event: CallEvent) => {
@@ -139,6 +167,14 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
     };
     offMedia.push(m.subscribe(count));
     offMedia.push(
+      m.onMutedByHost((source) => {
+        if (source === "microphone") {
+          notice = "muted-by-host";
+          emit();
+        }
+      }),
+    );
+    offMedia.push(
       m.onConnection((state, reason) => {
         if (leaving || media !== m) return;
         if (state === "reconnecting") step({ type: "connectionLost", at: Date.now() });
@@ -164,6 +200,7 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
     const t = await token(roomId);
     if (gen !== generation) return "stale" as const;
     if (t.kind !== "ok") return t.kind;
+    role = roleOf(t.token);
     try {
       const e = await ensureEngine();
       const m = await e.connect({
@@ -266,6 +303,14 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
     preview: () => preview,
     canShareScreen: () => engine?.canShareScreen() ?? false,
     media: () => media,
+    role: () => role,
+    notice: () => notice,
+    async moderate(action, participant, source) {
+      const roomId = callRoom(view);
+      if (!roomId || !api.moderate) return;
+      const r = await api.moderate(roomId, action, participant, source).catch(() => "error" as const);
+      if (r !== "ok" && r !== "not-in-call") report("av.error", { kind: `moderate_${r}` });
+    },
 
     async open(roomId) {
       if (!step({ type: "open", roomId })) return;
@@ -330,6 +375,10 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
 
     async setMic(on) {
       if (view.kind !== "in-call" || !media) return;
+      if (on && notice) {
+        notice = null;
+        emit();
+      }
       await media.setMicrophone(on).catch(() => report("av.error", { kind: "microphone" }));
       if (view.kind === "in-call" && media) {
         const self = media.participants().find((p) => p.local);

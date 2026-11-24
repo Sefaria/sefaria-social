@@ -58,6 +58,9 @@ function connected(room: Room): CallMedia {
   const audioEls = new Map<string, HTMLMediaElement>();
   const emit = () => [...listeners].forEach((cb) => cb());
   const emitConnection = (s: ConnectionState, r?: Reason) => [...connectionListeners].forEach((cb) => cb(s, r));
+  // A local track muted that the viewer did not mute here: the room's owner muted it through the server (spec 039).
+  const hostMuteListeners = new Set<(s: "microphone" | "camera" | "screen_share") => void>();
+  let selfMuting = 0;
 
   // Remote audio plays through one hidden element per track, created inside the Join click's task where possible.
   const onSubscribed = (track: RemoteTrack) => {
@@ -84,7 +87,14 @@ function connected(room: Room): CallMedia {
     .on(RoomEvent.TrackUnsubscribed, onUnsubscribed)
     .on(RoomEvent.ParticipantConnected, emit)
     .on(RoomEvent.ParticipantDisconnected, emit)
-    .on(RoomEvent.TrackMuted, emit)
+    .on(RoomEvent.TrackMuted, (pub, participant) => {
+      if (participant.isLocal && selfMuting === 0) {
+        const source =
+          pub.source === Track.Source.Microphone ? "microphone" : pub.source === Track.Source.Camera ? "camera" : "screen_share";
+        [...hostMuteListeners].forEach((cb) => cb(source));
+      }
+      emit();
+    })
     .on(RoomEvent.TrackUnmuted, emit)
     .on(RoomEvent.LocalTrackPublished, emit)
     .on(RoomEvent.LocalTrackUnpublished, emit)
@@ -97,6 +107,16 @@ function connected(room: Room): CallMedia {
       audioEls.clear();
       emitConnection("disconnected", reasonOf(r));
     });
+
+  /** A change the viewer makes: its TrackMuted is not a host mute. */
+  const self = async (work: () => Promise<unknown>) => {
+    selfMuting++;
+    try {
+      await work();
+    } finally {
+      selfMuting--;
+    }
+  };
 
   return {
     participants: () => [
@@ -111,9 +131,13 @@ function connected(room: Room): CallMedia {
       connectionListeners.add(cb);
       return () => void connectionListeners.delete(cb);
     },
-    setMicrophone: async (on) => void (await guard(room.localParticipant.setMicrophoneEnabled(on))),
-    setCamera: async (on) => void (await guard(room.localParticipant.setCameraEnabled(on))),
-    setScreenShare: async (on) => void (await room.localParticipant.setScreenShareEnabled(on)),
+    onMutedByHost(cb) {
+      hostMuteListeners.add(cb);
+      return () => void hostMuteListeners.delete(cb);
+    },
+    setMicrophone: (on) => self(() => guard(room.localParticipant.setMicrophoneEnabled(on))),
+    setCamera: (on) => self(() => guard(room.localParticipant.setCameraEnabled(on))),
+    setScreenShare: (on) => self(() => room.localParticipant.setScreenShareEnabled(on)),
     attach(participantId, source, el) {
       const p =
         room.localParticipant.identity === participantId ? room.localParticipant : room.remoteParticipants.get(participantId);

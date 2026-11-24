@@ -29,6 +29,13 @@ export interface RoomsApi {
   getCallToken?(roomId: string): Promise<CallTokenResult>;
   /** The room's live status, with its call while one is live (spec 038); null when it cannot be read. Optional like the above. */
   getStatus?(roomId: string): Promise<RoomStatus | null>;
+  /** The owner mutes a participant's track or removes them from the call (spec 039). Optional like the above. */
+  moderate?(
+    roomId: string,
+    action: "mute" | "remove",
+    participant: string,
+    source?: "microphone" | "camera" | "screen_share",
+  ): Promise<"ok" | "not-in-call" | "forbidden" | "unavailable">;
 }
 
 /** The API's error for anything other than the statuses a caller handles. */
@@ -50,6 +57,20 @@ export function createRoomsApi(host: SurfaceHost): RoomsApi {
       const { data, response } = await client.GET("/api/v1/rooms/{roomId}", { params: { path: { roomId } } });
       if (data) return { kind: "member", room: data };
       if (response.status === 404 || response.status === 400) return { kind: "missing" };
+      throw new RoomsApiError(response.status);
+    },
+    async moderate(roomId, action, participant, source) {
+      const { response } =
+        action === "mute"
+          ? await client.POST("/api/v1/rooms/{roomId}/call/mute", {
+              params: { path: { roomId } },
+              body: { participant, source: source ?? "microphone" },
+            })
+          : await client.POST("/api/v1/rooms/{roomId}/call/remove", { params: { path: { roomId } }, body: { participant } });
+      if (response.status === 204) return "ok";
+      if (response.status === 404) return "not-in-call";
+      if (response.status === 403) return "forbidden";
+      if (response.status === 503) return "unavailable";
       throw new RoomsApiError(response.status);
     },
     async getStatus(roomId) {

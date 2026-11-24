@@ -47,6 +47,11 @@ export function CallPanel() {
         {view.kind === "in-call" && (
           <>
             {pausedNotice}
+            {controller.notice() === "muted-by-host" && (
+              <p role="status" data-call-notice="">
+                {t.hostMutedYou}
+              </p>
+            )}
             <Tiles controller={controller} participants={participants} />
             {media?.audioBlocked() && (
               <button type="button" data-action="start-audio" onClick={() => void media.startAudio()}>

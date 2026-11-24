@@ -80,3 +80,26 @@
 .toggles button[aria-pressed="true"] {
   font-weight: 600;
 }
+
+.tileMenu {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-end: 2px;
+}
+
+.menu {
+  position: absolute;
+  inset-inline-end: 0;
+  z-index: 1;
+  display: grid;
+  min-width: max-content;
+  padding: 4px;
+  background: var(--sefaria-color-surface);
+  border: 1px solid var(--sefaria-color-border-strong);
+  border-radius: 4px;
+}
+
+.tileMenu button {
+  min-width: 24px;
+  min-height: 24px;
+}
