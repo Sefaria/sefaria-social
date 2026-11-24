@@ -12,6 +12,12 @@ import { setLogSink } from "../../app/src/server/log/logger";
 import { sign } from "../../app/src/server/webhooks/signature";
 
 export const WEBHOOK_SECRET = "integration-test-webhook-secret";
+/** LiveKit settings for tests (spec 033): calls are available unless a test unsets one and calls resetConfig(). */
+export const LIVEKIT_TEST = {
+  url: "wss://livekit.social.test",
+  key: "integration-test-livekit-key",
+  secret: "integration-test-livekit-secret-0123456789abcdef",
+} as const;
 
 /** The parts of the TanStack router the harness uses. */
 export interface RouterLike {
@@ -77,6 +83,10 @@ export async function harness(router: object) {
   process.env.SOCIAL_TOKEN_ISSUER = inject("issuer");
   process.env.SOCIAL_TOKEN_AUDIENCE = "sefaria-social";
   process.env.USER_DELETED_WEBHOOK_SECRET = WEBHOOK_SECRET;
+  process.env.LIVEKIT_URL = LIVEKIT_TEST.url;
+  process.env.LIVEKIT_API_KEY = LIVEKIT_TEST.key;
+  process.env.LIVEKIT_API_SECRET = LIVEKIT_TEST.secret;
+  process.env.CALLS_ENABLED = "true";
   resetConfig();
   resetKeySets();
 

@@ -16,6 +16,15 @@ export const Room = z.object({
   role: z.enum(["owner", "member"]),
   createdAt: z.iso.datetime({ offset: true }),
   updatedAt: z.iso.datetime({ offset: true }),
+  /** Whether this server offers calls (spec 033): LiveKit configured and CALLS_ENABLED=true. */
+  calls: z.object({ available: z.boolean() }),
+});
+
+/** A LiveKit token for one room's call (spec 033). The token is a bearer credential: keep it in memory only. */
+export const CallToken = z.object({
+  url: z.url(),
+  token: z.string().min(1),
+  expiresAt: z.iso.datetime({ offset: true }),
 });
 
 export const RoomStatus = z.object({
@@ -272,6 +281,18 @@ export const getRoomStatus = defineEndpoint({
   responses: { 200: { description: "The room's live status.", schema: RoomStatus } },
 });
 
+export const getCallToken = defineEndpoint({
+  operationId: "getCallToken",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/call/token",
+  summary:
+    "A 10-minute LiveKit token to join the room's call: identity u:<user id>, this room only, publish microphone, camera and screen share. Members only.",
+  tags: ["rooms", "calls"],
+  params: RoomParams,
+  errors: [404, 429, 503],
+  responses: { 200: { description: "The LiveKit URL and a token for this room's call.", schema: CallToken } },
+});
+
 export const getFeed = defineEndpoint({
   operationId: "getFeed",
   method: "GET",
@@ -498,6 +519,7 @@ export const ENDPOINTS = [
   joinRoom,
   leaveRoom,
   getRoomStatus,
+  getCallToken,
   getFeed,
   getTimeline,
   createPost,

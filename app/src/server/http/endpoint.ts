@@ -144,7 +144,7 @@ async function run(
   } catch (e) {
     if (e instanceof ApiError) {
       status = e.status;
-      return json(e.status, errorBody(e.code), correlationId, cors);
+      return json(e.status, errorBody(e.code), correlationId, { ...e.headers, ...cors });
     }
     log.error("request.failed", {
       method,

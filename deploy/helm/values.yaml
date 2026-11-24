@@ -96,6 +96,9 @@ configMap:
     RELAY_INTERNAL_URL: https://rooms.sefaria.org
     SOCIAL_ALLOWED_ORIGINS: https://www.sefaria.org,https://www.sefaria.org.il
     LOG_LEVEL: info
+    # Calls (spec 033): off in production until owner decision D-AV4 (minors and calls) is answered.
+    LIVEKIT_URL: wss://sefaria.livekit.cloud # placeholder: the LiveKit project URL for this environment
+    CALLS_ENABLED: "false"
 
 # Secret values, by name only. The Secret (sefaria-social-secrets) is created by the cluster's secret store.
 secret:
@@ -104,6 +107,8 @@ secret:
     - DATABASE_URL
     - USER_DELETED_WEBHOOK_SECRET
     - RELAY_INTERNAL_SECRET
+    - LIVEKIT_API_KEY
+    - LIVEKIT_API_SECRET
 
 # What the Deployment's env becomes (rendered by the chart from configMap and secret above).
 env:
@@ -125,6 +130,14 @@ env:
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: USER_DELETED_WEBHOOK_SECRET } }
   - name: RELAY_INTERNAL_SECRET
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: RELAY_INTERNAL_SECRET } }
+  - name: LIVEKIT_URL
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: LIVEKIT_URL } }
+  - name: CALLS_ENABLED
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: CALLS_ENABLED } }
+  - name: LIVEKIT_API_KEY
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: LIVEKIT_API_KEY } }
+  - name: LIVEKIT_API_SECRET
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: LIVEKIT_API_SECRET } }
 
 podDisruptionBudget:
   minAvailable: 1

@@ -8,10 +8,12 @@ export type ErrorCode =
   | "webhook.unavailable"
   | "request.invalid"
   | "request.too_large"
+  | "request.rate_limited"
   | "method.not_allowed"
   | "room.not_found"
   | "room.forbidden"
   | "room.owner_cannot_leave"
+  | "call.unavailable"
   | "post.not_found"
   | "post.forbidden"
   | "reply.not_found"
@@ -29,10 +31,12 @@ const MESSAGES: Record<ErrorCode, string> = {
   "webhook.unavailable": "The webhook receiver is not configured.",
   "request.invalid": "The request does not match the API schema.",
   "request.too_large": "The request body is too large.",
+  "request.rate_limited": "Too many requests; try again shortly.",
   "method.not_allowed": "This method is not allowed on this route.",
   "room.not_found": "Room not found.",
   "room.forbidden": "Only the room's owner can do that.",
   "room.owner_cannot_leave": "The owner cannot leave their own room; delete it instead.",
+  "call.unavailable": "Calls are not available right now.",
   "post.not_found": "Post not found.",
   "post.forbidden": "Only the post's author can do that.",
   "reply.not_found": "Reply not found.",
@@ -46,6 +50,8 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     readonly code: ErrorCode,
+    /** Response headers for this error, for example `retry-after` on a 429. Never secrets. */
+    readonly headers: Readonly<Record<string, string>> = {},
   ) {
     super(MESSAGES[code]);
     this.name = "ApiError";

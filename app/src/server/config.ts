@@ -20,6 +20,13 @@ const Env = z.object({
   RELAY_INTERNAL_SECRET: z.string().min(1).optional(),
   /** Origins whose pages may call the API from a browser (CORS), comma-separated: the reader's origins. */
   SOCIAL_ALLOWED_ORIGINS: z.string().optional(),
+  /** The LiveKit server clients connect to (spec 033), for example wss://sefaria.livekit.cloud. */
+  LIVEKIT_URL: z.url({ protocol: /^wss?$/ }).optional(),
+  /** LiveKit API key and secret: they sign call tokens. Secret; never sent to a browser or logged. */
+  LIVEKIT_API_KEY: z.string().min(1).optional(),
+  LIVEKIT_API_SECRET: z.string().min(1).optional(),
+  /** Calls are offered only when this is exactly "true" and the three LiveKit variables are set. */
+  CALLS_ENABLED: z.string().optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 
