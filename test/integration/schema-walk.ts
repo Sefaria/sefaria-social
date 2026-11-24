@@ -79,6 +79,14 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       written.add(t);
   }
   await sql("insert into deleted_users (user_id, event_id) values ($1, 'seed-event')", [unrelated]);
+  // spec 039: a call removal, for the unrelated user so the exact per-user lists of spec 008's tests stay as they are (the
+  // deletion of a user's removals is proven in api.moderation.int.test.ts)
+  const [someRoom] = await sql<{ id: string }>("select id from rooms order by created_at limit 1");
+  await sql("insert into call_removals (room_id, user_id, until) values ($1, $2, now() + interval '15 minutes')", [
+    someRoom!.id,
+    unrelated,
+  ]);
+  written.add("call_removals");
   await sql("insert into webhook_receipts (event_id, event_type) values ('seed-event', 'user.deleted')");
   written.add("deleted_users").add("webhook_receipts");
   return [...written].sort();

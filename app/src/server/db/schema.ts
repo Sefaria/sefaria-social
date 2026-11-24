@@ -110,6 +110,19 @@ export const callStatus = pgTable("call_status", {
   updatedAt: updatedAt(),
 });
 
+/** A participant the room's owner removed from its call (spec 039): their call tokens are refused until `until`. */
+export const callRemovals = pgTable(
+  "call_removals",
+  {
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    userId: userId("user_id").notNull(),
+    until: timestamp("until", { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.roomId, t.userId] }), index("call_removals_user_id_idx").on(t.userId)],
+);
+
 /** Tombstones: the only place a deleted user's id may remain (it refuses their still-valid tokens). */
 export const deletedUsers = pgTable("deleted_users", {
   userId: userId("user_id").primaryKey(),

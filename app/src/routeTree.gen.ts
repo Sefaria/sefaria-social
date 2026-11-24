@@ -39,6 +39,8 @@ import { Route as ApiV1PostsPostIdRepostRouteImport } from './routes/api/v1/post
 import { Route as ApiV1ProfilesProfileIdFollowRouteImport } from './routes/api/v1/profiles.$profileId.follow'
 import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/rooms.$roomId.members'
 import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
+import { Route as ApiV1RoomsRoomIdCallMuteRouteImport } from './routes/api/v1/rooms.$roomId.call.mute'
+import { Route as ApiV1RoomsRoomIdCallRemoveRouteImport } from './routes/api/v1/rooms.$roomId.call.remove'
 import { Route as ApiV1RoomsRoomIdCallTokenRouteImport } from './routes/api/v1/rooms.$roomId.call.token'
 import { Route as ApiV1RoomsRoomIdMembersMeRouteImport } from './routes/api/v1/rooms.$roomId.members.me'
 
@@ -196,6 +198,18 @@ const ApiV1RoomsRoomIdStatusRoute = ApiV1RoomsRoomIdStatusRouteImport.update({
   path: '/status',
   getParentRoute: () => ApiV1RoomsRoomIdRoute,
 } as any)
+const ApiV1RoomsRoomIdCallMuteRoute =
+  ApiV1RoomsRoomIdCallMuteRouteImport.update({
+    id: '/call/mute',
+    path: '/call/mute',
+    getParentRoute: () => ApiV1RoomsRoomIdRoute,
+  } as any)
+const ApiV1RoomsRoomIdCallRemoveRoute =
+  ApiV1RoomsRoomIdCallRemoveRouteImport.update({
+    id: '/call/remove',
+    path: '/call/remove',
+    getParentRoute: () => ApiV1RoomsRoomIdRoute,
+  } as any)
 const ApiV1RoomsRoomIdCallTokenRoute =
   ApiV1RoomsRoomIdCallTokenRouteImport.update({
     id: '/call/token',
@@ -240,6 +254,8 @@ export interface FileRoutesByFullPath {
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
+  '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
@@ -274,6 +290,8 @@ export interface FileRoutesByTo {
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
+  '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
@@ -309,6 +327,8 @@ export interface FileRoutesById {
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
+  '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
@@ -345,6 +365,8 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/call/mute'
+    | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
   fileRoutesByTo: FileRoutesByTo
@@ -379,6 +401,8 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/call/mute'
+    | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
   id:
@@ -413,6 +437,8 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/call/mute'
+    | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
   fileRoutesById: FileRoutesById
@@ -651,6 +677,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdStatusRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdRoute
     }
+    '/api/v1/rooms/$roomId/call/mute': {
+      id: '/api/v1/rooms/$roomId/call/mute'
+      path: '/call/mute'
+      fullPath: '/api/v1/rooms/$roomId/call/mute'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdCallMuteRouteImport
+      parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
+    '/api/v1/rooms/$roomId/call/remove': {
+      id: '/api/v1/rooms/$roomId/call/remove'
+      path: '/call/remove'
+      fullPath: '/api/v1/rooms/$roomId/call/remove'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdCallRemoveRouteImport
+      parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
     '/api/v1/rooms/$roomId/call/token': {
       id: '/api/v1/rooms/$roomId/call/token'
       path: '/call/token'
@@ -751,12 +791,16 @@ const ApiV1RoomsRoomIdMembersRouteWithChildren =
 interface ApiV1RoomsRoomIdRouteChildren {
   ApiV1RoomsRoomIdMembersRoute: typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   ApiV1RoomsRoomIdStatusRoute: typeof ApiV1RoomsRoomIdStatusRoute
+  ApiV1RoomsRoomIdCallMuteRoute: typeof ApiV1RoomsRoomIdCallMuteRoute
+  ApiV1RoomsRoomIdCallRemoveRoute: typeof ApiV1RoomsRoomIdCallRemoveRoute
   ApiV1RoomsRoomIdCallTokenRoute: typeof ApiV1RoomsRoomIdCallTokenRoute
 }
 
 const ApiV1RoomsRoomIdRouteChildren: ApiV1RoomsRoomIdRouteChildren = {
   ApiV1RoomsRoomIdMembersRoute: ApiV1RoomsRoomIdMembersRouteWithChildren,
   ApiV1RoomsRoomIdStatusRoute: ApiV1RoomsRoomIdStatusRoute,
+  ApiV1RoomsRoomIdCallMuteRoute: ApiV1RoomsRoomIdCallMuteRoute,
+  ApiV1RoomsRoomIdCallRemoveRoute: ApiV1RoomsRoomIdCallRemoveRoute,
   ApiV1RoomsRoomIdCallTokenRoute: ApiV1RoomsRoomIdCallTokenRoute,
 }
 

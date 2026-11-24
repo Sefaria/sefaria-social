@@ -3,6 +3,7 @@ import { useStrings } from "~/features/shell/use-strings";
 import type { CallController } from "./call-controller";
 import type { CallParticipant, TrackSource } from "./media";
 import { useCallWindowSize } from "./CallWindow";
+import { TileMenu } from "./TileMenu";
 import type { SizeName } from "./window-geometry";
 import styles from "./av.module.css";
 
@@ -99,6 +100,7 @@ export function Tiles({ controller, participants }: { controller: CallController
             {p.local && <> ({t.you})</>}
             {!p.mic && <span className={styles.muted}> · {t.muted}</span>}
           </span>
+          <TileMenu controller={controller} participant={p} />
         </li>
       ))}
       {more > 0 && (

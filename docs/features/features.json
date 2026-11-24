@@ -121,7 +121,7 @@
       "area": "api",
       "name": "Owner mutes or removes a call participant",
       "description": "POST .../call/mute and .../call/remove, owner only (403 member, 404 outsider, 503 when calls are off), through LiveKit server API; removal keeps them in the room and refuses their call tokens for 15 minutes (call_removals).",
-      "status": "planned",
+      "status": "built",
       "spec": "039",
       "acs": [
         "039/AC-001",
@@ -135,7 +135,9 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.moderation.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -2105,7 +2107,7 @@
       "area": "sess",
       "name": "Owner tile menu, and what the muted and removed see",
       "description": "An owner sees a menu on every other tile (mute microphone, turn off camera, stop screen share, remove); the muted are told the host muted them and can unmute; the removed are told so and stay in the room.",
-      "status": "planned",
+      "status": "built",
       "spec": "039",
       "acs": [
         "039/AC-006",
@@ -2116,7 +2118,9 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/surface/call-moderation.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

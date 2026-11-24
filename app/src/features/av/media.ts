@@ -50,6 +50,8 @@ export interface CallMedia {
   /** Fires on any participant or track change. */
   subscribe(cb: () => void): () => void;
   onConnection(cb: (state: ConnectionState, reason?: DisconnectReason) => void): () => void;
+  /** The room's owner muted one of the viewer's own tracks through the server (spec 039). */
+  onMutedByHost(cb: (source: "microphone" | "camera" | "screen_share") => void): () => void;
   setMicrophone(on: boolean): Promise<void>;
   setCamera(on: boolean): Promise<void>;
   setScreenShare(on: boolean): Promise<void>;

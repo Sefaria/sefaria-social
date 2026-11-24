@@ -129,3 +129,48 @@ export async function removeFromLiveCalls(userId: number, roomIds: readonly stri
   );
   return { failed };
 }
+
+export type ModeratedSource = "microphone" | "camera" | "screen_share";
+const SOURCE_OF: Record<ModeratedSource, TrackSource> = {
+  microphone: TrackSource.MICROPHONE,
+  camera: TrackSource.CAMERA,
+  screen_share: TrackSource.SCREEN_SHARE,
+};
+
+function roomService(config: CallsConfig) {
+  return new RoomServiceClient(apiHost(config.url), config.key, config.secret, { requestTimeout: 5 });
+}
+
+/** LiveKit's answer to a moderation call: done, or the participant (or that track) is not in the call (spec 039). */
+export type ModerationResult = "done" | "not-in-call";
+
+/** Mute one published track of a participant (spec 039 AC-001). */
+export async function muteTrack(
+  config: CallsConfig,
+  roomId: string,
+  identity: string,
+  source: ModeratedSource,
+): Promise<ModerationResult> {
+  const svc = roomService(config);
+  try {
+    const p = await svc.getParticipant(livekitRoomName(roomId), identity);
+    const track = p.tracks.find((t) => t.source === SOURCE_OF[source]);
+    if (!track) return "not-in-call";
+    await svc.mutePublishedTrack(livekitRoomName(roomId), identity, track.sid, true);
+    return "done";
+  } catch (e) {
+    if (isNotFound(e)) return "not-in-call";
+    throw e;
+  }
+}
+
+/** Remove a participant from the call (spec 039 AC-002); the room itself is untouched. */
+export async function removeFromCall(config: CallsConfig, roomId: string, identity: string): Promise<ModerationResult> {
+  try {
+    await roomService(config).removeParticipant(livekitRoomName(roomId), identity);
+    return "done";
+  } catch (e) {
+    if (isNotFound(e)) return "not-in-call";
+    throw e;
+  }
+}
