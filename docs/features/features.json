@@ -1940,7 +1940,7 @@
       "area": "sess",
       "name": "Call state machine and controller",
       "description": "One call per tab, tied to a room session: pre-join, connecting, in call, reconnecting with a fresh token (30 s, then Rejoin), ended. Leaving the call keeps the room; leaving the room ends the call first. Reports carry no personal data.",
-      "status": "planned",
+      "status": "built",
       "spec": "034",
       "acs": [
         "034/AC-001",
@@ -1954,7 +1954,10 @@
         "room-lobby"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/av/machine.test.ts",
+        "app/src/features/av/call-controller.test.ts"
+      ],
       "since": null,
       "changed": []
     },

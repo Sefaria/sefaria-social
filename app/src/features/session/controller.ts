@@ -40,6 +40,8 @@ export interface RoomController {
   minimise(): void;
   /** Leave the room's session: out of its context if in it, and close its connection. */
   leave(roomId: string): void;
+  /** Run `cb(roomId)` at the start of every leave, before the room's holds are released (a call ends first, spec 034). */
+  onLeave(cb: (roomId: string) => void): () => void;
   follow(participantId: string | null): void;
   followAgain(): void;
   lead(): void;
@@ -57,6 +59,7 @@ const roomOf = (v: SessionView): string | null =>
 export function createRoomController(host: SurfaceHost, sessions: RoomSessions = roomSessionsFor(host)): RoomController {
   let view: SessionView = INITIAL_SESSION;
   const listeners = new Set<() => void>();
+  const leaveListeners = new Set<(roomId: string) => void>();
   const live = new Map<string, () => void>();
   let contextHold: { roomId: string; release: () => void } | null = null;
   let offClient: (() => void) | null = null;
@@ -254,10 +257,16 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
     },
 
     leave(roomId) {
+      for (const cb of [...leaveListeners]) cb(roomId);
       if (roomOf(view) === roomId) this.minimise();
       live.get(roomId)?.();
       live.delete(roomId);
       emit();
+    },
+
+    onLeave(cb) {
+      leaveListeners.add(cb);
+      return () => void leaveListeners.delete(cb);
     },
 
     follow(participantId) {
