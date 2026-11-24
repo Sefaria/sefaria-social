@@ -4,6 +4,7 @@ import { Controls } from "./Controls";
 import { Pill } from "./Pill";
 import { PreJoin } from "./PreJoin";
 import { Tiles } from "./Tiles";
+import { usePaused } from "./use-paused";
 import { useCallController, useCallView, useParticipants } from "./use-call";
 import styles from "./av.module.css";
 
@@ -17,12 +18,24 @@ export function CallPanel() {
   const controller = useCallController();
   const view = useCallView(controller);
   const participants = useParticipants(controller);
+  const { paused, resume } = usePaused(controller);
   if (!controller || view.kind === "off") return null;
   const media = controller.media();
 
   const mic = view.kind === "in-call" ? view.mic : null;
+  const pausedNotice = paused ? (
+    <div role="status" data-call-paused="">
+      <span>{t.callPaused}</span>{" "}
+      <button type="button" data-action="resume-call" onClick={resume}>
+        {t.resume}
+      </button>
+    </div>
+  ) : null;
   return (
-    <CallFrame pill={(expand) => <Pill controller={controller} participants={participants} mic={mic} onExpand={expand} />}>
+    <CallFrame
+      notice={pausedNotice}
+      pill={(expand) => <Pill controller={controller} participants={participants} mic={mic} onExpand={expand} />}
+    >
       <section data-social-call={view.kind} aria-label={t.call} className={styles.panel}>
         {view.kind === "prejoin" && <PreJoin controller={controller} devices={view.devices} />}
         {view.kind === "connecting" && (
@@ -33,6 +46,7 @@ export function CallPanel() {
         )}
         {view.kind === "in-call" && (
           <>
+            {pausedNotice}
             <Tiles controller={controller} participants={participants} />
             {media?.audioBlocked() && (
               <button type="button" data-action="start-audio" onClick={() => void media.startAudio()}>

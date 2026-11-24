@@ -35,9 +35,9 @@ export function CallStrip({
         className={`${styles.strip} ${collapsed ? styles.collapsed : ""}`}
         style={{ top: insets.top, left: 0, right: 0, height: collapsed ? 48 : undefined }}
       >
-        {notice}
         {collapsed ? (
           <div className={styles.bar}>
+            {notice /* expanded, the panel shows it */}
             {pill(() => setExpanded(true))}
             <button type="button" data-action="leave-call" className={styles.leave} onClick={() => void controller?.leave()}>
               {t.leaveCall}

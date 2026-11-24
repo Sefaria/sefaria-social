@@ -2075,7 +2075,7 @@
       "area": "sess",
       "name": "The call on a phone: a docked strip",
       "description": "Below 600px the call is a full-width strip under the top inset: 48px collapsed (avatars, speaking, microphone, Leave, Expand; no video received), the active speaker at 16:9 when expanded. Rotating switches between strip and window without touching the call. After the browser pauses a background tab, one Resume button restarts audio.",
-      "status": "planned",
+      "status": "built",
       "spec": "037",
       "acs": [
         "037/AC-001",
@@ -2088,7 +2088,10 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/surface/call-strip.test.tsx",
+        "e2e/calls.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
