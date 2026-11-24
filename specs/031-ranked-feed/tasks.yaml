@@ -1,0 +1,18 @@
+- id: T-001
+  title: Rank For you and the conversation
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "app/src/server/services/ranking.ts"
+    - "app/src/server/services/ranking.test.ts"
+    - "app/src/server/services/posts.ts"
+    - "app/src/server/api/contracts.ts"
+    - "packages/api-client/**"
+    - "app/src/features/post/Timeline.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/api.ranking.int.test.ts"
+    - "app/src/api.posts.int.test.ts"
+    - "docs/features/**"
+  depends_on: []
+  parallel: false
+  verify: ["npm test", "npm run test:integration"]
+  completes: [FEED-072, FEED-073]

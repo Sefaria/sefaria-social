@@ -42,12 +42,13 @@ export class SocialApiError extends Error {
 
 export interface SocialApi {
   timeline(tab: TimelineTab, before?: string): Promise<Timeline>;
-  createPost(input: { body: string; ref?: string; asProfileId?: string }): Promise<Post>;
+  createPost(input: { body: string; ref?: string; asProfileId?: string; quotedPostId?: string }): Promise<Post>;
   getPost(postId: string): Promise<PostWithReplies>;
   deletePost(postId: string): Promise<void>;
   reply(postId: string, body: string): Promise<Reply>;
   deleteReply(replyId: string): Promise<void>;
   react(postId: string, on: boolean): Promise<{ reacted: boolean; reactionCount: number }>;
+  repost(postId: string, on: boolean): Promise<{ reposted: boolean; repostCount: number }>;
   me(): Promise<MyProfile>;
   updateMe(input: { name?: string; bio?: string }): Promise<MyProfile>;
   profile(profileId: string): Promise<ProfileWithPosts>;
@@ -100,6 +101,12 @@ export function createSocialApi(host: SurfaceHost): SocialApi {
       const init = { params: { path: { postId } } };
       return unwrap(
         on ? await c.PUT("/api/v1/posts/{postId}/reaction", init) : await c.DELETE("/api/v1/posts/{postId}/reaction", init),
+      );
+    },
+    async repost(postId, on) {
+      const init = { params: { path: { postId } } };
+      return unwrap(
+        on ? await c.PUT("/api/v1/posts/{postId}/repost", init) : await c.DELETE("/api/v1/posts/{postId}/repost", init),
       );
     },
     async me() {

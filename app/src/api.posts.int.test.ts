@@ -83,8 +83,10 @@ describe("spec 023: posts and the timeline", () => {
     const following = await h.call("GET", "/api/v1/timeline?tab=following", { token: viewer });
     expect(following.status).toBe(200);
     expect((following.json as { posts: Post[] }).posts.map((p) => p.body)).toEqual(["viewer 1", "teacher 1"]);
+    // Everyone is "For you" since spec 031: every post, ranked for the viewer (in-network ahead of a stranger's when nothing
+    // else tells them apart), still 20 a page with a cursor
     const everyone = await h.call("GET", "/api/v1/timeline?tab=everyone", { token: viewer });
-    expect((everyone.json as { posts: Post[] }).posts.map((p) => p.body)).toEqual(["viewer 1", "stranger 1", "teacher 1"]);
+    expect((everyone.json as { posts: Post[] }).posts.map((p) => p.body)).toEqual(["viewer 1", "teacher 1", "stranger 1"]);
 
     for (let i = 0; i < 22; i++) await post(h, viewer, { body: `page ${i}` });
     const first = (await h.call("GET", "/api/v1/timeline?tab=everyone", { token: viewer })).json as {
@@ -92,20 +94,22 @@ describe("spec 023: posts and the timeline", () => {
       nextCursor: string | null;
     };
     expect(first.posts).toHaveLength(20);
-    expect(first.posts[0]!.body).toBe("page 21");
     expect(first.nextCursor).toBeTypeOf("string");
     const second = (await h.call("GET", `/api/v1/timeline?tab=everyone&before=${first.nextCursor}`, { token: viewer })).json as {
       posts: Post[];
       nextCursor: string | null;
     };
-    expect(second.posts.map((p) => p.body)).toEqual(["page 1", "page 0", "viewer 1", "stranger 1", "teacher 1"]);
+    const all = [...first.posts, ...second.posts].map((p) => p.body);
+    expect(all).toHaveLength(25);
+    expect(new Set(all).size).toBe(25);
+    expect(all).not.toContain("deleted");
     expect(second.nextCursor).toBeNull();
     expect((await h.call("GET", "/api/v1/timeline?tab=nope", { token: viewer })).status).toBe(400);
   });
 
   // @feature FEED-062 A post's own page and deleting a post
   // @ac 023/AC-003
-  it("reads one post with its replies oldest first; only its author deletes it; a deleted post is 404", async () => {
+  it("reads one post with its replies (the author's own first, spec 031); only its author deletes it; a deleted post is 404", async () => {
     expect(served("GET", "/api/v1/posts/$postId"), "GET /api/v1/posts/$postId is served").toBeTypeOf("function");
     const h = await load();
     const author = await h.token(4242, { name: "Author" });
@@ -116,7 +120,7 @@ describe("spec 023: posts and the timeline", () => {
     const read = await h.call("GET", `/api/v1/posts/${p.id}`, { token: reader });
     expect(read.status).toBe(200);
     const data = read.json as { post: Post; replies: { body: string }[] };
-    expect([data.post.replyCount, data.post.canDelete, data.replies.map((r) => r.body)]).toEqual([2, false, ["first", "second"]]);
+    expect([data.post.replyCount, data.post.canDelete, data.replies.map((r) => r.body)]).toEqual([2, false, ["second", "first"]]);
     const refused = await h.call("DELETE", `/api/v1/posts/${p.id}`, { token: reader });
     expect([refused.status, (refused.json as { error: { code: string } }).error.code]).toEqual([403, "post.forbidden"]);
     expect((await h.call("DELETE", `/api/v1/posts/${p.id}`, { token: author })).status).toBe(204);

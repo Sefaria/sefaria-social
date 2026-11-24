@@ -13,6 +13,7 @@ import {
   profiles,
   reactions,
   replies,
+  reposts,
   roomMembers,
   rooms,
   userDisplay,
@@ -52,6 +53,18 @@ export const Seed = z.strictObject({
         createdByUserId: z.int().positive(),
         body: z.string().min(1),
         ref: z.string().optional(),
+        /** A quote (spec 030): the post it quotes, listed earlier in the file. */
+        quotedPostId: z.uuid().optional(),
+        minutesAgo: z.int().nonnegative(),
+      }),
+    )
+    .default([]),
+  reposts: z
+    .array(
+      z.strictObject({
+        postId: z.uuid(),
+        profileId: z.uuid(),
+        createdByUserId: z.int().positive(),
         minutesAgo: z.int().nonnegative(),
       }),
     )
@@ -125,8 +138,14 @@ export async function seedScenario(db: Db, raw: unknown): Promise<void> {
           createdByUserId: p.createdByUserId,
           body: p.body,
           ref: p.ref ?? null,
+          quotedPostId: p.quotedPostId ?? null,
           createdAt: ago(p.minutesAgo),
         })
+        .onConflictDoNothing();
+    for (const r of seed.reposts)
+      await tx
+        .insert(reposts)
+        .values({ postId: r.postId, profileId: r.profileId, createdByUserId: r.createdByUserId, createdAt: ago(r.minutesAgo) })
         .onConflictDoNothing();
     for (const r of seed.replies)
       await tx

@@ -168,3 +168,93 @@ a.time:hover {
 .source [data-source-text="unavailable"] {
   display: none;
 }
+
+/* Reposts and quotes (spec 030). "X reposted" sits above the post, aligned with its text; a quoted post is the one boxed thing
+   in a post, a quiet outline, so it reads as someone else's words carried inside this one. */
+.repostedBy {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 calc(-1 * var(--sefaria-space-2, 8px));
+  padding-inline-start: 22px;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-family: var(--sefaria-font-ui-en, "Roboto", sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.repostedBy a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.repostedBy a:hover {
+  text-decoration: underline;
+}
+
+.repost[aria-pressed="true"] svg {
+  color: var(--sefaria-color-success, #3e8b3a);
+}
+
+.quoted {
+  display: grid;
+  gap: 4px;
+  padding: var(--sefaria-space-3, 12px);
+  border: 1px solid var(--sefaria-color-border, #e6e6e6);
+  border-radius: var(--sefaria-radius-lg, 12px);
+  color: var(--sefaria-color-text, #121212);
+  text-decoration: none;
+}
+
+a.quoted:hover {
+  background: var(--sefaria-color-surface-subtle, #fbfbfa);
+}
+
+a.quoted:focus-visible {
+  outline: 2px solid var(--sefaria-color-brand, #18345d);
+  outline-offset: 2px;
+}
+
+.quotedGone {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 14px;
+}
+
+.quotedHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.quotedAuthor {
+  font-weight: 700;
+}
+
+.quotedBody {
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.quotedRef {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 13px;
+}
+
+.quoteForm {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.quotedNote {
+  margin: 0;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 13px;
+}

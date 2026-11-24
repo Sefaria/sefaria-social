@@ -3,7 +3,7 @@
 // a user id is covered by the deletion in services/users.ts, and the walk-the-schema test fails if one is not.
 // Changing this file: run `npm run db:generate` and commit the new migration (expand, deploy, contract; see migration-rules.ts).
 import { sql } from "drizzle-orm";
-import { bigint, index, integer, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, index, integer, pgTable, primaryKey, text, timestamp, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 const userId = (name: string) => bigint(name, { mode: "number" });
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -154,6 +154,8 @@ export const posts = pgTable(
     body: text("body").notNull(),
     /** A source citation ("Genesis 1:3"); never library text. */
     ref: text("ref"),
+    /** A quote (spec 030): the post this one quotes. Kept when the quoted post is deleted (it shows as unavailable). */
+    quotedPostId: uuid("quoted_post_id").references((): AnyPgColumn => posts.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
@@ -161,6 +163,27 @@ export const posts = pgTable(
     index("posts_author_created_idx").on(t.authorProfileId, t.createdAt),
     index("posts_created_idx").on(t.createdAt),
     index("posts_created_by_idx").on(t.createdByUserId),
+    index("posts_quoted_idx").on(t.quotedPostId),
+  ],
+);
+
+/** A repost (spec 030): a profile shares a post, unchanged, with its followers. One per profile per post. */
+export const reposts = pgTable(
+  "reposts",
+  {
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdByUserId: userId("created_by_user_id").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.postId, t.profileId] }),
+    index("reposts_profile_created_idx").on(t.profileId, t.createdAt),
+    index("reposts_created_by_idx").on(t.createdByUserId),
   ],
 );
 

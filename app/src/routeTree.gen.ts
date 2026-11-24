@@ -34,6 +34,7 @@ import { Route as ApiV1RepliesReplyIdRouteImport } from './routes/api/v1/replies
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
 import { Route as ApiV1PostsPostIdReactionRouteImport } from './routes/api/v1/posts.$postId.reaction'
 import { Route as ApiV1PostsPostIdRepliesRouteImport } from './routes/api/v1/posts.$postId.replies'
+import { Route as ApiV1PostsPostIdRepostRouteImport } from './routes/api/v1/posts.$postId.repost'
 import { Route as ApiV1ProfilesProfileIdFollowRouteImport } from './routes/api/v1/profiles.$profileId.follow'
 import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/rooms.$roomId.members'
 import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
@@ -166,6 +167,11 @@ const ApiV1PostsPostIdRepliesRoute = ApiV1PostsPostIdRepliesRouteImport.update({
   path: '/replies',
   getParentRoute: () => ApiV1PostsPostIdRoute,
 } as any)
+const ApiV1PostsPostIdRepostRoute = ApiV1PostsPostIdRepostRouteImport.update({
+  id: '/repost',
+  path: '/repost',
+  getParentRoute: () => ApiV1PostsPostIdRoute,
+} as any)
 const ApiV1ProfilesProfileIdFollowRoute =
   ApiV1ProfilesProfileIdFollowRouteImport.update({
     id: '/follow',
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
+  '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
+  '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
+  '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
+    | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
+    | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
+    | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
@@ -577,6 +589,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1PostsPostIdRepliesRouteImport
       parentRoute: typeof ApiV1PostsPostIdRoute
     }
+    '/api/v1/posts/$postId/repost': {
+      id: '/api/v1/posts/$postId/repost'
+      path: '/repost'
+      fullPath: '/api/v1/posts/$postId/repost'
+      preLoaderRoute: typeof ApiV1PostsPostIdRepostRouteImport
+      parentRoute: typeof ApiV1PostsPostIdRoute
+    }
     '/api/v1/profiles/$profileId/follow': {
       id: '/api/v1/profiles/$profileId/follow'
       path: '/follow'
@@ -622,11 +641,13 @@ const ApiV1NotificationsRouteWithChildren =
 interface ApiV1PostsPostIdRouteChildren {
   ApiV1PostsPostIdReactionRoute: typeof ApiV1PostsPostIdReactionRoute
   ApiV1PostsPostIdRepliesRoute: typeof ApiV1PostsPostIdRepliesRoute
+  ApiV1PostsPostIdRepostRoute: typeof ApiV1PostsPostIdRepostRoute
 }
 
 const ApiV1PostsPostIdRouteChildren: ApiV1PostsPostIdRouteChildren = {
   ApiV1PostsPostIdReactionRoute: ApiV1PostsPostIdReactionRoute,
   ApiV1PostsPostIdRepliesRoute: ApiV1PostsPostIdRepliesRoute,
+  ApiV1PostsPostIdRepostRoute: ApiV1PostsPostIdRepostRoute,
 }
 
 const ApiV1PostsPostIdRouteWithChildren =
