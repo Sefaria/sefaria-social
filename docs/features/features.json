@@ -2089,8 +2089,7 @@
       ],
       "depends_on": {},
       "tests": [
-        "app/src/surface/call-strip.test.tsx",
-        "e2e/calls.spec.ts"
+        "app/src/surface/call-strip.test.tsx"
       ],
       "since": null,
       "changed": []
