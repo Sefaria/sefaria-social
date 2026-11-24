@@ -74,17 +74,35 @@ const videoArrived = (page: Page, identity: string) =>
     )
     .toBeGreaterThan(0);
 
-/** Some remote audio is playing in this page. */
-const audioPlaying = (page: Page) =>
-  expect
-    .poll(
-      () =>
-        page.evaluate(() =>
-          [...document.querySelectorAll("audio")].some((a) => !a.paused && a.srcObject !== null && a.currentTime > 0),
-        ),
-      { timeout: 20_000 },
-    )
-    .toBe(true);
+/**
+ * Some remote audio is playing in this page. A browser that blocked autoplay shows the call's "Start audio" button; the
+ * learner presses it, as a person would. On failure the message lists every audio element's state.
+ */
+const audioPlaying = async (page: Page) => {
+  const state = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll("audio")].map((a) => ({
+        paused: a.paused,
+        stream: a.srcObject !== null,
+        time: Math.round(a.currentTime * 10) / 10,
+        ready: a.readyState,
+      })),
+    );
+  try {
+    await expect
+      .poll(
+        async () => {
+          const start = page.locator('[data-action="start-audio"]');
+          if (await start.isVisible().catch(() => false)) await start.click();
+          return (await state()).some((a) => !a.paused && a.stream && a.time > 0);
+        },
+        { timeout: 20_000 },
+      )
+      .toBe(true);
+  } catch (e) {
+    throw new Error(`no remote audio is playing; audio elements: ${JSON.stringify(await state())}`, { cause: e });
+  }
+};
 
 test.describe("a room's call", () => {
   // @feature OPS-095 Two-browser call journey on a local LiveKit
