@@ -4332,6 +4332,128 @@
           }
         ]
       }
+    },
+    "/api/v1/internal/livekit/webhook": {
+      "post": {
+        "operationId": "livekitWebhook",
+        "summary": "LiveKit's webhook (spec 038): joins, leaves and finished rooms keep each room's call status. Authenticated by a LiveKit-signed Authorization header over the raw body.",
+        "tags": [
+          "internal"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "room": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "maxLength": 300
+                      },
+                      "numParticipants": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "event",
+                  "id"
+                ],
+                "additionalProperties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Processed, already processed, or an event or room social ignores.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "processed",
+                        "duplicate",
+                        "ignored"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request does not match the schema (request.invalid).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than 64 KiB (request.too_large).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A dependency is unavailable (auth.unavailable, webhook.unavailable).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "livekitSignature": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -4374,6 +4496,12 @@
         "in": "header",
         "name": "X-Sefaria-Signature",
         "description": "sha256=<hex HMAC-SHA256 of the raw body>, for Django's webhooks."
+      },
+      "livekitSignature": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "A JWT signed with the LiveKit API secret whose sha256 claim is the raw body's hash, for LiveKit's webhooks."
       }
     }
   }

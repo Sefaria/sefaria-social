@@ -3,7 +3,18 @@
 // a user id is covered by the deletion in services/users.ts, and the walk-the-schema test fails if one is not.
 // Changing this file: run `npm run db:generate` and commit the new migration (expand, deploy, contract; see migration-rules.ts).
 import { sql } from "drizzle-orm";
-import { bigint, index, integer, pgTable, primaryKey, text, timestamp, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  boolean,
+  index,
+  integer,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+  type AnyPgColumn,
+} from "drizzle-orm/pg-core";
 
 const userId = (name: string) => bigint(name, { mode: "number" });
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -82,6 +93,20 @@ export const userDisplay = pgTable("user_display", {
   userId: userId("user_id").primaryKey(),
   name: text("name").notNull(),
   img: text("img"),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * A room's call as LiveKit last reported it (spec 038): from its webhooks, so cards and the lobby can say "N on a call" without
+ * opening a socket. Holds no user ids.
+ */
+export const callStatus = pgTable("call_status", {
+  roomId: uuid("room_id")
+    .primaryKey()
+    .references(() => rooms.id, { onDelete: "cascade" }),
+  live: boolean("live").notNull().default(false),
+  participants: integer("participants").notNull().default(0),
+  startedAt: timestamp("started_at", { withTimezone: true }),
   updatedAt: updatedAt(),
 });
 

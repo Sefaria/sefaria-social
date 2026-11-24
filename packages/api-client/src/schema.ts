@@ -34,6 +34,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/internal/livekit/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** LiveKit's webhook (spec 038): joins, leaves and finished rooms keep each room's call status. Authenticated by a LiveKit-signed Authorization header over the raw body. */
+        post: operations["livekitWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/internal/user-deleted": {
         parameters: {
             query?: never;
@@ -517,6 +534,80 @@ export interface operations {
                         /** @enum {string} */
                         status: "ok" | "unavailable";
                     };
+                };
+            };
+        };
+    };
+    livekitWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    event: string;
+                    id: string;
+                    room?: {
+                        name?: string;
+                        numParticipants?: number;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Processed, already processed, or an event or room social ignores. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "processed" | "duplicate" | "ignored";
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The request body is larger than 64 KiB (request.too_large). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
         };

@@ -57,7 +57,14 @@ function operation(e: EndpointSpec & { access: string }): Json {
       content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
     };
   op.responses = responses;
-  op.security = e.access === "user" ? [{ sefariaToken: [] }] : e.access === "sefaria-webhook" ? [{ sefariaSignature: [] }] : [];
+  op.security =
+    e.access === "user"
+      ? [{ sefariaToken: [] }]
+      : e.access === "sefaria-webhook"
+        ? [{ sefariaSignature: [] }]
+        : e.access === "livekit-webhook"
+          ? [{ livekitSignature: [] }]
+          : [];
   return op;
 }
 
@@ -87,6 +94,13 @@ export function buildOpenApi(endpoints: readonly (EndpointSpec & { access: strin
           in: "header",
           name: "X-Sefaria-Signature",
           description: "sha256=<hex HMAC-SHA256 of the raw body>, for Django's webhooks.",
+        },
+        livekitSignature: {
+          type: "apiKey",
+          in: "header",
+          name: "Authorization",
+          description:
+            "A JWT signed with the LiveKit API secret whose sha256 claim is the raw body's hash, for LiveKit's webhooks.",
         },
       },
     },

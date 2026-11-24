@@ -58,7 +58,10 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       profile!.id,
       post!.id,
     ]);
+    // spec 038: the room's call status (no user id, but every table must be seeded)
+    await sql("insert into call_status (room_id, live, participants, started_at) values ($1, true, 2, now())", [room!.id]);
     for (const t of [
+      "call_status",
       "user_display",
       "rooms",
       "room_members",

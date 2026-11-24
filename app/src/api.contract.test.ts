@@ -73,6 +73,7 @@ describe("spec 007: API contract", () => {
       "GET /api/v1/timeline getTimeline secured",
       "PATCH /api/v1/profiles/me updateMyProfile secured",
       "PATCH /api/v1/rooms/{roomId} renameRoom secured",
+      "POST /api/v1/internal/livekit/webhook livekitWebhook secured",
       "POST /api/v1/internal/user-deleted userDeletedWebhook secured",
       "POST /api/v1/notifications/read readNotifications secured",
       "POST /api/v1/posts createPost secured",

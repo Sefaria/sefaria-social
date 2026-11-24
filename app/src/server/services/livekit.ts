@@ -1,7 +1,7 @@
 // LiveKit, the media server for room calls (spec 033; design docs/design/audio-video.md 5.1–5.2). The only module that
 // imports livekit-server-sdk. The API key and secret stay here: a browser only ever receives a short-lived token for one
 // room. Tokens are bearer credentials for the media server; never log them or pass them anywhere but the response.
-import { AccessToken, TrackSource } from "livekit-server-sdk";
+import { AccessToken, TrackSource, WebhookReceiver } from "livekit-server-sdk";
 import { getConfig } from "../config";
 
 /** How long a call token is valid. LiveKit checks it only when a client connects, so this does not cut a live call. */
@@ -71,4 +71,21 @@ function expiryOf(jwt: string): number {
   const payload = JSON.parse(Buffer.from(jwt.split(".")[1] ?? "", "base64url").toString("utf8")) as { exp?: unknown };
   if (typeof payload.exp !== "number") throw new Error("LiveKit token has no exp");
   return payload.exp;
+}
+
+/**
+ * Is this webhook body signed by our LiveKit project (spec 038)? The Authorization header is a JWT signed with the API secret
+ * whose sha256 claim is the body's hash. Checked with LiveKit's own receiver. Needs only the key and secret, not CALLS_ENABLED:
+ * a call that started before calls were switched off still reports its end.
+ */
+export async function verifyLivekitWebhook(raw: string, authorization: string | null): Promise<boolean | "unconfigured"> {
+  const c = getConfig();
+  if (!c.LIVEKIT_API_KEY || !c.LIVEKIT_API_SECRET) return "unconfigured";
+  if (!authorization) return false;
+  try {
+    await new WebhookReceiver(c.LIVEKIT_API_KEY, c.LIVEKIT_API_SECRET).receive(raw, authorization.replace(/^Bearer\s+/i, ""));
+    return true;
+  } catch {
+    return false;
+  }
 }
