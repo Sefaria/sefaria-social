@@ -121,7 +121,7 @@
       "area": "api",
       "name": "Owner mutes or removes a call participant",
       "description": "POST .../call/mute and .../call/remove, owner only (403 member, 404 outsider, 503 when calls are off), through LiveKit server API; removal keeps them in the room and refuses their call tokens for 15 minutes (call_removals).",
-      "status": "planned",
+      "status": "built",
       "spec": "039",
       "acs": [
         "039/AC-001",
@@ -135,7 +135,9 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.moderation.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
