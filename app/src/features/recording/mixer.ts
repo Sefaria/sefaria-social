@@ -23,6 +23,9 @@ export function createMixer(
   const ctx: MixerAudioContext = opts.audioContext ?? (new AudioContext() as unknown as MixerAudioContext);
   const makeStream = opts.makeStream ?? ((tracks: MediaStreamTrack[]) => new MediaStream(tracks));
   const destination = ctx.createMediaStreamDestination();
+  // A destination with nothing connected produces no samples, and a MediaRecorder holding its track then writes nothing at
+  // all (it waits for audio): a constant source through a zero gain keeps the track running when nobody's audio is mixed.
+  const silence = keepRunning(ctx, destination);
   const sources = new Map<string, { disconnect(): void }>();
   let disposed = false;
   return {
@@ -47,7 +50,25 @@ export function createMixer(
       disposed = true;
       for (const source of sources.values()) source.disconnect();
       sources.clear();
+      silence?.stop();
       void ctx.close().catch(() => undefined);
     },
   };
+}
+
+/** Feeds silence into the destination where the context can (real Web Audio); a test fake without it is left alone. */
+function keepRunning(ctx: MixerAudioContext, destination: unknown): { stop(): void } | null {
+  const c = ctx as Partial<{
+    createConstantSource(): { offset: { value: number }; connect(n: unknown): unknown; start(): void; stop(): void };
+    createGain(): { gain: { value: number }; connect(n: unknown): unknown };
+  }>;
+  if (typeof c.createConstantSource !== "function" || typeof c.createGain !== "function") return null;
+  const source = c.createConstantSource();
+  const gain = c.createGain();
+  source.offset.value = 0;
+  gain.gain.value = 0;
+  source.connect(gain);
+  gain.connect(destination);
+  source.start();
+  return { stop: () => source.stop() };
 }
