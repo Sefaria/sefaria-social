@@ -1,7 +1,8 @@
 // A post that shares a follow-me link (spec 032): the source it shows is where the session's leader is now, not where the link
 // was made. The card opens no socket (plan 4.5): while it is on screen and the tab is visible it asks the social API every
 // LIVE_POLL_MS, and the server asks the relay at most once per session per few seconds for every viewer. "Join the shiur"
-// sends the reader to the leader's place with the link's `follow` parameter, which the reader's follow me joins on arrival.
+// opens the leader's place beside the feed, like any source link (contract 1.1 openBeside; a 1.0 reader goes there instead), with
+// the link's `follow` parameter, which the reader's follow me joins on arrival; the text follows the leader in its pane.
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useSocialApi, type FollowStatus, type Post } from "~/features/api/social-api";
 import { useHost, useInterfaceLang } from "~/features/host/host-context";
@@ -65,7 +66,9 @@ export function LiveFollow({ post, sessionId }: { post: Post; sessionId: string 
   const join = (e: MouseEvent<HTMLAnchorElement>) => {
     if (!host || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
-    host.navigate(joinHref); // a push: Back leaves the session's place and returns to the feed
+    // beside the feed like any source (a history entry: Back, or the text's close, returns to the feed); a 1.0 reader goes there
+    if (host.openBeside) host.openBeside(joinHref);
+    else host.navigate(joinHref);
   };
 
   const state = status === null ? "waiting" : live ? "live" : "ended";

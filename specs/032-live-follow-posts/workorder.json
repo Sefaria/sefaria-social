@@ -3,7 +3,7 @@
   "spec": "032",
   "title": "A live shiur in the feed — share a follow-me link and the post follows the leader",
   "approved": false,
-  "spec_sha": "sha256:3b4fb3f6c6580381d8ae661e46f522f37ed416a002033ff5c50fb909bc900b72",
+  "spec_sha": "sha256:3ba7f36fab6bbfde326f8a36403fc3e7b97a8081e3dfb0043690aea696405efc",
   "feature_sha": "sha256:2f7fb212ba8dd1b6a7dfb565fe951f806e212b48fd4575c8996e00db4802eb90",
   "tasks_sha": "sha256:e0cde0be8c8c371c38dad56a5c87285a007fd25ad703b83c3b9acb45153d02c4",
   "risk": "high",
@@ -86,7 +86,7 @@
     },
     {
       "ac": "AC-004",
-      "text": "The post card SHALL show a shared session as a live source: \"Live\", who is learning and how many, the leader's current source with its text, updated while the card is on screen and the tab is visible (no socket), and \"Join the shiur\", which pushes the reader to the leader's place with the link's `follow` parameter so the reader's follow me joins. Once the session has ended the card says so, shows the post's own source and offers no join.",
+      "text": "The post card SHALL show a shared session as a live source: \"Live\", who is learning and how many, the leader's current source with its text, updated while the card is on screen and the tab is visible (no socket), and \"Join the shiur\", which opens the leader's place beside the feed like any source link (contract 1.1 openBeside; a 1.0 reader goes there) with the link's `follow` parameter, so the reader's follow me joins and the text follows the leader in its pane. Once the session has ended the card says so, shows the post's own source and offers no join.",
       "scenarios": [
         "AC-004 the card follows the leader and joins the shiur"
       ],

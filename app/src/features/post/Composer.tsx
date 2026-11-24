@@ -2,6 +2,7 @@
 // pre-filled with what the reader has open — and "Post as" for the institutions the viewer runs. One primary button, disabled
 // until there is something to say; the count appears near the limit.
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { refFromReaderUrl } from "~/lib/follow-link";
 import type { Post } from "~/features/api/social-api";
 import { useSocialApi } from "~/features/api/social-api";
 import { useHost } from "~/features/host/host-context";
@@ -21,7 +22,8 @@ function readingRef(host: ReturnType<typeof useHost>): string {
   if (!host) return "";
   try {
     const url = host.reader.state.getSnapshot().url;
-    if (url.startsWith("/social")) return "";
+    // a social page, or a reader page that is not a text (the library, a topic: a followed shiur can be there), names no source
+    if (!refFromReaderUrl(url)) return "";
     return summaryOf(url, host.reader.commands)?.ref ?? "";
   } catch {
     return "";

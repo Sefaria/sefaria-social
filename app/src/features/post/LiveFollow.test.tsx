@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // Spec 032 AC-004: a post sharing a follow-me link shows where the session's leader is now (asking the API, no socket), follows
-// them when they move, offers "Join the shiur" (the reader address with `follow=<id>`, pushed through host.navigate), and
+// them when they move, offers "Join the shiur" (the reader address with `follow=<id>`, opened beside the feed through
+// host.openBeside, or pushed through host.navigate on a 1.0 reader), and
 // says when the session has ended. Loaded through import.meta.glob, so on a base without it the first assertion fails.
 // @feature FEED-075 Join a live shiur from the feed
 import { act, createElement } from "react";
@@ -34,12 +35,12 @@ const texts: TextSource = {
 
 type Status = { live: boolean; away?: boolean; ref: string | null; leader: string | null; participants: number };
 
-async function mount(answers: Status[]) {
+async function mount(answers: Status[], besideSupported = true) {
   expect(liveModules["./LiveFollow.tsx"], "features/post/LiveFollow.tsx exists").toBeDefined();
   const { LiveFollow } = await liveModules["./LiveFollow.tsx"]!();
   const { SocialApiContext } = await apiModules["../api/social-api.ts"]!();
   const followStatus = vi.fn(async () => (answers.length > 1 ? answers.shift()! : answers[0]!));
-  const fake = createFakeHost();
+  const fake = createFakeHost({ besideSupported });
   const post = { id: "p1", body: "Join me", ref: "Exodus 3:1", followSessionId: SESSION } as SocialApiModule.Post;
   const el = document.createElement("div");
   document.body.append(el);
@@ -67,7 +68,7 @@ async function mount(answers: Status[]) {
 
 describe("a shared follow-me session on the card", () => {
   // @ac 032/AC-004
-  it("shows the leader's place now, follows them when they move, and joins through the reader's follow link", async () => {
+  it("shows the leader's place now, follows them when they move, and joins beside the feed through the reader's follow link", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const { el, fake, followStatus, LIVE_POLL_MS } = await mount([
       { live: true, ref: "Exodus 3:2", leader: "Rav Levi", participants: 4 },
@@ -91,7 +92,16 @@ describe("a shared follow-me session on the card", () => {
 
     const joinNow = el.querySelector<HTMLAnchorElement>("[data-follow-join]")!;
     await act(async () => joinNow.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 })));
-    expect(fake.calls.navigate.at(-1)?.to).toBe(joinNow.getAttribute("href"));
+    expect(fake.calls.openBeside).toEqual([joinNow.getAttribute("href")]);
+    expect(fake.calls.navigate).toEqual([]);
+  });
+
+  // @ac 032/AC-004
+  it("on a reader without openBeside (contract 1.0), joining goes to the leader's place", async () => {
+    const { el, fake } = await mount([{ live: true, ref: "Exodus 3:2", leader: "Rav Levi", participants: 2 }], false);
+    const join = el.querySelector<HTMLAnchorElement>("[data-follow-join]")!;
+    await act(async () => join.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 })));
+    expect(fake.calls.navigate.at(-1)?.to).toBe(join.getAttribute("href"));
     expect(fake.calls.navigate.at(-1)?.replace ?? false).toBe(false);
   });
 

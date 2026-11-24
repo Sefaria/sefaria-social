@@ -30,7 +30,7 @@ reader, in the room, following the shiur.
   `live: false` with nothing else; a missing or deleted post, or one without a session, is 404; without a token, 401.
 - AC-004 The post card SHALL show a shared session as a live source: "Live", who is learning and how many, the leader's
   current source with its text, updated while the card is on screen and the tab is visible (no socket), and "Join the
-  shiur", which pushes the reader to the leader's place with the link's `follow` parameter so the reader's follow me joins.
+  shiur", which opens the leader's place beside the feed like any source link (contract 1.1 openBeside; a 1.0 reader goes there) with the link's `follow` parameter, so the reader's follow me joins and the text follows the leader in its pane.
   Once the session has ended the card says so, shows the post's own source and offers no join.
 
 ## Out of scope
