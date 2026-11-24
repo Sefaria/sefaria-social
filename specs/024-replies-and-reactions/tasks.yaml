@@ -1,0 +1,18 @@
+- id: T-001
+  title: Replies and Yasher koach, API and interface
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "app/src/server/services/posts.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/posts.$postId.replies.ts"
+    - "app/src/routes/api/v1/posts.$postId.reaction.ts"
+    - "app/src/routes/api/v1/replies.$replyId.ts"
+    - "app/src/routeTree.gen.ts"
+    - "packages/api-client/**"
+    - "app/src/features/post/**"
+    - "app/src/api.posts.int.test.ts"
+    - "e2e/social.spec.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration", "npm run typecheck", "npm run test:e2e"]
+  completes: [FEED-064, FEED-065]

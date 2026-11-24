@@ -7,7 +7,7 @@ import { useViewer } from "~/features/host/use-viewer";
 import { langAttrs } from "~/features/shell/strings";
 import { useStrings } from "~/features/shell/use-strings";
 import { FeedCard, type CardItem } from "./FeedCard";
-import { FeedPage } from "./FeedPage";
+import { HomePage } from "./HomePage";
 import { useFeedApi, type Feed as FeedData } from "./feed-api";
 import styles from "./feed.module.css";
 
@@ -110,11 +110,7 @@ function Section({ id, title, empty, items }: { id: string; title: string; empty
   );
 }
 
-/** What `/social` renders in both route trees: the page frame of spec 000 with the feed inside it. */
+/** What `/social` renders in both route trees: the home page (spec 023), with the feed of spec 015 in its rail. */
 export function FeedRoutePage() {
-  return (
-    <FeedPage>
-      <Feed />
-    </FeedPage>
-  );
+  return <HomePage />;
 }

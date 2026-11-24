@@ -12,6 +12,12 @@ export type ErrorCode =
   | "room.not_found"
   | "room.forbidden"
   | "room.owner_cannot_leave"
+  | "post.not_found"
+  | "post.forbidden"
+  | "reply.not_found"
+  | "reply.forbidden"
+  | "profile.not_found"
+  | "follow.self"
   | "internal";
 
 const MESSAGES: Record<ErrorCode, string> = {
@@ -27,6 +33,12 @@ const MESSAGES: Record<ErrorCode, string> = {
   "room.not_found": "Room not found.",
   "room.forbidden": "Only the room's owner can do that.",
   "room.owner_cannot_leave": "The owner cannot leave their own room; delete it instead.",
+  "post.not_found": "Post not found.",
+  "post.forbidden": "Only the post's author can do that.",
+  "reply.not_found": "Reply not found.",
+  "reply.forbidden": "Only the reply's author can do that.",
+  "profile.not_found": "Profile not found.",
+  "follow.self": "You cannot follow yourself.",
   internal: "Something went wrong.",
 };
 

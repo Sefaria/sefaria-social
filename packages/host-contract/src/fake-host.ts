@@ -102,10 +102,14 @@ export interface FakeHostOptions {
    * local JWKS publishes, so the real server and relay accept them. Still rejects while signed out, like the reader.
    */
   token?: () => Promise<string>;
+  /** false: a contract 1.0 host, without openBeside (the surface must fall back to navigate). Default true. */
+  besideSupported?: boolean;
 }
 
 export interface FakeHostCalls {
   navigate: { to: string; replace: boolean; state: unknown }[];
+  /** Addresses the surface asked to open beside its page (contract 1.1 openBeside). The fake records them and stays put. */
+  openBeside: string[];
   refused: string[];
   href: string[];
   applied: { snapshot: ReaderSnapshot; ctx: ApplyContext }[];
@@ -176,7 +180,17 @@ export class SignedOutError extends Error {
 
 export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
   const history = opts.history ?? createMemoryFakeHistory(opts.url ?? "/social");
-  const calls: FakeHostCalls = { navigate: [], refused: [], href: [], applied: [], go: [], report: [], signIn: 0, tokens: 0 };
+  const calls: FakeHostCalls = {
+    navigate: [],
+    openBeside: [],
+    refused: [],
+    href: [],
+    applied: [],
+    go: [],
+    report: [],
+    signIn: 0,
+    tokens: 0,
+  };
   let viewer: Viewer = opts.viewer ?? null;
   const ui: HostUi = { interfaceLang: opts.ui?.interfaceLang ?? "english", theme: opts.ui?.theme ?? "light" };
   let slices: ReaderSnapshot["slices"] = { ...(opts.slices ?? {}) };
@@ -229,12 +243,26 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
   };
 
   const host: SurfaceHost = {
-    contract: { major: SURFACE_HOST_CONTRACT.major, minor: SURFACE_HOST_CONTRACT.minor },
+    contract: { major: SURFACE_HOST_CONTRACT.major, minor: opts.besideSupported === false ? 0 : SURFACE_HOST_CONTRACT.minor },
     location: {
       get: () => history.get(),
       subscribe: (cb) => history.subscribe(cb),
     },
     navigate,
+    // contract 1.1. The page mount's location stays on the surface's page while a text is open beside it, so the fake records the
+    // address and changes nothing; `besideSupported: false` builds a 1.0 host without it, to test the fallback.
+    ...(opts.besideSupported === false
+      ? {}
+      : {
+          openBeside(to: string) {
+            if (!isSameSite(to)) {
+              calls.refused.push(to);
+              calls.report.push({ kind: "error", name: "open-beside-refused", data: { to } });
+              return;
+            }
+            calls.openBeside.push(to);
+          },
+        }),
     href(to) {
       calls.href.push(to);
       return isSameSite(to) ? to : "#";

@@ -4,7 +4,22 @@
 import { eq, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import type { Db } from "../db/client";
-import { deletedUsers, roomMembers, rooms, shiurim, shiurRecordings, userDisplay } from "../db/schema";
+import {
+  deletedUsers,
+  follows,
+  notifications,
+  posts,
+  profileAdmins,
+  profiles,
+  reactions,
+  replies,
+  reposts,
+  roomMembers,
+  rooms,
+  shiurim,
+  shiurRecordings,
+  userDisplay,
+} from "../db/schema";
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 type Executor = Db | Tx;
@@ -26,6 +41,14 @@ export interface DeletionCounts {
   shiurim: number;
   rooms: number;
   user_display: number;
+  notifications: number;
+  reactions: number;
+  reposts: number;
+  follows: number;
+  replies: number;
+  posts: number;
+  profile_admins: number;
+  profiles: number;
 }
 
 /** The rooms a user is a member of (owned ones included), for telling the relay after a deletion commits. */
@@ -47,6 +70,19 @@ export async function deleteUserData(tx: Executor, userId: number, eventId: stri
   const taught = await tx.delete(shiurim).where(eq(shiurim.teacherUserId, userId)).returning({ id: shiurim.id });
   const owned = await tx.delete(rooms).where(eq(rooms.ownerUserId, userId)).returning({ id: rooms.id });
   const display = await tx.delete(userDisplay).where(eq(userDisplay.userId, userId)).returning({ id: userDisplay.userId });
+  // Social graph and posts (specs 023-026). The person profile's cascade removes its posts, replies, followers and the
+  // notifications it caused; posts and replies the user wrote as an institution go too.
+  const notified = await tx
+    .delete(notifications)
+    .where(eq(notifications.recipientUserId, userId))
+    .returning({ id: notifications.id });
+  const reacted = await tx.delete(reactions).where(eq(reactions.userId, userId)).returning({ id: reactions.postId });
+  const reposted = await tx.delete(reposts).where(eq(reposts.createdByUserId, userId)).returning({ id: reposts.postId });
+  const followed = await tx.delete(follows).where(eq(follows.followerUserId, userId)).returning({ id: follows.profileId });
+  const replied = await tx.delete(replies).where(eq(replies.createdByUserId, userId)).returning({ id: replies.id });
+  const wrote = await tx.delete(posts).where(eq(posts.createdByUserId, userId)).returning({ id: posts.id });
+  const admin = await tx.delete(profileAdmins).where(eq(profileAdmins.userId, userId)).returning({ id: profileAdmins.profileId });
+  const profile = await tx.delete(profiles).where(eq(profiles.userId, userId)).returning({ id: profiles.id });
   await tx.insert(deletedUsers).values({ userId, eventId }).onConflictDoNothing();
   return {
     room_members: memberships.length,
@@ -54,5 +90,13 @@ export async function deleteUserData(tx: Executor, userId: number, eventId: stri
     shiurim: taught.length,
     rooms: owned.length,
     user_display: display.length,
+    notifications: notified.length,
+    reactions: reacted.length,
+    reposts: reposted.length,
+    follows: followed.length,
+    replies: replied.length,
+    posts: wrote.length,
+    profile_admins: admin.length,
+    profiles: profile.length,
   };
 }

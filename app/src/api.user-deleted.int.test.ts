@@ -63,6 +63,14 @@ describe("spec 008: user-deleted webhook", () => {
     const { h, walk, seeded } = await setup();
     expect(await walk.uncoveredTables(h.sql, seeded), "every table is seeded").toEqual([]);
     const seededForA = [
+      "follows.follower_user_id: 1",
+      "notifications.recipient_user_id: 1",
+      "posts.created_by_user_id: 1",
+      "profile_admins.user_id: 1",
+      "profiles.user_id: 1",
+      "reactions.user_id: 1",
+      "replies.created_by_user_id: 1",
+      "reposts.created_by_user_id: 1",
       "room_members.user_id: 2",
       "rooms.owner_user_id: 1",
       "shiur_recordings.owner_user_id: 2",
@@ -81,8 +89,15 @@ describe("spec 008: user-deleted webhook", () => {
     expect(await h.sql("select event_type from webhook_receipts where event_id = 'evt-delete-a'")).toEqual([
       { event_type: "user.deleted" },
     ]);
-    // B keeps their own rows; only the links to A's room and A's shiur went with A's data.
+    // B keeps their own rows; only the links to A's room and A's shiur (and B's follow of, and reaction on, A's profile and
+    // post) went with A's data.
     expect(await walk.userValues(h.sql, B)).toEqual([
+      "notifications.recipient_user_id: 1",
+      "posts.created_by_user_id: 1",
+      "profile_admins.user_id: 1",
+      "profiles.user_id: 1",
+      "replies.created_by_user_id: 1",
+      "reposts.created_by_user_id: 1",
       "room_members.user_id: 1",
       "rooms.owner_user_id: 1",
       "shiur_recordings.owner_user_id: 1",
@@ -132,7 +147,7 @@ describe("spec 008: user-deleted webhook", () => {
     expect(run.stderr).toBe("");
     expect(run.status).toBe(0);
     expect(run.stdout).toContain(
-      'purge-user: removed rows per table: {"room_members":2,"shiur_recordings":2,"shiurim":1,"rooms":1,"user_display":1}',
+      'purge-user: removed rows per table: {"room_members":2,"shiur_recordings":2,"shiurim":1,"rooms":1,"user_display":1,"notifications":1,"reactions":1,"reposts":1,"follows":1,"replies":1,"posts":1,"profile_admins":1,"profiles":1}',
     );
     expect(await walk.userValues(h.sql, A)).toEqual(["deleted_users.user_id: 1"]);
     const refused = spawnSync(tsx, [script, "not-a-number"], { encoding: "utf8", timeout: 15_000 });

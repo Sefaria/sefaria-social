@@ -77,6 +77,8 @@ export const surfaceHostShapeSchema = z.object({
   location: z.object({ get: fn, subscribe: fn }),
   navigate: fn,
   href: fn,
+  /** Since contract 1.1; an older reader lacks it (the surface falls back to navigate). */
+  openBeside: fn.optional(),
   reader: z.object({
     state: z.object({ getSnapshot: fn, applySnapshot: fn, subscribe: fn, onLocalInput: fn }),
     commands: z.object({ current: fn, go: fn, href: fn, canonicalize: fn }),

@@ -3,7 +3,7 @@
 // a user id is covered by the deletion in services/users.ts, and the walk-the-schema test fails if one is not.
 // Changing this file: run `npm run db:generate` and commit the new migration (expand, deploy, contract; see migration-rules.ts).
 import { sql } from "drizzle-orm";
-import { bigint, index, integer, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, index, integer, pgTable, primaryKey, text, timestamp, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 const userId = (name: string) => bigint(name, { mode: "number" });
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -98,3 +98,148 @@ export const webhookReceipts = pgTable("webhook_receipts", {
   eventType: text("event_type").notNull(),
   receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ── Social graph and posts (specs 023–026) ────────────────────────────────────────────────────────────────────────────────
+/** A person (one per Sefaria user, created on first use) or an institution (a shul, yeshiva, community; created by staff). */
+export const profiles = pgTable(
+  "profiles",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    kind: text("kind").notNull(),
+    userId: userId("user_id").unique(),
+    name: text("name").notNull(),
+    bio: text("bio").notNull().default(""),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("profiles_kind_idx").on(t.kind)],
+);
+
+/** Who may post as, and is notified for, an institution profile. */
+export const profileAdmins = pgTable(
+  "profile_admins",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    userId: userId("user_id").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.profileId, t.userId] }), index("profile_admins_user_idx").on(t.userId)],
+);
+
+export const follows = pgTable(
+  "follows",
+  {
+    followerUserId: userId("follower_user_id").notNull(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.followerUserId, t.profileId] }), index("follows_profile_idx").on(t.profileId)],
+);
+
+export const posts = pgTable(
+  "posts",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    authorProfileId: uuid("author_profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdByUserId: userId("created_by_user_id").notNull(),
+    body: text("body").notNull(),
+    /** A source citation ("Genesis 1:3"); never library text. */
+    ref: text("ref"),
+    /** A quote (spec 030): the post this one quotes. Kept when the quoted post is deleted (it shows as unavailable). */
+    quotedPostId: uuid("quoted_post_id").references((): AnyPgColumn => posts.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("posts_author_created_idx").on(t.authorProfileId, t.createdAt),
+    index("posts_created_idx").on(t.createdAt),
+    index("posts_created_by_idx").on(t.createdByUserId),
+    index("posts_quoted_idx").on(t.quotedPostId),
+  ],
+);
+
+/** A repost (spec 030): a profile shares a post, unchanged, with its followers. One per profile per post. */
+export const reposts = pgTable(
+  "reposts",
+  {
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdByUserId: userId("created_by_user_id").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.postId, t.profileId] }),
+    index("reposts_profile_created_idx").on(t.profileId, t.createdAt),
+    index("reposts_created_by_idx").on(t.createdByUserId),
+  ],
+);
+
+export const replies = pgTable(
+  "replies",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    authorProfileId: uuid("author_profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdByUserId: userId("created_by_user_id").notNull(),
+    body: text("body").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("replies_post_idx").on(t.postId, t.createdAt),
+    index("replies_author_idx").on(t.authorProfileId),
+    index("replies_created_by_idx").on(t.createdByUserId),
+  ],
+);
+
+/** One "Yasher koach" per person per post. */
+export const reactions = pgTable(
+  "reactions",
+  {
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    userId: userId("user_id").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.postId, t.userId] }), index("reactions_user_idx").on(t.userId)],
+);
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    recipientUserId: userId("recipient_user_id").notNull(),
+    /** follow | reply | reaction | post */
+    kind: text("kind").notNull(),
+    actorProfileId: uuid("actor_profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    postId: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("notifications_recipient_idx").on(t.recipientUserId, t.createdAt),
+    index("notifications_actor_idx").on(t.actorProfileId),
+    index("notifications_post_idx").on(t.postId),
+  ],
+);

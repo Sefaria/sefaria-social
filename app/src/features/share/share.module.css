@@ -1,0 +1,69 @@
+/* The share menu (spec 027): a small popover under its button, never a modal. */
+.share {
+  position: relative;
+}
+
+.label {
+  font-size: 14px;
+}
+
+@container post (max-width: 420px) {
+  .label {
+    display: none;
+  }
+}
+
+.menu {
+  position: absolute;
+  inset-block-start: calc(100% + 4px);
+  inset-inline-end: 0;
+  z-index: 10;
+  display: grid;
+  min-inline-size: 12rem;
+  padding: 6px;
+  border: 1px solid var(--sefaria-color-border, #e6e6e6);
+  border-radius: var(--sefaria-radius-lg, 8px);
+  background: var(--sefaria-color-surface, #ffffff);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  animation: rise 150ms ease-out;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 40px;
+  padding-inline: 10px;
+  border: 0;
+  border-radius: var(--sefaria-radius-md, 6px);
+  background: transparent;
+  color: var(--sefaria-color-text, #121212);
+  font: inherit;
+  font-size: 15px;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.item:hover,
+.item:focus-visible {
+  background: var(--sefaria-color-highlight-soft, #f0f7ff);
+  outline: none;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation: none;
+  }
+}

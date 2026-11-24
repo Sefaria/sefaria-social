@@ -1,0 +1,65 @@
+/* The timeline (spec 023). */
+.timeline {
+  display: grid;
+}
+
+.tabs {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  background: var(--sefaria-color-page, #ffffff);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list > li {
+  animation: enter 200ms ease-out both;
+}
+
+.list > li:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.list > li:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.list > li:nth-child(n + 4) {
+  animation-delay: 120ms;
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--sefaria-space-5, 20px);
+}
+
+.error {
+  margin: var(--sefaria-space-5, 20px) 0;
+  color: var(--sefaria-color-danger, #c03522);
+}
+
+.emptyArt {
+  color: var(--sefaria-color-border-strong, #b5b5b5);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list > li {
+    animation: none;
+  }
+}

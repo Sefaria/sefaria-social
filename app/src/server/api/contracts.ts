@@ -45,6 +45,105 @@ export const Feed = z.object({
   recent: z.array(z.object({ id: z.uuid(), title: z.string(), updatedAt: Iso })),
 });
 
+// ── Posts, replies, reactions (specs 023, 024) ────────────────────────────────────────────────────────────────────────────
+export const Author = z.object({ id: z.uuid(), kind: z.enum(["person", "institution"]), name: z.string() });
+
+/** The post a quote quotes (spec 030); body, ref, author and createdAt are null when it was deleted. */
+export const QuotedPost = z.object({
+  id: z.uuid(),
+  body: z.string().nullable(),
+  ref: z.string().nullable(),
+  author: Author.nullable(),
+  createdAt: Iso.nullable(),
+});
+
+export const Post = z.object({
+  id: z.uuid(),
+  body: z.string(),
+  ref: z.string().nullable(),
+  author: Author,
+  createdAt: Iso,
+  replyCount: z.int().nonnegative(),
+  reactionCount: z.int().nonnegative(),
+  reacted: z.boolean(),
+  canDelete: z.boolean(),
+  repostCount: z.int().nonnegative(),
+  quoteCount: z.int().nonnegative(),
+  reposted: z.boolean(),
+  quoted: QuotedPost.nullable(),
+  repostedBy: Author.nullable(),
+});
+
+export const Reply = z.object({ id: z.uuid(), body: z.string(), author: Author, createdAt: Iso, canDelete: z.boolean() });
+
+export const Timeline = z.object({ posts: z.array(Post), nextCursor: z.string().nullable() });
+
+export const PostWithReplies = z.object({ post: Post, replies: z.array(Reply) });
+
+export const PostInput = z.strictObject({
+  body: z.string().trim().min(1).max(2000),
+  ref: z.string().trim().max(200).optional(),
+  asProfileId: z.uuid().optional(),
+  /** Quote this post (spec 030). */
+  quotedPostId: z.uuid().optional(),
+});
+
+export const ReplyInput = z.strictObject({ body: z.string().trim().min(1).max(1000) });
+
+export const ReactionState = z.object({ reacted: z.boolean(), reactionCount: z.int().nonnegative() });
+
+export const RepostState = z.object({ reposted: z.boolean(), repostCount: z.int().nonnegative() });
+
+const TimelineQuery = z.strictObject({
+  tab: z.enum(["following", "everyone"]).default("following"),
+  before: z.string().min(1).max(200).optional(),
+});
+
+const PostParams = z.object({ postId: z.uuid() });
+const ReplyParams = z.object({ replyId: z.uuid() });
+
+// ── Profiles and follows (spec 025) ───────────────────────────────────────────────────────────────────────────────────────
+export const Profile = z.object({
+  id: z.uuid(),
+  kind: z.enum(["person", "institution"]),
+  name: z.string(),
+  bio: z.string(),
+  followers: z.int().nonnegative(),
+  following: z.int().nonnegative(),
+  viewerFollows: z.boolean(),
+  isOwn: z.boolean(),
+  canManage: z.boolean(),
+});
+
+export const MyProfile = Profile.extend({ administers: z.array(z.object({ id: z.uuid(), name: z.string() })) });
+
+export const ProfileWithPosts = z.object({ profile: Profile, posts: z.array(Post) });
+
+export const ProfileList = z.object({ profiles: z.array(Profile) });
+
+export const ProfileInput = z.strictObject({
+  name: z.string().trim().min(1).max(80).optional(),
+  bio: z.string().trim().max(300).optional(),
+});
+
+export const FollowState = z.object({ following: z.boolean(), followers: z.int().nonnegative() });
+
+const ProfileParams = z.object({ profileId: z.uuid() });
+const ProfilesQuery = z.strictObject({ suggested: z.literal("1") });
+
+// ── Notifications (spec 026) ──────────────────────────────────────────────────────────────────────────────────────────────
+export const Notification = z.object({
+  id: z.uuid(),
+  kind: z.enum(["follow", "reply", "reaction", "post"]),
+  actor: z.object({ id: z.uuid(), name: z.string() }).nullable(),
+  post: z.object({ id: z.uuid(), snippet: z.string() }).nullable(),
+  createdAt: Iso,
+  read: z.boolean(),
+});
+
+export const NotificationList = z.object({ notifications: z.array(Notification), unread: z.int().nonnegative() });
+export const UnreadCount = z.object({ unread: z.int().nonnegative() });
+
 export const Me = z.object({ userId: z.int().positive(), name: z.string() });
 
 export const RoomList = z.object({ rooms: z.array(Room) });
@@ -183,6 +282,199 @@ export const getFeed = defineEndpoint({
   responses: { 200: { description: "The feed.", schema: Feed } },
 });
 
+export const getTimeline = defineEndpoint({
+  operationId: "getTimeline",
+  method: "GET",
+  path: "/api/v1/timeline",
+  summary:
+    "20 posts a page. tab=following: the viewer's and the profiles they follow, posts and reposts, newest first. tab=everyone (For you): every recent post, ranked for the viewer.",
+  tags: ["posts"],
+  query: TimelineQuery,
+  responses: { 200: { description: "A page of posts and the cursor of the next one (null on the last).", schema: Timeline } },
+});
+
+export const createPost = defineEndpoint({
+  operationId: "createPost",
+  method: "POST",
+  path: "/api/v1/posts",
+  summary:
+    "Post a Torah thought, optionally anchored to a source or quoting another post, as the viewer or an institution they administer.",
+  tags: ["posts"],
+  body: PostInput,
+  errors: [403, 404],
+  responses: { 201: { description: "The post, as the timeline shows it.", schema: Post } },
+});
+
+export const getPost = defineEndpoint({
+  operationId: "getPost",
+  method: "GET",
+  path: "/api/v1/posts/{postId}",
+  summary:
+    "One post with its replies: the author's first, then from profiles the viewer follows, then the rest; oldest first in each.",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [404],
+  responses: { 200: { description: "The post and its replies.", schema: PostWithReplies } },
+});
+
+export const deletePost = defineEndpoint({
+  operationId: "deletePost",
+  method: "DELETE",
+  path: "/api/v1/posts/{postId}",
+  summary: "Delete a post (its author, or an administrator of its institution).",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [403, 404],
+  responses: { 204: { description: "Deleted." } },
+});
+
+export const createReply = defineEndpoint({
+  operationId: "createReply",
+  method: "POST",
+  path: "/api/v1/posts/{postId}/replies",
+  summary: "Reply to a post.",
+  tags: ["posts"],
+  params: PostParams,
+  body: ReplyInput,
+  errors: [404],
+  responses: { 201: { description: "The reply.", schema: Reply } },
+});
+
+export const deleteReply = defineEndpoint({
+  operationId: "deleteReply",
+  method: "DELETE",
+  path: "/api/v1/replies/{replyId}",
+  summary: "Delete one's own reply.",
+  tags: ["posts"],
+  params: ReplyParams,
+  errors: [403, 404],
+  responses: { 204: { description: "Deleted." } },
+});
+
+export const addReaction = defineEndpoint({
+  operationId: "addReaction",
+  method: "PUT",
+  path: "/api/v1/posts/{postId}/reaction",
+  summary: "Say Yasher koach to a post (idempotent).",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [404],
+  responses: { 200: { description: "The viewer's reaction state and the post's count.", schema: ReactionState } },
+});
+
+export const removeReaction = defineEndpoint({
+  operationId: "removeReaction",
+  method: "DELETE",
+  path: "/api/v1/posts/{postId}/reaction",
+  summary: "Take back one's Yasher koach.",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [404],
+  responses: { 200: { description: "The viewer's reaction state and the post's count.", schema: ReactionState } },
+});
+
+export const addRepost = defineEndpoint({
+  operationId: "addRepost",
+  method: "PUT",
+  path: "/api/v1/posts/{postId}/repost",
+  summary: "Repost a post to the viewer's followers (idempotent).",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [404],
+  responses: { 200: { description: "The viewer's repost state and the post's count.", schema: RepostState } },
+});
+
+export const removeRepost = defineEndpoint({
+  operationId: "removeRepost",
+  method: "DELETE",
+  path: "/api/v1/posts/{postId}/repost",
+  summary: "Undo one's repost.",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [404],
+  responses: { 200: { description: "The viewer's repost state and the post's count.", schema: RepostState } },
+});
+
+export const getMyProfile = defineEndpoint({
+  operationId: "getMyProfile",
+  method: "GET",
+  path: "/api/v1/profiles/me",
+  summary: "The viewer's own profile (created on first use) and the institutions they administer.",
+  tags: ["profiles"],
+  responses: { 200: { description: "The viewer's profile.", schema: MyProfile } },
+});
+
+export const updateMyProfile = defineEndpoint({
+  operationId: "updateMyProfile",
+  method: "PATCH",
+  path: "/api/v1/profiles/me",
+  summary: "Change the viewer's name or bio.",
+  tags: ["profiles"],
+  body: ProfileInput,
+  responses: { 200: { description: "The viewer's profile.", schema: MyProfile } },
+});
+
+export const listProfiles = defineEndpoint({
+  operationId: "listProfiles",
+  method: "GET",
+  path: "/api/v1/profiles",
+  summary: "Whom to follow: up to 6 profiles the viewer does not follow yet, institutions first.",
+  tags: ["profiles"],
+  query: ProfilesQuery,
+  responses: { 200: { description: "Suggested profiles.", schema: ProfileList } },
+});
+
+export const getProfile = defineEndpoint({
+  operationId: "getProfile",
+  method: "GET",
+  path: "/api/v1/profiles/{profileId}",
+  summary: "A person's or an institution's profile and its latest posts.",
+  tags: ["profiles"],
+  params: ProfileParams,
+  errors: [404],
+  responses: { 200: { description: "The profile and its posts.", schema: ProfileWithPosts } },
+});
+
+export const followProfile = defineEndpoint({
+  operationId: "followProfile",
+  method: "PUT",
+  path: "/api/v1/profiles/{profileId}/follow",
+  summary: "Follow a profile (idempotent).",
+  tags: ["profiles"],
+  params: ProfileParams,
+  errors: [404],
+  responses: { 200: { description: "The viewer follows it; its follower count.", schema: FollowState } },
+});
+
+export const unfollowProfile = defineEndpoint({
+  operationId: "unfollowProfile",
+  method: "DELETE",
+  path: "/api/v1/profiles/{profileId}/follow",
+  summary: "Stop following a profile.",
+  tags: ["profiles"],
+  params: ProfileParams,
+  errors: [404],
+  responses: { 200: { description: "The viewer no longer follows it; its follower count.", schema: FollowState } },
+});
+
+export const listNotifications = defineEndpoint({
+  operationId: "listNotifications",
+  method: "GET",
+  path: "/api/v1/notifications",
+  summary: "The viewer's latest 50 notifications, newest first, and how many are unread.",
+  tags: ["notifications"],
+  responses: { 200: { description: "Notifications.", schema: NotificationList } },
+});
+
+export const readNotifications = defineEndpoint({
+  operationId: "readNotifications",
+  method: "POST",
+  path: "/api/v1/notifications/read",
+  summary: "Mark all of the viewer's notifications read.",
+  tags: ["notifications"],
+  responses: { 200: { description: "Nothing left unread.", schema: UnreadCount } },
+});
+
 export const userDeleted = defineEndpoint({
   operationId: "userDeletedWebhook",
   method: "POST",
@@ -207,5 +499,23 @@ export const ENDPOINTS = [
   leaveRoom,
   getRoomStatus,
   getFeed,
+  getTimeline,
+  createPost,
+  getPost,
+  deletePost,
+  createReply,
+  deleteReply,
+  addReaction,
+  removeReaction,
+  addRepost,
+  removeRepost,
+  getMyProfile,
+  updateMyProfile,
+  listProfiles,
+  getProfile,
+  followProfile,
+  unfollowProfile,
+  listNotifications,
+  readNotifications,
   userDeleted,
 ] as const;

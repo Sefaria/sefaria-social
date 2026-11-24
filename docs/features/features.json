@@ -221,6 +221,325 @@
       "changed": []
     },
     {
+      "id": "FEED-060",
+      "area": "feed",
+      "name": "Posts with an optional source, written as a person or an institution",
+      "description": "POST /api/v1/posts stores a 1–2,000 character Torah thought, optionally anchored to a source citation, as the viewer's own profile or an institution they administer (403 otherwise).",
+      "status": "built",
+      "spec": "023",
+      "acs": [
+        "023/AC-001"
+      ],
+      "surfaces": [
+        "api",
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.posts.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-061",
+      "area": "feed",
+      "name": "The timeline: Following and Everyone, newest first, in pages",
+      "description": "GET /api/v1/timeline answers the posts of followed profiles and the viewer's own (tab=following) or everyone's, 20 a page with a keyset cursor, each with author, counts and the viewer's reaction; deleted posts never appear.",
+      "status": "built",
+      "spec": "023",
+      "acs": [
+        "023/AC-002"
+      ],
+      "surfaces": [
+        "api",
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.posts.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-062",
+      "area": "feed",
+      "name": "A post's own page and deleting a post",
+      "description": "GET /api/v1/posts/{postId} with its replies; DELETE by its author or an institution administrator; /social/p/$postId shows the post, its source and actions, with confirmation before deleting and social's not-found message for an unknown id.",
+      "status": "built",
+      "spec": "023",
+      "acs": [
+        "023/AC-003",
+        "023/AC-005"
+      ],
+      "surfaces": [
+        "api",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.posts.int.test.ts",
+        "e2e/social.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-063",
+      "area": "feed",
+      "name": "The composer and the timeline on /social",
+      "description": "The home page: a composer that invites a Torah thought with a source pre-filled from the reader, Post as, a character count near the limit, and the Following/Everyone timeline with skeletons, Show more and an empty state; Hebrew-first, relative times, keyboard tabs.",
+      "status": "built",
+      "spec": "023",
+      "acs": [
+        "023/AC-004",
+        "023/AC-006"
+      ],
+      "surfaces": [
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [
+        "e2e/social.spec.ts",
+        "app/src/features/post/relative-time.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-064",
+      "area": "feed",
+      "name": "Replies under a post",
+      "description": "POST /api/v1/posts/{postId}/replies and DELETE /api/v1/replies/{replyId} (author only); the post page lists replies oldest first with a reply box, and the timeline shows reply counts.",
+      "status": "built",
+      "spec": "024",
+      "acs": [
+        "024/AC-001",
+        "024/AC-004"
+      ],
+      "surfaces": [
+        "api",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.posts.int.test.ts",
+        "e2e/social.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-065",
+      "area": "feed",
+      "name": "Yasher koach: one reaction per person, optimistic in the interface",
+      "description": "PUT/DELETE /api/v1/posts/{postId}/reaction, idempotent; the button changes state and count at once, rolls back and announces a refusal, and marks the pressed state with an icon and aria-pressed.",
+      "status": "built",
+      "spec": "024",
+      "acs": [
+        "024/AC-002",
+        "024/AC-003"
+      ],
+      "surfaces": [
+        "api",
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.posts.int.test.ts",
+        "e2e/social.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-066",
+      "area": "feed",
+      "name": "Notifications for follows, replies, reactions and new posts",
+      "description": "Written in the action's transaction: a follow notifies the profile's owners, a reply or reaction the post's author, a post the profile's followers; never about one's own action.",
+      "status": "built",
+      "spec": "026",
+      "acs": [
+        "026/AC-001"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.profiles.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-067",
+      "area": "feed",
+      "name": "The notifications list, unread count and the activity page",
+      "description": "GET /api/v1/notifications (latest 50 and the unread count), POST /api/v1/notifications/read; an Activity link with an unread badge in social's nav, polled every 60 seconds; /social/notifications lists sentences that open their post or profile and marks everything read.",
+      "status": "built",
+      "spec": "026",
+      "acs": [
+        "026/AC-002",
+        "026/AC-003",
+        "026/AC-004"
+      ],
+      "surfaces": [
+        "api",
+        "notifications"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.profiles.int.test.ts",
+        "e2e/social.spec.ts",
+        "app/src/features/notifications/sentence.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-068",
+      "area": "feed",
+      "name": "Share a post or a profile",
+      "description": "A Share menu with Copy link, WhatsApp, Email and the browser's share sheet; the absolute link is built with host.href; Link copied is announced and focus returns to Share.",
+      "status": "built",
+      "spec": "027",
+      "acs": [
+        "027/AC-001",
+        "027/AC-002"
+      ],
+      "surfaces": [
+        "feed",
+        "post",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [
+        "e2e/social.spec.ts",
+        "app/src/features/share/share.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-069",
+      "area": "feed",
+      "name": "Open a source beside the feed",
+      "description": "A post's source opens beside the page through contract 1.1 host.openBeside (the reader slides the text in and keeps the page mounted in a column); a 1.0 reader gets commands.go. The pages lay out by their own width (container queries), so they fit the column.",
+      "status": "built",
+      "spec": "029",
+      "acs": [
+        "029/AC-001",
+        "029/AC-002"
+      ],
+      "surfaces": [
+        "feed",
+        "post",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/host/ReaderRefLink.test.tsx",
+        "e2e/social.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-070",
+      "area": "feed",
+      "name": "Repost a post",
+      "description": "A profile reposts a post unchanged to its followers (one per profile per post, undoable); the network's reposts appear in Following with who reposted them; every post carries its repost count and whether the viewer reposted it.",
+      "status": "built",
+      "spec": "030",
+      "acs": [
+        "030/AC-001",
+        "030/AC-003"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.repost.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-071",
+      "area": "feed",
+      "name": "Quote a post",
+      "description": "A learner posts their own words carrying another post; the quoted post shows inside the quote (unavailable once deleted) and counts its quotes. The demo community has reposts and quotes.",
+      "status": "built",
+      "spec": "030",
+      "acs": [
+        "030/AC-002",
+        "030/AC-004",
+        "030/AC-005"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.repost.int.test.ts",
+        "app/src/features/post/RepostQuote.test.tsx",
+        "app/src/qa.demo.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-072",
+      "area": "feed",
+      "name": "For you: the timeline ranked like X's",
+      "description": "The second tab ranks recent posts per viewer with X's heavy-ranker sum and published weights, a 24-hour half-life from the latest boost, out-of-network × 0.75 unless the network reposted it, and author diversity.",
+      "status": "built",
+      "spec": "031",
+      "acs": [
+        "031/AC-001",
+        "031/AC-002",
+        "031/AC-004"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/server/services/ranking.test.ts",
+        "app/src/api.repost.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-073",
+      "area": "feed",
+      "name": "The conversation, ordered like X's",
+      "description": "Replies under a post: the post's author's first, then from profiles the viewer follows, then the rest, oldest first within each.",
+      "status": "built",
+      "spec": "031",
+      "acs": [
+        "031/AC-003"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.repost.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",
@@ -534,6 +853,94 @@
       "depends_on": {},
       "tests": [
         "app/src/qa.personas.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-100",
+      "area": "ident",
+      "name": "Person and institution profiles",
+      "description": "GET/PATCH /api/v1/profiles/me (created on first use; name and bio; the institutions administered); settings' profile tab edits them and the composer offers Post as.",
+      "status": "built",
+      "spec": "025",
+      "acs": [
+        "025/AC-001",
+        "025/AC-006"
+      ],
+      "surfaces": [
+        "api",
+        "settings"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.profiles.int.test.ts",
+        "e2e/social.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-101",
+      "area": "ident",
+      "name": "A profile page: kind, bio, counts, follow state and posts",
+      "description": "GET /api/v1/profiles/{profileId}; /social/u/$profileId with a kind label, bio, counts, Follow (or Edit profile on one's own) and its posts.",
+      "status": "built",
+      "spec": "025",
+      "acs": [
+        "025/AC-002",
+        "025/AC-005"
+      ],
+      "surfaces": [
+        "api",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.profiles.int.test.ts",
+        "e2e/social.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-102",
+      "area": "ident",
+      "name": "One-tap follow",
+      "description": "PUT/DELETE /api/v1/profiles/{profileId}/follow, idempotent, refusing to follow oneself; the button and count change at once.",
+      "status": "built",
+      "spec": "025",
+      "acs": [
+        "025/AC-003"
+      ],
+      "surfaces": [
+        "api",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.profiles.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-103",
+      "area": "ident",
+      "name": "Who to follow",
+      "description": "GET /api/v1/profiles?suggested=1: up to 6 profiles not yet followed, institutions first, then the most followed people; shown in the feed's rail.",
+      "status": "built",
+      "spec": "025",
+      "acs": [
+        "025/AC-004"
+      ],
+      "surfaces": [
+        "api",
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.profiles.int.test.ts"
       ],
       "since": null,
       "changed": []
@@ -922,6 +1329,25 @@
       "depends_on": {},
       "tests": [
         "app/src/qa.personas.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "OPS-093",
+      "area": "ops",
+      "name": "Demo content: a seeded community for the first visit",
+      "description": "npm run qa:seed -- demo seeds invented institutions, people, posts with sources, replies, reactions, follows and notifications, idempotently; --for <userId> makes a real account follow the institutions and run the first.",
+      "status": "built",
+      "spec": "028",
+      "acs": [
+        "028/AC-001",
+        "028/AC-002"
+      ],
+      "surfaces": [],
+      "depends_on": {},
+      "tests": [
+        "app/src/qa.demo.int.test.ts"
       ],
       "since": null,
       "changed": []

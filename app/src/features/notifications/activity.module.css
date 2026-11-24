@@ -1,0 +1,72 @@
+/* The activity page (spec 026). */
+.page {
+  display: grid;
+  max-inline-size: 640px;
+}
+
+.title {
+  margin: 0 0 var(--sefaria-space-2, 8px);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: var(--sefaria-space-3, 12px);
+  padding-block: var(--sefaria-space-3, 12px);
+  border-block-end: 1px solid var(--sefaria-color-border, #e6e6e6);
+}
+
+.unread {
+  background: linear-gradient(to right, var(--sefaria-color-highlight-soft, #f0f7ff), transparent 70%);
+}
+
+.text {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.link {
+  color: var(--sefaria-color-text, #121212);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.unread .link {
+  font-weight: 700;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.snippet {
+  overflow: hidden;
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 15px;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time {
+  font-size: 13px;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.dot {
+  inline-size: 10px;
+  block-size: 10px;
+  margin-block-start: 6px;
+  border-radius: 50%;
+  background: var(--sefaria-color-brand, #18345d);
+}

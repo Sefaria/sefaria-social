@@ -1,0 +1,19 @@
+- id: T-001
+  title: Post sources open beside the page; the page lays out by its own width
+  acs: [AC-001, AC-002]
+  files:
+    - "app/src/features/host/ReaderRefLink.tsx"
+    - "app/src/features/host/ReaderRefLink.test.tsx"
+    - "app/src/features/post/PostCard.tsx"
+    - "app/src/features/shell/shell.module.css"
+    - "app/src/features/feed/home.module.css"
+    - "app/src/features/profile/profile.module.css"
+    - "packages/host-contract/**"
+    - "docs/CONTRACT.md"
+    - "docs/features/**"
+    - "e2e/social.spec.ts"
+    - "harness/**"
+  depends_on: []
+  parallel: false
+  verify: ["npm test", "npm run test:e2e"]
+  completes: [FEED-069]

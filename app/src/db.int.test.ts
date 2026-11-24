@@ -7,7 +7,23 @@ import { getRouter } from "~/router";
 const migrations = import.meta.glob("./server/db/migrations/*.sql", { query: "?raw", import: "default" });
 const ruleModules = import.meta.glob("./server/db/migration-rules.ts");
 
-const TABLES = ["deleted_users", "room_members", "rooms", "shiur_recordings", "shiurim", "user_display", "webhook_receipts"];
+const TABLES = [
+  "deleted_users",
+  "follows",
+  "notifications",
+  "posts",
+  "profile_admins",
+  "profiles",
+  "reactions",
+  "replies",
+  "reposts",
+  "room_members",
+  "rooms",
+  "shiur_recordings",
+  "shiurim",
+  "user_display",
+  "webhook_receipts",
+];
 
 describe("spec 005: database", () => {
   // @ac 005/AC-001
@@ -40,7 +56,7 @@ describe("spec 005: database", () => {
       order by 1`);
     expect(unindexed).toEqual([]);
     const fks = await h.sql("select conname from pg_constraint where contype = 'f'");
-    expect(fks.length).toBe(3);
+    expect(fks.length).toBe(14);
   });
 
   // @ac 005/AC-002
