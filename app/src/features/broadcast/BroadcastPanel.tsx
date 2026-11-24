@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useHost } from "~/features/host/host-context";
 import { absoluteLink } from "~/features/share/share";
 import { useStrings } from "~/features/shell/use-strings";
@@ -10,12 +10,16 @@ import styles from "./broadcast.module.css";
  * it; while live, the link to watch (absolute, on the reader's site) with Copy, how many are watching, Join the broadcast
  * call (the normal pre-join step) and End broadcast, which ends the session and the call.
  */
-export function BroadcastPanel({ roomId }: { roomId: string }) {
+export function BroadcastPanel({ roomId, live }: { roomId: string; live?: { id: string; link: string } }) {
   const t = useStrings();
   const host = useHost();
   const controller = useBroadcastController();
   const view = useHostView(controller);
   const [copied, setCopied] = useState(false);
+  // A reload loses the controller's state, not the broadcast: the room read names its live broadcast, and the host resumes it.
+  useEffect(() => {
+    if (controller && live && controller.hostView().kind === "idle") void controller.resume(roomId, live);
+  }, [controller, roomId, live?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!controller) return null;
   const here = view.kind !== "idle" && view.roomId === roomId;
 

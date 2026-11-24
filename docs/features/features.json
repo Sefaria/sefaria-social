@@ -2280,7 +2280,8 @@
         "app/src/features/broadcast/broadcast-controller.test.ts",
         "app/src/features/broadcast/BroadcastPanel.test.tsx",
         "app/src/features/broadcast/WatchPage.test.tsx",
-        "app/src/surface/call.test.tsx"
+        "app/src/surface/call.test.tsx",
+        "e2e/broadcast.spec.ts"
       ],
       "since": null,
       "changed": []

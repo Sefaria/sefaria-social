@@ -48,6 +48,8 @@ export interface BroadcastController {
   watchView(): WatchView;
   subscribe(cb: () => void): () => void;
   start(roomId: string): Promise<void>;
+  /** The host's panel found its room's live broadcast after a reload: reconnect as its host and publish again. */
+  resume(roomId: string, live: { id: string; link: string }): Promise<void>;
   /** The host joins the broadcast's call through the normal pre-join step. */
   joinCall(): Promise<void>;
   end(): Promise<void>;
@@ -267,6 +269,28 @@ export function createBroadcastController(deps: BroadcastDeps): BroadcastControl
     if (id && id !== current && host.viewer.get()) void controller.watch(id, { navigate: false });
   }
 
+  /** Connects the host to a live broadcast's relay room and publishes the reader (after a start, or a reload: resume). */
+  async function attachHost(roomId: string, id: string, link: string, gen: number, endOnFailure: boolean) {
+    const t = await api.ticket(id);
+    if (gen !== hostGen) return;
+    if (t.kind !== "ok") return setHost({ kind: "failed", roomId, reason: "error" });
+    const release = sessions.acquire(relayRoomOf(id), "broadcast", {
+      extraProtocols: tickets(id, t.ticket, () => undefined),
+      canPublish: () => isReaderPage(host.location.get().pathname),
+      isOpen: () => false, // the host never follows anyone
+      role: { isHost: true, canLead: true },
+    });
+    hostOffs.push(release);
+    const session = sessions.get(relayRoomOf(id));
+    if (!session) {
+      stopHosting();
+      if (endOnFailure) await api.end(id).catch(() => undefined);
+      return setHost({ kind: "failed", roomId, reason: "error" });
+    }
+    setHost({ kind: "live", roomId, id, link, viewers: null });
+    hostSession(session, roomId, id, link);
+  }
+
   const controller: BroadcastController = {
     hostView: () => hostView,
     watchView: () => watchView,
@@ -288,28 +312,23 @@ export function createBroadcastController(deps: BroadcastDeps): BroadcastControl
         const r = await api.start(roomId);
         if (gen !== hostGen) return;
         if (r.kind !== "ok") return setHost({ kind: "failed", roomId, reason: r.kind });
-        const { id, link } = r.broadcast;
-        const t = await api.ticket(id);
-        if (gen !== hostGen) return;
-        if (t.kind !== "ok") return setHost({ kind: "failed", roomId, reason: "error" });
-        const release = sessions.acquire(relayRoomOf(id), "broadcast", {
-          extraProtocols: tickets(id, t.ticket, () => undefined),
-          canPublish: () => isReaderPage(host.location.get().pathname),
-          isOpen: () => false, // the host never follows anyone
-          role: { isHost: true, canLead: true },
-        });
-        hostOffs.push(release);
-        const session = sessions.get(relayRoomOf(id));
-        if (!session) {
-          stopHosting();
-          await api.end(id).catch(() => undefined);
-          return setHost({ kind: "failed", roomId, reason: "error" });
-        }
-        setHost({ kind: "live", roomId, id, link, viewers: null });
-        hostSession(session, roomId, id, link);
+        await attachHost(roomId, r.broadcast.id, r.broadcast.link, gen, true);
       } catch {
         if (gen === hostGen) setHost({ kind: "failed", roomId, reason: "error" });
         report("broadcast-start-failed");
+      }
+    },
+
+    async resume(roomId, live) {
+      if (hostView.kind !== "idle" && hostView.kind !== "failed") return;
+      stopHosting();
+      const gen = hostGen;
+      setHost({ kind: "starting", roomId });
+      try {
+        await attachHost(roomId, live.id, live.link, gen, false);
+      } catch {
+        if (gen === hostGen) setHost({ kind: "failed", roomId, reason: "error" });
+        report("broadcast-resume-failed");
       }
     },
 

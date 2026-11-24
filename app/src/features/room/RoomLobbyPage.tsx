@@ -124,7 +124,7 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
           {onCall !== null && <p data-call-count="">{t.onCall(onCall)}</p>}
           {state.room.role === "owner" && <RecordButton roomId={roomId} />}
           <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
-          {state.room.role === "owner" && <BroadcastPanel roomId={roomId} />}
+          {state.room.role === "owner" && <BroadcastPanel roomId={roomId} live={state.room.broadcast} />}
           <PresenceList roomId={roomId} />
           <RecordingsList roomId={roomId} />
         </>
