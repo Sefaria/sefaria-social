@@ -1,0 +1,51 @@
+- id: T-001
+  title: Recordings on the server - tables, binary uploads, list, read, delete, finalise
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005, AC-006]
+  files:
+    - "app/src/server/http/endpoint.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/services/recordings.ts"
+    - "app/src/server/services/recording-store.ts"
+    - "app/src/server/services/livekit.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/services/user-deletion.ts"
+    - "app/src/server/services/**"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/api/openapi.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.recordings.ts"
+    - "app/src/routes/api/v1/recordings.*.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.recordings.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/api.user-deleted.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "test/integration/harness.ts"
+    - "test/integration/schema-walk.ts"
+    - "docs/runbooks/server.md"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- api.recordings api.routes", "npm run typecheck", "npm run test:contract"]
+- id: T-002
+  title: The recorder in the owner's browser, and the Recording badges
+  acs: [AC-006, AC-007, AC-008]
+  files:
+    - "app/src/features/av/**"
+    - "app/src/features/recording/**"
+    - "app/src/features/room/**"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/api/social-api.ts"
+    - "app/src/features/session/**"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/**"
+    - "packages/session/src/index.ts"
+    - "e2e/recording.spec.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [API-049, SESS-064]
+  verify: ["npm test -- features/recording features/room features/av", "npm run typecheck"]

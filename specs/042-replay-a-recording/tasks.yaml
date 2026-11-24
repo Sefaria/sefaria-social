@@ -1,0 +1,31 @@
+- id: T-001
+  title: The replay player - state track, media clock, reader apply, leave and come back
+  acs: [AC-003, AC-004, AC-005, AC-006, AC-008]
+  files:
+    - "app/src/features/replay/**"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/api/social-api.ts"
+    - "packages/session/src/index.ts"
+    - "app/package.json"
+    - "package-lock.json"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- features/replay", "npm run typecheck"]
+- id: T-002
+  title: Recording page, lobby list, the replay window and its exclusivity with the call
+  acs: [AC-001, AC-002, AC-007]
+  files:
+    - "app/src/features/replay/**"
+    - "app/src/features/recording/**"
+    - "app/src/features/room/**"
+    - "app/src/features/av/**"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/**"
+    - "app/src/routes/social.rec.$recordingId.tsx"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/route-trees.test.ts"
+    - "e2e/recording.spec.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [SESS-065]
+  verify: ["npm test -- features/replay features/recording surface", "npm run typecheck"]

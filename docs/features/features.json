@@ -142,6 +142,44 @@
       "changed": []
     },
     {
+      "id": "API-049",
+      "area": "api",
+      "name": "A room's owner records the live session, its reader state together with the call's audio and video",
+      "description": "",
+      "status": "planned",
+      "spec": "041",
+      "acs": [],
+      "surfaces": [
+        "api",
+        "session",
+        "room-lobby",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "API-050",
+      "area": "api",
+      "name": "A room's owner broadcasts live to view-only viewers, who follow the reader and watch the host but send nothing back",
+      "description": "",
+      "status": "planned",
+      "spec": "043",
+      "acs": [],
+      "surfaces": [
+        "api",
+        "session",
+        "room-lobby",
+        "relay"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "FEED-015",
       "area": "feed",
       "name": "Feed API: live, scheduled and recent for the viewer",
@@ -2131,6 +2169,70 @@
       "tests": [
         "app/src/surface/call-moderation.test.tsx"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-064",
+      "area": "sess",
+      "name": "A room's owner records the live session, its reader state together with the call's audio and video",
+      "description": "",
+      "status": "planned",
+      "spec": "041",
+      "acs": [],
+      "surfaces": [
+        "api",
+        "session",
+        "room-lobby",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-065",
+      "area": "sess",
+      "name": "A recording plays back inside the reader, the video in the floating window driving the text",
+      "description": "",
+      "status": "planned",
+      "spec": "042",
+      "acs": [
+        "042/AC-001",
+        "042/AC-002",
+        "042/AC-003",
+        "042/AC-004",
+        "042/AC-005",
+        "042/AC-006",
+        "042/AC-007",
+        "042/AC-008"
+      ],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-066",
+      "area": "sess",
+      "name": "A room's owner broadcasts live to view-only viewers, who follow the reader and watch the host but send nothing back",
+      "description": "",
+      "status": "planned",
+      "spec": "043",
+      "acs": [],
+      "surfaces": [
+        "api",
+        "session",
+        "room-lobby",
+        "relay"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
