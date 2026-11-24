@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — HOST-008: planned (spec 036), named by `tools/2026-11-24-name-036-entries.mjs`.
 - 2026-11-24 — SESS-060, SESS-061: planned (spec 035), named by `tools/2026-11-24-name-035-entries.mjs`.
 - 2026-11-24 — OPS-094, OPS-095: planned (spec 040), named by `tools/2026-11-24-name-040-entries.mjs`.
 - 2026-11-24 — SESS-057, SESS-058, SESS-059: planned (spec 034), named by `tools/2026-11-24-name-034-entries.mjs`.

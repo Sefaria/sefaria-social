@@ -1,0 +1,27 @@
+- id: T-001
+  title: Pin SurfaceHost 1.2 and give the fake host chrome insets
+  acs: [AC-001, AC-005]
+  files:
+    - "packages/host-contract/pinned/**"
+    - "packages/host-contract/src/schemas.ts"
+    - "packages/host-contract/src/schemas.test.ts"
+    - "packages/host-contract/src/conformance.ts"
+    - "packages/host-contract/src/fake-host.ts"
+    - "packages/host-contract/src/fake-host.test.ts"
+    - "packages/host-contract/src/contract.ts"
+    - "packages/host-contract/src/index.ts"
+    - "docs/CONTRACT.md"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:contract", "npm run typecheck", "npm run factory -- doctor --skip-tests"]
+- id: T-002
+  title: The call window reads the reader's insets, with a fallback and a single report for bad values
+  acs: [AC-002, AC-003, AC-004]
+  files:
+    - "app/src/features/av/insets.ts"
+    - "app/src/features/av/CallWindow.tsx"
+    - "app/src/surface/call-insets.test.tsx"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm test -- surface/call-insets surface/call-window", "npm run typecheck"]
+  completes: [HOST-008]
