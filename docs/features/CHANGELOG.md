@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — OPS-094 "Call chunk budget": built (spec 040).
 - 2026-11-24 — SESS-057 "Call state machine and controller": built (spec 034).
 - 2026-11-24 — SESS-058 "Join a call with devices off, and talk": built (spec 034).
 - 2026-11-24 — SESS-059 "Calls load on demand and survive reading": built (spec 034).

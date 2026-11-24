@@ -1456,7 +1456,7 @@
       "area": "ops",
       "name": "Call chunk budget",
       "description": "The LiveKit call chunk (assets/call.*.js) has its own gzip limit and is left out of the surface totals; the entry may grow at most 4 kB over its size before calls.",
-      "status": "planned",
+      "status": "built",
       "spec": "040",
       "acs": [
         "040/AC-001"
@@ -1465,7 +1465,9 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "factory/test/acceptance-040.test.mjs"
+      ],
       "since": null,
       "changed": []
     },
