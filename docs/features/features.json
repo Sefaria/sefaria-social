@@ -1612,8 +1612,8 @@
       "id": "ROOM-045",
       "area": "room",
       "name": "N on a call in the lobby and on cards",
-      "description": "The lobby and live room cards say how many are on the room call, and nothing when no call is live or LiveKit is not configured.",
-      "status": "planned",
+      "description": "The lobby and room cards say how many are on the room call while one is live; the room status and the feed carry call only then.",
+      "status": "built",
       "spec": "038",
       "acs": [
         "038/AC-004"
@@ -1625,7 +1625,11 @@
         "identity"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.call-status.int.test.ts",
+        "app/src/features/room/RoomLobbyPage.test.tsx",
+        "app/src/features/feed/FeedCard.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

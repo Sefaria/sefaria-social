@@ -26,6 +26,7 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
   const viewer = useViewer();
   const [state, setState] = useState<LobbyState>({ kind: "loading" });
   const [joining, setJoining] = useState(false);
+  const [onCall, setOnCall] = useState<number | null>(null);
   const { controller } = useRoomController();
   // A member's lobby holds the room's connection open (spec 012): who is here, live.
   useRoomHold(roomId, "lobby", state.kind === "member");
@@ -45,6 +46,19 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
       live = false;
     };
   }, [api, viewer, roomId]);
+
+  // Who is on the room's call (spec 038): read with the status once the viewer is a member.
+  useEffect(() => {
+    if (state.kind !== "member" || !api?.getStatus) return;
+    let live = true;
+    api.getStatus(roomId).then(
+      (s) => live && setOnCall(s?.call?.live ? s.call.participants : null),
+      () => live && setOnCall(null),
+    );
+    return () => {
+      live = false;
+    };
+  }, [api, roomId, state.kind]);
 
   const join = useCallback(async () => {
     if (!viewer || !api) {
@@ -88,6 +102,7 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
           <button type="button" data-action="enter" onClick={() => void controller?.enlarge(roomId)}>
             {t.enter}
           </button>
+          {onCall !== null && <p data-call-count="">{t.onCall(onCall)}</p>}
           <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
           <PresenceList roomId={roomId} />
         </>

@@ -452,6 +452,10 @@ export interface operations {
                 content: {
                     "application/json": {
                         live: {
+                            call?: {
+                                live: boolean;
+                                participants: number;
+                            };
                             heRef: string | null;
                             /** Format: uuid */
                             id: string;
@@ -461,6 +465,10 @@ export interface operations {
                             title: string;
                         }[];
                         recent: {
+                            call?: {
+                                live: boolean;
+                                participants: number;
+                            };
                             /** Format: uuid */
                             id: string;
                             title: string;
@@ -2553,6 +2561,10 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        call?: {
+                            live: boolean;
+                            participants: number;
+                        };
                         heRef: string | null;
                         live: boolean;
                         participants: number;

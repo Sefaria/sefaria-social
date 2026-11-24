@@ -3,7 +3,10 @@
 // same methods. Tokens stay in memory, in the host's cache; nothing here stores one.
 import { createContext, useContext } from "react";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
-import { createApiClient, type Room } from "@sefaria-social/api-client";
+import { createApiClient, type paths, type Room } from "@sefaria-social/api-client";
+
+/** A room's live status (spec 011), with its call while one is live (spec 038). */
+export type RoomStatus = paths["/api/v1/rooms/{roomId}/status"]["get"]["responses"][200]["content"]["application/json"];
 import { useHost } from "~/features/host/host-context";
 
 export type { Room };
@@ -24,6 +27,8 @@ export interface RoomsApi {
   join(roomId: string): Promise<JoinResult>;
   /** Optional so older fakes keep working; the surface's API always has it. */
   getCallToken?(roomId: string): Promise<CallTokenResult>;
+  /** The room's live status, with its call while one is live (spec 038); null when it cannot be read. Optional like the above. */
+  getStatus?(roomId: string): Promise<RoomStatus | null>;
 }
 
 /** The API's error for anything other than the statuses a caller handles. */
@@ -46,6 +51,10 @@ export function createRoomsApi(host: SurfaceHost): RoomsApi {
       if (data) return { kind: "member", room: data };
       if (response.status === 404 || response.status === 400) return { kind: "missing" };
       throw new RoomsApiError(response.status);
+    },
+    async getStatus(roomId) {
+      const { data } = await client.GET("/api/v1/rooms/{roomId}/status", { params: { path: { roomId } } });
+      return data ?? null;
     },
     async getCallToken(roomId) {
       const { data, response } = await client.POST("/api/v1/rooms/{roomId}/call/token", { params: { path: { roomId } } });

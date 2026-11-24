@@ -27,12 +27,16 @@ export const CallToken = z.object({
   expiresAt: z.iso.datetime({ offset: true }),
 });
 
+/** A room's call as LiveKit last reported it (spec 038). Optional in responses so older clients and fixtures still parse. */
+export const CallStatus = z.object({ live: z.boolean(), participants: z.int().nonnegative() });
+
 export const RoomStatus = z.object({
   live: z.boolean(),
   ref: z.string().nullable(),
   heRef: z.string().nullable(),
   title: z.string().nullable(),
   participants: z.int().nonnegative(),
+  call: CallStatus.optional(),
 });
 
 const Iso = z.iso.datetime({ offset: true });
@@ -46,12 +50,13 @@ export const Feed = z.object({
       heRef: z.string().nullable(),
       sourceTitle: z.string().nullable(),
       participants: z.int().positive(),
+      call: CallStatus.optional(),
     }),
   ),
   scheduled: z.array(
     z.object({ id: z.uuid(), title: z.string(), ref: z.string().nullable(), roomId: z.uuid().nullable(), scheduledAt: Iso }),
   ),
-  recent: z.array(z.object({ id: z.uuid(), title: z.string(), updatedAt: Iso })),
+  recent: z.array(z.object({ id: z.uuid(), title: z.string(), updatedAt: Iso, call: CallStatus.optional() })),
 });
 
 // ── Posts, replies, reactions (specs 023, 024) ────────────────────────────────────────────────────────────────────────────

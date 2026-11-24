@@ -13,8 +13,6 @@ export interface CallStatusDto {
   participants: number;
 }
 
-export const NO_CALL: CallStatusDto = { live: false, participants: 0 };
-
 export type LivekitEvent = z.infer<typeof LivekitEventBody>;
 
 const ROOM_NAME = /^room_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/;
@@ -67,4 +65,10 @@ export async function callStatusOf(roomIds: readonly string[], db: Db = getDb())
     .where(inArray(callStatus.roomId, [...roomIds]));
   for (const r of rows) out.set(r.roomId, { live: r.live, participants: r.participants });
   return out;
+}
+
+/** The rooms among these whose call is live now (spec 038 AC-004). */
+export async function liveCalls(roomIds: readonly string[], db: Db = getDb()): Promise<Map<string, CallStatusDto>> {
+  const all = await callStatusOf(roomIds, db);
+  return new Map([...all].filter(([, c]) => c.live));
 }

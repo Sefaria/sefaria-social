@@ -104,9 +104,26 @@ function Status({ item, lang, t }: { item: CardItem; lang: "english" | "hebrew";
         <span className={styles.live}>{t.cardLive}</span>
         <span aria-hidden="true"> · </span>
         <span>{t.cardLearning(item.room.participants)}</span>
+        {item.room.call?.live && (
+          <>
+            <span aria-hidden="true"> · </span>
+            <span data-call-count="">{t.onCall(item.room.call.participants)}</span>
+          </>
+        )}
       </>
     );
-  if (item.kind === "recent") return <span>{t.cardNotLive}</span>;
+  if (item.kind === "recent")
+    return (
+      <>
+        <span>{t.cardNotLive}</span>
+        {item.room.call?.live && (
+          <>
+            <span aria-hidden="true"> · </span>
+            <span data-call-count="">{t.onCall(item.room.call.participants)}</span>
+          </>
+        )}
+      </>
+    );
   const when = new Intl.DateTimeFormat(lang === "hebrew" ? "he" : "en", { dateStyle: "medium", timeStyle: "short" }).format(
     new Date(item.shiur.scheduledAt),
   );

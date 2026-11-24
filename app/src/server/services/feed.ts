@@ -6,6 +6,7 @@ import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import { roomMembers, rooms, shiurim } from "../db/schema";
 import { relayStatus } from "./relay";
+import { liveCalls, type CallStatusDto } from "./calls";
 
 /** At most this many items per section, and at most this many status reads per request. */
 export const FEED_LIMIT = 20;
@@ -17,12 +18,14 @@ export interface LiveRoomDto {
   heRef: string | null;
   sourceTitle: string | null;
   participants: number;
+  call?: CallStatusDto;
 }
 
 export interface RecentRoomDto {
   id: string;
   title: string;
   updatedAt: string;
+  call?: CallStatusDto;
 }
 
 export interface ScheduledShiurDto {
@@ -63,7 +66,18 @@ export async function getFeed(identity: Identity, db: Db = getDb()): Promise<Fee
 
   // Status reads only for the rooms that can still make a section (outside any transaction; each falls back to offline).
   const asked = myRooms.slice(0, FEED_LIMIT);
-  const statuses = await Promise.all(asked.map((r) => relayStatus(r.id)));
+  const [statuses, calls] = await Promise.all([
+    Promise.all(asked.map((r) => relayStatus(r.id))),
+    liveCalls(
+      myRooms.map((r) => r.id),
+      db,
+    ),
+  ]);
+  /** `{ call }` while the room's call is live, else nothing (spec 038 AC-004). */
+  const callOf = (id: string) => {
+    const call = calls.get(id);
+    return call ? { call } : {};
+  };
   const live: LiveRoomDto[] = [];
   const recent: RecentRoomDto[] = [];
   myRooms.forEach((r, i) => {
@@ -76,8 +90,10 @@ export async function getFeed(identity: Identity, db: Db = getDb()): Promise<Fee
         heRef: s.heRef,
         sourceTitle: s.title,
         participants: s.participants,
+        ...callOf(r.id),
       });
-    else if (recent.length < FEED_LIMIT) recent.push({ id: r.id, title: r.title, updatedAt: r.updatedAt.toISOString() });
+    else if (recent.length < FEED_LIMIT)
+      recent.push({ id: r.id, title: r.title, updatedAt: r.updatedAt.toISOString(), ...callOf(r.id) });
   });
 
   return {

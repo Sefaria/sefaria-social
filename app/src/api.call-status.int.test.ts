@@ -26,6 +26,29 @@ const event = (type: string, roomId: string, participants: number, id = `EV_${++
     room: { sid: `RM_${roomId.slice(0, 8)}`, name: `room_${roomId}`, numParticipants: participants },
   });
 
+describe("spec 038: call status in the API", () => {
+  // @feature ROOM-045 N on a call in the lobby and on cards
+  // @ac 038/AC-004
+  it("includes a room's live call in its status and in the feed, and no call field when none is live", async () => {
+    expect(served("POST", WEBHOOK), `POST ${WEBHOOK} is served`).toBeTypeOf("function");
+    const h = await load();
+    const owner = await h.token(5151);
+    const calling = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "Calling" } })).json as Room;
+    const quiet = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "Quiet" } })).json as Room;
+    await h.livekitWebhook(event("participant_joined", calling.id, 3));
+    const status = async (id: string) =>
+      ((await h.call("GET", `/api/v1/rooms/${id}/status`, { token: owner })).json as { call?: unknown }).call;
+    expect(await status(calling.id)).toEqual({ live: true, participants: 3 });
+    expect(await status(quiet.id)).toBeUndefined();
+    const feed = (await h.call("GET", "/api/v1/feed", { token: owner })).json as {
+      live: { id: string; call?: unknown }[];
+      recent: { id: string; call?: unknown }[];
+    };
+    const calls = Object.fromEntries([...feed.live, ...feed.recent].map((r) => [r.id, r.call]));
+    expect(calls).toEqual({ [calling.id]: { live: true, participants: 3 }, [quiet.id]: undefined });
+  });
+});
+
 describe("spec 038: LiveKit webhooks", () => {
   // @feature API-047 LiveKit webhooks, call status, and deletion leaving calls
   // @ac 038/AC-001
