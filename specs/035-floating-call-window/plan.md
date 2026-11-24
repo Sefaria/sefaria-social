@@ -32,6 +32,10 @@ interface mirrors:
 - Visible tiles: pill none; small the active speaker and three in the strip; medium 4; large 9; the rest as "+N".
   `CallMedia.setVisible` gets the visible ids, so hidden participants send no video (AC-011); audio is untouched.
 
+**Bundle.** The window, the pre-join step and the tiles load lazily: `features/av/CallSlot.tsx` (in the entry) renders the
+panel through `React.lazy` only while there is a call, so the entry keeps within spec 040's 4 kB growth cap (the window
+alone took it to 4.2 kB before this).
+
 ## Tasks and tests
 
 | Task                           | ACs                                    | Test                                                                                                                                                                                      | Why it fails today             |
