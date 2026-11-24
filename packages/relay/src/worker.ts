@@ -16,6 +16,8 @@ import {
   type RoomStatus,
 } from "./internal";
 import { SUBPROTOCOL, identityFrom, identityHeaders, tokenFromProtocols, verifyToken, type Identity } from "./auth";
+import { ROLE_HEADER, admitFromViewer, forViewer, isBroadcastRoom, withRole } from "./broadcast";
+import { ticketFromProtocols, verifyTicket, type BroadcastRole } from "./ticket";
 
 export interface Env {
   ROOMS: DurableObjectNamespace<Room>;
@@ -68,7 +70,17 @@ export default {
     const identity = token ? await verifyToken(token, env) : null;
     if (!identity) return new Response("unauthorized", { status: 401 });
     if (await tombstones(env).isDropped(identity.userId)) return new Response("unauthorized", { status: 401 });
-    return forwardToRoom(env, match[1]!, req, identity);
+    const roomId = match[1]!;
+    let role: BroadcastRole | null = null;
+    if (isBroadcastRoom(roomId)) {
+      // A broadcast room also needs the server's ticket for this broadcast and this user (spec 043 AC-003).
+      const raw = ticketFromProtocols(req.headers.get("Sec-WebSocket-Protocol"));
+      const ticket = raw ? await verifyTicket(raw, env.RELAY_INTERNAL_SECRET, Math.floor(Date.now() / 1000)) : null;
+      if (!ticket || ticket.b !== roomId.slice(2) || ticket.sub !== identity.userId)
+        return new Response("unauthorized", { status: 401 });
+      role = ticket.role;
+    }
+    return forwardToRoom(env, roomId, req, identity, role);
   },
 } satisfies ExportedHandler<Env>;
 
@@ -95,10 +107,21 @@ async function internal(req: Request, url: URL, env: Env): Promise<Response> {
   return json({ error: "not found" }, 404);
 }
 
-/** Hands the upgrade to the room's object with the verified identity in internal headers (overwriting any the client sent). */
-function forwardToRoom(env: Env, roomId: string, req: Request, identity: Identity): Promise<Response> {
+/**
+ * Hands the upgrade to the room's object with the verified identity and broadcast role in internal headers (overwriting any the
+ * client sent; an ordinary room gets no role).
+ */
+function forwardToRoom(
+  env: Env,
+  roomId: string,
+  req: Request,
+  identity: Identity,
+  role: BroadcastRole | null,
+): Promise<Response> {
   const headers = new Headers(req.headers);
   for (const [k, v] of Object.entries(identityHeaders(identity))) headers.set(k, v);
+  if (role) headers.set(ROLE_HEADER, role);
+  else headers.delete(ROLE_HEADER);
   return env.ROOMS.get(env.ROOMS.idFromName(roomId)).fetch(new Request(req.url, { headers }));
 }
 
@@ -111,6 +134,8 @@ export class Room extends DurableObject<Env> {
 
   /** Which user each connection is (from the verified token). */
   private users = new Map<string, Identity>();
+  /** Each connection's broadcast role (from the verified ticket); none in an ordinary room. */
+  private roles = new Map<string, BroadcastRole>();
 
   override async fetch(req: Request): Promise<Response> {
     const identity = identityFrom(req.headers);
@@ -120,12 +145,19 @@ export class Room extends DurableObject<Env> {
     const conn = `ws-${this.nextConn++}`;
     this.sockets.set(conn, server);
     this.users.set(conn, identity);
+    const roleHeader = req.headers.get(ROLE_HEADER);
+    const role: BroadcastRole | null = roleHeader === "host" || roleHeader === "viewer" ? roleHeader : null;
+    if (role) this.roles.set(conn, role);
     this.room.connect(conn);
     this.ticker ??= setInterval(() => this.deliver(this.room.tick()), 1000);
 
     server.addEventListener("message", (e) => {
       if (typeof e.data !== "string") return; // the protocol is JSON text; the room checks size and shape
-      this.deliver(this.room.handle(conn, withIdentity(e.data, identity)));
+      // A viewer only watches: everything but join, leave, hello and resync is dropped before the room sees it.
+      const text = role === "viewer" ? admitFromViewer(e.data) : e.data;
+      if (text === null) return;
+      const named = withIdentity(text, identity);
+      this.deliver(this.room.handle(conn, role ? withRole(named, role) : named));
     });
     const gone = () => this.gone(conn);
     server.addEventListener("close", gone);
@@ -160,6 +192,7 @@ export class Room extends DurableObject<Env> {
     if (!this.sockets.delete(conn)) return;
     this.users.delete(conn);
     this.deliver(this.room.disconnect(conn));
+    this.roles.delete(conn);
     if (this.sockets.size === 0 && this.ticker) {
       clearInterval(this.ticker); // nothing keeps the object now: it shuts down and the room goes with it
       this.ticker = null;
@@ -169,9 +202,15 @@ export class Room extends DurableObject<Env> {
   private deliver(out: Outgoing[]) {
     for (const { to, envelope } of out) {
       const text = JSON.stringify(envelope);
+      let viewerText: string | undefined; // a viewer's participants list names the host only (spec 043 AC-004)
+      const forViewers = () => {
+        const filtered = forViewer(envelope);
+        return filtered === envelope ? text : JSON.stringify(filtered);
+      };
       for (const id of this.room.recipients(to)) {
+        const out = this.roles.get(id) === "viewer" ? (viewerText ??= forViewers()) : text;
         try {
-          this.sockets.get(id)?.send(text);
+          this.sockets.get(id)?.send(out);
         } catch {
           // a socket closing under us; its close event cleans up
         }

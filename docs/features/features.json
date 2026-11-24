@@ -2252,7 +2252,10 @@
         "relay"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "packages/relay/src/broadcast.test.ts",
+        "packages/relay/src/relay.test.ts"
+      ],
       "since": null,
       "changed": []
     },
