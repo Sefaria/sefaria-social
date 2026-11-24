@@ -94,6 +94,8 @@ configMap:
     SOCIAL_TOKEN_ISSUER: https://www.sefaria.org
     SOCIAL_TOKEN_AUDIENCE: sefaria-social
     RELAY_INTERNAL_URL: https://rooms.sefaria.org
+    # The reader's follow-me relay, for the status read behind shared follow links (spec 032).
+    FOLLOW_RELAY_URL: https://rooms.sefaria.org
     SOCIAL_ALLOWED_ORIGINS: https://www.sefaria.org,https://www.sefaria.org.il
     LOG_LEVEL: info
 
@@ -104,6 +106,7 @@ secret:
     - DATABASE_URL
     - USER_DELETED_WEBHOOK_SECRET
     - RELAY_INTERNAL_SECRET
+    - FOLLOW_RELAY_SECRET
 
 # What the Deployment's env becomes (rendered by the chart from configMap and secret above).
 env:
@@ -115,6 +118,8 @@ env:
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SOCIAL_TOKEN_AUDIENCE } }
   - name: RELAY_INTERNAL_URL
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: RELAY_INTERNAL_URL } }
+  - name: FOLLOW_RELAY_URL
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: FOLLOW_RELAY_URL } }
   - name: SOCIAL_ALLOWED_ORIGINS
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SOCIAL_ALLOWED_ORIGINS } }
   - name: LOG_LEVEL
@@ -125,6 +130,8 @@ env:
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: USER_DELETED_WEBHOOK_SECRET } }
   - name: RELAY_INTERNAL_SECRET
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: RELAY_INTERNAL_SECRET } }
+  - name: FOLLOW_RELAY_SECRET
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: FOLLOW_RELAY_SECRET } }
 
 podDisruptionBudget:
   minAvailable: 1

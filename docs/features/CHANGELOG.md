@@ -3,6 +3,8 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — FEED-075 "Join a live shiur from the feed": built (spec 032).
+- 2026-11-24 — FEED-074 "Share a live follow-me session in a post": built (spec 032; reader side: the follow-me relay's status read).
 - 2026-11-24 — FEED-073 "The conversation, ordered like X's": built (spec 031).
 - 2026-11-24 — FEED-072 "For you: the timeline ranked like X's": built (spec 031).
 - 2026-11-24 — FEED-071 "Quote a post": built (spec 030).

@@ -15,6 +15,8 @@ export const LOG_EVENTS = [
   "user.purged",
   "relay.status_failed",
   "relay.drop_failed",
+  "follow_relay.status_refused",
+  "follow_relay.status_failed",
 ] as const;
 export type LogEvent = (typeof LOG_EVENTS)[number];
 export type LogLevel = "debug" | "info" | "warn" | "error";

@@ -137,6 +137,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/posts/{postId}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Where the follow-me session a post shares is now: the leader's place, name and how many are in it. */
+        get: operations["getPostFollowStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/posts/{postId}/reaction": {
         parameters: {
             query?: never;
@@ -752,6 +769,7 @@ export interface operations {
                         canDelete: boolean;
                         /** Format: date-time */
                         createdAt: string;
+                        followSessionId: string | null;
                         /** Format: uuid */
                         id: string;
                         quoteCount: number;
@@ -871,6 +889,7 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            followSessionId: string | null;
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;
@@ -996,6 +1015,70 @@ export interface operations {
             };
             /** @description Not allowed for this caller (for example room.forbidden). */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPostFollowStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The session's status; live is false once it has ended. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        away: boolean;
+                        leader: string | null;
+                        live: boolean;
+                        participants: number;
+                        ref: string | null;
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1447,6 +1530,7 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            followSessionId: string | null;
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;
@@ -2435,6 +2519,7 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            followSessionId: string | null;
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;

@@ -72,6 +72,11 @@ export const Post = z.object({
   reposted: z.boolean(),
   quoted: QuotedPost.nullable(),
   repostedBy: Author.nullable(),
+  /** A live follow-me session the post shares (spec 032); its status is at /api/v1/posts/{postId}/follow. */
+  followSessionId: z
+    .string()
+    .regex(/^[0-9A-Za-z]{43}$/)
+    .nullable(),
 });
 
 export const Reply = z.object({ id: z.uuid(), body: z.string(), author: Author, createdAt: Iso, canDelete: z.boolean() });
@@ -93,6 +98,16 @@ export const ReplyInput = z.strictObject({ body: z.string().trim().min(1).max(10
 export const ReactionState = z.object({ reacted: z.boolean(), reactionCount: z.int().nonnegative() });
 
 export const RepostState = z.object({ reposted: z.boolean(), repostCount: z.int().nonnegative() });
+
+/** Where a post's follow-me session is now (spec 032). */
+export const FollowStatus = z.object({
+  live: z.boolean(),
+  /** The leader's tab is hidden for a moment; the session goes on. */
+  away: z.boolean(),
+  ref: z.string().nullable(),
+  leader: z.string().nullable(),
+  participants: z.int().nonnegative(),
+});
 
 const TimelineQuery = z.strictObject({
   tab: z.enum(["following", "everyone"]).default("following"),
@@ -395,6 +410,17 @@ export const removeRepost = defineEndpoint({
   responses: { 200: { description: "The viewer's repost state and the post's count.", schema: RepostState } },
 });
 
+export const getPostFollowStatus = defineEndpoint({
+  operationId: "getPostFollowStatus",
+  method: "GET",
+  path: "/api/v1/posts/{postId}/follow",
+  summary: "Where the follow-me session a post shares is now: the leader's place, name and how many are in it.",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [404],
+  responses: { 200: { description: "The session's status; live is false once it has ended.", schema: FollowStatus } },
+});
+
 export const getMyProfile = defineEndpoint({
   operationId: "getMyProfile",
   method: "GET",
@@ -509,6 +535,7 @@ export const ENDPOINTS = [
   removeReaction,
   addRepost,
   removeRepost,
+  getPostFollowStatus,
   getMyProfile,
   updateMyProfile,
   listProfiles,

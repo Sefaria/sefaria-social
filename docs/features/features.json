@@ -540,6 +540,51 @@
       "changed": []
     },
     {
+      "id": "FEED-074",
+      "area": "feed",
+      "name": "Share a live follow-me session in a post",
+      "description": "A post carrying a follow-me link keeps its session and the source it opened on; the API answers where the session is now (the leader's ref, name and head count) from the reader's follow-me relay's status read, shared across viewers for a few seconds, and not live once it has ended or the relay cannot answer.",
+      "status": "built",
+      "spec": "032",
+      "acs": [
+        "032/AC-001",
+        "032/AC-002",
+        "032/AC-003"
+      ],
+      "surfaces": [
+        "feed",
+        "post",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.follow.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-075",
+      "area": "feed",
+      "name": "Join a live shiur from the feed",
+      "description": "The post card shows a shared session live (who is learning, how many, the leader's current source and its text, refreshed while on screen, no socket) and Join the shiur opens the reader at the leader's place with the follow link; an ended session says so.",
+      "status": "built",
+      "spec": "032",
+      "acs": [
+        "032/AC-004"
+      ],
+      "surfaces": [
+        "feed",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/post/LiveFollow.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",

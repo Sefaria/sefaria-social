@@ -1445,6 +1445,17 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "followSessionId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9A-Za-z]{43}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -1461,7 +1472,8 @@
                           "quoteCount",
                           "reposted",
                           "quoted",
-                          "repostedBy"
+                          "repostedBy",
+                          "followSessionId"
                         ],
                         "additionalProperties": false
                       }
@@ -1758,6 +1770,17 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "followSessionId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[0-9A-Za-z]{43}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -1774,7 +1797,8 @@
                     "quoteCount",
                     "reposted",
                     "quoted",
-                    "repostedBy"
+                    "repostedBy",
+                    "followSessionId"
                   ],
                   "additionalProperties": false
                 }
@@ -2067,6 +2091,17 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "followSessionId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9A-Za-z]{43}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -2083,7 +2118,8 @@
                         "quoteCount",
                         "reposted",
                         "quoted",
-                        "repostedBy"
+                        "repostedBy",
+                        "followSessionId"
                       ],
                       "additionalProperties": false
                     },
@@ -2892,6 +2928,117 @@
         ]
       }
     },
+    "/api/v1/posts/{postId}/follow": {
+      "get": {
+        "operationId": "getPostFollowStatus",
+        "summary": "Where the follow-me session a post shares is now: the leader's place, name and how many are in it.",
+        "tags": [
+          "posts"
+        ],
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The session's status; live is false once it has ended.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "live": {
+                      "type": "boolean"
+                    },
+                    "away": {
+                      "type": "boolean"
+                    },
+                    "ref": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "leader": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "participants": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "live",
+                    "away",
+                    "ref",
+                    "leader",
+                    "participants"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request does not match the schema (request.invalid).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to this caller (for example room.not_found).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A dependency is unavailable (auth.unavailable, webhook.unavailable).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sefariaToken": []
+          }
+        ]
+      }
+    },
     "/api/v1/profiles/me": {
       "get": {
         "operationId": "getMyProfile",
@@ -3574,6 +3721,17 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "followSessionId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9A-Za-z]{43}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -3590,7 +3748,8 @@
                           "quoteCount",
                           "reposted",
                           "quoted",
-                          "repostedBy"
+                          "repostedBy",
+                          "followSessionId"
                         ],
                         "additionalProperties": false
                       }
