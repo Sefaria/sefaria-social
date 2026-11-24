@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:a28e000d65f7cf07d592378e64bced38967169d74ef7ec2247b0fcf9663954b3",
   "feature_sha": "sha256:8f864aa3c9c30db62a9b063f8dbda25906bca5f435add2d2d2d818937af7ed22",
-  "tasks_sha": "sha256:50ef3a091ed5c0bef09b0752fb7b670a1c69a5918562d40cad07beff6df5fe5f",
+  "tasks_sha": "sha256:aa22b268b2f741aeb841cadf1d5ee5ac7d03205667def0a55ef8de65c3ab19ad",
   "risk": "high",
   "features": [
     "API-046",
