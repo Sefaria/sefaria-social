@@ -156,6 +156,8 @@ export const posts = pgTable(
     ref: text("ref"),
     /** A quote (spec 030): the post this one quotes. Kept when the quoted post is deleted (it shows as unavailable). */
     quotedPostId: uuid("quoted_post_id").references((): AnyPgColumn => posts.id, { onDelete: "set null" }),
+    /** A live follow-me session the post shares (spec 032): the reader's session id, which is the link's join capability. */
+    followSessionId: text("follow_session_id"),
     createdAt: createdAt(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },

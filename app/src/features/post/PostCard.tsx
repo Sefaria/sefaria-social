@@ -15,6 +15,7 @@ import { Icon } from "~/ui/Icon";
 import kit from "~/ui/kit.module.css";
 import { RelativeTime } from "~/ui/RelativeTime";
 import { SourceText } from "~/ui/SourceText";
+import { LiveFollow } from "./LiveFollow";
 import { QuoteComposer } from "./QuoteComposer";
 import { QuotedPost } from "./QuotedPost";
 import { ReactionButton } from "./ReactionButton";
@@ -106,7 +107,9 @@ export function PostCard({
           {post.body}
         </p>
         {post.quoted ? <QuotedPost quoted={post.quoted} /> : null}
-        {post.ref ? (
+        {post.followSessionId ? (
+          <LiveFollow post={post} sessionId={post.followSessionId} />
+        ) : post.ref ? (
           <figure className={styles.source} data-post-source={post.ref}>
             <figcaption className={styles.sourceRef}>
               <Icon name="book" size={16} />

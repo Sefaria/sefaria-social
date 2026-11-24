@@ -47,6 +47,8 @@ for any route that answers without credentials and is not on that list.
 | `USER_DELETED_WEBHOOK_SECRET` | yes                   | Same value as Django's `USER_DELETED_WEBHOOK_SECRET`. Unset: the webhook answers 503 (Django retries)                                          |
 | `RELAY_INTERNAL_URL`          | no                    | The relay's base URL for its internal routes (status, drop-user). Unset: status is always offline and deletions are not sent to the relay (P3) |
 | `RELAY_INTERNAL_SECRET`       | with the above        | Same value as the relay's `RELAY_INTERNAL_SECRET` (P3)                                                                                         |
+| `FOLLOW_RELAY_URL`            | no                    | The reader's follow-me relay (e.g. `https://rooms.sefaria.org`) for its status read (spec 032). Unset: shared follow links show as ended       |
+| `FOLLOW_RELAY_SECRET`         | with the above        | Same value as the follow-me relay's `STATUS_SECRET` (spec 032)                                                                                 |
 | `SOCIAL_ALLOWED_ORIGINS`      | yes (for the surface) | Comma-separated browser origins allowed by CORS: the reader's origins, e.g. `https://www.sefaria.org,https://www.sefaria.org.il` (P3)          |
 | `LOG_LEVEL`                   | no                    | `debug` / `info` (default) / `warn` / `error`                                                                                                  |
 | `TEST_DATABASE_URL`           | tests only            | Default `postgres://localhost:5432/sefaria_social_test`; the name must contain `test` (it is reset)                                            |

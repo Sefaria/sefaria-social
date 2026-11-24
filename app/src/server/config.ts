@@ -18,6 +18,10 @@ const Env = z.object({
   RELAY_INTERNAL_URL: z.url().optional(),
   /** Shared with the relay's RELAY_INTERNAL_SECRET. */
   RELAY_INTERNAL_SECRET: z.string().min(1).optional(),
+  /** The reader's follow-me relay (spec 032), for example https://rooms.sefaria.org: its status read shows a shared follow link live. */
+  FOLLOW_RELAY_URL: z.url().optional(),
+  /** Shared with the follow-me relay's STATUS_SECRET. */
+  FOLLOW_RELAY_SECRET: z.string().min(1).optional(),
   /** Origins whose pages may call the API from a browser (CORS), comma-separated: the reader's origins. */
   SOCIAL_ALLOWED_ORIGINS: z.string().optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),

@@ -258,3 +258,75 @@ a.quoted:focus-visible {
   color: var(--sefaria-color-text-muted, #6f6f6f);
   font-size: 13px;
 }
+
+/* A shared follow-me session (spec 032): the source follows the leader. A small "Live" badge and who leads sit above it; the
+   join link is the one call to action, in the reader's accent. */
+.follow {
+  gap: 8px;
+}
+
+.followHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--sefaria-font-ui-en, sans-serif);
+  font-size: 13px;
+  color: var(--sefaria-color-text-secondary, inherit);
+}
+
+.followHeader:empty {
+  display: none;
+}
+
+.followBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--sefaria-color-text, inherit);
+}
+
+.followDot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: var(--sefaria-color-voices, currentColor);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .followDot {
+    animation: followPulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes followPulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.followWho {
+  font-weight: 600;
+}
+
+.followJoin {
+  justify-self: start;
+  padding: 6px 14px;
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: var(--sefaria-color-brand, #18345d);
+  color: var(--sefaria-color-on-brand, #ffffff);
+  font-family: var(--sefaria-font-ui-en, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.followJoin:hover {
+  background: var(--sefaria-color-brand-hover, #0f2340);
+}
+
+.followJoin:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1976d2);
+  outline-offset: 2px;
+}

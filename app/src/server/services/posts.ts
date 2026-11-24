@@ -4,10 +4,12 @@
 // Following is time-ordered, posts and reposts together, with a keyset cursor (time, entry key), 20 a page. For you is ranked
 // (services/ranking.ts) with an offset cursor pinned to the time the first page was ranked.
 import { and, asc, desc, eq, inArray, isNull, lt, or, sql, type SQL } from "drizzle-orm";
+import { findFollowLink, parseFollowLink } from "../../lib/follow-link";
 import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import { follows, posts, profileAdmins, profiles, reactions, replies, reposts } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { followStatus, type FollowStatusDto } from "./follow-relay";
 import { notify, notifyFollowersOfPost, ownersOf } from "./notifications";
 import { canActAs, ensurePersonProfile } from "./person-profile";
 import { rank, type Candidate } from "./ranking";
@@ -45,6 +47,8 @@ export interface PostDto {
   quoted: QuotedPostDto | null;
   /** In a timeline: the profile (one the viewer follows, or the viewer) whose repost brought this post here. */
   repostedBy: AuthorDto | null;
+  /** A live follow-me session the post shares (spec 032): the card reads its status and offers to join it. */
+  followSessionId: string | null;
 }
 
 export interface ReplyDto {
@@ -73,6 +77,7 @@ function postColumns(viewer: number) {
     reacted: sql<boolean>`exists (select 1 from ${reactions} where ${reactions.postId} = ${posts.id} and ${reactions.userId} = ${viewer})`,
     canDelete: sql<boolean>`(${posts.createdByUserId} = ${viewer} or ${profiles.userId} = ${viewer} or exists (select 1 from ${profileAdmins} where ${profileAdmins.profileId} = ${profiles.id} and ${profileAdmins.userId} = ${viewer}))`,
     quotedPostId: posts.quotedPostId,
+    followSessionId: posts.followSessionId,
     repostCount: sql<number>`(select count(*)::int from ${reposts} where ${reposts.postId} = ${posts.id})`,
     quoteCount: sql<number>`(select count(*)::int from posts q where q.quoted_post_id = ${posts.id} and q.deleted_at is null)`,
     reposted: sql<boolean>`exists (select 1 from ${reposts} r join profiles rp on rp.id = r.profile_id where r.post_id = ${posts.id} and rp.user_id = ${viewer})`,
@@ -92,6 +97,7 @@ type PostRow = {
   reacted: boolean;
   canDelete: boolean;
   quotedPostId: string | null;
+  followSessionId: string | null;
   repostCount: number;
   quoteCount: number;
   reposted: boolean;
@@ -112,6 +118,7 @@ const toPost = (r: PostRow): PostDto => ({
   reposted: Boolean(r.reposted),
   quoted: r.quotedPostId ? { id: r.quotedPostId, body: null, ref: null, author: null, createdAt: null } : null,
   repostedBy: null,
+  followSessionId: r.followSessionId,
 });
 
 /** Fill in the posts that these posts quote (one query; a deleted one stays as its id). */
@@ -228,14 +235,20 @@ export async function createPost(
     if (authorProfileId !== own.id && !(await canActAs(tx, identity.userId, authorProfileId)))
       throw new ApiError(403, "post.forbidden");
     if (input.quotedPostId) await livePost(tx, input.quotedPostId);
+    // A follow-me link (spec 032) in the source field or the words: the post carries the session, and its source is where the
+    // link opened unless the learner named one.
+    const typed = input.ref?.trim() || null;
+    const link = (typed ? parseFollowLink(typed) : null) ?? findFollowLink(input.body);
+    const ref = typed && !parseFollowLink(typed) ? typed : (link?.ref ?? null);
     const [row] = await tx
       .insert(posts)
       .values({
         authorProfileId,
         createdByUserId: identity.userId,
         body: input.body,
-        ref: input.ref || null,
+        ref,
         quotedPostId: input.quotedPostId || null,
+        followSessionId: link?.sessionId ?? null,
       })
       .returning({ id: posts.id });
     await notifyFollowersOfPost(tx, authorProfileId, row!.id, identity.userId);
@@ -449,6 +462,19 @@ export async function getPost(
   const [post] = await selectPosts(db, identity.userId, eq(posts.id, postId), 1);
   if (!post) throw new ApiError(404, "post.not_found");
   return { post, replies: await listReplies(db, identity.userId, postId) };
+}
+
+/**
+ * Where a post's follow-me session is now (spec 032), read from the relay outside any transaction. 404 for a missing or deleted
+ * post, or one that shares no session. `_identity`: any signed-in viewer may read it (the post, and its link, are public to them).
+ */
+export async function postFollowStatus(_identity: Identity, postId: string, db: Db = getDb()): Promise<FollowStatusDto> {
+  const [p] = await db
+    .select({ sessionId: posts.followSessionId })
+    .from(posts)
+    .where(and(eq(posts.id, postId), isNull(posts.deletedAt)));
+  if (!p?.sessionId) throw new ApiError(404, "post.not_found");
+  return followStatus(p.sessionId);
 }
 
 export async function deletePost(identity: Identity, postId: string, db: Db = getDb()): Promise<void> {

@@ -1,0 +1,29 @@
+- id: T-001
+  title: A shared follow-me session, from the post to the live card and the join
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "app/src/lib/follow-link.ts"
+    - "app/src/lib/follow-link.test.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/log/logger.ts"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/server/services/follow-relay.ts"
+    - "app/src/server/services/posts.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/posts.$postId.follow.ts"
+    - "app/src/routeTree.gen.ts"
+    - "packages/api-client/**"
+    - "app/src/features/api/social-api.ts"
+    - "app/src/features/post/**"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/api.follow.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/db.int.test.ts"
+    - "docs/features/**"
+    - "docs/runbooks/**"
+    - "deploy/helm/values.yaml"
+  depends_on: []
+  parallel: false
+  verify: ["npm test", "npm run test:integration"]
+  completes: [FEED-074, FEED-075]

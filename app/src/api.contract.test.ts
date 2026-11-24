@@ -39,6 +39,7 @@ describe("spec 007: API contract", () => {
       "GET /api/v1/me getMe secured",
       "GET /api/v1/notifications listNotifications secured",
       "GET /api/v1/posts/{postId} getPost secured",
+      "GET /api/v1/posts/{postId}/follow getPostFollowStatus secured",
       "GET /api/v1/profiles listProfiles secured",
       "GET /api/v1/profiles/me getMyProfile secured",
       "GET /api/v1/profiles/{profileId} getProfile secured",

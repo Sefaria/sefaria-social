@@ -149,6 +149,10 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
 - [ ] **Server and relay wiring**: the server's `RELAY_INTERNAL_URL` and `RELAY_INTERNAL_SECRET` (the relay's value), and
       `SOCIAL_ALLOWED_ORIGINS` (the reader's origins); the reader's `PUBLIC_SOCIAL_RELAY_ORIGIN` (the relay's wss origin)
       and `PUBLIC_SOCIAL_API_ORIGIN` (the server). Added by P3.
+- [ ] **Live follow-me posts (spec 032)**: on the reader's follow-me relay (Sefaria-Project `reader-next/relay`), store a
+      status secret with `npx wrangler secret put STATUS_SECRET [--env staging]` and redeploy it; give the social server
+      `FOLLOW_RELAY_URL` (`https://rooms.sefaria.org`, or `rooms-staging`) and `FOLLOW_RELAY_SECRET` (the same value). Until
+      then a post with a follow link shows its source as it was and says the session has ended. Added by spec 032.
 - [ ] **Room roles at the relay** (decision 0008): every member may take the lead today, because the relay sees only the
       Sefaria token, not who owns the room. Decide whether only owners host; that needs a server-issued room ticket or a
       relay call to the server. Added by P3.

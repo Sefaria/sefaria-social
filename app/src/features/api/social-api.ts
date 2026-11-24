@@ -29,6 +29,15 @@ export type {
 
 export type TimelineTab = "following" | "everyone";
 
+/** Where a shared follow-me session is now (spec 032). */
+export interface FollowStatus {
+  live: boolean;
+  away: boolean;
+  ref: string | null;
+  leader: string | null;
+  participants: number;
+}
+
 /** An API error the interface can name: the server's stable code and the HTTP status. */
 export class SocialApiError extends Error {
   constructor(
@@ -49,6 +58,8 @@ export interface SocialApi {
   deleteReply(replyId: string): Promise<void>;
   react(postId: string, on: boolean): Promise<{ reacted: boolean; reactionCount: number }>;
   repost(postId: string, on: boolean): Promise<{ reposted: boolean; repostCount: number }>;
+  /** Where the follow-me session a post shares is now (spec 032). */
+  followStatus(postId: string): Promise<FollowStatus>;
   me(): Promise<MyProfile>;
   updateMe(input: { name?: string; bio?: string }): Promise<MyProfile>;
   profile(profileId: string): Promise<ProfileWithPosts>;
@@ -108,6 +119,9 @@ export function createSocialApi(host: SurfaceHost): SocialApi {
       return unwrap(
         on ? await c.PUT("/api/v1/posts/{postId}/repost", init) : await c.DELETE("/api/v1/posts/{postId}/repost", init),
       );
+    },
+    async followStatus(postId) {
+      return unwrap(await c.GET("/api/v1/posts/{postId}/follow", { params: { path: { postId } } }));
     },
     async me() {
       return unwrap(await c.GET("/api/v1/profiles/me"));
