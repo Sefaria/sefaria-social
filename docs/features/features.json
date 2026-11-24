@@ -144,11 +144,17 @@
     {
       "id": "API-049",
       "area": "api",
-      "name": "A room's owner records the live session, its reader state together with the call's audio and video",
+      "name": "Recordings API: start, upload, list, read and delete a session recording",
       "description": "",
       "status": "planned",
       "spec": "041",
-      "acs": [],
+      "acs": [
+        "041/AC-001",
+        "041/AC-002",
+        "041/AC-003",
+        "041/AC-004",
+        "041/AC-005"
+      ],
       "surfaces": [
         "api",
         "session",
@@ -163,11 +169,15 @@
     {
       "id": "API-050",
       "area": "api",
-      "name": "A room's owner broadcasts live to view-only viewers, who follow the reader and watch the host but send nothing back",
+      "name": "Broadcasts API: start, end, relay tickets and view-only call grants",
       "description": "",
       "status": "planned",
       "spec": "043",
-      "acs": [],
+      "acs": [
+        "043/AC-001",
+        "043/AC-002",
+        "043/AC-005"
+      ],
       "surfaces": [
         "api",
         "session",
@@ -2175,11 +2185,15 @@
     {
       "id": "SESS-064",
       "area": "sess",
-      "name": "A room's owner records the live session, its reader state together with the call's audio and video",
+      "name": "Record a room's session (state and call media) in the owner's browser",
       "description": "",
       "status": "planned",
       "spec": "041",
-      "acs": [],
+      "acs": [
+        "041/AC-006",
+        "041/AC-007",
+        "041/AC-008"
+      ],
       "surfaces": [
         "api",
         "session",
@@ -2194,7 +2208,7 @@
     {
       "id": "SESS-065",
       "area": "sess",
-      "name": "A recording plays back inside the reader, the video in the floating window driving the text",
+      "name": "Replay a recording in the reader with the video in the floating window",
       "description": "",
       "status": "planned",
       "spec": "042",
@@ -2220,11 +2234,17 @@
     {
       "id": "SESS-066",
       "area": "sess",
-      "name": "A room's owner broadcasts live to view-only viewers, who follow the reader and watch the host but send nothing back",
+      "name": "Broadcast a session and watch it as a view-only viewer",
       "description": "",
       "status": "planned",
       "spec": "043",
-      "acs": [],
+      "acs": [
+        "043/AC-003",
+        "043/AC-004",
+        "043/AC-006",
+        "043/AC-007",
+        "043/AC-008"
+      ],
       "surfaces": [
         "api",
         "session",
