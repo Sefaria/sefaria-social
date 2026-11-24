@@ -184,3 +184,64 @@ describe("spec 033: the calls switch", () => {
     }
   });
 });
+
+describe("spec 033: abuse and secrets", () => {
+  // @feature API-046 Call token endpoint for room members
+  // @ac 033/AC-006
+  it("refuses a 21st token request for the same room within a minute with 429 and retry-after, for that user and room only", async () => {
+    expect(served("POST", PATH), `POST ${PATH} is served`).toBeTypeOf("function");
+    const { h } = await load();
+    const owner = await h.token(7171);
+    const other = await h.token(7272);
+    const a = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "A" } })).json as Room;
+    const b = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "B" } })).json as Room;
+    await h.call("POST", `/api/v1/rooms/${a.id}/members`, { token: other });
+
+    const statuses: number[] = [];
+    for (let i = 0; i < 20; i++)
+      statuses.push((await h.call("POST", `/api/v1/rooms/${a.id}/call/token`, { token: owner })).status);
+    expect(statuses).toEqual(Array(20).fill(200));
+    const limited = await h.call("POST", `/api/v1/rooms/${a.id}/call/token`, { token: owner });
+    expect(limited.status).toBe(429);
+    expect((limited.json as { error?: { code?: string } }).error?.code).toBe("request.rate_limited");
+    const retry = Number(limited.headers.get("retry-after"));
+    expect(Number.isInteger(retry) && retry >= 1 && retry <= 60, `retry-after ${limited.headers.get("retry-after")}`).toBe(true);
+    expect(JSON.stringify(limited.json)).not.toContain('"token"');
+    // another room for the same user, and the same room for another user, are not limited
+    expect((await h.call("POST", `/api/v1/rooms/${b.id}/call/token`, { token: owner })).status).toBe(200);
+    expect((await h.call("POST", `/api/v1/rooms/${a.id}/call/token`, { token: other })).status).toBe(200);
+  });
+
+  // @feature API-046 Call token endpoint for room members
+  // @ac 033/AC-007
+  it("logs each token request without the LiveKit token, key or secret, or the caller's Sefaria token", async () => {
+    expect(served("POST", PATH), `POST ${PATH} is served`).toBeTypeOf("function");
+    const { h, livekit } = await load();
+    const owner = await h.token(8181);
+    const stranger = await h.token(8282);
+    const room = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "Logs" } })).json as Room;
+    h.logs.length = 0;
+
+    const ok = await h.call("POST", `/api/v1/rooms/${room.id}/call/token`, { token: owner });
+    const issued = (ok.json as CallToken).token;
+    expect(issued.split(".")).toHaveLength(3); // a real token was issued, so its absence below means something
+    await h.call("POST", `/api/v1/rooms/${room.id}/call/token`, { token: stranger }); // 404
+    await h.call("POST", `/api/v1/rooms/${room.id}/call/token`, { token: "not-a-jwt" }); // 401
+    const { resetConfig } = await import("~/server/config");
+    const saved = process.env.CALLS_ENABLED;
+    delete process.env.CALLS_ENABLED;
+    resetConfig();
+    try {
+      expect((await h.call("POST", `/api/v1/rooms/${room.id}/call/token`, { token: owner })).status).toBe(503);
+    } finally {
+      process.env.CALLS_ENABLED = saved;
+      resetConfig();
+    }
+
+    const lines = h.logs.filter((l) => l.includes("/call/token"));
+    expect(lines.map((l) => (JSON.parse(l) as { status?: number }).status)).toEqual([200, 404, 401, 503]);
+    const all = h.logs.join("\n");
+    for (const secret of [issued, issued.split(".")[2]!, livekit.key, livekit.secret, owner, stranger, "not-a-jwt", "Bearer"])
+      expect(all.includes(secret), `the log contains ${secret.slice(0, 12)}…`).toBe(false);
+  });
+});

@@ -5,20 +5,20 @@ Built in milestone P2 (specs 005–008). Design: [PLAN.md](../PLAN.md) sections 
 
 ## API surface (`/api/v1`)
 
-| Method and path                            | Access                         | What                                                                                    |
-| ------------------------------------------ | ------------------------------ | --------------------------------------------------------------------------------------- |
-| `GET /api/v1/health`                       | public (the only one)          | `select 1` within 2 s: 200 `ok` or 503 `unavailable`                                    |
-| `GET /api/v1/rooms`                        | Sefaria token                  | Rooms the caller is a member of, newest first                                           |
-| `POST /api/v1/rooms`                       | Sefaria token                  | Create `{title}` (1–120 chars); caller is owner                                         |
-| `GET /api/v1/rooms/{roomId}`               | token + member                 | The room; non-member or missing: 404 `room.not_found`                                   |
-| `PATCH /api/v1/rooms/{roomId}`             | token + owner                  | Rename `{title}`; member: 403 `room.forbidden`                                          |
-| `DELETE /api/v1/rooms/{roomId}`            | token + owner                  | Delete with memberships: 204                                                            |
-| `POST /api/v1/internal/user-deleted`       | `X-Sefaria-Signature` (Django) | Account deletion: `processed`/`duplicate`/`ignored`; then the relay drops the user (P3) |
-| `GET /api/v1/me`                           | Sefaria token                  | `{userId, name}` from the token (P3, spec 082)                                          |
-| `POST /api/v1/rooms/{roomId}/members`      | Sefaria token                  | Join (the room id is the invitation); idempotent; missing room 404 (P3, spec 011)       |
-| `DELETE /api/v1/rooms/{roomId}/members/me` | token + member                 | Leave; owner: 403 `room.owner_cannot_leave` (P3)                                        |
-| `GET /api/v1/rooms/{roomId}/status`        | token + member                 | `{live, ref, title, participants}` from the relay; offline fallback (P3)                |
-| `POST /api/v1/rooms/{roomId}/call/token`   | token + member                 | `{url, token, expiresAt}`: a 10-minute LiveKit token for the room's call (spec 033)     |
+| Method and path                            | Access                         | What                                                                                                          |
+| ------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/health`                       | public (the only one)          | `select 1` within 2 s: 200 `ok` or 503 `unavailable`                                                          |
+| `GET /api/v1/rooms`                        | Sefaria token                  | Rooms the caller is a member of, newest first                                                                 |
+| `POST /api/v1/rooms`                       | Sefaria token                  | Create `{title}` (1–120 chars); caller is owner                                                               |
+| `GET /api/v1/rooms/{roomId}`               | token + member                 | The room; non-member or missing: 404 `room.not_found`                                                         |
+| `PATCH /api/v1/rooms/{roomId}`             | token + owner                  | Rename `{title}`; member: 403 `room.forbidden`                                                                |
+| `DELETE /api/v1/rooms/{roomId}`            | token + owner                  | Delete with memberships: 204                                                                                  |
+| `POST /api/v1/internal/user-deleted`       | `X-Sefaria-Signature` (Django) | Account deletion: `processed`/`duplicate`/`ignored`; then the relay drops the user (P3)                       |
+| `GET /api/v1/me`                           | Sefaria token                  | `{userId, name}` from the token (P3, spec 082)                                                                |
+| `POST /api/v1/rooms/{roomId}/members`      | Sefaria token                  | Join (the room id is the invitation); idempotent; missing room 404 (P3, spec 011)                             |
+| `DELETE /api/v1/rooms/{roomId}/members/me` | token + member                 | Leave; owner: 403 `room.owner_cannot_leave` (P3)                                                              |
+| `GET /api/v1/rooms/{roomId}/status`        | token + member                 | `{live, ref, title, participants}` from the relay; offline fallback (P3)                                      |
+| `POST /api/v1/rooms/{roomId}/call/token`   | token + member                 | `{url, token, expiresAt}`: a 10-minute LiveKit token for the room's call; 20/min per user and room (spec 033) |
 
 - **Token:** `Authorization: Bearer <JWT>` from Django's `POST /api/social/token` (RS256, `aud` `sefaria-social`, `sub` =
   `auth_user.id`, 10 minutes). Verified with `jose` against the JWKS URL (3 s timeout, keys cached, refetch on an unknown

@@ -289,7 +289,7 @@ export const getCallToken = defineEndpoint({
     "A 10-minute LiveKit token to join the room's call: identity u:<user id>, this room only, publish microphone, camera and screen share. Members only.",
   tags: ["rooms", "calls"],
   params: RoomParams,
-  errors: [404, 503],
+  errors: [404, 429, 503],
   responses: { 200: { description: "The LiveKit URL and a token for this room's call.", schema: CallToken } },
 });
 

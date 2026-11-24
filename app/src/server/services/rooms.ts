@@ -5,6 +5,7 @@ import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import { roomMembers, rooms } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { createRateLimiter } from "../http/rate-limit";
 import { callsAvailable, callsConfig, mintCallToken, type CallTokenDto } from "./livekit";
 import { relayStatus, type RoomStatusDto } from "./relay";
 import { upsertDisplay } from "./users";
@@ -124,12 +125,17 @@ export async function getRoomStatus(identity: Identity, roomId: string, db: Db =
   return relayStatus(roomId);
 }
 
+/** 20 call tokens per user and room per minute (spec 033 AC-006): each one is a credential for the media server. */
+const callTokenLimiter = createRateLimiter({ limit: 20, windowMs: 60_000 });
+
 /**
  * A LiveKit token for the room's call (spec 033). Members only (a non-member and a missing room look the same); the role
  * comes from the membership row. The display cache is refreshed from the token, as on joining. Minting is local and runs
  * after the database work, outside any transaction.
  */
 export async function getCallToken(identity: Identity, roomId: string, db: Db = getDb()): Promise<CallTokenDto> {
+  const limit = callTokenLimiter.hit(`call-token:${identity.userId}:${roomId}`);
+  if (!limit.allowed) throw new ApiError(429, "request.rate_limited", { "retry-after": String(limit.retryAfterSeconds) });
   const m = await db.transaction(async (tx) => {
     const row = await membership(tx, identity, roomId);
     await upsertDisplay(tx, identity);
