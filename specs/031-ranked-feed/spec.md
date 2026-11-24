@@ -1,7 +1,7 @@
 ---
 id: "031"
 title: For you — the timeline ranked the way X ranks its home timeline
-status: proposed
+status: approved
 features: [FEED-072, FEED-073]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, post]
