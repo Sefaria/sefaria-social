@@ -52,7 +52,7 @@ async function guard<T>(work: Promise<T>): Promise<T> {
   }
 }
 
-function connected(room: Room): CallMedia {
+function connected(room: Room): CallMedia & { attachExisting(): void } {
   const listeners = new Set<() => void>();
   const connectionListeners = new Set<(s: ConnectionState, r?: Reason) => void>();
   const audioEls = new Map<string, HTMLMediaElement>();
@@ -119,6 +119,12 @@ function connected(room: Room): CallMedia {
   };
 
   return {
+    /** Play any remote audio already subscribed (belt and braces with listening before connect). */
+    attachExisting() {
+      for (const p of room.remoteParticipants.values())
+        for (const pub of p.audioTrackPublications.values())
+          if (pub.track && pub.track.sid && !audioEls.has(pub.track.sid)) onSubscribed(pub.track as RemoteTrack);
+    },
     participants: () => [
       participant(room.localParticipant, true),
       ...[...room.remoteParticipants.values()].map((p) => participant(p, false)),
@@ -181,8 +187,11 @@ export function createLiveKitEngine(): MediaEngine {
     },
     async connect(o: ConnectOptions) {
       const room = new Room({ adaptiveStream: true, dynacast: true, publishDefaults: { simulcast: true } });
-      await room.connect(o.url, o.token);
+      // Listen before connecting: LiveKit subscribes a newcomer to the tracks already in the call during connect(), and
+      // those TrackSubscribed events would otherwise be missed (no audio from people who were there first).
       const media = connected(room);
+      await room.connect(o.url, o.token);
+      media.attachExisting();
       // Devices turn on after the connection, not before it returns: a getUserMedia that waits (an operating-system
       // permission prompt, a busy device) must not leave the viewer on "Connecting…". The panel follows the local
       // participant, so a microphone or camera shows as on once it is published. A refused device leaves the viewer in
