@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:d82880bfcd7d3d6a69975a04c8d3efefc45f6fd1d70566e71e1ff82e0ce25be9",
   "feature_sha": "sha256:f10a49b1b7242d5452fc13ac86d7d2e75f66120f0aa8fd018f75a7caac2227f4",
-  "tasks_sha": "sha256:ee311b18e237aadd10acfa2c64481317afa036b9f911942ade5ff3541a5e2ffc",
+  "tasks_sha": "sha256:7d6b2e1fafa56f772a1eb66612f6309f85c374e293ec6eb4601c1dcb24afaf77",
   "risk": "high",
   "features": [
     "API-049",
@@ -49,7 +49,8 @@
         "packages/api-client/src/schema.ts",
         "test/integration/harness.ts",
         "test/integration/schema-walk.ts",
-        "docs/runbooks/server.md"
+        "docs/runbooks/server.md",
+        "deploy/helm/values.yaml"
       ],
       "depends_on": [],
       "parallel": false,

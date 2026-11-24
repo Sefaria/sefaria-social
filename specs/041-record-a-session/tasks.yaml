@@ -28,6 +28,7 @@
     - "test/integration/harness.ts"
     - "test/integration/schema-walk.ts"
     - "docs/runbooks/server.md"
+    - "deploy/helm/values.yaml"
   depends_on: []
   parallel: false
   verify: ["npm run test:integration -- api.recordings api.routes", "npm run typecheck", "npm run test:contract"]

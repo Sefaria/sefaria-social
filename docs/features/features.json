@@ -183,8 +183,7 @@
       "surfaces": [
         "api",
         "session",
-        "room-lobby",
-        "relay"
+        "room-lobby"
       ],
       "depends_on": {},
       "tests": [
@@ -2270,8 +2269,7 @@
       "surfaces": [
         "api",
         "session",
-        "room-lobby",
-        "relay"
+        "room-lobby"
       ],
       "depends_on": {},
       "tests": [

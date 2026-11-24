@@ -4,7 +4,7 @@ title: A room's owner broadcasts live to view-only viewers, who follow the reade
 status: draft
 features: [API-050, SESS-066]
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [api, session, room-lobby, relay]
+surfaces: [api, session, room-lobby]
 risk: high
 contract_impact: api-minor
 ---
