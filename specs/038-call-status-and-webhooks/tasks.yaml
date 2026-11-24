@@ -20,6 +20,7 @@
     - "packages/api-client/src/schema.ts"
     - "test/integration/harness.ts"
     - "test/integration/schema-walk.ts"
+    - "app/src/db.int.test.ts"
     - "docs/runbooks/server.md"
   depends_on: []
   parallel: false
