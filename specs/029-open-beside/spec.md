@@ -1,7 +1,7 @@
 ---
 id: "029"
 title: A source beside the feed — the reader slides in, the feed stays
-status: proposed
+status: approved
 features: [FEED-069]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, post, profile]

@@ -139,6 +139,11 @@
     "sha": "sha256:eb34be5197177e2d21251f7da524eb58ee645962a968e0ff4f556aa579c4bb33",
     "at": "2026-11-24T12:04:54Z"
   },
+  "029": {
+    "by": "akiva@sefaria.org",
+    "sha": "sha256:5ba708f276f75fd3aef4a7558a7151643e1d5ffb0b24acfcaf84318f2fa5cfd2",
+    "at": "2026-11-24T12:04:54Z"
+  },
   "030": {
     "by": "akiva@sefaria.org",
     "sha": "sha256:a639f9ab6aff73ce95c67d28708d91d6c4c6093c791031f8c6e876ba48bfde9f",
