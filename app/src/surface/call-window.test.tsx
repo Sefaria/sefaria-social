@@ -83,6 +83,8 @@ async function inCall(opts: { participants?: number; lang?: "english" | "hebrew"
   const call = engine.last();
   await act(async () => call.setRemote(remote((opts.participants ?? 11) - 1)));
   const win = () => document.querySelector<HTMLElement>("[data-call-window]")!;
+  // the call interface is its own chunk (CallSlot): wait for it to load
+  await vi.waitFor(() => expect(document.querySelector("[data-call-window] [data-participant]")).not.toBeNull());
   const box = () => {
     const s = win().style;
     return { left: parseFloat(s.left), top: parseFloat(s.top), width: parseFloat(s.width), height: parseFloat(s.height) };

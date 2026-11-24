@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
-import { CallPanel } from "~/features/av/CallPanel";
+import { CallSlot } from "~/features/av/CallSlot";
 import { HostLink } from "~/features/host/HostLink";
 import { FollowBar, MiniView } from "~/features/session/FollowBar";
 import { useLiveRooms, useRoomController } from "~/features/session/use-room-session";
@@ -20,7 +20,7 @@ export function PersistentView({ host }: { host: SurfaceHost }) {
   return (
     <>
       <RoomView host={host} />
-      <CallPanel />
+      <CallSlot />
     </>
   );
 }
