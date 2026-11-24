@@ -1,7 +1,7 @@
 ---
 id: "032"
 title: A live shiur in the feed — share a follow-me link and the post follows the leader
-status: proposed
+status: approved
 features: [FEED-074, FEED-075]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, post, api]
