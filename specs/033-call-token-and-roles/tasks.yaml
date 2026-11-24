@@ -17,6 +17,7 @@
     - "app/package.json"
     - "package-lock.json"
     - "docs/runbooks/server.md"
+    - "deploy/helm/values.yaml"
   depends_on: []
   parallel: false
   verify: ["npm run test:integration -- api.calls", "npm run typecheck", "npm run api:breaking"]

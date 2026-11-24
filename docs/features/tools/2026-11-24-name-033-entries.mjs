@@ -8,7 +8,7 @@ const ENTRIES = {
     name: "Call token endpoint for room members",
     description:
       "POST /api/v1/rooms/{roomId}/call/token: a member gets a 10-minute LiveKit token for that room only, identity u:<user id>, role in metadata, publish microphone, camera and screen share, no data; 404 for non-members, 401 without identity, rate limited, secrets never logged.",
-    acs: ["033/AC-001", "033/AC-002", "033/AC-003", "033/AC-004", "033/AC-006", "033/AC-007"],
+    acs: ["033/AC-001", "033/AC-002", "033/AC-003", "033/AC-004"],
   },
   "SESS-056": {
     name: "Calls switch and the room's calls field",
