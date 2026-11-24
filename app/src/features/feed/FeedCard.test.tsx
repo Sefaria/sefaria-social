@@ -39,6 +39,29 @@ async function setup(opts: SupportModule.FeedSetup = {}) {
   return { ...r, relay, support: support!, card, link };
 }
 
+describe("a room card's call (spec 038)", () => {
+  // @feature ROOM-045 N on a call in the lobby and on cards
+  // @ac 038/AC-004
+  it("says how many are on the room's call while it is live, and nothing otherwise", async () => {
+    const support = (await mods.support["./test-feed.tsx"]?.())!;
+    expect(support, "the feed test support exists").toBeDefined();
+    const { FEED, ROOMS } = support;
+    const feed = {
+      ...FEED,
+      live: FEED.live.map((r, i) => ({
+        ...r,
+        call: i === 0 ? { live: true, participants: 3 } : { live: false, participants: 0 },
+      })),
+      recent: FEED.recent.map((r) => ({ ...r, call: { live: true, participants: 1 } })),
+    };
+    const { card } = await setup({ feed });
+    const count = (id: string) => card(id).querySelector("[data-call-count]")?.textContent ?? null;
+    expect(count(ROOMS.bereshit)).toBe("3 on a call");
+    expect(count(ROOMS.shemot)).toBeNull();
+    expect(count(FEED.recent[0]!.id)).toBe("1 on a call");
+  });
+});
+
 describe("a light card", () => {
   // @feature FEED-016 Light card: article with one stretched link and status in words
   // @ac 016/AC-001

@@ -27,12 +27,16 @@ export const CallToken = z.object({
   expiresAt: z.iso.datetime({ offset: true }),
 });
 
+/** A room's call as LiveKit last reported it (spec 038). Optional in responses so older clients and fixtures still parse. */
+export const CallStatus = z.object({ live: z.boolean(), participants: z.int().nonnegative() });
+
 export const RoomStatus = z.object({
   live: z.boolean(),
   ref: z.string().nullable(),
   heRef: z.string().nullable(),
   title: z.string().nullable(),
   participants: z.int().nonnegative(),
+  call: CallStatus.optional(),
 });
 
 const Iso = z.iso.datetime({ offset: true });
@@ -46,12 +50,13 @@ export const Feed = z.object({
       heRef: z.string().nullable(),
       sourceTitle: z.string().nullable(),
       participants: z.int().positive(),
+      call: CallStatus.optional(),
     }),
   ),
   scheduled: z.array(
     z.object({ id: z.uuid(), title: z.string(), ref: z.string().nullable(), roomId: z.uuid().nullable(), scheduledAt: Iso }),
   ),
-  recent: z.array(z.object({ id: z.uuid(), title: z.string(), updatedAt: Iso })),
+  recent: z.array(z.object({ id: z.uuid(), title: z.string(), updatedAt: Iso, call: CallStatus.optional() })),
 });
 
 // ── Posts, replies, reactions (specs 023, 024) ────────────────────────────────────────────────────────────────────────────
@@ -507,6 +512,30 @@ export const userDeleted = defineEndpoint({
   responses: { 200: { description: "Processed, already processed, or an event type social ignores.", schema: WebhookAck } },
 });
 
+/** The fields of LiveKit's webhook event social reads (spec 038); everything else is ignored. */
+export const LivekitEventBody = z.looseObject({
+  event: z.string().min(1).max(100),
+  id: z.string().min(1).max(200),
+  room: z
+    .looseObject({
+      name: z.string().max(300).optional(),
+      numParticipants: z.coerce.number().int().optional(),
+    })
+    .optional(),
+});
+
+export const livekitWebhook = defineEndpoint({
+  operationId: "livekitWebhook",
+  method: "POST",
+  path: "/api/v1/internal/livekit/webhook",
+  summary:
+    "LiveKit's webhook (spec 038): joins, leaves and finished rooms keep each room's call status. Authenticated by a LiveKit-signed Authorization header over the raw body.",
+  tags: ["internal"],
+  access: "livekit-webhook",
+  body: LivekitEventBody,
+  responses: { 200: { description: "Processed, already processed, or an event or room social ignores.", schema: WebhookAck } },
+});
+
 /** Every endpoint, in document order. The route-enumeration test checks this list against the served route tree. */
 export const ENDPOINTS = [
   getHealth,
@@ -540,4 +569,5 @@ export const ENDPOINTS = [
   listNotifications,
   readNotifications,
   userDeleted,
+  livekitWebhook,
 ] as const;

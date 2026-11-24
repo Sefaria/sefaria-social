@@ -32,6 +32,7 @@ import { Route as ApiV1ProfilesProfileIdRouteImport } from './routes/api/v1/prof
 import { Route as ApiV1ProfilesMeRouteImport } from './routes/api/v1/profiles.me'
 import { Route as ApiV1RepliesReplyIdRouteImport } from './routes/api/v1/replies.$replyId'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
+import { Route as ApiV1InternalLivekitWebhookRouteImport } from './routes/api/v1/internal.livekit.webhook'
 import { Route as ApiV1PostsPostIdReactionRouteImport } from './routes/api/v1/posts.$postId.reaction'
 import { Route as ApiV1PostsPostIdRepliesRouteImport } from './routes/api/v1/posts.$postId.replies'
 import { Route as ApiV1PostsPostIdRepostRouteImport } from './routes/api/v1/posts.$postId.repost'
@@ -157,6 +158,12 @@ const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
   path: '/$roomId',
   getParentRoute: () => ApiV1RoomsRoute,
 } as any)
+const ApiV1InternalLivekitWebhookRoute =
+  ApiV1InternalLivekitWebhookRouteImport.update({
+    id: '/api/v1/internal/livekit/webhook',
+    path: '/api/v1/internal/livekit/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiV1PostsPostIdReactionRoute =
   ApiV1PostsPostIdReactionRouteImport.update({
     id: '/reaction',
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
@@ -259,6 +267,7 @@ export interface FileRoutesByTo {
   '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
@@ -293,6 +302,7 @@ export interface FileRoutesById {
   '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/me'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/internal/livekit/webhook'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/me'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/internal/livekit/webhook'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
@@ -394,6 +406,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/me'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/internal/livekit/webhook'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
@@ -423,6 +436,7 @@ export interface RootRouteChildren {
   SocialUProfileIdRoute: typeof SocialUProfileIdRoute
   ApiV1InternalUserDeletedRoute: typeof ApiV1InternalUserDeletedRoute
   ApiV1RepliesReplyIdRoute: typeof ApiV1RepliesReplyIdRoute
+  ApiV1InternalLivekitWebhookRoute: typeof ApiV1InternalLivekitWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -587,6 +601,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/rooms/$roomId'
       preLoaderRoute: typeof ApiV1RoomsRoomIdRouteImport
       parentRoute: typeof ApiV1RoomsRoute
+    }
+    '/api/v1/internal/livekit/webhook': {
+      id: '/api/v1/internal/livekit/webhook'
+      path: '/api/v1/internal/livekit/webhook'
+      fullPath: '/api/v1/internal/livekit/webhook'
+      preLoaderRoute: typeof ApiV1InternalLivekitWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/v1/posts/$postId/reaction': {
       id: '/api/v1/posts/$postId/reaction'
@@ -773,6 +794,7 @@ const rootRouteChildren: RootRouteChildren = {
   SocialUProfileIdRoute: SocialUProfileIdRoute,
   ApiV1InternalUserDeletedRoute: ApiV1InternalUserDeletedRoute,
   ApiV1RepliesReplyIdRoute: ApiV1RepliesReplyIdRoute,
+  ApiV1InternalLivekitWebhookRoute: ApiV1InternalLivekitWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

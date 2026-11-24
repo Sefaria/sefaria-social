@@ -123,10 +123,29 @@ export async function harness(router: object) {
     return call("POST", "/api/v1/internal/user-deleted", { rawBody, headers });
   }
 
+  /**
+   * Post a LiveKit webhook the way LiveKit does (spec 038): the Authorization header is a JWT signed with the API secret whose
+   * sha256 claim is the body's hash. `secret: null` sends no header; `bodyForHash` signs a different body (tampering).
+   */
+  async function livekitWebhook(rawBody: string, opts: { secret?: string | null; bodyForHash?: string } = {}) {
+    const headers: Record<string, string> = { "content-type": "application/webhook+json" };
+    const secret = opts.secret === undefined ? LIVEKIT_TEST.secret : opts.secret;
+    if (secret !== null) {
+      const { createHash } = await import("node:crypto");
+      const { AccessToken } = await import("livekit-server-sdk");
+      const at = new AccessToken(LIVEKIT_TEST.key, secret, { ttl: 300 });
+      at.sha256 = createHash("sha256")
+        .update(opts.bodyForHash ?? rawBody)
+        .digest("base64");
+      headers.authorization = await at.toJwt();
+    }
+    return call("POST", "/api/v1/internal/livekit/webhook", { rawBody, headers });
+  }
+
   const sql = <R extends Record<string, unknown> = Record<string, unknown>>(text: string, values: unknown[] = []) =>
     pool.query<R>(text, values).then((r) => r.rows);
 
-  return { call, token, webhook, sql, logs, pool, close: closeDb };
+  return { call, token, webhook, livekitWebhook, sql, logs, pool, close: closeDb };
 }
 
 export type Harness = Awaited<ReturnType<typeof harness>>;

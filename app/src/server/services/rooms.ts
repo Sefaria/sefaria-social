@@ -8,6 +8,7 @@ import { ApiError } from "../http/errors";
 import { createRateLimiter } from "../http/rate-limit";
 import { callsAvailable, callsConfig, mintCallToken, type CallTokenDto } from "./livekit";
 import { relayStatus, type RoomStatusDto } from "./relay";
+import { liveCalls, type CallStatusDto } from "./calls";
 import { upsertDisplay } from "./users";
 
 export interface RoomDto {
@@ -120,9 +121,15 @@ export async function leaveRoom(identity: Identity, roomId: string, db: Db = get
 }
 
 /** A room's live status (spec 011): members only, then the relay's status read (outside any transaction). */
-export async function getRoomStatus(identity: Identity, roomId: string, db: Db = getDb()): Promise<RoomStatusDto> {
+export async function getRoomStatus(
+  identity: Identity,
+  roomId: string,
+  db: Db = getDb(),
+): Promise<RoomStatusDto & { call?: CallStatusDto }> {
   await membership(db, identity, roomId);
-  return relayStatus(roomId);
+  const [relay, calls] = await Promise.all([relayStatus(roomId), liveCalls([roomId], db)]);
+  const call = calls.get(roomId);
+  return call ? { ...relay, call } : relay;
 }
 
 /** 20 call tokens per user and room per minute (spec 033 AC-006): each one is a credential for the media server. */

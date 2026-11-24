@@ -14,6 +14,7 @@ Built in milestone P2 (specs 005–008). Design: [PLAN.md](../PLAN.md) sections 
 | `PATCH /api/v1/rooms/{roomId}`             | token + owner                  | Rename `{title}`; member: 403 `room.forbidden`                                                                |
 | `DELETE /api/v1/rooms/{roomId}`            | token + owner                  | Delete with memberships: 204                                                                                  |
 | `POST /api/v1/internal/user-deleted`       | `X-Sefaria-Signature` (Django) | Account deletion: `processed`/`duplicate`/`ignored`; then the relay drops the user (P3)                       |
+| `POST /api/v1/internal/livekit/webhook`    | LiveKit-signed `Authorization` | Joins, leaves and finished calls keep `call_status` per room (spec 038)                                       |
 | `GET /api/v1/me`                           | Sefaria token                  | `{userId, name}` from the token (P3, spec 082)                                                                |
 | `POST /api/v1/rooms/{roomId}/members`      | Sefaria token                  | Join (the room id is the invitation); idempotent; missing room 404 (P3, spec 011)                             |
 | `DELETE /api/v1/rooms/{roomId}/members/me` | token + member                 | Leave; owner: 403 `room.owner_cannot_leave` (P3)                                                              |
@@ -92,6 +93,7 @@ foreign key is indexed (tested).
 | `shiur_recordings` | `id`, `shiur_id` → shiurim cascade, `owner_user_id`, `storage_key` (pointer), `duration_ms`, `visibility` | owner (private)            |
 | `user_display`     | `user_id`, `name`, `img`, `updated_at` (cache of token claims)                                            | the user                   |
 | `deleted_users`    | `user_id`, `deleted_at`, `event_id` (tombstone)                                                           | the only place an id stays |
+| `call_status`      | `room_id` → rooms cascade, `live`, `participants`, `started_at`, `updated_at` (LiveKit webhooks)          | none                       |
 | `webhook_receipts` | `event_id`, `event_type`, `received_at` (idempotency)                                                     | none                       |
 
 Changing the schema: edit `schema.ts`, run `npm run db:generate -- --name <what>`, commit the migration. CI fails when
@@ -105,3 +107,9 @@ A new table holding a user id must be added to `deleteUserData` (`app/src/server
   plus the test-only persona routes (spec 082) on 127.0.0.1:3200; `npm run qa:relay`, `npm run qa:harness`,
   `npm run qa:seed -- <scenario>|--all`, `npm run qa:reset`. Contract: `e2e/qa/README.md` (F2).
 - `npm run test:e2e` starts `e2e/stack/start.ts` itself (Postgres `E2E_DATABASE_URL`, a JWKS, the API, the relay).
+
+## LiveKit webhooks (spec 038)
+
+In the LiveKit project (Cloud: Settings → Webhooks; self-hosted: `webhook.urls` in its config) add
+`<social origin>/api/v1/internal/livekit/webhook`, signed with the same API key as `LIVEKIT_API_KEY`. Without it, the lobby
+and cards never show a call as live; nothing else breaks.

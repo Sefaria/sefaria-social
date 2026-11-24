@@ -3,6 +3,8 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — API-047 "LiveKit webhooks, call status, and deletion leaving calls": built (spec 038).
+- 2026-11-24 — ROOM-045 "N on a call in the lobby and on cards": built (spec 038).
 - 2026-11-24 — SESS-062 "The call on a phone: a docked strip": built (spec 037).
 - 2026-11-24 — HOST-008 "SurfaceHost 1.2 chrome insets for the call window": built (spec 036).
 - 2026-11-24 — SESS-060 "Floating call window: place, move, resize": built (spec 035).

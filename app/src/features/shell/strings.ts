@@ -157,6 +157,7 @@ const STRINGS = {
     shareSubject: "A Torah thought on Sefaria",
     // Calls (spec 034)
     joinCall: "Join call",
+    onCall: (n: number) => `${n} on a call`,
     call: "Call",
     microphone: "Microphone",
     camera: "Camera",
@@ -364,6 +365,7 @@ const STRINGS = {
     linkCopied: "הקישור הועתק",
     shareSubject: "דבר תורה בספריא",
     joinCall: "הצטרפות לשיחה",
+    onCall: (n: number) => (n === 1 ? "אחד/ת בשיחה" : `${n} בשיחה`),
     call: "שיחה",
     microphone: "מיקרופון",
     camera: "מצלמה",

@@ -1,7 +1,8 @@
 // The one path every API request takes (plan sections 6.1 and 6.2). A route file binds an endpoint contract to a thin
 // handler with `bind`, and hands the bound handlers to TanStack Start with `serve`. The wrapper:
 //   1. takes or makes the correlation id;
-//   2. checks access BEFORE reading anything else: `user` (the default) needs a verified Sefaria token, `sefaria-webhook`
+//   2. checks access BEFORE reading anything else: `user` (the default) needs a verified Sefaria token, `livekit-webhook` a
+//      LiveKit-signed Authorization over the raw body (spec 038), `sefaria-webhook`
 //      a valid signature over the raw body, and `public` is allowed only for endpoints on PUBLIC_ENDPOINTS;
 //   3. validates path parameters and the body with the contract's zod schemas (400 request.invalid);
 //   4. validates the handler's response against the contract, so nothing undeclared leaves the server;
@@ -14,6 +15,7 @@ import type { Identity } from "../auth/identity";
 import { getConfig } from "../config";
 import { log } from "../log/logger";
 import { SIGNATURE_HEADER, verifySignature } from "../webhooks/signature";
+import { verifyLivekitWebhook } from "../services/livekit";
 import { CORRELATION_HEADER, correlationIdFrom } from "./correlation";
 import { corsHeaders, preflight } from "./cors";
 import { ApiError, errorBody } from "./errors";
@@ -21,7 +23,7 @@ import { PUBLIC_ENDPOINTS } from "./public-routes";
 
 export const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 export type Method = (typeof METHODS)[number];
-export type Access = "user" | "public" | "sefaria-webhook";
+export type Access = "user" | "public" | "sefaria-webhook" | "livekit-webhook";
 export const MAX_BODY_BYTES = 64 * 1024;
 
 export interface ResponseSpec {
@@ -117,6 +119,16 @@ function validate<T extends z.ZodType>(schema: T, value: unknown): z.output<T> {
 async function checkAccess(access: Access, request: Request): Promise<{ identity?: Identity; raw?: string }> {
   if (access === "public") return {};
   if (access === "user") return { identity: await authenticate(request) };
+  if (access === "livekit-webhook") {
+    const raw = await readRaw(request);
+    const ok = await verifyLivekitWebhook(raw, request.headers.get("authorization"));
+    if (ok === "unconfigured") {
+      log.error("webhook.not_configured");
+      throw new ApiError(503, "webhook.unavailable");
+    }
+    if (!ok) throw new ApiError(401, "webhook.bad_signature");
+    return { raw };
+  }
   const secret = getConfig().USER_DELETED_WEBHOOK_SECRET;
   if (!secret) {
     log.error("webhook.not_configured");

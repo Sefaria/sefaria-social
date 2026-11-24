@@ -65,6 +65,42 @@ async function setup(viewer: { id: number; name: string } | null, joinAnswer: "j
   return { fake, api, el, joinButton };
 }
 
+describe("room lobby: who is on the call (spec 038)", () => {
+  // @feature ROOM-045 N on a call in the lobby and on cards
+  // @ac 038/AC-004
+  it("says how many are on the call while it is live, and nothing otherwise", async () => {
+    const mod = (await apiModules["../api/rooms-api.ts"]!())!;
+    const { HostContext } = (await hostModules["../host/host-context.tsx"]!())!;
+    const { RoomLobbyPage } = (await lobbyModules["./RoomLobbyPage.tsx"]!())!;
+    for (const [call, text] of [
+      [{ live: true, participants: 2 }, "2 on a call"],
+      [{ live: false, participants: 0 }, null],
+    ] as const) {
+      const fake = createFakeHost({ url: `/social/r/${ROOM_ID}`, viewer: { id: 4242, name: "Test Learner" } });
+      const api = {
+        getRoom: vi.fn(async () => ({ kind: "member" as const, room })),
+        join: vi.fn(),
+        getStatus: vi.fn(async () => ({ live: false, ref: null, heRef: null, title: null, participants: 0, call })),
+      } as unknown as RoomsApiModule.RoomsApi;
+      const el = await render(
+        createElement(
+          HostContext.Provider,
+          { value: fake.host },
+          createElement(mod.RoomsApiContext.Provider, { value: api }, createElement(RoomLobbyPage, { roomId: ROOM_ID })),
+        ),
+      );
+      await vi.waitFor(() => expect(el.querySelector("main")?.dataset.roomState).toBe("member"));
+      if (text) await vi.waitFor(() => expect(el.querySelector("[data-call-count]")?.textContent).toBe(text));
+      else {
+        await act(async () => void (await new Promise((r) => setTimeout(r, 0))));
+        expect(el.querySelector("[data-call-count]")).toBeNull();
+      }
+      cleanup?.();
+      cleanup = null;
+    }
+  });
+});
+
 describe("room lobby: Join", () => {
   // @feature ROOM-044 Lobby Join button
   // @ac 011/AC-006

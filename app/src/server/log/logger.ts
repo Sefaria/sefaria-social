@@ -15,6 +15,7 @@ export const LOG_EVENTS = [
   "user.purged",
   "relay.status_failed",
   "relay.drop_failed",
+  "livekit.remove_failed",
 ] as const;
 export type LogEvent = (typeof LOG_EVENTS)[number];
 export type LogLevel = "debug" | "info" | "warn" | "error";
