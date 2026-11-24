@@ -14,8 +14,9 @@ import { pageTextSource } from "~/lib/sefaria-text";
 import { roomReader, type RoomReader } from "./room-reader";
 
 export const RELAY_SUBPROTOCOL = "sefaria-social.v1";
-/** "prefetch": a press on a feed card prepares the room before the click lands (spec 017 AC-004). */
-export type Hold = "lobby" | "context" | "live" | "prefetch";
+/** "prefetch": a press on a feed card prepares the room before the click lands (spec 017 AC-004). "call": the viewer is in
+ * the room's call, which keeps the room connected wherever they read (spec 034, AV1). */
+export type Hold = "lobby" | "context" | "live" | "prefetch" | "call";
 
 export interface RoomSession {
   roomId: string;

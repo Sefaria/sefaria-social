@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
+import { CallPanel } from "~/features/av/CallPanel";
 import { HostLink } from "~/features/host/HostLink";
 import { FollowBar, MiniView } from "~/features/session/FollowBar";
 import { useLiveRooms, useRoomController } from "~/features/session/use-room-session";
@@ -13,8 +14,19 @@ import { decodeCtx } from "~/lib/ctx";
  *  - elsewhere, with a room the viewer entered and has not left: the mini view (Enlarge, Leave);
  *  - otherwise nothing (R18).
  * Shiur contexts show only the way back until shiurim are built.
+ * The call (spec 034) renders beside these whenever there is one, whatever the route, so it survives every navigation.
  */
 export function PersistentView({ host }: { host: SurfaceHost }) {
+  return (
+    <>
+      <RoomView host={host} />
+      <CallPanel />
+    </>
+  );
+}
+
+/** The room part of the persistent mount (above). */
+function RoomView({ host }: { host: SurfaceHost }) {
   const raw = useSyncExternalStore(
     (cb) => host.reader.context.subscribe(cb),
     () => host.reader.context.get(),
