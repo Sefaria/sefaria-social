@@ -1,18 +1,28 @@
-// The recording endpoints replay reads (spec 041's API; design section 4.5): a recording's metadata, its state track and its
-// media. Plain fetch against host.config.apiOrigin with the viewer's identity token, the way the rooms API sends it; the media
+// The recording endpoints replay reads (spec 041's API; design section 4.5): a room's recordings, a recording's metadata, its
+// state track and its media, and deleting one. Plain fetch against host.config.apiOrigin with the viewer's identity token, the way the rooms API sends it; the media
 // comes back as one Blob (a <video> cannot send a bearer token), counted as it arrives so the window can show progress.
 // Tokens stay in memory: nothing here stores or logs one.
 import { z } from "zod";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
 
-/** The metadata replay needs; other fields the server sends are ignored. */
+/**
+ * The metadata replay and the recording pages need (the server's `Recording`); other fields are ignored, and only `id` is
+ * required, so a field the server adds or leaves out never breaks playback.
+ */
 const recordingMetaSchema = z.object({
   id: z.string(),
+  roomId: z.string().optional(),
+  title: z.string().nullable().optional(),
+  status: z.string().optional(),
+  startedAt: z.string().optional(),
   durationMs: z.number().finite().nonnegative().nullable().optional(),
   mediaBytes: z.number().int().nonnegative().nullable().optional(),
   mime: z.string().nullable().optional(),
+  owner: z.object({ userId: z.number(), name: z.string().nullable().optional() }).optional(),
+  canDelete: z.boolean().optional(),
 });
 export type RecordingMeta = z.infer<typeof recordingMetaSchema>;
+const recordingListSchema = z.object({ recordings: z.array(recordingMetaSchema) });
 
 /** Any answer other than 200; `status` 0 for a network failure. */
 export class ReplayApiError extends Error {
@@ -23,6 +33,10 @@ export class ReplayApiError extends Error {
 }
 
 export interface ReplayApi {
+  /** The room's recordings, as the server lists them. */
+  listRecordings(roomId: string): Promise<RecordingMeta[]>;
+  /** Deletes a recording (its recorder or the room's owner); throws ReplayApiError(403) for anyone else. */
+  deleteRecording(recordingId: string): Promise<void>;
   getRecording(recordingId: string): Promise<RecordingMeta>;
   /** The `Recording` v1 document, unparsed (the caller parses it with the session schema). */
   getState(recordingId: string): Promise<unknown>;
@@ -37,13 +51,13 @@ export function createReplayApi(host: SurfaceHost, fetchImpl: typeof fetch = (..
   const base = host.config.apiOrigin.replace(/\/+$/, "");
   const path = (recordingId: string, rest = "") => `${base}/api/v1/recordings/${encodeURIComponent(recordingId)}${rest}`;
 
-  const request = async (url: string): Promise<Response> => {
+  const request = async (url: string, method = "GET"): Promise<Response> => {
     const headers = new Headers({ "x-correlation-id": crypto.randomUUID() });
     const token = host.viewer.get() ? await host.viewer.identityToken().catch(() => null) : null;
     if (token) headers.set("authorization", `Bearer ${token}`);
     let response: Response;
     try {
-      response = await fetchImpl(url, { headers });
+      response = await fetchImpl(url, method === "GET" ? { headers } : { method, headers });
     } catch {
       throw new ReplayApiError(0);
     }
@@ -52,6 +66,15 @@ export function createReplayApi(host: SurfaceHost, fetchImpl: typeof fetch = (..
   };
 
   return {
+    async listRecordings(roomId) {
+      const response = await request(`${base}/api/v1/rooms/${encodeURIComponent(roomId)}/recordings`);
+      const parsed = recordingListSchema.safeParse(await response.json().catch(() => null));
+      if (!parsed.success) throw new ReplayApiError(response.status);
+      return parsed.data.recordings;
+    },
+    async deleteRecording(recordingId) {
+      await request(path(recordingId), "DELETE");
+    },
     async getRecording(recordingId) {
       const response = await request(path(recordingId));
       const parsed = recordingMetaSchema.safeParse(await response.json().catch(() => null));

@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useStrings } from "~/features/shell/use-strings";
 import { RecordingBadge } from "~/features/recording/RecordingBadge";
 import { useCallRecording } from "~/features/recording/use-recording";
-import { CallWindowSize } from "./CallWindow";
+import { CallWindowSize, type FrameOwner } from "./CallWindow";
 import { useChromeInsets } from "./insets";
 import { useCallController, useCallView } from "./use-call";
 import styles from "./strip.module.css";
@@ -16,10 +16,17 @@ export function CallStrip({
   children,
   pill,
   notice,
+  prompt,
+  owner = "call",
+  label,
 }: {
   children: ReactNode;
   pill: (expand: () => void) => ReactNode;
   notice?: ReactNode;
+  prompt?: ReactNode;
+  owner?: FrameOwner;
+  label?: string;
+  title?: string;
 }) {
   const t = useStrings();
   const controller = useCallController();
@@ -27,17 +34,19 @@ export function CallStrip({
   const insets = useChromeInsets();
   const [expanded, setExpanded] = useState(false);
   const recording = useCallRecording(controller);
-  const inCall = view.kind === "in-call";
+  const inCall = owner === "call" && view.kind === "in-call";
   const collapsed = inCall && !expanded;
   return (
     <CallWindowSize.Provider value={collapsed ? "pill" : "strip"}>
       <section
         data-call-strip=""
+        data-window-owner={owner}
         data-expanded={String(!collapsed)}
-        aria-label={t.callWindow}
+        aria-label={label ?? t.callWindow}
         className={`${styles.strip} ${collapsed ? styles.collapsed : ""}`}
         style={{ top: insets.top, left: 0, right: 0, height: collapsed ? 48 : undefined }}
       >
+        {prompt}
         {collapsed ? (
           <div className={styles.bar}>
             {notice /* expanded, the panel shows it */}
@@ -48,7 +57,7 @@ export function CallStrip({
           </div>
         ) : (
           <>
-            <RecordingBadge on={recording} />
+            {owner === "call" && <RecordingBadge on={recording} />}
             <div data-strip-speaker="" data-aspect="16:9" className={styles.speaker}>
               {children}
             </div>

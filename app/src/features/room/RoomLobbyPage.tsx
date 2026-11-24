@@ -6,6 +6,7 @@ import { useStrings } from "~/features/shell/use-strings";
 import { PresenceList } from "~/features/presence/PresenceList";
 import { CallButton } from "~/features/av/CallButton";
 import { RecordButton } from "~/features/recording/RecordButton";
+import { RecordingsList } from "~/features/recording/RecordingsList";
 import { isRecordingFlag, recordingHere, useRecordingController, useRecordingView } from "~/features/recording/use-recording";
 import { useRoomController, useRoomHold } from "~/features/session/use-room-session";
 
@@ -123,6 +124,7 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
           {state.room.role === "owner" && <RecordButton roomId={roomId} />}
           <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
           <PresenceList roomId={roomId} />
+          <RecordingsList roomId={roomId} />
         </>
       )}
       {state.kind === "not-found" && <p role="alert">{t.roomNotFound}</p>}

@@ -36,6 +36,7 @@ const ShiurPage = lazyRouteComponent(() => import("~/features/shiur/ShiurPage"),
 const SettingsPage = lazyRouteComponent(() => import("~/features/settings/SettingsPage"), "SettingsPage");
 const PostPage = lazyRouteComponent(() => import("~/features/post/PostPage"), "PostPage");
 const ProfilePage = lazyRouteComponent(() => import("~/features/profile/ProfilePage"), "ProfilePage");
+const RecordingPage = lazyRouteComponent(() => import("~/features/replay/RecordingPage"), "RecordingPage");
 const ActivityPage = lazyRouteComponent(() => import("~/features/notifications/ActivityPage"), "ActivityPage");
 
 const roomRoute = createRoute({
@@ -78,6 +79,16 @@ const profileRoute = createRoute({
   },
 });
 
+const recordingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SOCIAL_PATHS.recording,
+  validateSearch: validateNoSearch,
+  beforeLoad: ({ params }) => requireId(params.recordingId),
+  component: function RecordingRoute() {
+    return <RecordingPage recordingId={recordingRoute.useParams().recordingId} />;
+  },
+});
+
 const notificationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SOCIAL_PATHS.notifications,
@@ -107,6 +118,7 @@ export const surfaceRouteTree = rootRoute.addChildren([
   shiurRoute,
   postRoute,
   profileRoute,
+  recordingRoute,
   notificationsRoute,
   settingsRoute,
   notFoundRoute,

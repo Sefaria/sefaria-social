@@ -8,12 +8,14 @@ import { createFakeHost } from "@sefaria-social/host-contract/fake-host";
 import type * as RoomsApiModule from "~/features/api/rooms-api";
 import type * as HostContextModule from "~/features/host/host-context";
 import type * as LobbyModule from "./RoomLobbyPage";
+import type * as ReplayModule from "~/features/replay/use-replay";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 // App modules through import.meta.glob: on the merge base (no surface yet) the first assertion fails instead of the import.
 const apiModules = import.meta.glob<typeof RoomsApiModule>("../api/rooms-api.ts");
 const hostModules = import.meta.glob<typeof HostContextModule>("../host/host-context.tsx");
 const lobbyModules = import.meta.glob<typeof LobbyModule>("./RoomLobbyPage.tsx");
+const replayModules = import.meta.glob<typeof ReplayModule>("../replay/use-replay.ts");
 
 const ROOM_ID = "6f1c2d3e-4b5a-4c6d-8e7f-001122334455";
 const room = {
@@ -64,6 +66,96 @@ async function setup(viewer: { id: number; name: string } | null, joinAnswer: "j
   const joinButton = () => el.querySelector<HTMLButtonElement>("button[data-action=join]");
   return { fake, api, el, joinButton };
 }
+
+describe("room lobby: the room's recordings (spec 042)", () => {
+  const REC = (n: number) => `9b1c2d3e-4b5a-4c6d-8e7f-00112233445${n}`;
+  const rec = (n: number, patch: Record<string, unknown>) => ({
+    id: REC(n),
+    roomId: ROOM_ID,
+    title: null,
+    status: "ready",
+    startedAt: "2026-11-01T12:00:00.000Z",
+    durationMs: 65_000,
+    mediaBytes: 10,
+    mime: "video/webm",
+    owner: { userId: 5151, name: "Owner" },
+    canDelete: false,
+    ...patch,
+  });
+
+  async function lobbyWith(recordings: ReturnType<typeof rec>[]) {
+    const mod = await apiModules["../api/rooms-api.ts"]?.();
+    expect(mod, "app/src/features/api/rooms-api.ts exists").toBeDefined();
+    const replayMod = await replayModules["../replay/use-replay.ts"]?.();
+    expect(replayMod, "app/src/features/replay/use-replay.ts exists").toBeDefined();
+    const { HostContext } = (await hostModules["../host/host-context.tsx"]!())!;
+    const { RoomLobbyPage } = (await lobbyModules["./RoomLobbyPage.tsx"]!())!;
+    const fake = createFakeHost({ url: `/social/r/${ROOM_ID}`, viewer: { id: 4242, name: "Test Learner" } });
+    const api = {
+      getRoom: vi.fn(async () => ({ kind: "member" as const, room })),
+      join: vi.fn(),
+    } as unknown as RoomsApiModule.RoomsApi;
+    const replay = {
+      listRecordings: vi.fn(async () => recordings as ReturnType<typeof rec>[]),
+      deleteRecording: vi.fn(),
+      getRecording: vi.fn(),
+      getState: vi.fn(),
+      getMedia: vi.fn(),
+    };
+    const el = await render(
+      createElement(
+        HostContext.Provider,
+        { value: fake.host },
+        createElement(
+          mod!.RoomsApiContext.Provider,
+          { value: api },
+          createElement(
+            replayMod!.ReplayApiContext.Provider,
+            { value: replay },
+            createElement(RoomLobbyPage, { roomId: ROOM_ID }),
+          ),
+        ),
+      ),
+    );
+    await vi.waitFor(() => expect(el.querySelector("main")?.dataset.roomState).toBe("member"));
+    return { el, fake, replay };
+  }
+
+  // @feature SESS-065 Replay a recording in the reader with the video in the floating window
+  // @ac 042/AC-001
+  it("lists the room's ready recordings, newest first, with title, date and length, each linking to its page", async () => {
+    const { el, fake, replay } = await lobbyWith([
+      rec(1, { title: "Older shiur", startedAt: "2026-10-01T12:00:00.000Z", durationMs: 3_725_000 }),
+      rec(2, { status: "recording", title: "Still recording" }),
+      rec(3, { startedAt: "2026-11-01T12:00:00.000Z" }),
+      rec(4, { status: "failed", title: "Failed" }),
+    ]);
+    expect(replay.listRecordings).toHaveBeenCalledWith(ROOM_ID);
+    await vi.waitFor(() => expect(el.querySelectorAll("[data-recordings] li").length).toBe(2));
+    const rows = [...el.querySelectorAll("[data-recordings] li")].map((li) => ({
+      id: li.getAttribute("data-recording-id"),
+      title: li.querySelector("a")?.textContent,
+      href: li.querySelector("a")?.getAttribute("href"),
+      date: li.querySelector("[data-recording-date]")?.textContent,
+      length: li.querySelector("[data-recording-length]")?.textContent,
+    }));
+    expect(rows).toEqual([
+      { id: REC(3), title: "Recording of Nov 1, 2026", href: `/social/rec/${REC(3)}`, date: "Nov 1, 2026", length: "1:05" },
+      { id: REC(1), title: "Older shiur", href: `/social/rec/${REC(1)}`, date: "Oct 1, 2026", length: "1:02:05" },
+    ]);
+    await act(async () => el.querySelector<HTMLAnchorElement>("[data-recordings] li a")!.click());
+    expect(fake.calls.navigate.map((n) => n.to)).toEqual([`/social/rec/${REC(3)}`]);
+  });
+
+  // @feature SESS-065 Replay a recording in the reader with the video in the floating window
+  // @ac 042/AC-001
+  it("shows nothing when the room has no ready recording", async () => {
+    const { el, replay } = await lobbyWith([rec(2, { status: "recording" })]);
+    await vi.waitFor(() => expect(replay.listRecordings).toHaveBeenCalledTimes(1));
+    await act(async () => void (await new Promise((r) => setTimeout(r, 0))));
+    expect(el.querySelector("[data-recordings]")).toBeNull();
+  });
+});
 
 describe("room lobby: recording (spec 041)", () => {
   async function lobby(data: Record<string, unknown>) {

@@ -187,7 +187,10 @@
         "relay"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.broadcasts.int.test.ts",
+        "app/src/server/broadcast-ticket.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -2218,8 +2221,8 @@
       "id": "SESS-065",
       "area": "sess",
       "name": "Replay a recording in the reader with the video in the floating window",
-      "description": "",
-      "status": "planned",
+      "description": "A room's ready recordings are listed in its lobby and have their own page (Play, Download state, Delete for the recorder or the room's owner); Play opens the reader at the recording's first text in its context with the video in the floating call window (the strip on a phone), whose transport drives the media and the reader together, and the call and a replay never share the window.",
+      "status": "built",
       "spec": "042",
       "acs": [
         "042/AC-001",
@@ -2239,7 +2242,11 @@
       "tests": [
         "app/src/features/replay/state-track.test.ts",
         "app/src/features/replay/player.test.ts",
-        "app/src/features/replay/replay-controller.test.ts"
+        "app/src/features/replay/replay-controller.test.ts",
+        "app/src/features/replay/ReplayWindow.test.tsx",
+        "app/src/features/replay/RecordingPage.test.tsx",
+        "app/src/features/room/RoomLobbyPage.test.tsx",
+        "app/src/surface/replay.test.tsx"
       ],
       "since": null,
       "changed": []

@@ -46,6 +46,7 @@ describe("route trees", () => {
       "/social/notifications",
       "/social/p/$postId",
       "/social/r/$roomId",
+      "/social/rec/$recordingId",
       "/social/s/$shiurId",
       "/social/settings",
       "/social/u/$profileId",

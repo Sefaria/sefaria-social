@@ -4,6 +4,7 @@ import { Controls } from "./Controls";
 import { Pill } from "./Pill";
 import { PreJoin } from "./PreJoin";
 import { Tiles } from "./Tiles";
+import { WindowPrompt } from "./WindowPrompt";
 import { usePaused } from "./use-paused";
 import { useCallController, useCallView, useParticipants } from "./use-call";
 import styles from "./av.module.css";
@@ -34,6 +35,7 @@ export function CallPanel() {
   return (
     <CallFrame
       notice={pausedNotice}
+      prompt={<WindowPrompt holder="call" />}
       pill={(expand) => <Pill controller={controller} participants={participants} mic={mic} onExpand={expand} />}
     >
       <section data-social-call={view.kind} aria-label={t.call} className={styles.panel}>

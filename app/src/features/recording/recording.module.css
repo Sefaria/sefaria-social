@@ -23,3 +23,18 @@
 .error {
   color: var(--sefaria-color-danger);
 }
+
+/* The room's recordings in the lobby and a recording's page (spec 042). */
+.list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sefaria-space-2);
+  padding-block: var(--sefaria-space-1);
+  color: var(--sefaria-color-text-muted);
+}

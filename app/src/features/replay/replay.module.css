@@ -1,0 +1,102 @@
+/* A recording's page and the replay in the floating window (spec 042). The window's frame is features/av's. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sefaria-space-2);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--sefaria-space-1) var(--sefaria-space-2);
+  margin: 0;
+  color: var(--sefaria-color-text-muted);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sefaria-space-2);
+}
+
+.replay {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sefaria-space-1);
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+.media {
+  flex: 1;
+  min-block-size: 0;
+  background: var(--sefaria-color-surface);
+}
+
+.media video {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+
+.progress {
+  inline-size: 100%;
+}
+
+.transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-1);
+  padding: var(--sefaria-space-1);
+}
+
+.transport button,
+.pill button,
+.left button {
+  min-inline-size: 24px;
+  min-block-size: 24px;
+}
+
+.scrubber {
+  position: relative;
+  flex: 1 1 100%;
+  min-block-size: 24px;
+}
+
+.scrubber input {
+  inline-size: 100%;
+  min-block-size: 24px;
+  margin: 0;
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+  color: var(--sefaria-color-text-muted);
+}
+
+.left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-1);
+  padding: var(--sefaria-space-1);
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-1);
+  padding-inline: var(--sefaria-space-1);
+  block-size: 100%;
+}
+
+.error {
+  color: var(--sefaria-color-danger);
+  padding: var(--sefaria-space-1);
+}
