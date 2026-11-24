@@ -18,12 +18,15 @@ export function CallPanel() {
   const t = useStrings();
   const controller = useCallController();
   const view = useCallView(controller);
-  const participants = useParticipants(controller);
+  const everyone = useParticipants(controller);
   const { paused, resume } = usePaused(controller);
   if (!controller || view.kind === "off") return null;
   const media = controller.media();
+  // A broadcast's viewer (spec 043) is hidden and publishes nothing: no tile of their own, no microphone.
+  const viewer = controller.mode() === "viewer";
+  const participants = viewer ? everyone.filter((p) => !p.local) : everyone;
 
-  const mic = view.kind === "in-call" ? view.mic : null;
+  const mic = view.kind === "in-call" && !viewer ? view.mic : null;
   const pausedNotice = paused ? (
     <div role="status" data-call-paused="">
       <span>{t.callPaused}</span>{" "}
@@ -38,7 +41,7 @@ export function CallPanel() {
       prompt={<WindowPrompt holder="call" />}
       pill={(expand) => <Pill controller={controller} participants={participants} mic={mic} onExpand={expand} />}
     >
-      <section data-social-call={view.kind} aria-label={t.call} className={styles.panel}>
+      <section data-social-call={view.kind} data-call-mode={controller.mode()} aria-label={t.call} className={styles.panel}>
         {view.kind === "prejoin" && <PreJoin controller={controller} devices={view.devices} />}
         {view.kind === "connecting" && (
           <>
@@ -87,7 +90,7 @@ export function CallPanel() {
             <p role="status">
               {view.reason === "removed" ? t.callRemoved : view.reason === "room-closed" ? t.callClosed : t.callLost}
             </p>
-            {view.reason === "error" && (
+            {view.reason === "error" && !viewer && (
               <button type="button" data-action="rejoin" onClick={() => void controller.open(view.roomId)}>
                 {t.rejoin}
               </button>

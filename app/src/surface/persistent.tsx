@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
 import { CallSlot } from "~/features/av/CallSlot";
+import { WatchBar } from "~/features/broadcast/WatchBar";
 import { HostLink } from "~/features/host/HostLink";
 import { ReplaySlot } from "~/features/replay/ReplaySlot";
 import { FollowBar, MiniView } from "~/features/session/FollowBar";
@@ -16,12 +17,14 @@ import { decodeCtx } from "~/lib/ctx";
  *  - otherwise nothing (R18).
  * Shiur contexts show only the way back until shiurim are built.
  * The call (spec 034) renders beside these whenever there is one, whatever the route, so it survives every navigation; a
- * recording's replay (spec 042) shares its floating window, one at a time (features/av/window-owner.ts).
+ * recording's replay (spec 042) shares its floating window, one at a time (features/av/window-owner.ts). While watching a
+ * broadcast (spec 043, `ctx=social.watch.<id>`), the viewer's bar.
  */
 export function PersistentView({ host }: { host: SurfaceHost }) {
   return (
     <>
       <RoomView host={host} />
+      <WatchBar />
       <CallSlot />
       <ReplaySlot />
     </>

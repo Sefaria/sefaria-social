@@ -21,6 +21,7 @@ import { Route as ApiV1PostsRouteImport } from './routes/api/v1/posts'
 import { Route as ApiV1ProfilesRouteImport } from './routes/api/v1/profiles'
 import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
 import { Route as ApiV1TimelineRouteImport } from './routes/api/v1/timeline'
+import { Route as SocialBBroadcastIdRouteImport } from './routes/social.b.$broadcastId'
 import { Route as SocialPPostIdRouteImport } from './routes/social.p.$postId'
 import { Route as SocialRRoomIdRouteImport } from './routes/social.r.$roomId'
 import { Route as SocialRecRecordingIdRouteImport } from './routes/social.rec.$recordingId'
@@ -114,6 +115,11 @@ const ApiV1RoomsRoute = ApiV1RoomsRouteImport.update({
 const ApiV1TimelineRoute = ApiV1TimelineRouteImport.update({
   id: '/api/v1/timeline',
   path: '/api/v1/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialBBroadcastIdRoute = SocialBBroadcastIdRouteImport.update({
+  id: '/social/b/$broadcastId',
+  path: '/social/b/$broadcastId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialPPostIdRoute = SocialPPostIdRouteImport.update({
@@ -319,6 +325,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
   '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
@@ -466,6 +475,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/b/$broadcastId'
     | '/social/p/$postId'
     | '/social/r/$roomId'
     | '/social/rec/$recordingId'
@@ -514,6 +524,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/b/$broadcastId'
     | '/social/p/$postId'
     | '/social/r/$roomId'
     | '/social/rec/$recordingId'
@@ -562,6 +573,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/b/$broadcastId'
     | '/social/p/$postId'
     | '/social/r/$roomId'
     | '/social/rec/$recordingId'
@@ -611,6 +623,7 @@ export interface RootRouteChildren {
   ApiV1ProfilesRoute: typeof ApiV1ProfilesRouteWithChildren
   ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
   ApiV1TimelineRoute: typeof ApiV1TimelineRoute
+  SocialBBroadcastIdRoute: typeof SocialBBroadcastIdRoute
   SocialPPostIdRoute: typeof SocialPPostIdRoute
   SocialRRoomIdRoute: typeof SocialRRoomIdRoute
   SocialRecRecordingIdRoute: typeof SocialRecRecordingIdRoute
@@ -707,6 +720,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/timeline'
       fullPath: '/api/v1/timeline'
       preLoaderRoute: typeof ApiV1TimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/b/$broadcastId': {
+      id: '/social/b/$broadcastId'
+      path: '/social/b/$broadcastId'
+      fullPath: '/social/b/$broadcastId'
+      preLoaderRoute: typeof SocialBBroadcastIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/social/p/$postId': {
@@ -1133,6 +1153,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1ProfilesRoute: ApiV1ProfilesRouteWithChildren,
   ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,
   ApiV1TimelineRoute: ApiV1TimelineRoute,
+  SocialBBroadcastIdRoute: SocialBBroadcastIdRoute,
   SocialPPostIdRoute: SocialPPostIdRoute,
   SocialRRoomIdRoute: SocialRRoomIdRoute,
   SocialRecRecordingIdRoute: SocialRecRecordingIdRoute,

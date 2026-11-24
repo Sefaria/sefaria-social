@@ -3,6 +3,10 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-25 — SESS-066 "Broadcast a session and watch it as a view-only viewer": built (spec 043).
+- 2026-11-25 — API-050 "Broadcasts API: start, end, relay tickets and view-only call grants": built (spec 043).
+- 2026-11-25 — SESS-064 "Record a room's session (state and call media) in the owner's browser": built (spec 041).
+- 2026-11-25 — API-049 "Recordings API: start, upload, list, read and delete a session recording": built (spec 041).
 - 2026-11-25 — SESS-065 "Replay a recording in the reader with the video in the floating window": built (spec 042).
 - 2026-11-24 — SESS-057 "Call state machine and controller": fixed — a newcomer now hears the people already in the call (the engine listens before connecting; found by CI's two-browser journey) (spec 034).
 - 2026-11-24 — OPS-095 "Two-browser call journey on a local LiveKit": changed — the audio check presses Start audio where the browser blocks autoplay, and reports each audio element on failure (spec 040).

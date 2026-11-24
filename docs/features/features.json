@@ -145,8 +145,8 @@
       "id": "API-049",
       "area": "api",
       "name": "Recordings API: start, upload, list, read and delete a session recording",
-      "description": "",
-      "status": "planned",
+      "description": "POST /api/v1/rooms/:roomId/recordings starts a recording for the room's owner, whose browser uploads numbered media chunks and the state track and finishes it with its duration; members list and read a room's recordings, and its recorder or the room's owner deletes one.",
+      "status": "built",
       "spec": "041",
       "acs": [
         "041/AC-001",
@@ -172,8 +172,8 @@
       "id": "API-050",
       "area": "api",
       "name": "Broadcasts API: start, end, relay tickets and view-only call grants",
-      "description": "",
-      "status": "planned",
+      "description": "POST /api/v1/rooms/:roomId/broadcasts (the owner only, one live per room) and POST /api/v1/broadcasts/:id/end, GET a broadcast, a 10-minute HMAC relay ticket naming the broadcast, the user and their role (host or viewer), and a LiveKit token for bcast_<id> that lets the host publish and a viewer only subscribe, hidden.",
+      "status": "built",
       "spec": "043",
       "acs": [
         "043/AC-001",
@@ -2191,8 +2191,8 @@
       "id": "SESS-064",
       "area": "sess",
       "name": "Record a room's session (state and call media) in the owner's browser",
-      "description": "",
-      "status": "planned",
+      "description": "The room's owner records a session from the call: their browser mixes the call's audio, composes its video and records the reader's state stream beside it, uploading both as it goes, while everyone in the room sees a Recording badge in the lobby and the call window.",
+      "status": "built",
       "spec": "041",
       "acs": [
         "041/AC-006",
@@ -2212,7 +2212,8 @@
         "app/src/features/recording/recorder.test.ts",
         "app/src/features/room/RoomLobbyPage.test.tsx",
         "app/src/surface/call-strip.test.tsx",
-        "app/src/surface/call-window.test.tsx"
+        "app/src/surface/call-window.test.tsx",
+        "e2e/recording.spec.ts"
       ],
       "since": null,
       "changed": []
@@ -2246,7 +2247,8 @@
         "app/src/features/replay/ReplayWindow.test.tsx",
         "app/src/features/replay/RecordingPage.test.tsx",
         "app/src/features/room/RoomLobbyPage.test.tsx",
-        "app/src/surface/replay.test.tsx"
+        "app/src/surface/replay.test.tsx",
+        "e2e/recording.spec.ts"
       ],
       "since": null,
       "changed": []
@@ -2255,8 +2257,8 @@
       "id": "SESS-066",
       "area": "sess",
       "name": "Broadcast a session and watch it as a view-only viewer",
-      "description": "",
-      "status": "planned",
+      "description": "A room's owner presses Broadcast in the lobby to publish their reader to a broadcast relay room (b_<id>) holding the spotlight, with a link to copy, the number watching, the broadcast's call and End broadcast; anyone signed in with the link presses Watch on /social/b/<id> to follow the host in the reader with ctx=social.watch.<id> (breaking away, then Back to live) and see and hear the host view only, until \"The broadcast has ended\".",
+      "status": "built",
       "spec": "043",
       "acs": [
         "043/AC-003",
@@ -2274,7 +2276,11 @@
       "depends_on": {},
       "tests": [
         "packages/relay/src/broadcast.test.ts",
-        "packages/relay/src/relay.test.ts"
+        "packages/relay/src/relay.test.ts",
+        "app/src/features/broadcast/broadcast-controller.test.ts",
+        "app/src/features/broadcast/BroadcastPanel.test.tsx",
+        "app/src/features/broadcast/WatchPage.test.tsx",
+        "app/src/surface/call.test.tsx"
       ],
       "since": null,
       "changed": []

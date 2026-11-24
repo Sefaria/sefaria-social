@@ -37,6 +37,7 @@ const SettingsPage = lazyRouteComponent(() => import("~/features/settings/Settin
 const PostPage = lazyRouteComponent(() => import("~/features/post/PostPage"), "PostPage");
 const ProfilePage = lazyRouteComponent(() => import("~/features/profile/ProfilePage"), "ProfilePage");
 const RecordingPage = lazyRouteComponent(() => import("~/features/replay/RecordingPage"), "RecordingPage");
+const WatchPage = lazyRouteComponent(() => import("~/features/broadcast/WatchPage"), "WatchPage");
 const ActivityPage = lazyRouteComponent(() => import("~/features/notifications/ActivityPage"), "ActivityPage");
 
 const roomRoute = createRoute({
@@ -89,6 +90,17 @@ const recordingRoute = createRoute({
   },
 });
 
+// A broadcast's page (spec 043). The path is written here and in its file route (social-routes.ts is outside this task).
+const broadcastRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/social/b/$broadcastId",
+  validateSearch: validateNoSearch,
+  beforeLoad: ({ params }) => requireId(params.broadcastId),
+  component: function BroadcastRoute() {
+    return <WatchPage broadcastId={broadcastRoute.useParams().broadcastId} />;
+  },
+});
+
 const notificationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SOCIAL_PATHS.notifications,
@@ -119,6 +131,7 @@ export const surfaceRouteTree = rootRoute.addChildren([
   postRoute,
   profileRoute,
   recordingRoute,
+  broadcastRoute,
   notificationsRoute,
   settingsRoute,
   notFoundRoute,

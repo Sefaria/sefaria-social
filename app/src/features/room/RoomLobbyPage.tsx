@@ -5,6 +5,7 @@ import { useRoomsApi, type Room } from "~/features/api/rooms-api";
 import { useStrings } from "~/features/shell/use-strings";
 import { PresenceList } from "~/features/presence/PresenceList";
 import { CallButton } from "~/features/av/CallButton";
+import { BroadcastPanel } from "~/features/broadcast/BroadcastPanel";
 import { RecordButton } from "~/features/recording/RecordButton";
 import { RecordingsList } from "~/features/recording/RecordingsList";
 import { isRecordingFlag, recordingHere, useRecordingController, useRecordingView } from "~/features/recording/use-recording";
@@ -123,6 +124,7 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
           {onCall !== null && <p data-call-count="">{t.onCall(onCall)}</p>}
           {state.room.role === "owner" && <RecordButton roomId={roomId} />}
           <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
+          {state.room.role === "owner" && <BroadcastPanel roomId={roomId} />}
           <PresenceList roomId={roomId} />
           <RecordingsList roomId={roomId} />
         </>

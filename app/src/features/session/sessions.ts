@@ -16,7 +16,22 @@ import { roomReader, type RoomReader } from "./room-reader";
 export const RELAY_SUBPROTOCOL = "sefaria-social.v1";
 /** "prefetch": a press on a feed card prepares the room before the click lands (spec 017 AC-004). "call": the viewer is in
  * the room's call, which keeps the room connected wherever they read (spec 034, AV1). */
-export type Hold = "lobby" | "context" | "live" | "prefetch" | "call";
+export type Hold = "lobby" | "context" | "live" | "prefetch" | "call" | "broadcast";
+
+/**
+ * A connection that is not a plain room's (a broadcast's relay room, spec 043): extra subprotocols offered after the bearer
+ * token (`ticket.<ticket>`, asked for at every connect so a reconnect carries a fresh one), and its own gates in place of the
+ * room controller's policy. Read when the connection opens; a later acquire of an open connection ignores it.
+ */
+export interface ConnectionOptions {
+  extraProtocols?: () => Promise<string[]>;
+  /** Publish this reader's stream? (replaces `SessionPolicy.canPublish` for this connection) */
+  canPublish?: () => boolean;
+  /** Apply what arrives? (replaces `SessionPolicy.isOpen` for this connection) */
+  isOpen?: () => boolean;
+  /** How this person joins (a broadcast's viewer never leads). Default: host and may lead. */
+  role?: { isHost: boolean; canLead: boolean };
+}
 
 export interface RoomSession {
   roomId: string;
@@ -33,7 +48,7 @@ export interface SessionPolicy {
 
 export interface RoomSessions {
   /** Hold a room's session open; returns the release. Signed out or no relay: nothing opens and the release does nothing. */
-  acquire(roomId: string, hold: Hold): () => void;
+  acquire(roomId: string, hold: Hold, opts?: ConnectionOptions): () => void;
   get(roomId: string): RoomSession | null;
   /** Rooms with a session, for the mini view. */
   rooms(): string[];
@@ -62,28 +77,29 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
   let policy = CLOSED;
   const emit = () => [...listeners].forEach((cb) => cb());
 
-  function open(roomId: string) {
+  function open(roomId: string, opts: ConnectionOptions = {}) {
     const viewer = host.viewer.get();
     // Signed out, or a reader with no relay configured (it sends relayOrigin ""): no socket, the same as signed out.
     if (!viewer || !host.config.relayOrigin) return null;
     const transport = makeTransport(relayUrl(host.config.relayOrigin, roomId), async () => [
       RELAY_SUBPROTOCOL,
       `bearer.${await host.viewer.identityToken()}`,
+      ...((await opts.extraProtocols?.()) ?? []),
     ]);
     const reader = roomReader(host.reader.state, {
-      isOpen: () => policy.isOpen(roomId),
+      isOpen: opts.isOpen ?? (() => policy.isOpen(roomId)),
       commands: host.reader.commands,
       titles: pageTextSource(),
     });
     // The relay replaces id and name with the token's; sending the same values keeps the client's idea of "self" right.
     // Everyone may lead (the relay cannot see room roles yet; decision 0008).
-    const self = { id: String(viewer.id), name: viewer.name, isHost: true, canLead: true };
+    const self = { id: String(viewer.id), name: viewer.name, ...(opts.role ?? { isHost: true, canLead: true }) };
     const client = createSessionClient({
       api: reader.api,
       transport,
       self,
       clientName: "sefaria-social",
-      canPublish: () => policy.canPublish(roomId),
+      canPublish: opts.canPublish ?? (() => policy.canPublish(roomId)),
     });
     const s = { roomId, client, reader, holds: new Set<Hold>(), counts: new Map<Hold, number>() };
     sessions.set(roomId, s);
@@ -91,8 +107,8 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
   }
 
   return {
-    acquire(roomId, hold) {
-      const s = sessions.get(roomId) ?? open(roomId);
+    acquire(roomId, hold, opts) {
+      const s = sessions.get(roomId) ?? open(roomId, opts);
       if (!s) return () => undefined;
       s.counts.set(hold, (s.counts.get(hold) ?? 0) + 1);
       s.holds.add(hold);

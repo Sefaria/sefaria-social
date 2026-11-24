@@ -4,7 +4,10 @@ import type { CallController } from "./call-controller";
 import { callRoom } from "./machine";
 import styles from "./av.module.css";
 
-/** Microphone, camera, screen share (where the browser has it) and Leave call (spec 034 AC-006, AC-007). */
+/**
+ * Microphone, camera, screen share (where the browser has it) and Leave call (spec 034 AC-006, AC-007). A broadcast's viewer
+ * (spec 043) publishes nothing: Leave only. Record is a room's owner's, in a room's call.
+ */
 export function Controls({
   controller,
   mic,
@@ -18,6 +21,13 @@ export function Controls({
 }) {
   const t = useStrings();
   const roomId = callRoom(controller.view());
+  const mode = controller.mode();
+  const leave = (
+    <button type="button" data-action="leave-call" className={styles.leave} onClick={() => void controller.leave()}>
+      {t.leaveCall}
+    </button>
+  );
+  if (mode === "viewer") return <div className={styles.controls}>{leave}</div>;
   return (
     <div className={styles.controls}>
       <button type="button" data-action="mic" aria-pressed={mic} onClick={() => void controller.setMic(!mic)}>
@@ -31,10 +41,8 @@ export function Controls({
           {t.shareScreen}
         </button>
       )}
-      {roomId && controller.role() === "owner" && <RecordButton roomId={roomId} />}
-      <button type="button" data-action="leave-call" className={styles.leave} onClick={() => void controller.leave()}>
-        {t.leaveCall}
-      </button>
+      {roomId && mode === "room" && controller.role() === "owner" && <RecordButton roomId={roomId} />}
+      {leave}
     </div>
   );
 }
