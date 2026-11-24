@@ -81,11 +81,26 @@ function reasonOf(error: unknown): ReplayErrorReason {
   return "failed";
 }
 
+/**
+ * MediaRecorder writes WebM without a duration or cues, so a browser cannot seek in it. Writing the recorded duration into
+ * its header makes the scrubber work (fix-webm-duration, loaded only when a WebM recording is played). Anything else, or a
+ * failure, plays as it is.
+ */
+export async function fixWebmDurationOf(blob: Blob, durationMs: number): Promise<Blob> {
+  if (!/webm/i.test(blob.type) || !(durationMs > 0)) return blob;
+  try {
+    const { default: fix } = await import("fix-webm-duration");
+    return await fix(blob, durationMs, { logger: false });
+  } catch {
+    return blob;
+  }
+}
+
 export function createReplayController({
   host,
   api,
   createMedia = defaultCreateMedia,
-  fixDuration = async (blob) => blob,
+  fixDuration = fixWebmDurationOf,
   objectUrls = defaultUrls,
 }: ReplayDeps): ReplayController {
   const listeners = new Set<() => void>();
