@@ -66,7 +66,7 @@
       "area": "api",
       "name": "Call token endpoint for room members",
       "description": "POST /api/v1/rooms/{roomId}/call/token: a member gets a 10-minute LiveKit token for that room only, identity u:<user id>, role in metadata, publish microphone, camera and screen share, no data; 404 for non-members and missing rooms alike, 401 without identity.",
-      "status": "planned",
+      "status": "built",
       "spec": "033",
       "acs": [
         "033/AC-001",
@@ -80,7 +80,9 @@
         "identity"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.calls.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },

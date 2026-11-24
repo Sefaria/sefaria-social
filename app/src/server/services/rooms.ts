@@ -5,6 +5,7 @@ import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import { roomMembers, rooms } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { callsConfig, mintCallToken, type CallTokenDto } from "./livekit";
 import { relayStatus, type RoomStatusDto } from "./relay";
 import { upsertDisplay } from "./users";
 
@@ -119,4 +120,26 @@ export async function leaveRoom(identity: Identity, roomId: string, db: Db = get
 export async function getRoomStatus(identity: Identity, roomId: string, db: Db = getDb()): Promise<RoomStatusDto> {
   await membership(db, identity, roomId);
   return relayStatus(roomId);
+}
+
+/**
+ * A LiveKit token for the room's call (spec 033). Members only (a non-member and a missing room look the same); the role
+ * comes from the membership row. The display cache is refreshed from the token, as on joining. Minting is local and runs
+ * after the database work, outside any transaction.
+ */
+export async function getCallToken(identity: Identity, roomId: string, db: Db = getDb()): Promise<CallTokenDto> {
+  const m = await db.transaction(async (tx) => {
+    const row = await membership(tx, identity, roomId);
+    await upsertDisplay(tx, identity);
+    return row;
+  });
+  const config = callsConfig();
+  if (!config) throw new ApiError(503, "call.unavailable");
+  return mintCallToken({
+    config,
+    roomId,
+    userId: identity.userId,
+    name: identity.name,
+    role: m.role === "owner" ? "owner" : "member",
+  });
 }

@@ -38,6 +38,7 @@ import { Route as ApiV1PostsPostIdRepostRouteImport } from './routes/api/v1/post
 import { Route as ApiV1ProfilesProfileIdFollowRouteImport } from './routes/api/v1/profiles.$profileId.follow'
 import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/rooms.$roomId.members'
 import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
+import { Route as ApiV1RoomsRoomIdCallTokenRouteImport } from './routes/api/v1/rooms.$roomId.call.token'
 import { Route as ApiV1RoomsRoomIdMembersMeRouteImport } from './routes/api/v1/rooms.$roomId.members.me'
 
 const SocialIndexRoute = SocialIndexRouteImport.update({
@@ -188,6 +189,12 @@ const ApiV1RoomsRoomIdStatusRoute = ApiV1RoomsRoomIdStatusRouteImport.update({
   path: '/status',
   getParentRoute: () => ApiV1RoomsRoomIdRoute,
 } as any)
+const ApiV1RoomsRoomIdCallTokenRoute =
+  ApiV1RoomsRoomIdCallTokenRouteImport.update({
+    id: '/call/token',
+    path: '/call/token',
+    getParentRoute: () => ApiV1RoomsRoomIdRoute,
+  } as any)
 const ApiV1RoomsRoomIdMembersMeRoute =
   ApiV1RoomsRoomIdMembersMeRouteImport.update({
     id: '/me',
@@ -225,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
 export interface FileRoutesByTo {
@@ -257,6 +265,7 @@ export interface FileRoutesByTo {
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
 export interface FileRoutesById {
@@ -290,6 +299,7 @@ export interface FileRoutesById {
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
 }
 export interface FileRouteTypes {
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
   id:
     | '__root__'
@@ -388,6 +400,7 @@ export interface FileRouteTypes {
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
   fileRoutesById: FileRoutesById
 }
@@ -617,6 +630,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdStatusRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdRoute
     }
+    '/api/v1/rooms/$roomId/call/token': {
+      id: '/api/v1/rooms/$roomId/call/token'
+      path: '/call/token'
+      fullPath: '/api/v1/rooms/$roomId/call/token'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdCallTokenRouteImport
+      parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
     '/api/v1/rooms/$roomId/members/me': {
       id: '/api/v1/rooms/$roomId/members/me'
       path: '/me'
@@ -710,11 +730,13 @@ const ApiV1RoomsRoomIdMembersRouteWithChildren =
 interface ApiV1RoomsRoomIdRouteChildren {
   ApiV1RoomsRoomIdMembersRoute: typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   ApiV1RoomsRoomIdStatusRoute: typeof ApiV1RoomsRoomIdStatusRoute
+  ApiV1RoomsRoomIdCallTokenRoute: typeof ApiV1RoomsRoomIdCallTokenRoute
 }
 
 const ApiV1RoomsRoomIdRouteChildren: ApiV1RoomsRoomIdRouteChildren = {
   ApiV1RoomsRoomIdMembersRoute: ApiV1RoomsRoomIdMembersRouteWithChildren,
   ApiV1RoomsRoomIdStatusRoute: ApiV1RoomsRoomIdStatusRoute,
+  ApiV1RoomsRoomIdCallTokenRoute: ApiV1RoomsRoomIdCallTokenRoute,
 }
 
 const ApiV1RoomsRoomIdRouteWithChildren =

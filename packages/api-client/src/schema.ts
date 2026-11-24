@@ -314,6 +314,23 @@ export interface paths {
         patch: operations["renameRoom"];
         trace?: never;
     };
+    "/api/v1/rooms/{roomId}/call/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A 10-minute LiveKit token to join the room's call: identity u:<user id>, this room only, publish microphone, camera and screen share. Members only. */
+        post: operations["getCallToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/rooms/{roomId}/members": {
         parameters: {
             query?: never;
@@ -2187,6 +2204,70 @@ export interface operations {
             };
             /** @description The request body is larger than 64 KiB (request.too_large). */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getCallToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The LiveKit URL and a token for this room's call. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: date-time */
+                        expiresAt: string;
+                        token: string;
+                        /** Format: uri */
+                        url: string;
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

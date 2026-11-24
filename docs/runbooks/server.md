@@ -18,6 +18,7 @@ Built in milestone P2 (specs 005–008). Design: [PLAN.md](../PLAN.md) sections 
 | `POST /api/v1/rooms/{roomId}/members`      | Sefaria token                  | Join (the room id is the invitation); idempotent; missing room 404 (P3, spec 011)       |
 | `DELETE /api/v1/rooms/{roomId}/members/me` | token + member                 | Leave; owner: 403 `room.owner_cannot_leave` (P3)                                        |
 | `GET /api/v1/rooms/{roomId}/status`        | token + member                 | `{live, ref, title, participants}` from the relay; offline fallback (P3)                |
+| `POST /api/v1/rooms/{roomId}/call/token`   | token + member                 | `{url, token, expiresAt}`: a 10-minute LiveKit token for the room's call (spec 033)     |
 
 - **Token:** `Authorization: Bearer <JWT>` from Django's `POST /api/social/token` (RS256, `aud` `sefaria-social`, `sub` =
   `auth_user.id`, 10 minutes). Verified with `jose` against the JWKS URL (3 s timeout, keys cached, refetch on an unknown
@@ -48,6 +49,10 @@ for any route that answers without credentials and is not on that list.
 | `RELAY_INTERNAL_URL`          | no                    | The relay's base URL for its internal routes (status, drop-user). Unset: status is always offline and deletions are not sent to the relay (P3) |
 | `RELAY_INTERNAL_SECRET`       | with the above        | Same value as the relay's `RELAY_INTERNAL_SECRET` (P3)                                                                                         |
 | `SOCIAL_ALLOWED_ORIGINS`      | yes (for the surface) | Comma-separated browser origins allowed by CORS: the reader's origins, e.g. `https://www.sefaria.org,https://www.sefaria.org.il` (P3)          |
+| `LIVEKIT_URL`                 | for calls             | The LiveKit server browsers connect to, `wss://…` (spec 033). Locally, with the dev server: `ws://localhost:7880`                              |
+| `LIVEKIT_API_KEY`             | for calls             | LiveKit API key; signs call tokens                                                                                                             |
+| `LIVEKIT_API_SECRET`          | for calls             | LiveKit API secret. Secret: never sent to a browser or logged                                                                                  |
+| `CALLS_ENABLED`               | for calls             | Calls are offered only when this is `true` and the three LiveKit variables are set. Keep `false` in production until owner decision D-AV4      |
 | `LOG_LEVEL`                   | no                    | `debug` / `info` (default) / `warn` / `error`                                                                                                  |
 | `TEST_DATABASE_URL`           | tests only            | Default `postgres://localhost:5432/sefaria_social_test`; the name must contain `test` (it is reset)                                            |
 
@@ -55,6 +60,9 @@ Django side (Sefaria-Project PR #4121): set `SOCIAL_TOKEN_PRIVATE_KEYS`, `SOCIAL
 (`<social origin>/api/v1/internal/user-deleted`) and `USER_DELETED_WEBHOOK_SECRET`.
 
 ## Run it locally
+
+Put the variables in a `.env` at the repository root (ignored by git) and load it with `set -a; source .env; set +a` before
+`npm run dev`; nothing loads it automatically.
 
 ```bash
 createdb sefaria_social                       # local Postgres 15+ (or: docker run -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust postgres:17)

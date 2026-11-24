@@ -53,6 +53,7 @@ describe("spec 007: API contract", () => {
       "POST /api/v1/posts createPost secured",
       "POST /api/v1/posts/{postId}/replies createReply secured",
       "POST /api/v1/rooms createRoom secured",
+      "POST /api/v1/rooms/{roomId}/call/token getCallToken secured",
       "POST /api/v1/rooms/{roomId}/members joinRoom secured",
       "PUT /api/v1/posts/{postId}/reaction addReaction secured",
       "PUT /api/v1/posts/{postId}/repost addRepost secured",
