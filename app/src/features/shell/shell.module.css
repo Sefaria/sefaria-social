@@ -1,5 +1,8 @@
 /* Social's frame. Reader design tokens only (plan 4.7), each with a light fallback; no global selectors. */
+/* A size container (spec 029): the reader can move the page into a column beside a text, so the pages lay out by the frame's
+   width, not the window's (@container social). */
 .frame {
+  container: social / inline-size;
   padding: var(--sefaria-space-4, 1rem);
   font-family: var(--sefaria-font-ui-en, sans-serif);
   color: var(--sefaria-color-text, #121212);
