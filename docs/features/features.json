@@ -1970,6 +1970,28 @@
       "changed": []
     },
     {
+      "id": "SESS-062",
+      "area": "sess",
+      "name": "The call on a phone: a docked strip",
+      "description": "Below 600px the call is a full-width strip under the top inset: 48px collapsed (avatars, speaking, microphone, Leave, Expand; no video received), the active speaker at 16:9 when expanded. Rotating switches between strip and window without touching the call. After the browser pauses a background tab, one Resume button restarts audio.",
+      "status": "planned",
+      "spec": "037",
+      "acs": [
+        "037/AC-001",
+        "037/AC-002",
+        "037/AC-003",
+        "037/AC-004",
+        "037/AC-005"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SHIUR-001",
       "area": "shiur",
       "name": "Shiur page at /social/s/$shiurId",
