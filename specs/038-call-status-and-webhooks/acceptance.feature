@@ -24,7 +24,7 @@ Feature: Cards and the lobby show who is on a call, and a deleted account leaves
     Given room R's call is live with 3 participants
     When Dana opens room R's lobby and the feed with room R's card
     Then both show "3 on a call"
-    And when the call ends neither shows it, and with LiveKit not configured the status says not live without errors
+    And when the call ends neither shows it and the status has no call field, and with LiveKit not configured nothing errors
 
   @AC-005
   Scenario: AC-005 a deleted account leaves every call

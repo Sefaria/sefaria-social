@@ -25,9 +25,9 @@ that person must also be dropped from any call they are in.
 - AC-003 WHEN a `participant_joined`, `participant_left` or `room_finished` event for `room_<roomId>` is applied THE SYSTEM SHALL
   store that room's call status `{ live, participants, startedAt }` from the event's room information, never with fewer than 0
   participants, and with `live: false` after `room_finished`; events for rooms that do not exist SHALL be ignored
-- AC-004 WHEN a member reads a room's status THE SYSTEM SHALL include `call: { live, participants }`, and the lobby and room
-  cards SHALL show "N on a call" while live and nothing otherwise; WHEN LiveKit is not configured the field SHALL be
-  `{ live: false, participants: 0 }` and nothing errors
+- AC-004 WHEN a member reads a room's status, or the feed lists a room, while the room's call is live THE SYSTEM SHALL include
+  `call: { live: true, participants }`, and the lobby and room cards SHALL show "N on a call"; WHEN no call is live (or LiveKit
+  is not configured) the field SHALL be absent, nothing SHALL show, and nothing errors
 - AC-005 WHEN the user-deleted webhook for user U is handled THE SYSTEM SHALL remove identity `u:U` from every room where the call
   status is live, through LiveKit's server API; a failed removal SHALL be retried once and logged, and SHALL not stop the rest of
   the deletion

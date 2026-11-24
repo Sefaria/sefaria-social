@@ -3,8 +3,8 @@
   "spec": "038",
   "title": "Cards and the lobby show who is on a call, and a deleted account leaves every call",
   "approved": false,
-  "spec_sha": "sha256:f4a61c9c63307595070cd7c74c49b7ca411784eb1e2958a5d2b07430ec5d5974",
-  "feature_sha": "sha256:23d236bc7878a194aa7f761cc9063a6a30b71bc6785cdb9daa3548f8e7c2007d",
+  "spec_sha": "sha256:640e0e0e3ec1022790ea553e4d4141f0bb958dd2e0daad7385d191af21ddd1a5",
+  "feature_sha": "sha256:cda2a57688c43e037f13d6eb4574c68b9aefbc931aa7e17a651e28a7c45a16bf",
   "tasks_sha": "sha256:68521be8d5b316973cd819c94c036daa30636d6c23b8740b7ce6ff09a9a0d3da",
   "risk": "high",
   "features": [
@@ -149,7 +149,7 @@
     },
     {
       "ac": "AC-004",
-      "text": "WHEN a member reads a room's status THE SYSTEM SHALL include `call: { live, participants }`, and the lobby and room cards SHALL show \"N on a call\" while live and nothing otherwise; WHEN LiveKit is not configured the field SHALL be `{ live: false, participants: 0 }` and nothing errors",
+      "text": "WHEN a member reads a room's status, or the feed lists a room, while the room's call is live THE SYSTEM SHALL include `call: { live: true, participants }`, and the lobby and room cards SHALL show \"N on a call\"; WHEN no call is live (or LiveKit is not configured) the field SHALL be absent, nothing SHALL show, and nothing errors",
       "scenarios": [
         "AC-004 the lobby and cards show the call"
       ],

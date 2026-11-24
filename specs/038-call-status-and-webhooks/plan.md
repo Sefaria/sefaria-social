@@ -20,7 +20,7 @@ existing room>` is `ignored`. Other events are `ignored`.
 ## T-002 "N on a call" in the lobby and on cards (AC-004)
 
 - `services/calls.ts` `callStatusOf(roomIds)`; `getRoomStatus` and the feed's live rooms gain `call: { live, participants }`
-  (offline fallback `{ live: false, participants: 0 }` when there is no row or LiveKit is not configured). Contracts and the
+  only while the call is live (absent otherwise, so existing responses and the tests that pin them are unchanged). Contracts and the
   generated client are additive.
 - `features/room/RoomLobbyPage.tsx` reads the status (a `getStatus` on the rooms API) and shows "N on a call"; `FeedCard` shows it
   on live rooms. Strings in English and Hebrew.
