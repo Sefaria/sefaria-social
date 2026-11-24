@@ -1,10 +1,10 @@
 {
   "repo": "Sefaria/Sefaria-Project",
   "path": "reader-next/contract",
-  "commit": "ca533783491d80aa852ea2c381ac595656dc9b45",
-  "pinnedAt": "2026-11-24T06:57:43.392Z",
+  "commit": "6349c65f835b4aa81cc23315d4b689f2fc20faac",
+  "pinnedAt": "2026-11-24T15:29:06.582Z",
   "files": {
-    "surface-host.v1.ts": "sha256:3923aa121ddcee7ba27ec13eaad6ab1dc65b87084bd3f2b05f541e2d3712d53b",
+    "surface-host.v1.ts": "sha256:83356646a78ddfc085ac8697b29f27ef60ee683e4ede9e6db856c8cfd62eed5c",
     "surface-manifest.v1.ts": "sha256:d67cd9370f81587c32278a06a8464ca8a671599c29f9ffd9d10355604b567e40",
     "surface-manifest.v1.schema.json": "sha256:23aafa5a599314bc33bfb5838d028e1b2d32d6dcf6335d3079a3c7390a1a7ccf"
   }

@@ -6,6 +6,7 @@
 // excess property and a member it renames is missing; either way this file stops compiling. Never widen it to make a test pass.
 import type {
   ApplyContext,
+  ChromeInsets,
   ApplyResult,
   ReaderSnapshot,
   SliceFilter,
@@ -104,6 +105,10 @@ export interface FakeHostOptions {
   token?: () => Promise<string>;
   /** false: a contract 1.0 host, without openBeside (the surface must fall back to navigate). Default true. */
   besideSupported?: boolean;
+  /** SurfaceHost 1.2 `ui.chrome` insets (spec 036). Default all 0. */
+  chrome?: ChromeInsets;
+  /** `false` builds a 1.1 host without `ui.chrome`, to test the fallback. */
+  chromeSupported?: boolean;
 }
 
 export interface FakeHostCalls {
@@ -128,6 +133,8 @@ export interface FakeHost {
   forward(): void;
   setViewer(viewer: Viewer): void;
   setUi(ui: Partial<HostUi>): void;
+  /** Change the reader's chrome insets (spec 036); ui.chrome subscribers hear it. */
+  setChrome(insets: ChromeInsets): void;
   /** Simulates the user scrolling or clicking in the reader (fires onLocalInput subscribers). */
   localInput(): void;
   /**
@@ -199,6 +206,8 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
 
   const viewerSubs = new Set<() => void>();
   const uiSubs = new Set<() => void>();
+  let chrome: ChromeInsets = opts.chrome ?? { top: 0, inlineStart: 0, inlineEnd: 0, bottom: 0 };
+  const chromeSubs = new Set<() => void>();
   const inputSubs = new Set<() => void>();
   const stateSubs = new Set<(change: SnapshotChange, snapshot: ReaderSnapshot) => void>();
 
@@ -243,7 +252,10 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
   };
 
   const host: SurfaceHost = {
-    contract: { major: SURFACE_HOST_CONTRACT.major, minor: opts.besideSupported === false ? 0 : SURFACE_HOST_CONTRACT.minor },
+    contract: {
+      major: SURFACE_HOST_CONTRACT.major,
+      minor: opts.besideSupported === false ? 0 : opts.chromeSupported === false ? 1 : SURFACE_HOST_CONTRACT.minor,
+    },
     location: {
       get: () => history.get(),
       subscribe: (cb) => history.subscribe(cb),
@@ -358,6 +370,17 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
         uiSubs.add(cb);
         return () => uiSubs.delete(cb);
       },
+      ...(opts.chromeSupported === false
+        ? {}
+        : {
+            chrome: {
+              get: () => ({ ...chrome }),
+              subscribe(cb: () => void) {
+                chromeSubs.add(cb);
+                return () => void chromeSubs.delete(cb);
+              },
+            },
+          }),
     },
     config: {
       apiOrigin: opts.config?.apiOrigin ?? "http://localhost:3200",
@@ -378,6 +401,10 @@ export function createFakeHost(opts: FakeHostOptions = {}): FakeHost {
     setViewer(v) {
       viewer = v;
       viewerSubs.forEach((cb) => cb());
+    },
+    setChrome(next) {
+      chrome = { ...next };
+      chromeSubs.forEach((cb) => cb());
     },
     setUi(next) {
       Object.assign(ui, next);

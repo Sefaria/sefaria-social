@@ -8,6 +8,27 @@ async function load() {
   return mod!;
 }
 
+describe("fake host: chrome insets (spec 036)", () => {
+  // @feature HOST-008 SurfaceHost 1.2 chrome insets for the call window
+  // @ac 036/AC-005
+  it("offers ui.chrome with insets a test can set, and builds a 1.1 host without it", async () => {
+    const { createFakeHost } = await load();
+    const fake = createFakeHost({ chrome: { top: 60, inlineStart: 0, inlineEnd: 0, bottom: 0 } } as never) as ReturnType<
+      typeof createFakeHost
+    > & { setChrome?(v: unknown): void };
+    const chrome = (fake.host.ui as { chrome?: { get(): unknown; subscribe(cb: () => void): () => void } }).chrome;
+    expect(chrome, "fake host has ui.chrome").toBeDefined();
+    expect(chrome!.get()).toEqual({ top: 60, inlineStart: 0, inlineEnd: 0, bottom: 0 });
+    let heard = 0;
+    chrome!.subscribe(() => heard++);
+    fake.setChrome!({ top: 60, inlineStart: 0, inlineEnd: 420, bottom: 0 });
+    expect([heard, chrome!.get()]).toEqual([1, { top: 60, inlineStart: 0, inlineEnd: 420, bottom: 0 }]);
+    const old = createFakeHost({ chromeSupported: false } as never);
+    expect((old.host.ui as { chrome?: unknown }).chrome).toBeUndefined();
+    expect(old.host.contract.minor).toBeLessThan(2);
+  });
+});
+
 describe("fake host: slices like the reader's", () => {
   it("filters moment slices, merges applied slices into the rest, and moves locally keeping ctx", async () => {
     const { createFakeHost } = await load();

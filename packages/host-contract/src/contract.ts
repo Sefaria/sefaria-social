@@ -4,6 +4,7 @@
 // @sefaria-social/host-contract -- <reader checkout> <commit>`; never edit pinned/ by hand.
 export { SURFACE_HOST_CONTRACT } from "../pinned/surface-host.v1";
 export type {
+  ChromeInsets,
   AsideId,
   AsideState,
   ApplyContext,

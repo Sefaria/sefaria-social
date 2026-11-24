@@ -72,6 +72,14 @@ export const snapshotChangeSchema = z.object({
  * The host object's shape, checked on mount before anything else is touched. A host from another major, or one missing a
  * member, fails here and the surface renders its "please reload" state instead of crashing inside the reader page.
  */
+/** SurfaceHost 1.2 `ui.chrome` values: CSS pixels the reader's chrome occupies at each edge (spec 036). Checked before use. */
+export const chromeInsetsSchema = z.object({
+  top: z.number().finite().nonnegative(),
+  inlineStart: z.number().finite().nonnegative(),
+  inlineEnd: z.number().finite().nonnegative(),
+  bottom: z.number().finite().nonnegative(),
+});
+
 export const surfaceHostShapeSchema = z.object({
   contract: contractVersionSchema,
   location: z.object({ get: fn, subscribe: fn }),
@@ -85,7 +93,13 @@ export const surfaceHostShapeSchema = z.object({
     context: z.object({ get: fn, subscribe: fn }),
   }),
   viewer: z.object({ get: fn, subscribe: fn, identityToken: fn, requestSignIn: fn }),
-  ui: z.object({ interfaceLang: interfaceLangSchema, theme: themeSchema, subscribe: fn }),
+  ui: z.object({
+    interfaceLang: interfaceLangSchema,
+    theme: themeSchema,
+    subscribe: fn,
+    /** Since contract 1.2; an older reader lacks it (spec 036). */
+    chrome: z.object({ get: fn, subscribe: fn }).optional(),
+  }),
   config: hostConfigSchema,
   report: fn,
 });
