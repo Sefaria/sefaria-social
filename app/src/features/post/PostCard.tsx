@@ -91,7 +91,9 @@ export function PostCard({
           <figure className={styles.source} data-post-source={post.ref}>
             <figcaption className={styles.sourceRef}>
               <Icon name="book" size={16} />
-              <ReaderRefLink textRef={post.ref}>{post.ref}</ReaderRefLink>
+              <ReaderRefLink textRef={post.ref} beside>
+                {post.ref}
+              </ReaderRefLink>
             </figcaption>
             <SourceText textRef={post.ref} interfaceLang={lang} unavailableLabel={t.textUnavailable} />
           </figure>

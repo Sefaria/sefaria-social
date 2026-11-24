@@ -424,6 +424,30 @@
       "changed": []
     },
     {
+      "id": "FEED-069",
+      "area": "feed",
+      "name": "Open a source beside the feed",
+      "description": "A post's source opens beside the page through contract 1.1 host.openBeside (the reader slides the text in and keeps the page mounted in a column); a 1.0 reader gets commands.go. The pages lay out by their own width (container queries), so they fit the column.",
+      "status": "built",
+      "spec": "029",
+      "acs": [
+        "029/AC-001",
+        "029/AC-002"
+      ],
+      "surfaces": [
+        "feed",
+        "post",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/host/ReaderRefLink.test.tsx",
+        "e2e/social.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",

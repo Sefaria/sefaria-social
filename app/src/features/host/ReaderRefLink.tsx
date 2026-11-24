@@ -12,18 +12,33 @@ export function refWorkspace(ref: string): Workspace {
 
 /**
  * A link to a ref in the reader (routing rule R15): the href comes from the reader's workspace commands, and a plain click
- * sends the reader there with commands.go(). In standalone mode (no reader) it is a plain link to the ref's path.
+ * sends the reader there with commands.go(). With `beside` (spec 029), a plain click opens the text beside the page instead
+ * (contract 1.1 host.openBeside), so the page stays where it was; a reader without openBeside (1.0) goes there as before. A
+ * modified click (new tab, new window) always follows the plain href. In standalone mode (no reader) it is a plain link to the
+ * ref's path.
  */
-export function ReaderRefLink({ textRef, children }: { textRef: string; children: ReactNode }) {
+export function ReaderRefLink({
+  textRef,
+  children,
+  beside = false,
+  className,
+}: {
+  textRef: string;
+  children: ReactNode;
+  beside?: boolean;
+  className?: string;
+}) {
   const host = useHost();
   const ws = refWorkspace(textRef);
+  const href = host ? host.reader.commands.href(ws) : `/${textRef.replace(/ /g, "_")}`;
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (!host || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
-    void host.reader.commands.go(ws);
+    if (beside && host.openBeside) host.openBeside(href);
+    else void host.reader.commands.go(ws);
   };
   return (
-    <a href={host ? host.reader.commands.href(ws) : `/${textRef.replace(/ /g, "_")}`} onClick={onClick}>
+    <a href={href} onClick={onClick} className={className} data-opens={beside && host?.openBeside ? "beside" : undefined}>
       {children}
     </a>
   );

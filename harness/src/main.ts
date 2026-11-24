@@ -23,6 +23,8 @@ declare global {
       /** The fake reader's slices and their scopes (personal settings vs what is on screen). */
       slices?: Record<string, { v: number; value: unknown }>;
       sliceScopes?: Record<string, "personal" | "moment">;
+      /** false: a contract 1.0 reader, without openBeside (spec 029). */
+      besideSupported?: boolean;
       /** Where to load the surface from (default: this server's own build at /surface/manifest.json); a release's stable manifest in e2e/release.spec.ts. */
       manifestUrl?: string;
       /** The reader's PUBLIC_SOCIAL_ORIGINS: origins the manifest and every file may come from (default: this page's origin). */
@@ -71,8 +73,18 @@ const fake = createFakeHost({
   },
   ...(config.slices ? { slices: config.slices } : {}),
   ...(config.sliceScopes ? { sliceScopes: config.sliceScopes } : {}),
+  // contract 1.1 openBeside (spec 029) unless the test asks for a 1.0 reader
+  ...(config.besideSupported === false ? { besideSupported: false } : {}),
 });
 const { host } = fake;
+// openBeside changes no address in the fake: list the call as soon as it is made (spec 029)
+if (host.openBeside) {
+  const open = host.openBeside.bind(host);
+  host.openBeside = (to) => {
+    open(to);
+    renderReaderPane();
+  };
+}
 // The harness itself is visible for debugging in the browser console.
 Object.assign(window, { __fakeHost: fake });
 
@@ -89,6 +101,7 @@ function renderReaderPane() {
   readerPage.textContent = `Reader page: ${loc.pathname}`;
   const calls = [
     ...fake.calls.navigate.map((c) => `navigate ${c.replace ? "replace" : "push"} ${c.to}`),
+    ...fake.calls.openBeside.map((to) => `openBeside ${to}`),
     ...fake.calls.go.map((c) => `commands.go ${host.reader.commands.href(c.ws)}`),
     ...fake.calls.report.map((r) => `report ${r.kind} ${r.name}`),
   ];

@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — FEED-069 "Open a source beside the feed": built (spec 029; reader side SHL-079, contract 1.1).
 - 2026-11-24 — OPS-093 "Demo content: a seeded community for the first visit": built (spec 028).
 - 2026-11-24 — IDENT-103 "Who to follow": built (spec 025).
 - 2026-11-24 — IDENT-102 "One-tap follow": built (spec 025).

@@ -9,8 +9,8 @@ Source: [PLAN.md](PLAN.md) section 4.2.
   created by the reader seam (milestone A1).
 - Social keeps a **pinned copy** in `packages/host-contract/pinned/` (`surface-host.v1.ts`, `surface-manifest.v1.ts`,
   `surface-manifest.v1.schema.json`), with `SOURCE.json` (reader repo, commit, sha256 per file) and `contract.sha256` (checked
-  by `factory doctor`). Pinned from `Sefaria/Sefaria-Project` `feat/reader-social-surface` @ `b90e19735d` (PR 4122, not yet
-  merged). Types are re-exported from the pinned `.ts` file (`src/contract.ts`), never hand-copied; the reader generates a JSON
+  by `factory doctor`). Pinned from `Sefaria/Sefaria-Project` `feat/reader-social-beside` @ `ca53378349` (contract 1.1, spec
+  029; not yet merged into `reader-next`). Types are re-exported from the pinned `.ts` file (`src/contract.ts`), never hand-copied; the reader generates a JSON
   Schema only for the manifest. Re-pin with `npm run pin -w @sefaria-social/host-contract -- <reader checkout> <commit>` (the
   `contract-sync` skill); `npm run check -w @sefaria-social/host-contract` (CI `contract` job) fails on a hand edit.
 - `src/schemas.ts` validates every value that crosses the contract; `src/conformance.ts` proves at compile time that each
@@ -23,7 +23,7 @@ Source: [PLAN.md](PLAN.md) section 4.2.
 interface Surface {
   id: "social";
   contract: 1; // SurfaceHost major version it was built for
-  mountPage(el: HTMLElement, host: SurfaceHost): Unmount; // full-page view under /social/*
+  mountPage(el: HTMLElement, host: SurfaceHost): Unmount; // full-page view under /social/*; since 1.1 it may move, mounted, beside a text
   mountPersistent(el: HTMLElement, host: SurfaceHost): Unmount; // survives navigation; mini view, room link
 }
 
@@ -36,6 +36,7 @@ interface SurfaceHost {
   };
   navigate(to: string, opts?: { replace?: boolean; state?: unknown }): void; // the only way to change the URL
   href(to: string): string; // for <a href>, respects host and language
+  openBeside?(to: string): void; // since 1.1: a reader address opened beside the page (spec 029); absent on a 1.0 reader
   reader: {
     state: ReaderStateApi; // getSnapshot / applySnapshot / subscribe / onLocalInput / applying
     commands: WorkspaceCommands; // the reader's versioned commands: current / go / href / canonicalize
@@ -72,7 +73,16 @@ workspace commands (`reader-next/src/lib/workspace/commands.ts`).
 - **The fake host** (`packages/host-contract/src/fake-host.ts`, import `@sefaria-social/host-contract/fake-host`) implements this interface in memory and is typed from
   the generated contract, so a removed or renamed member stops it compiling. Never widen it to make a test pass.
 
-## Planned for v1.1 (not in v1)
+## 1.1: a text beside the page (spec 029)
+
+`openBeside(to)` opens a reader address beside the surface's page: the reader moves the page mount's element, still mounted, into
+a column at the inline start and slides the text in beside it (a phone slides the text over the page). The address is the text's,
+with `ctx=social.beside`. While it is open the page mount's `location` keeps reporting the social page that opened it; the
+persistent mount's is the reader's. Back, Escape or the text's close button return to the page as it was. The page lays out by its
+own width (`container: social / inline-size` on the frame), since the column is narrower than the window. A 1.0 reader has no
+`openBeside`; the surface falls back to `commands.go`.
+
+## Planned later
 
 Decorations in (mark a segment for a person), segment actions out ("discuss this"), `prefetch(ref)`, `renderSegment(el, ref)`, and
 a panel slot in the reader's workspace layout. Each needs its own spec and reader work.
