@@ -7,6 +7,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import YAML from "yaml";
 import { REPO } from "./helpers.mjs";
 
 // ── Release fixtures (the same block in acceptance-019/020/021: prove-red copies only test files onto the merge base, so a
@@ -124,5 +125,23 @@ describe("spec 040: the call chunk's own budget", () => {
     expect(budget.entryGzipBeforeCalls).toBe(77_055);
     const config = readFileSync(path.join(REPO, "app/vite.surface.config.ts"), "utf8");
     expect(config).toContain("assets/call.[hash].js");
+  });
+});
+
+describe("spec 040: the call journey runs in CI", () => {
+  // @feature OPS-095 Two-browser call journey on a local LiveKit
+  // @ac 040/AC-005
+  it("CI's e2e job runs the Playwright suite, the call journey is in it on both projects, and the stack starts LiveKit", () => {
+    const ci = YAML.parse(readFileSync(path.join(REPO, ".github/workflows/ci.yml"), "utf8"));
+    const e2e = Object.values(ci.jobs).find((j) => (j.steps ?? []).some((s) => /npm run test:e2e/.test(String(s.run ?? ""))));
+    expect(e2e, "a CI job runs npm run test:e2e").toBeDefined();
+    const config = readFileSync(path.join(REPO, "playwright.config.ts"), "utf8");
+    expect(config, "the call journey is not ignored").not.toMatch(/calls\.spec/);
+    const spec = readFileSync(path.join(REPO, "e2e/calls.spec.ts"), "utf8");
+    expect(spec).toContain("--use-fake-device-for-media-stream");
+    expect(spec).toContain("--use-fake-ui-for-media-stream");
+    const stack = readFileSync(path.join(REPO, "e2e/stack/start.ts"), "utf8");
+    expect(stack).toMatch(/livekit-server/);
+    expect(stack).toMatch(/CALLS_ENABLED: "true"/);
   });
 });

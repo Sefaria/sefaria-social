@@ -27,7 +27,7 @@ export default defineConfig({
     },
     {
       command: "npx tsx e2e/stack/start.ts",
-      url: "http://127.0.0.1:3200/api/v1/health",
+      url: `http://127.0.0.1:${Number(process.env.E2E_API_PORT) || 3200}/api/v1/health`,
       env: { HARNESS_PORT: String(PORT) },
       reuseExistingServer: false,
       timeout: 120_000,

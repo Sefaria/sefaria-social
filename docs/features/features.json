@@ -1476,7 +1476,7 @@
       "area": "ops",
       "name": "Two-browser call journey on a local LiveKit",
       "description": "The e2e stack runs LiveKit in development mode; two Chromium contexts with fake cameras join one room call on desktop and phone: video and audio arrive, mute shows, the call survives moving, leaving keeps the room.",
-      "status": "planned",
+      "status": "built",
       "spec": "040",
       "acs": [
         "040/AC-002",
@@ -1488,7 +1488,11 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "e2e/calls.spec.ts",
+        "factory/test/acceptance-040.test.mjs",
+        "app/src/server/config.test.ts"
+      ],
       "since": null,
       "changed": []
     },

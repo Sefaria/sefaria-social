@@ -19,6 +19,12 @@ services:
       USER_DELETED_WEBHOOK_SECRET: "${USER_DELETED_WEBHOOK_SECRET}"
       RELAY_INTERNAL_URL: "http://relay:8787"
       RELAY_INTERNAL_SECRET: "${SERVICE_PASSWORD_RELAY}"
+      # Calls (spec 033): LiveKit Cloud, set on the Coolify app. Coolify passes a variable into a service only when it is
+      # listed here. CALLS_ENABLED stays unset (off) until owner decision D-AV4.
+      LIVEKIT_URL: "${LIVEKIT_URL}"
+      LIVEKIT_API_KEY: "${LIVEKIT_API_KEY}"
+      LIVEKIT_API_SECRET: "${LIVEKIT_API_SECRET}"
+      CALLS_ENABLED: "${CALLS_ENABLED}"
     expose:
       - "3200"
     depends_on:

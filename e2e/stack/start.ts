@@ -1,11 +1,12 @@
 // The local stack for the multi-user journeys (spec 014, L4a): Postgres migrated from empty, an RSA key generated now and
 // published by a local JWKS server (playing Django's), the built Start server (dist/server/server.js) serving the API, and
-// the relay under `wrangler dev` (workerd). Playwright starts it as a web server and waits for the API's health check, which
+// the relay under `wrangler dev` (workerd), and LiveKit in development mode for calls (spec 040). Playwright starts it as a web server and waits for the API's health check, which
 // answers only once the relay is up. Tests read e2e-stack.json (in test-results/) to mint tokens with the same key.
 //
 //   npx tsx e2e/stack/start.ts     (after `npm run build`; needs Postgres: E2E_DATABASE_URL, default a local *_e2e_test db)
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { createServer } from "node:http";
+import { networkInterfaces } from "node:os";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -109,6 +110,51 @@ relay.on("exit", (code) => {
 });
 await waitFor(`http://127.0.0.1:${STACK.relayPort}/health`, 90_000);
 
+// LiveKit in development mode (spec 040): the livekit-server binary when it is on the PATH, else its container. Media uses
+// 7881/tcp and 7882/udp. --node-ip is the machine's own network address, not 127.0.0.1: Chromium gathers no loopback ICE
+// candidates, so media to a server that advertises loopback never connects (signalling does, publishing then hangs).
+const nodeIp =
+  Object.values(networkInterfaces())
+    .flat()
+    .find((i) => i && i.family === "IPv4" && !i.internal)?.address ?? "127.0.0.1";
+const hasBinary = spawnSync("livekit-server", ["--version"], { stdio: "ignore" }).status === 0;
+const livekit = hasBinary
+  ? spawn("livekit-server", ["--dev", "--bind", "0.0.0.0", "--node-ip", nodeIp, "--port", String(STACK.livekitPort)], {
+      stdio: ["ignore", "ignore", "inherit"],
+    })
+  : spawn(
+      "docker",
+      [
+        "run",
+        "--rm",
+        "--name",
+        `social-e2e-livekit-${process.pid}`,
+        "-p",
+        `${STACK.livekitPort}:7880`,
+        "-p",
+        "7881:7881",
+        "-p",
+        "7882:7882/udp",
+        STACK.livekitImage,
+        "--dev",
+        "--bind",
+        "0.0.0.0",
+        "--node-ip",
+        nodeIp,
+      ],
+      { stdio: ["ignore", "ignore", "inherit"] },
+    );
+children.push(livekit);
+if (!hasBinary)
+  process.on("exit", () => spawnSync("docker", ["rm", "-f", `social-e2e-livekit-${process.pid}`], { stdio: "ignore" }));
+livekit.on("exit", (code) => {
+  if (code) {
+    console.error(`e2e stack: LiveKit exited with ${code}`);
+    process.exit(1);
+  }
+});
+await waitFor(`http://127.0.0.1:${STACK.livekitPort}`, 120_000);
+
 Object.assign(process.env, {
   DATABASE_URL: STACK.databaseUrl,
   SOCIAL_JWKS_URL: STACK.jwksUrl,
@@ -118,6 +164,10 @@ Object.assign(process.env, {
   RELAY_INTERNAL_URL: `http://127.0.0.1:${STACK.relayPort}`,
   RELAY_INTERNAL_SECRET: STACK.relaySecret,
   USER_DELETED_WEBHOOK_SECRET: "e2e-webhook-secret",
+  LIVEKIT_URL: `ws://127.0.0.1:${STACK.livekitPort}`,
+  LIVEKIT_API_KEY: STACK.livekitKey,
+  LIVEKIT_API_SECRET: STACK.livekitSecret,
+  CALLS_ENABLED: "true",
   LOG_LEVEL: "warn",
 });
 const server = (await import(pathToFileURL(path.join(root, "app", "dist", "server", "server.js")).href)).default;
