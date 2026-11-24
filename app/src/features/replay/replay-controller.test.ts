@@ -150,6 +150,7 @@ describe("replay controller", () => {
   // @feature SESS-065 Replay a recording in the reader with the video in the floating window
   // @ac 042/AC-008
   it("a state track that fails the schema is invalid: the media is not fetched and the reader is untouched", async () => {
+    expect(mods.fixture["./test-track.ts"], "app/src/features/replay/test-track.ts exists").toBeDefined();
     const { trackJson } = (await mods.fixture["./test-track.ts"]!())!;
     const bad = trackJson();
     (bad.messages as { seq: number }[])[2]!.seq = 9;
