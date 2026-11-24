@@ -2044,7 +2044,7 @@
       "area": "sess",
       "name": "Call window by keyboard and screen reader",
       "description": "Arrow keys move the window from its handle, a menu offers corners and sizes, moves are announced politely, Escape collapses to the pill without trapping focus, controls are 24 px with focus rings and names, and reduced motion turns animation off.",
-      "status": "planned",
+      "status": "built",
       "spec": "035",
       "acs": [
         "035/AC-008",
@@ -2055,7 +2055,10 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/surface/call-window.test.tsx",
+        "app/src/features/av/window-geometry.test.ts"
+      ],
       "since": null,
       "changed": []
     },

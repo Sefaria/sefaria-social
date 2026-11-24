@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { useStrings } from "~/features/shell/use-strings";
 import type { CallController } from "./call-controller";
 import type { CallParticipant, TrackSource } from "./media";
+import { useCallWindowSize } from "./CallWindow";
+import type { SizeName } from "./window-geometry";
 import styles from "./av.module.css";
 
 function Video({
@@ -35,17 +37,39 @@ function Video({
   return <video ref={el} className={styles.video} aria-label={label} autoPlay muted playsInline />;
 }
 
+/** How many tiles each window size holds (spec 035 AC-003); the rest show as "+N". */
+export const TILE_LIMIT: Record<SizeName, number> = { pill: 0, small: 4, medium: 4, large: 9, custom: 4 };
+
+/** The viewer first, then whoever is speaking, then everyone else, in a stable order. */
+export function tileOrder(participants: CallParticipant[]): CallParticipant[] {
+  const rank = (p: CallParticipant) => (p.local ? 0 : p.speaking ? 1 : 2);
+  return participants
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => rank(a.p) - rank(b.p) || a.i - b.i)
+    .map(({ p }) => p);
+}
+
 /**
  * The call's tiles (spec 034 AC-006): one per participant, with their camera when it is on, their name, a muted mark and a
- * speaking ring; screen shares get their own tile. Audio plays through the engine's hidden elements, not here. Spec 035 decides
- * how many tiles fit the window; until then every tile is visible.
+ * speaking ring; screen shares get their own tile. Audio plays through the engine's hidden elements, not here. The window's
+ * size decides how many tiles show (spec 035); only participants with a tile receive video (AC-011), and audio is untouched.
  */
 export function Tiles({ controller, participants }: { controller: CallController; participants: CallParticipant[] }) {
   const t = useStrings();
+  const size = useCallWindowSize();
+  const ordered = tileOrder(participants);
+  const shown = ordered.slice(0, TILE_LIMIT[size]);
+  const more = ordered.length - shown.length;
+  const visibleKey = shown
+    .filter((p) => !p.local)
+    .map((p) => p.id)
+    .join(",");
   useEffect(() => {
-    controller.media()?.setVisible(participants.filter((p) => !p.local).map((p) => p.id));
-  }, [controller, participants]);
-  const screens = participants.filter((p) => p.screen);
+    const media = controller.media();
+    media?.setVisible(visibleKey ? visibleKey.split(",") : []);
+    return () => media?.setVisible([]);
+  }, [controller, visibleKey]);
+  const screens = shown.filter((p) => p.screen);
   return (
     <ul className={styles.tiles}>
       {screens.map((p) => (
@@ -53,7 +77,7 @@ export function Tiles({ controller, participants }: { controller: CallController
           <Video controller={controller} participantId={p.id} source="screen" label={t.screenOf(p.name || t.someone)} />
         </li>
       ))}
-      {participants.map((p) => (
+      {shown.map((p) => (
         <li
           key={p.id}
           data-participant={p.id}
@@ -68,6 +92,11 @@ export function Tiles({ controller, participants }: { controller: CallController
           </span>
         </li>
       ))}
+      {more > 0 && (
+        <li data-more-participants="" className={styles.tile}>
+          {t.moreParticipants(more)}
+        </li>
+      )}
     </ul>
   );
 }
