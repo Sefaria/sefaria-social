@@ -18,7 +18,7 @@ import { stringsFor } from "~/features/shell/strings";
 import { pageTextSource } from "~/lib/sefaria-text";
 import { createCompositor, type Compositor, type CompositorOptions } from "./compositor";
 import { createMixer, type Mixer } from "./mixer";
-import { createSessionRecorder, type SessionRecorder, type SessionRecorderOptions } from "./recorder";
+import { createSessionRecorder, pickMimeType, type SessionRecorder, type SessionRecorderOptions } from "./recorder";
 import { recordingApiFor, type RecordingApi } from "./recording-api";
 
 export type RecordingFailure = "upload" | "unavailable" | "already-recording" | "forbidden" | "error";
@@ -128,7 +128,7 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
       );
       let id: string;
       try {
-        const r = await api.start(roomId);
+        const r = await api.start(roomId, pickMimeType());
         if (gen !== generation) return;
         if (r.kind !== "ok") {
           set({ kind: "failed", roomId, reason: r.kind });

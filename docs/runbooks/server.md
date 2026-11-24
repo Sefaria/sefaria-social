@@ -56,6 +56,7 @@ for any route that answers without credentials and is not on that list.
 | `LIVEKIT_API_KEY`             | for calls             | LiveKit API key; signs call tokens                                                                                                             |
 | `LIVEKIT_API_SECRET`          | for calls             | LiveKit API secret. Secret: never sent to a browser or logged                                                                                  |
 | `CALLS_ENABLED`               | for calls             | Calls are offered only when this is `true` and the three LiveKit variables are set. Keep `false` in production until owner decision D-AV4      |
+| `RECORDINGS_ENABLED`          | no                    | Session recordings (spec 041). `false` switches them off (503 `recording.unavailable`); unset or anything else leaves them on                  |
 | `LOG_LEVEL`                   | no                    | `debug` / `info` (default) / `warn` / `error`                                                                                                  |
 | `TEST_DATABASE_URL`           | tests only            | Default `postgres://localhost:5432/sefaria_social_test`; the name must contain `test` (it is reset)                                            |
 

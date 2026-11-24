@@ -286,7 +286,7 @@ describe("recording a session in the owner's browser (spec 041)", () => {
     });
 
     await controller.start("room-1");
-    expect(api.start).toHaveBeenCalledWith("room-1");
+    expect(api.start).toHaveBeenCalledWith("room-1", undefined);
     expect(controller.view()).toEqual({ kind: "recording", roomId: "room-1", since: 50_000 });
     audioTracks = [track("audio", "mic"), track("audio", "guest")];
     mediaListeners.forEach((cb) => cb());

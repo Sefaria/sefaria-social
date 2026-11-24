@@ -18,6 +18,8 @@ export const Room = z.object({
   updatedAt: z.iso.datetime({ offset: true }),
   /** Whether this server offers calls (spec 033): LiveKit configured and CALLS_ENABLED=true. */
   calls: z.object({ available: z.boolean() }),
+  /** Present, and true, only while the room is being recorded (spec 041); absent otherwise. */
+  recording: z.literal(true).optional(),
 });
 
 /** A LiveKit token for one room's call (spec 033). The token is a bearer credential: keep it in memory only. */
@@ -37,6 +39,8 @@ export const RoomStatus = z.object({
   title: z.string().nullable(),
   participants: z.int().nonnegative(),
   call: CallStatus.optional(),
+  /** Present, and true, only while the room is being recorded (spec 041); absent otherwise. */
+  recording: z.literal(true).optional(),
 });
 
 const Iso = z.iso.datetime({ offset: true });
@@ -165,6 +169,86 @@ export const RoomList = z.object({ rooms: z.array(Room) });
 export const RoomInput = z.strictObject({ title: z.string().trim().min(1).max(120) });
 
 const RoomParams = z.object({ roomId: z.uuid() });
+
+// ── Session recordings (spec 041) ─────────────────────────────────────────────────────────────────────────────────────────
+export const Recording = z.object({
+  id: z.uuid(),
+  roomId: z.uuid(),
+  title: z.string().nullable(),
+  status: z.enum(["recording", "ready", "failed"]),
+  /** The media's content type, as the recorder declared it when it started. */
+  mime: z.string().nullable(),
+  startedAt: z.iso.datetime({ offset: true }),
+  finishedAt: z.iso.datetime({ offset: true }).nullable(),
+  durationMs: z.int().nonnegative().nullable(),
+  mediaBytes: z.int().nonnegative(),
+  stateMessages: z.int().nonnegative(),
+  owner: z.object({ userId: z.int().positive(), name: z.string().nullable() }),
+  canDelete: z.boolean(),
+});
+
+export const RecordingList = z.object({ recordings: z.array(Recording) });
+
+/** The media type the recorder produces, for example "video/webm;codecs=vp8,opus". */
+const RecordingMime = z
+  .string()
+  .max(100)
+  .regex(/^(video|audio)\/[a-z0-9.+-]+(;[ a-z0-9=,.+"-]*)?$/i);
+
+export const RecordingStartInput = z.strictObject({ mime: RecordingMime.optional() });
+
+/** One message of the reader's state stream (packages/session StreamMessage); the server checks it with the session schema. */
+const StreamMessageOut = z.looseObject({
+  type: z.enum(["keyframe", "change"]),
+  seq: z.int().nonnegative(),
+  t: z.number().nonnegative(),
+});
+
+/** The reader's `Recording` v1 document: parses with packages/session's recording schema. */
+export const RecordingState = z.object({
+  v: z.literal(1),
+  startedAt: z.string(),
+  duration: z.number().nonnegative(),
+  client: z.string(),
+  messages: z.array(StreamMessageOut),
+});
+
+export const RecordingStateInput = z.strictObject({ messages: z.array(z.unknown()).min(1).max(2000) });
+
+export const RecordingStateAck = z.object({ stored: z.int().positive() });
+
+/** At most two hours. */
+export const RecordingFinishInput = z.strictObject({
+  durationMs: z
+    .int()
+    .nonnegative()
+    .max(2 * 60 * 60 * 1000),
+});
+
+const RecordingParams = z.object({ recordingId: z.uuid() });
+const RecordingChunkParams = z.object({ recordingId: z.uuid(), seq: z.string().regex(/^(0|[1-9][0-9]{0,5})$/) });
+
+// ── Broadcasts (spec 043) ─────────────────────────────────────────────────────────────────────────────────────────────────
+export const Broadcast = z.object({
+  id: z.uuid(),
+  roomId: z.uuid(),
+  title: z.string(),
+  hostName: z.string().nullable(),
+  status: z.enum(["live", "ended"]),
+  startedAt: z.iso.datetime({ offset: true }),
+  /** The page a viewer opens: /social/b/<id>. */
+  link: z.string().regex(/^\/social\/b\/[0-9a-f-]{36}$/),
+});
+
+/** A relay ticket for the broadcast's room (`relayRoom`, b_<id>): a bearer credential for 10 minutes; keep it in memory. */
+export const BroadcastTicket = z.object({
+  ticket: z.string().min(1),
+  role: z.enum(["host", "viewer"]),
+  relayRoom: z.string().regex(/^b_[0-9a-f-]{36}$/),
+  expiresAt: z.iso.datetime({ offset: true }),
+});
+
+const BroadcastParams = z.object({ broadcastId: z.uuid() });
 
 export const UserDeletedEvent = z.looseObject({
   event: z.string().min(1).max(100),
@@ -323,6 +407,171 @@ export const removeCallParticipant = defineEndpoint({
   body: z.strictObject({ participant: Participant }),
   errors: [403, 404, 503],
   responses: { 204: { description: "Removed from the call." } },
+});
+
+export const listRecordings = defineEndpoint({
+  operationId: "listRecordings",
+  method: "GET",
+  path: "/api/v1/rooms/{roomId}/recordings",
+  summary: "The room's session recordings, newest first (spec 041). Members only.",
+  tags: ["rooms", "recordings"],
+  params: RoomParams,
+  errors: [404],
+  responses: { 200: { description: "The room's recordings.", schema: RecordingList } },
+});
+
+export const startRecording = defineEndpoint({
+  operationId: "startRecording",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/recordings",
+  summary:
+    "Start recording the room's session (spec 041). The room's owner only; one at a time (409 recording.already_running); 503 recording.unavailable when recordings are off.",
+  tags: ["rooms", "recordings"],
+  params: RoomParams,
+  body: RecordingStartInput,
+  errors: [403, 404, 409],
+  responses: { 201: { description: "The new recording, status recording.", schema: Recording } },
+});
+
+export const getRecording = defineEndpoint({
+  operationId: "getRecording",
+  method: "GET",
+  path: "/api/v1/recordings/{recordingId}",
+  summary: "A recording's metadata. Members of its room only.",
+  tags: ["recordings"],
+  params: RecordingParams,
+  errors: [404],
+  responses: { 200: { description: "The recording.", schema: Recording } },
+});
+
+export const deleteRecording = defineEndpoint({
+  operationId: "deleteRecording",
+  method: "DELETE",
+  path: "/api/v1/recordings/{recordingId}",
+  summary: "Delete a recording and everything stored for it. Its recorder or the room's owner only.",
+  tags: ["recordings"],
+  params: RecordingParams,
+  errors: [403, 404],
+  responses: { 204: { description: "Deleted." } },
+});
+
+export const finishRecording = defineEndpoint({
+  operationId: "finishRecording",
+  method: "POST",
+  path: "/api/v1/recordings/{recordingId}/finish",
+  summary: "The recorder finishes the recording: ready, with the duration it measured.",
+  tags: ["recordings"],
+  params: RecordingParams,
+  body: RecordingFinishInput,
+  errors: [403, 404, 409],
+  responses: { 200: { description: "The finished recording.", schema: Recording } },
+});
+
+export const getRecordingState = defineEndpoint({
+  operationId: "getRecordingState",
+  method: "GET",
+  path: "/api/v1/recordings/{recordingId}/state",
+  summary: "The recording's reader state track as a Recording v1 document (packages/session). Members of its room only.",
+  tags: ["recordings"],
+  params: RecordingParams,
+  errors: [404],
+  responses: { 200: { description: "The state track.", schema: RecordingState } },
+});
+
+export const appendRecordingState = defineEndpoint({
+  operationId: "appendRecordingState",
+  method: "POST",
+  path: "/api/v1/recordings/{recordingId}/state",
+  summary:
+    "The recorder appends a batch of state messages (at most 256 KiB). Each must match the session schema and continue the stored seqs (409 recording.out_of_order).",
+  tags: ["recordings"],
+  params: RecordingParams,
+  body: RecordingStateInput,
+  maxBodyBytes: 256 * 1024,
+  errors: [403, 404, 409],
+  responses: { 200: { description: "Stored.", schema: RecordingStateAck } },
+});
+
+export const getRecordingMedia = defineEndpoint({
+  operationId: "getRecordingMedia",
+  method: "GET",
+  path: "/api/v1/recordings/{recordingId}/media",
+  summary: "The recording's media: every chunk in order, with the recorded content type. Members of its room only.",
+  tags: ["recordings"],
+  params: RecordingParams,
+  errors: [404],
+  responses: { 200: { description: "The media file.", binary: true } },
+});
+
+export const putRecordingMedia = defineEndpoint({
+  operationId: "putRecordingMedia",
+  method: "PUT",
+  path: "/api/v1/recordings/{recordingId}/media/{seq}",
+  summary:
+    "The recorder uploads media chunk seq (0, 1, 2, … in order; at most 4 MiB, 700 MiB in all). Refused after the recording finished (409 recording.not_recording).",
+  tags: ["recordings"],
+  params: RecordingChunkParams,
+  binaryBody: { maxBytes: 4 * 1024 * 1024 },
+  errors: [403, 404, 409],
+  responses: { 204: { description: "Stored." } },
+});
+
+export const startBroadcast = defineEndpoint({
+  operationId: "startBroadcast",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/broadcasts",
+  summary:
+    "Start broadcasting the room's reader and call, view only, to anyone signed in with the link (spec 043). The room's owner only; one live at a time (409 broadcast.already_live).",
+  tags: ["rooms", "broadcasts"],
+  params: RoomParams,
+  errors: [403, 404, 409],
+  responses: { 201: { description: "The new broadcast with its link.", schema: Broadcast } },
+});
+
+export const getBroadcast = defineEndpoint({
+  operationId: "getBroadcast",
+  method: "GET",
+  path: "/api/v1/broadcasts/{broadcastId}",
+  summary: "A broadcast: title, host, status and link. Anyone signed in who has the id.",
+  tags: ["broadcasts"],
+  params: BroadcastParams,
+  errors: [404],
+  responses: { 200: { description: "The broadcast.", schema: Broadcast } },
+});
+
+export const endBroadcast = defineEndpoint({
+  operationId: "endBroadcast",
+  method: "POST",
+  path: "/api/v1/broadcasts/{broadcastId}/end",
+  summary: "The host ends the broadcast.",
+  tags: ["broadcasts"],
+  params: BroadcastParams,
+  errors: [403, 404],
+  responses: { 200: { description: "The ended broadcast.", schema: Broadcast } },
+});
+
+export const getBroadcastTicket = defineEndpoint({
+  operationId: "getBroadcastTicket",
+  method: "POST",
+  path: "/api/v1/broadcasts/{broadcastId}/ticket",
+  summary:
+    "A 10-minute relay ticket for the broadcast's room, naming the caller and their role (host for its host, viewer for anyone else). 404 when ended; 503 broadcast.unavailable without a relay secret.",
+  tags: ["broadcasts"],
+  params: BroadcastParams,
+  errors: [404],
+  responses: { 200: { description: "The ticket and the relay room it opens.", schema: BroadcastTicket } },
+});
+
+export const getBroadcastCallToken = defineEndpoint({
+  operationId: "getBroadcastCallToken",
+  method: "POST",
+  path: "/api/v1/broadcasts/{broadcastId}/call/token",
+  summary:
+    "A 10-minute LiveKit token for the broadcast's call (bcast_<id>): the host publishes as a call owner; a viewer only subscribes, hidden, without publishing media or data.",
+  tags: ["broadcasts", "calls"],
+  params: BroadcastParams,
+  errors: [404, 429],
+  responses: { 200: { description: "The LiveKit URL and a token for the broadcast's call.", schema: CallToken } },
 });
 
 export const getFeed = defineEndpoint({
@@ -578,6 +827,20 @@ export const ENDPOINTS = [
   getCallToken,
   muteCallParticipant,
   removeCallParticipant,
+  listRecordings,
+  startRecording,
+  getRecording,
+  deleteRecording,
+  finishRecording,
+  getRecordingState,
+  appendRecordingState,
+  getRecordingMedia,
+  putRecordingMedia,
+  startBroadcast,
+  getBroadcast,
+  endBroadcast,
+  getBroadcastTicket,
+  getBroadcastCallToken,
   getFeed,
   getTimeline,
   createPost,

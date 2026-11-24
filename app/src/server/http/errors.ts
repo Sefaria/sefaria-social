@@ -16,6 +16,17 @@ export type ErrorCode =
   | "call.unavailable"
   | "call.removed"
   | "call.participant_not_found"
+  | "recording.not_found"
+  | "recording.forbidden"
+  | "recording.unavailable"
+  | "recording.already_running"
+  | "recording.not_recording"
+  | "recording.out_of_order"
+  | "recording.too_large"
+  | "broadcast.not_found"
+  | "broadcast.forbidden"
+  | "broadcast.already_live"
+  | "broadcast.unavailable"
   | "post.not_found"
   | "post.forbidden"
   | "reply.not_found"
@@ -41,6 +52,17 @@ const MESSAGES: Record<ErrorCode, string> = {
   "call.unavailable": "Calls are not available right now.",
   "call.removed": "The room's owner removed you from this call. You can join again later.",
   "call.participant_not_found": "That person is not in this call.",
+  "recording.not_found": "Recording not found.",
+  "recording.forbidden": "Only the recording's owner or the room's owner can do that.",
+  "recording.unavailable": "Recording is not available right now.",
+  "recording.already_running": "This room is already being recorded.",
+  "recording.not_recording": "This recording has finished.",
+  "recording.out_of_order": "This upload does not continue the recording.",
+  "recording.too_large": "The recording has reached its size limit.",
+  "broadcast.not_found": "Broadcast not found.",
+  "broadcast.forbidden": "Only the broadcast's host can do that.",
+  "broadcast.already_live": "This room is already broadcasting.",
+  "broadcast.unavailable": "Broadcasts are not available right now.",
   "post.not_found": "Post not found.",
   "post.forbidden": "Only the post's author can do that.",
   "reply.not_found": "Reply not found.",

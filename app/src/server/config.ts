@@ -30,6 +30,8 @@ const Env = z.object({
   LIVEKIT_API_SECRET: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
   /** Calls are offered only when this is exactly "true" and the three LiveKit variables are set. */
   CALLS_ENABLED: z.preprocess(emptyIsUnset, z.string().optional()),
+  /** Session recordings (spec 041): "false" switches them off; anything else, or unset, leaves them on. */
+  RECORDINGS_ENABLED: z.preprocess(emptyIsUnset, z.string().optional()),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 

@@ -9,7 +9,7 @@ export type StartResult =
   { kind: "ok"; id: string } | { kind: "already-recording" } | { kind: "forbidden" } | { kind: "unavailable" };
 
 export interface RecordingApi {
-  start(roomId: string): Promise<StartResult>;
+  start(roomId: string, mime?: string): Promise<StartResult>;
   /** Throws on anything but success, so the uploader retries. */
   putMedia(recordingId: string, seq: number, blob: Blob): Promise<void>;
   putState(recordingId: string, messages: StreamMessage[]): Promise<void>;
@@ -52,8 +52,9 @@ export function createRecordingApi({ apiOrigin, getToken, fetch: f = (...a) => f
   };
   const id = encodeURIComponent;
   return {
-    async start(roomId) {
-      const r = await call("POST", `/api/v1/rooms/${id(roomId)}/recordings`);
+    async start(roomId, mime) {
+      // the server keeps the media type with the recording (chunks arrive as octet-stream)
+      const r = await call("POST", `/api/v1/rooms/${id(roomId)}/recordings`, { json: mime ? { mime } : {} });
       if (r.status === 201 || r.status === 200) {
         const parsed = Started.safeParse(await r.json().catch(() => null));
         if (parsed.success) return { kind: "ok", id: parsed.data.id };

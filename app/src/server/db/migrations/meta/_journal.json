@@ -36,6 +36,20 @@
       "when": 1795536018771,
       "tag": "0004_call_removals",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795557550869,
+      "tag": "0005_session_recordings",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795558006249,
+      "tag": "0006_broadcasts",
+      "breakpoints": true
     }
   ]
 }

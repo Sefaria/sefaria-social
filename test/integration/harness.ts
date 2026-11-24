@@ -32,6 +32,8 @@ export interface CallInit {
   token?: string;
   body?: unknown;
   rawBody?: string;
+  /** A binary body (spec 041's media chunks), sent as application/octet-stream unless a content type is given. */
+  bytes?: Uint8Array;
   headers?: Record<string, string>;
 }
 
@@ -47,7 +49,10 @@ export interface TokenOptions {
 export interface CallResult {
   status: number;
   headers: Headers;
+  /** The parsed body; null for an empty body or one that is not JSON (see `bytes`). */
   json: unknown;
+  /** The body as it came. */
+  bytes: Uint8Array;
 }
 
 export function handlersOf(route: unknown): Record<string, unknown> {
@@ -68,13 +73,24 @@ export async function dispatch(router: object, method: string, path: string, ini
   if (typeof handler !== "function") throw new Error(`No server handler for ${method} ${path}`);
   const headers = new Headers(init.headers);
   if (init.token) headers.set("authorization", `Bearer ${init.token}`);
-  let body: string | undefined = init.rawBody;
+  let body: string | Uint8Array<ArrayBuffer> | undefined = init.rawBody;
   if (body === undefined && init.body !== undefined) body = JSON.stringify(init.body);
   if (body !== undefined && !headers.has("content-type")) headers.set("content-type", "application/json");
+  if (init.bytes !== undefined) {
+    body = new Uint8Array(init.bytes);
+    if (!headers.has("content-type")) headers.set("content-type", "application/octet-stream");
+  }
   const request = new Request(`http://social.test${path}`, { method, headers, body });
   const response = await handler({ request, params, pathname });
-  const text = await response.text();
-  return { status: response.status, headers: response.headers, json: text ? JSON.parse(text) : null };
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const type = response.headers.get("content-type");
+  const isJson = bytes.byteLength > 0 && (type === null || type.startsWith("application/json"));
+  return {
+    status: response.status,
+    headers: response.headers,
+    json: isJson ? JSON.parse(new TextDecoder().decode(bytes)) : null,
+    bytes,
+  };
 }
 
 export async function harness(router: object) {

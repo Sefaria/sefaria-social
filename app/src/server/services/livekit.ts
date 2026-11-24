@@ -174,3 +174,75 @@ export async function removeFromCall(config: CallsConfig, roomId: string, identi
     throw e;
   }
 }
+
+/**
+ * Tell everyone in the room's call whether it is being recorded (spec 041 AC-006): LiveKit room metadata `{ recording }`, which
+ * clients in the call see at once. Best effort: skipped when calls are not configured, and a room with no live call (LiveKit
+ * answers not found) needs nothing; any other failure is logged and never thrown, since the room's read and status say it too.
+ */
+export async function setRoomRecording(roomId: string, recording: boolean): Promise<void> {
+  const config = callsConfig();
+  if (!config) return;
+  try {
+    await roomService(config).updateRoomMetadata(livekitRoomName(roomId), JSON.stringify({ recording }));
+  } catch (e) {
+    if (isNotFound(e)) return;
+    // the event list (log/logger.ts) has no LiveKit metadata event: logged as a failed outgoing request to LiveKit
+    log.error("request.failed", {
+      route: "livekit.update_room_metadata",
+      room: livekitRoomName(roomId),
+      error: e instanceof Error ? e.name : "unknown",
+    });
+  }
+}
+
+/** LiveKit's room name for a broadcast's call (spec 043): its own namespace beside the rooms' `room_`. */
+export const livekitBroadcastRoomName = (broadcastId: string) => `bcast_${broadcastId}`;
+
+export interface BroadcastTokenInput {
+  config: CallsConfig;
+  broadcastId: string;
+  userId: number;
+  name: string;
+  role: "host" | "viewer";
+}
+
+/**
+ * A token for a broadcast's call (spec 043 AC-005). The host publishes as a room call's owner does; a viewer only subscribes,
+ * cannot publish media or data, and is hidden, so viewers neither see nor count each other in the call.
+ */
+export async function mintBroadcastToken({
+  config,
+  broadcastId,
+  userId,
+  name,
+  role,
+}: BroadcastTokenInput): Promise<CallTokenDto> {
+  const at = new AccessToken(config.key, config.secret, {
+    identity: livekitIdentity(userId),
+    name,
+    ttl: CALL_TOKEN_TTL_SECONDS,
+    metadata: JSON.stringify({ v: 1, role }),
+  });
+  at.addGrant(
+    role === "host"
+      ? {
+          roomJoin: true,
+          room: livekitBroadcastRoomName(broadcastId),
+          canSubscribe: true,
+          canPublish: true,
+          canPublishSources: [TrackSource.MICROPHONE, TrackSource.CAMERA, TrackSource.SCREEN_SHARE],
+          canPublishData: false,
+        }
+      : {
+          roomJoin: true,
+          room: livekitBroadcastRoomName(broadcastId),
+          canSubscribe: true,
+          canPublish: false,
+          canPublishData: false,
+          hidden: true,
+        },
+  );
+  const token = await at.toJwt();
+  return { url: config.url, token, expiresAt: new Date(expiryOf(token) * 1000).toISOString() };
+}

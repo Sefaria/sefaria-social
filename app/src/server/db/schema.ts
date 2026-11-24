@@ -6,12 +6,16 @@ import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  check,
+  customType,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
@@ -121,6 +125,104 @@ export const callRemovals = pgTable(
     until: timestamp("until", { withTimezone: true }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.roomId, t.userId] }), index("call_removals_user_id_idx").on(t.userId)],
+);
+
+/** Raw bytes (Postgres bytea); node-postgres reads them as a Buffer. */
+const bytea = customType<{ data: Uint8Array; driverData: Uint8Array }>({ dataType: () => "bytea" });
+
+/**
+ * A room's session recorded in its owner's browser (spec 041): the reader's state track and the call's mixed media, uploaded in
+ * chunks while it runs. Personal data: deleted with its owner's account (owner_user_id) and with its room. At most one per room
+ * is `recording` at a time.
+ */
+export const sessionRecordings = pgTable(
+  "session_recordings",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    ownerUserId: userId("owner_user_id").notNull(),
+    title: text("title"),
+    /** "recording" | "ready" | "failed" */
+    status: text("status").notNull().default("recording"),
+    /** The media's content type, from the first chunk the recorder uploads. */
+    mime: text("mime"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    lastUploadAt: timestamp("last_upload_at", { withTimezone: true }).notNull().defaultNow(),
+    durationMs: integer("duration_ms"),
+    mediaBytes: bigint("media_bytes", { mode: "number" }).notNull().default(0),
+    stateMessages: integer("state_messages").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("session_recordings_room_idx").on(t.roomId, t.createdAt),
+    index("session_recordings_owner_user_id_idx").on(t.ownerUserId),
+    uniqueIndex("session_recordings_one_running_idx")
+      .on(t.roomId)
+      .where(sql`${t.status} = 'recording'`),
+    check("session_recordings_status_check", sql`${t.status} in ('recording', 'ready', 'failed')`),
+  ],
+);
+
+/** One media chunk (the MediaRecorder's timeslice), in upload order. */
+export const recordingMediaChunks = pgTable(
+  "recording_media_chunks",
+  {
+    recordingId: uuid("recording_id")
+      .notNull()
+      .references(() => sessionRecordings.id, { onDelete: "cascade" }),
+    seq: integer("seq").notNull(),
+    bytes: bytea("bytes").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.recordingId, t.seq] })],
+);
+
+/** One batch of state-stream messages (the session's StreamMessage), keyed by its first message's seq. */
+export const recordingStateChunks = pgTable(
+  "recording_state_chunks",
+  {
+    recordingId: uuid("recording_id")
+      .notNull()
+      .references(() => sessionRecordings.id, { onDelete: "cascade" }),
+    firstSeq: integer("first_seq").notNull(),
+    lastSeq: integer("last_seq").notNull(),
+    messages: jsonb("messages").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.recordingId, t.firstSeq] })],
+);
+
+/**
+ * A broadcast (spec 043): a room's owner streams their reader and call to anyone signed in who has the link, view only. At most
+ * one per room is `live` at a time. Deleted with its host's account (host_user_id) and with its room.
+ */
+export const broadcasts = pgTable(
+  "broadcasts",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    hostUserId: userId("host_user_id").notNull(),
+    title: text("title").notNull(),
+    /** "live" | "ended" */
+    status: text("status").notNull().default("live"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("broadcasts_room_idx").on(t.roomId, t.startedAt),
+    index("broadcasts_host_user_id_idx").on(t.hostUserId),
+    uniqueIndex("broadcasts_one_live_idx")
+      .on(t.roomId)
+      .where(sql`${t.status} = 'live'`),
+    check("broadcasts_status_check", sql`${t.status} in ('live', 'ended')`),
+  ],
 );
 
 /** Tombstones: the only place a deleted user's id may remain (it refuses their still-valid tokens). */
