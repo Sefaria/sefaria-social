@@ -1,7 +1,7 @@
 ---
 id: "023"
 title: Posts and the timeline — share a Torah thought, anchored to a source, and read what the people you follow share
-status: proposed
+status: approved
 features: [FEED-060, FEED-061, FEED-062, FEED-063]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, post, api]
