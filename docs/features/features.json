@@ -162,7 +162,9 @@
         "identity"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.recordings.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -2201,7 +2203,14 @@
         "identity"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.recordings.int.test.ts",
+        "app/src/features/recording/RecordingBadge.test.tsx",
+        "app/src/features/recording/recorder.test.ts",
+        "app/src/features/room/RoomLobbyPage.test.tsx",
+        "app/src/surface/call-strip.test.tsx",
+        "app/src/surface/call-window.test.tsx"
+      ],
       "since": null,
       "changed": []
     },

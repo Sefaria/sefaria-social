@@ -1,7 +1,8 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useStrings } from "~/features/shell/use-strings";
+import { recordingHere, useRecordingController, useRecordingView, useRoomRecording } from "~/features/recording/use-recording";
 import type { CallController } from "./call-controller";
-import type { DeviceChoice } from "./machine";
+import { callRoom, type DeviceChoice } from "./machine";
 import styles from "./av.module.css";
 
 /**
@@ -21,6 +22,9 @@ export function PreJoin({ controller, devices }: { controller: CallController; d
     () => null,
   );
   const video = useRef<HTMLVideoElement>(null);
+  const roomId = callRoom(controller.view());
+  const recordedHere = recordingHere(useRecordingView(useRecordingController()), roomId ?? "");
+  const recorded = useRoomRecording(roomId) || recordedHere;
   useEffect(() => {
     if (!preview || !video.current) return;
     return preview.attach(video.current);
@@ -32,6 +36,11 @@ export function PreJoin({ controller, devices }: { controller: CallController; d
 
   return (
     <div className={styles.prejoin}>
+      {recorded && (
+        <p role="note" data-recording-notice="">
+          {t.beingRecorded}
+        </p>
+      )}
       <div className={styles.toggles}>
         <button type="button" data-action="toggle-mic" aria-pressed={devices.mic} onClick={() => set({ mic: !devices.mic })}>
           {t.microphone}

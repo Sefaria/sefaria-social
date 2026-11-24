@@ -5,6 +5,8 @@ import { useRoomsApi, type Room } from "~/features/api/rooms-api";
 import { useStrings } from "~/features/shell/use-strings";
 import { PresenceList } from "~/features/presence/PresenceList";
 import { CallButton } from "~/features/av/CallButton";
+import { RecordButton } from "~/features/recording/RecordButton";
+import { isRecordingFlag, recordingHere, useRecordingController, useRecordingView } from "~/features/recording/use-recording";
 import { useRoomController, useRoomHold } from "~/features/session/use-room-session";
 
 type LobbyState =
@@ -27,6 +29,8 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
   const [state, setState] = useState<LobbyState>({ kind: "loading" });
   const [joining, setJoining] = useState(false);
   const [onCall, setOnCall] = useState<number | null>(null);
+  const [statusRecording, setStatusRecording] = useState(false);
+  const recordingView = useRecordingView(useRecordingController());
   const { controller } = useRoomController();
   // A member's lobby holds the room's connection open (spec 012): who is here, live.
   useRoomHold(roomId, "lobby", state.kind === "member");
@@ -52,7 +56,11 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
     if (state.kind !== "member" || !api?.getStatus) return;
     let live = true;
     api.getStatus(roomId).then(
-      (s) => live && setOnCall(s?.call?.live ? s.call.participants : null),
+      (s) => {
+        if (!live) return;
+        setOnCall(s?.call?.live ? s.call.participants : null);
+        setStatusRecording(isRecordingFlag(s));
+      },
       () => live && setOnCall(null),
     );
     return () => {
@@ -75,6 +83,10 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
       setJoining(false);
     }
   }, [api, host, roomId, viewer]);
+
+  // While the room is being recorded everyone in it is told (spec 041 AC-006): from the room read, its status, or this browser.
+  const recording =
+    state.kind === "member" && (isRecordingFlag(state.room) || statusRecording || recordingHere(recordingView, roomId));
 
   return (
     <main data-social-page="room" data-room-state={state.kind}>
@@ -102,7 +114,13 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
           <button type="button" data-action="enter" onClick={() => void controller?.enlarge(roomId)}>
             {t.enter}
           </button>
+          {recording && (
+            <p role="status" data-room-recording="">
+              {t.recording}
+            </p>
+          )}
           {onCall !== null && <p data-call-count="">{t.onCall(onCall)}</p>}
+          {state.room.role === "owner" && <RecordButton roomId={roomId} />}
           <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
           <PresenceList roomId={roomId} />
         </>

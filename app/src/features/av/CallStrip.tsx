@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useStrings } from "~/features/shell/use-strings";
+import { RecordingBadge } from "~/features/recording/RecordingBadge";
+import { useCallRecording } from "~/features/recording/use-recording";
 import { CallWindowSize } from "./CallWindow";
 import { useChromeInsets } from "./insets";
 import { useCallController, useCallView } from "./use-call";
@@ -24,6 +26,7 @@ export function CallStrip({
   const view = useCallView(controller);
   const insets = useChromeInsets();
   const [expanded, setExpanded] = useState(false);
+  const recording = useCallRecording(controller);
   const inCall = view.kind === "in-call";
   const collapsed = inCall && !expanded;
   return (
@@ -45,6 +48,7 @@ export function CallStrip({
           </div>
         ) : (
           <>
+            <RecordingBadge on={recording} />
             <div data-strip-speaker="" data-aspect="16:9" className={styles.speaker}>
               {children}
             </div>

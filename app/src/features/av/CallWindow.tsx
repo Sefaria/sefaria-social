@@ -1,7 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useInterfaceLang } from "~/features/host/host-context";
 import { useStrings } from "~/features/shell/use-strings";
+import { RecordingBadge } from "~/features/recording/RecordingBadge";
+import { useCallRecording } from "~/features/recording/use-recording";
 import { useChromeInsets } from "./insets";
+import { useCallController } from "./use-call";
 import {
   area,
   browserStorage,
@@ -66,6 +69,7 @@ export function CallWindow({ children, pill }: { children: ReactNode; pill: (exp
   const [drag, setDrag] = useState<{ dx: number; dy: number } | null>(null);
   const [menu, setMenu] = useState(false);
   const [status, setStatus] = useState("");
+  const recording = useCallRecording(useCallController());
   const gesture = useRef<{ kind: "move" | "resize"; x: number; y: number; width: number } | null>(null);
 
   const a = area(viewport, insets, dir);
@@ -169,6 +173,7 @@ export function CallWindow({ children, pill }: { children: ReactNode; pill: (exp
             >
               {t.call}
             </button>
+            <RecordingBadge on={recording} />
             <button
               type="button"
               data-action="call-window-menu"

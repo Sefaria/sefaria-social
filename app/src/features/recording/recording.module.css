@@ -1,0 +1,25 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sefaria-space-1);
+  color: var(--sefaria-color-danger);
+  font-weight: 600;
+}
+
+.dot {
+  inline-size: 0.6em;
+  block-size: 0.6em;
+  border-radius: 50%;
+  background: var(--sefaria-color-danger);
+}
+
+.record {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-1);
+}
+
+.error {
+  color: var(--sefaria-color-danger);
+}

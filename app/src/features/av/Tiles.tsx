@@ -4,6 +4,7 @@ import type { CallController } from "./call-controller";
 import type { CallParticipant, TrackSource } from "./media";
 import { useCallWindowSize } from "./CallWindow";
 import { TileMenu } from "./TileMenu";
+import { registerTileVideo } from "./tile-registry";
 import type { SizeName } from "./window-geometry";
 import styles from "./av.module.css";
 
@@ -35,6 +36,12 @@ function Video({
       detach?.();
     };
   }, [controller, participantId, source]);
+  // The recorder's compositor draws camera tiles from the registry (spec 041).
+  useEffect(() => {
+    const video = el.current;
+    if (source !== "camera" || !video) return;
+    return registerTileVideo(participantId, video);
+  }, [participantId, source]);
   return <video ref={el} className={styles.video} aria-label={label} autoPlay muted playsInline />;
 }
 

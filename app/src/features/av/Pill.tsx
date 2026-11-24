@@ -1,4 +1,6 @@
 import { useStrings } from "~/features/shell/use-strings";
+import { RecordingBadge } from "~/features/recording/RecordingBadge";
+import { useCallRecording } from "~/features/recording/use-recording";
 import type { CallController } from "./call-controller";
 import type { CallParticipant } from "./media";
 import { tileOrder } from "./Tiles";
@@ -32,8 +34,10 @@ export function Pill({
   const t = useStrings();
   const ordered = tileOrder(participants);
   const shown = ordered.slice(0, AVATARS);
+  const recording = useCallRecording(controller);
   return (
     <div data-call-pill="" className={styles.pill} data-social-call={controller.view().kind}>
+      <RecordingBadge on={recording} />
       {shown.map((p) => (
         <span
           key={p.id}

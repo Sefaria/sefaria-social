@@ -65,6 +65,51 @@ async function setup(viewer: { id: number; name: string } | null, joinAnswer: "j
   return { fake, api, el, joinButton };
 }
 
+describe("room lobby: recording (spec 041)", () => {
+  async function lobby(data: Record<string, unknown>) {
+    const mod = (await apiModules["../api/rooms-api.ts"]!())!;
+    const { HostContext } = (await hostModules["../host/host-context.tsx"]!())!;
+    const { RoomLobbyPage } = (await lobbyModules["./RoomLobbyPage.tsx"]!())!;
+    const fake = createFakeHost({ url: `/social/r/${ROOM_ID}`, viewer: { id: 4242, name: "Test Learner" } });
+    const api = {
+      getRoom: vi.fn(async () => ({ kind: "member" as const, room: { ...room, ...data } })),
+      join: vi.fn(),
+    } as unknown as RoomsApiModule.RoomsApi;
+    const el = await render(
+      createElement(
+        HostContext.Provider,
+        { value: fake.host },
+        createElement(mod.RoomsApiContext.Provider, { value: api }, createElement(RoomLobbyPage, { roomId: ROOM_ID })),
+      ),
+    );
+    await vi.waitFor(() => expect(el.querySelector("main")?.dataset.roomState).toBe("member"));
+    return el;
+  }
+
+  // @feature SESS-064 Record a room's session (state and call media) in the owner's browser
+  // @ac 041/AC-006
+  it("says Recording while the room read says a recording runs, and nothing once it stops", async () => {
+    const recorded = await lobby({ recording: true });
+    expect(recorded.querySelector("[data-room-recording]")?.textContent).toBe("Recording");
+    expect(recorded.querySelector("[data-room-recording]")?.getAttribute("role")).toBe("status");
+    cleanup?.();
+    cleanup = null;
+    const stopped = await lobby({});
+    expect(stopped.querySelector("[data-room-recording]")).toBeNull();
+  });
+
+  // @feature SESS-064 Record a room's session (state and call media) in the owner's browser
+  // @ac 041/AC-007
+  it("offers Record to the room's owner only", async () => {
+    const owner = await lobby({ role: "owner", ownerUserId: 4242 });
+    expect(owner.querySelector<HTMLButtonElement>("button[data-action=record]")?.textContent).toBe("Record");
+    cleanup?.();
+    cleanup = null;
+    const member = await lobby({});
+    expect(member.querySelector("button[data-action=record]")).toBeNull();
+  });
+});
+
 describe("room lobby: who is on the call (spec 038)", () => {
   // @feature ROOM-045 N on a call in the lobby and on cards
   // @ac 038/AC-004

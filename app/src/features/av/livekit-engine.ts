@@ -10,6 +10,7 @@ import {
   type Participant,
   type RemoteTrack,
 } from "livekit-client";
+import { z } from "zod";
 import {
   asPermissionError,
   type CallMedia,
@@ -42,6 +43,17 @@ function participant(p: Participant, local: boolean): CallParticipant {
     screen: p.isScreenShareEnabled,
     speaking: p.isSpeaking,
   };
+}
+
+/** The room's metadata as the social server writes it (`{ "recording": true }`, spec 041); anything else is "not recording". */
+const RoomMetadata = z.object({ recording: z.boolean().optional() });
+function recordingOf(metadata: string | undefined): boolean {
+  if (!metadata) return false;
+  try {
+    return RoomMetadata.safeParse(JSON.parse(metadata)).data?.recording === true;
+  } catch {
+    return false;
+  }
 }
 
 async function guard<T>(work: Promise<T>): Promise<T> {
@@ -100,6 +112,7 @@ function connected(room: Room): CallMedia & { attachExisting(): void } {
     .on(RoomEvent.LocalTrackUnpublished, emit)
     .on(RoomEvent.ActiveSpeakersChanged, emit)
     .on(RoomEvent.AudioPlaybackStatusChanged, emit)
+    .on(RoomEvent.RoomMetadataChanged, emit)
     .on(RoomEvent.Reconnecting, () => emitConnection("reconnecting"))
     .on(RoomEvent.Reconnected, () => emitConnection("connected"))
     .on(RoomEvent.Disconnected, (r?: DisconnectReason) => {
@@ -157,6 +170,16 @@ function connected(room: Room): CallMedia & { attachExisting(): void } {
       for (const p of room.remoteParticipants.values())
         for (const pub of p.videoTrackPublications.values()) pub.setEnabled(visible.has(p.identity));
     },
+    audioTracks() {
+      const tracks: MediaStreamTrack[] = [];
+      for (const p of room.remoteParticipants.values())
+        for (const pub of p.audioTrackPublications.values())
+          if (pub.isSubscribed && pub.track) tracks.push(pub.track.mediaStreamTrack);
+      const mic = room.localParticipant.getTrackPublication(Track.Source.Microphone)?.track;
+      if (mic) tracks.push(mic.mediaStreamTrack);
+      return tracks;
+    },
+    recording: () => recordingOf(room.metadata),
     audioBlocked: () => !room.canPlaybackAudio,
     startAudio: () => room.startAudio(),
     async disconnect() {
