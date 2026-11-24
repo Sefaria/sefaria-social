@@ -85,6 +85,11 @@ describe("spec 043: broadcasts on the server", () => {
     expect(b).toMatchObject({ roomId: room.id, title: "Daf broadcast", hostName: "Avi Host", status: "live" });
     expect(b.link).toBe(`/social/b/${b.id}`);
     expect(code(await start()), "a second while one is live").toBe("409 broadcast.already_live");
+    const roomRead = async () => (await h.call("GET", `/api/v1/rooms/${room.id}`, { token: host })).json as { broadcast?: unknown };
+    expect((await roomRead()).broadcast, "the room names its live broadcast (a reloaded host finds it)").toEqual({
+      id: b.id,
+      link: b.link,
+    });
 
     const seen = await h.call("GET", `/api/v1/broadcasts/${b.id}`, { token: viewer });
     expect(seen.status, "anyone signed in with the link reads it").toBe(200);
@@ -97,6 +102,7 @@ describe("spec 043: broadcasts on the server", () => {
     const ended = await end(host);
     expect(ended.status).toBe(200);
     expect(ended.json).toMatchObject({ id: b.id, status: "ended" });
+    expect((await roomRead()).broadcast, "and not after it ends").toBeUndefined();
     expect(await h.sql("select status, ended_at is not null as ended from broadcasts")).toEqual([
       { status: "ended", ended: true },
     ]);

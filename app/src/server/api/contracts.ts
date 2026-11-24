@@ -20,6 +20,8 @@ export const Room = z.object({
   calls: z.object({ available: z.boolean() }),
   /** Present, and true, only while the room is being recorded (spec 041); absent otherwise. */
   recording: z.literal(true).optional(),
+  /** The room's live broadcast (spec 043), so its host can end it after a reload; absent when none is live. */
+  broadcast: z.object({ id: z.uuid(), link: z.string().max(200) }).optional(),
 });
 
 /** A LiveKit token for one room's call (spec 033). The token is a bearer credential: keep it in memory only. */

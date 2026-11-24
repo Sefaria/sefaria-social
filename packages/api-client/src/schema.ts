@@ -3063,6 +3063,11 @@ export interface operations {
                 content: {
                     "application/json": {
                         rooms: {
+                            broadcast?: {
+                                /** Format: uuid */
+                                id: string;
+                                link: string;
+                            };
                             calls: {
                                 available: boolean;
                             };
@@ -3124,6 +3129,11 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        broadcast?: {
+                            /** Format: uuid */
+                            id: string;
+                            link: string;
+                        };
                         calls: {
                             available: boolean;
                         };
@@ -3198,6 +3208,11 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        broadcast?: {
+                            /** Format: uuid */
+                            id: string;
+                            link: string;
+                        };
                         calls: {
                             available: boolean;
                         };
@@ -3343,6 +3358,11 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        broadcast?: {
+                            /** Format: uuid */
+                            id: string;
+                            link: string;
+                        };
                         calls: {
                             available: boolean;
                         };
@@ -3758,6 +3778,11 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        broadcast?: {
+                            /** Format: uuid */
+                            id: string;
+                            link: string;
+                        };
                         calls: {
                             available: boolean;
                         };
