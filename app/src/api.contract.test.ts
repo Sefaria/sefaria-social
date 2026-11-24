@@ -29,6 +29,7 @@ describe("spec 007: API contract", () => {
     expect(ops.sort()).toEqual([
       "DELETE /api/v1/posts/{postId} deletePost secured",
       "DELETE /api/v1/posts/{postId}/reaction removeReaction secured",
+      "DELETE /api/v1/posts/{postId}/repost removeRepost secured",
       "DELETE /api/v1/profiles/{profileId}/follow unfollowProfile secured",
       "DELETE /api/v1/replies/{replyId} deleteReply secured",
       "DELETE /api/v1/rooms/{roomId} deleteRoom secured",
@@ -54,6 +55,7 @@ describe("spec 007: API contract", () => {
       "POST /api/v1/rooms createRoom secured",
       "POST /api/v1/rooms/{roomId}/members joinRoom secured",
       "PUT /api/v1/posts/{postId}/reaction addReaction secured",
+      "PUT /api/v1/posts/{postId}/repost addRepost secured",
       "PUT /api/v1/profiles/{profileId}/follow followProfile secured",
     ]);
   });

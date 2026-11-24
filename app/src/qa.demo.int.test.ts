@@ -17,6 +17,21 @@ async function demo() {
   return { mod, seed: await seedFiles[DEMO]!() };
 }
 
+describe("spec 030: reposts and quotes in the demo", () => {
+  // @feature FEED-071 Quote a post
+  // @ac 030/AC-005
+  it("seeds reposts and quotes", async () => {
+    const { mod, seed } = await demo();
+    const h = await load();
+    const { getDb } = await import("~/server/db/client");
+    await mod.seedScenario(getDb(), seed);
+    const counts = await mod.rowCounts(h.pool);
+    expect(counts.reposts ?? 0).toBeGreaterThanOrEqual(3);
+    const [q] = await h.sql<{ n: number }>("select count(*)::int as n from posts where quoted_post_id is not null");
+    expect(q!.n).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe("spec 028: demo content", () => {
   // @ac 028/AC-001
   it("seeds institutions, people, posts with sources, replies, reactions and follows, and nothing more the second time", async () => {

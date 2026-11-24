@@ -1,0 +1,29 @@
+- id: T-001
+  title: Reposts and quotes, server to card, with demo content
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/server/db/qa-seed.ts"
+    - "app/src/server/services/posts.ts"
+    - "app/src/server/services/users.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/posts.$postId.repost.ts"
+    - "app/src/routeTree.gen.ts"
+    - "packages/api-client/**"
+    - "app/src/features/api/social-api.ts"
+    - "app/src/features/post/**"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/ui/Icon.tsx"
+    - "app/src/api.repost.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.user-deleted.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "app/src/qa.demo.int.test.ts"
+    - "test/integration/schema-walk.ts"
+    - "e2e/qa/seeds/demo.json"
+    - "docs/features/**"
+  depends_on: []
+  parallel: false
+  verify: ["npm test", "npm run test:integration"]
+  completes: [FEED-070, FEED-071]

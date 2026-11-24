@@ -111,7 +111,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post a Torah thought, optionally anchored to a source, as the viewer or an institution they administer. */
+        /** Post a Torah thought, optionally anchored to a source or quoting another post, as the viewer or an institution they administer. */
         post: operations["createPost"];
         delete?: never;
         options?: never;
@@ -126,7 +126,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One post with its replies, oldest reply first. */
+        /** One post with its replies: the author's first, then from profiles the viewer follows, then the rest; oldest first in each. */
         get: operations["getPost"];
         put?: never;
         post?: never;
@@ -167,6 +167,24 @@ export interface paths {
         /** Reply to a post. */
         post: operations["createReply"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/posts/{postId}/repost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Repost a post to the viewer's followers (idempotent). */
+        put: operations["addRepost"];
+        post?: never;
+        /** Undo one's repost. */
+        delete: operations["removeRepost"];
         options?: never;
         head?: never;
         patch?: never;
@@ -354,7 +372,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Posts, newest first, 20 a page: the profiles the viewer follows and their own (tab=following), or everyone's. */
+        /** 20 posts a page. tab=following: the viewer's and the profiles they follow, posts and reposts, newest first. tab=everyone (For you): every recent post, ranked for the viewer. */
         get: operations["getTimeline"];
         put?: never;
         post?: never;
@@ -709,6 +727,8 @@ export interface operations {
                     /** Format: uuid */
                     asProfileId?: string;
                     body: string;
+                    /** Format: uuid */
+                    quotedPostId?: string;
                     ref?: string;
                 };
             };
@@ -734,10 +754,34 @@ export interface operations {
                         createdAt: string;
                         /** Format: uuid */
                         id: string;
+                        quoteCount: number;
+                        quoted: {
+                            author: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "person" | "institution";
+                                name: string;
+                            } | null;
+                            body: string | null;
+                            createdAt: string | null;
+                            /** Format: uuid */
+                            id: string;
+                            ref: string | null;
+                        } | null;
                         reacted: boolean;
                         reactionCount: number;
                         ref: string | null;
                         replyCount: number;
+                        repostCount: number;
+                        reposted: boolean;
+                        repostedBy: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "person" | "institution";
+                            name: string;
+                        } | null;
                     };
                 };
             };
@@ -761,6 +805,15 @@ export interface operations {
             };
             /** @description Not allowed for this caller (for example room.forbidden). */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -820,10 +873,34 @@ export interface operations {
                             createdAt: string;
                             /** Format: uuid */
                             id: string;
+                            quoteCount: number;
+                            quoted: {
+                                author: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** @enum {string} */
+                                    kind: "person" | "institution";
+                                    name: string;
+                                } | null;
+                                body: string | null;
+                                createdAt: string | null;
+                                /** Format: uuid */
+                                id: string;
+                                ref: string | null;
+                            } | null;
                             reacted: boolean;
                             reactionCount: number;
                             ref: string | null;
                             replyCount: number;
+                            repostCount: number;
+                            reposted: boolean;
+                            repostedBy: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "person" | "institution";
+                                name: string;
+                            } | null;
                         };
                         replies: {
                             author: {
@@ -1155,6 +1232,128 @@ export interface operations {
             };
         };
     };
+    addRepost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The viewer's repost state and the post's count. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        repostCount: number;
+                        reposted: boolean;
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    removeRepost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The viewer's repost state and the post's count. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        repostCount: number;
+                        reposted: boolean;
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     listProfiles: {
         parameters: {
             query: {
@@ -1250,10 +1449,34 @@ export interface operations {
                             createdAt: string;
                             /** Format: uuid */
                             id: string;
+                            quoteCount: number;
+                            quoted: {
+                                author: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** @enum {string} */
+                                    kind: "person" | "institution";
+                                    name: string;
+                                } | null;
+                                body: string | null;
+                                createdAt: string | null;
+                                /** Format: uuid */
+                                id: string;
+                                ref: string | null;
+                            } | null;
                             reacted: boolean;
                             reactionCount: number;
                             ref: string | null;
                             replyCount: number;
+                            repostCount: number;
+                            reposted: boolean;
+                            repostedBy: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "person" | "institution";
+                                name: string;
+                            } | null;
                         }[];
                         profile: {
                             bio: string;
@@ -2214,10 +2437,34 @@ export interface operations {
                             createdAt: string;
                             /** Format: uuid */
                             id: string;
+                            quoteCount: number;
+                            quoted: {
+                                author: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** @enum {string} */
+                                    kind: "person" | "institution";
+                                    name: string;
+                                } | null;
+                                body: string | null;
+                                createdAt: string | null;
+                                /** Format: uuid */
+                                id: string;
+                                ref: string | null;
+                            } | null;
                             reacted: boolean;
                             reactionCount: number;
                             ref: string | null;
                             replyCount: number;
+                            repostCount: number;
+                            reposted: boolean;
+                            repostedBy: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "person" | "institution";
+                                name: string;
+                            } | null;
                         }[];
                     };
                 };

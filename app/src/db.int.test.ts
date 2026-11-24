@@ -16,6 +16,7 @@ const TABLES = [
   "profiles",
   "reactions",
   "replies",
+  "reposts",
   "room_members",
   "rooms",
   "shiur_recordings",
@@ -55,7 +56,7 @@ describe("spec 005: database", () => {
       order by 1`);
     expect(unindexed).toEqual([]);
     const fks = await h.sql("select conname from pg_constraint where contype = 'f'");
-    expect(fks.length).toBe(11);
+    expect(fks.length).toBe(14);
   });
 
   // @ac 005/AC-002

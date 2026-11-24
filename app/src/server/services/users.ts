@@ -13,6 +13,7 @@ import {
   profiles,
   reactions,
   replies,
+  reposts,
   roomMembers,
   rooms,
   shiurim,
@@ -42,6 +43,7 @@ export interface DeletionCounts {
   user_display: number;
   notifications: number;
   reactions: number;
+  reposts: number;
   follows: number;
   replies: number;
   posts: number;
@@ -75,6 +77,7 @@ export async function deleteUserData(tx: Executor, userId: number, eventId: stri
     .where(eq(notifications.recipientUserId, userId))
     .returning({ id: notifications.id });
   const reacted = await tx.delete(reactions).where(eq(reactions.userId, userId)).returning({ id: reactions.postId });
+  const reposted = await tx.delete(reposts).where(eq(reposts.createdByUserId, userId)).returning({ id: reposts.postId });
   const followed = await tx.delete(follows).where(eq(follows.followerUserId, userId)).returning({ id: follows.profileId });
   const replied = await tx.delete(replies).where(eq(replies.createdByUserId, userId)).returning({ id: replies.id });
   const wrote = await tx.delete(posts).where(eq(posts.createdByUserId, userId)).returning({ id: posts.id });
@@ -89,6 +92,7 @@ export async function deleteUserData(tx: Executor, userId: number, eventId: stri
     user_display: display.length,
     notifications: notified.length,
     reactions: reacted.length,
+    reposts: reposted.length,
     follows: followed.length,
     replies: replied.length,
     posts: wrote.length,

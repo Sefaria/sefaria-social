@@ -48,6 +48,15 @@ export const Feed = z.object({
 // ── Posts, replies, reactions (specs 023, 024) ────────────────────────────────────────────────────────────────────────────
 export const Author = z.object({ id: z.uuid(), kind: z.enum(["person", "institution"]), name: z.string() });
 
+/** The post a quote quotes (spec 030); body, ref, author and createdAt are null when it was deleted. */
+export const QuotedPost = z.object({
+  id: z.uuid(),
+  body: z.string().nullable(),
+  ref: z.string().nullable(),
+  author: Author.nullable(),
+  createdAt: Iso.nullable(),
+});
+
 export const Post = z.object({
   id: z.uuid(),
   body: z.string(),
@@ -58,6 +67,11 @@ export const Post = z.object({
   reactionCount: z.int().nonnegative(),
   reacted: z.boolean(),
   canDelete: z.boolean(),
+  repostCount: z.int().nonnegative(),
+  quoteCount: z.int().nonnegative(),
+  reposted: z.boolean(),
+  quoted: QuotedPost.nullable(),
+  repostedBy: Author.nullable(),
 });
 
 export const Reply = z.object({ id: z.uuid(), body: z.string(), author: Author, createdAt: Iso, canDelete: z.boolean() });
@@ -70,11 +84,15 @@ export const PostInput = z.strictObject({
   body: z.string().trim().min(1).max(2000),
   ref: z.string().trim().max(200).optional(),
   asProfileId: z.uuid().optional(),
+  /** Quote this post (spec 030). */
+  quotedPostId: z.uuid().optional(),
 });
 
 export const ReplyInput = z.strictObject({ body: z.string().trim().min(1).max(1000) });
 
 export const ReactionState = z.object({ reacted: z.boolean(), reactionCount: z.int().nonnegative() });
+
+export const RepostState = z.object({ reposted: z.boolean(), repostCount: z.int().nonnegative() });
 
 const TimelineQuery = z.strictObject({
   tab: z.enum(["following", "everyone"]).default("following"),
@@ -268,7 +286,8 @@ export const getTimeline = defineEndpoint({
   operationId: "getTimeline",
   method: "GET",
   path: "/api/v1/timeline",
-  summary: "Posts, newest first, 20 a page: the profiles the viewer follows and their own (tab=following), or everyone's.",
+  summary:
+    "20 posts a page. tab=following: the viewer's and the profiles they follow, posts and reposts, newest first. tab=everyone (For you): every recent post, ranked for the viewer.",
   tags: ["posts"],
   query: TimelineQuery,
   responses: { 200: { description: "A page of posts and the cursor of the next one (null on the last).", schema: Timeline } },
@@ -278,10 +297,11 @@ export const createPost = defineEndpoint({
   operationId: "createPost",
   method: "POST",
   path: "/api/v1/posts",
-  summary: "Post a Torah thought, optionally anchored to a source, as the viewer or an institution they administer.",
+  summary:
+    "Post a Torah thought, optionally anchored to a source or quoting another post, as the viewer or an institution they administer.",
   tags: ["posts"],
   body: PostInput,
-  errors: [403],
+  errors: [403, 404],
   responses: { 201: { description: "The post, as the timeline shows it.", schema: Post } },
 });
 
@@ -289,7 +309,8 @@ export const getPost = defineEndpoint({
   operationId: "getPost",
   method: "GET",
   path: "/api/v1/posts/{postId}",
-  summary: "One post with its replies, oldest reply first.",
+  summary:
+    "One post with its replies: the author's first, then from profiles the viewer follows, then the rest; oldest first in each.",
   tags: ["posts"],
   params: PostParams,
   errors: [404],
@@ -350,6 +371,28 @@ export const removeReaction = defineEndpoint({
   params: PostParams,
   errors: [404],
   responses: { 200: { description: "The viewer's reaction state and the post's count.", schema: ReactionState } },
+});
+
+export const addRepost = defineEndpoint({
+  operationId: "addRepost",
+  method: "PUT",
+  path: "/api/v1/posts/{postId}/repost",
+  summary: "Repost a post to the viewer's followers (idempotent).",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [404],
+  responses: { 200: { description: "The viewer's repost state and the post's count.", schema: RepostState } },
+});
+
+export const removeRepost = defineEndpoint({
+  operationId: "removeRepost",
+  method: "DELETE",
+  path: "/api/v1/posts/{postId}/repost",
+  summary: "Undo one's repost.",
+  tags: ["posts"],
+  params: PostParams,
+  errors: [404],
+  responses: { 200: { description: "The viewer's repost state and the post's count.", schema: RepostState } },
 });
 
 export const getMyProfile = defineEndpoint({
@@ -464,6 +507,8 @@ export const ENDPOINTS = [
   deleteReply,
   addReaction,
   removeReaction,
+  addRepost,
+  removeRepost,
   getMyProfile,
   updateMyProfile,
   listProfiles,
