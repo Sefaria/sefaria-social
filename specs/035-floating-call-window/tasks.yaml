@@ -24,6 +24,7 @@
     - "app/src/features/shell/strings.ts"
     - "app/src/surface/call-window.test.tsx"
     - "app/src/features/av/CallSlot.tsx"
+    - "app/src/features/av/Pill.tsx"
     - "app/src/surface/persistent.tsx"
     - "app/src/surface/call.test.tsx"
   depends_on: [T-001]
