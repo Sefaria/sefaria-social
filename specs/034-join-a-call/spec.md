@@ -1,7 +1,7 @@
 ---
 id: "034"
 title: Join a room's call, choose devices, talk and leave, while the call survives reading
-status: proposed
+status: approved
 features: [SESS-057, SESS-058, SESS-059]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session, room-lobby]

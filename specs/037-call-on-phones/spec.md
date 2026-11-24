@@ -1,7 +1,7 @@
 ---
 id: "037"
 title: On a phone the call docks as a strip at the top instead of floating
-status: proposed
+status: approved
 features: [SESS-062]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session]

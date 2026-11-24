@@ -1,7 +1,7 @@
 ---
 id: "040"
 title: Calls are held to a size budget and tested end to end with fake cameras and a local LiveKit
-status: proposed
+status: approved
 features: [OPS-094, OPS-095]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session]

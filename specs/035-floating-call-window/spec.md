@@ -1,7 +1,7 @@
 ---
 id: "035"
 title: The call floats over the reader in a window the learner can move and resize
-status: proposed
+status: approved
 features: [SESS-060, SESS-061]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session]

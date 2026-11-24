@@ -1,7 +1,7 @@
 ---
 id: "038"
 title: Cards and the lobby show who is on a call, and a deleted account leaves every call
-status: proposed
+status: approved
 features: [API-047, ROOM-045]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [api, room-lobby, feed, identity]

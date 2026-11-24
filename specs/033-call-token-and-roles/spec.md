@@ -1,7 +1,7 @@
 ---
 id: "033"
 title: A room member can get a LiveKit token to join the room's call
-status: proposed
+status: approved
 features: [API-046, SESS-056]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session, api, identity]

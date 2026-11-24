@@ -1,7 +1,7 @@
 ---
 id: "039"
 title: A room's owner can mute a participant or remove them from the call
-status: proposed
+status: approved
 features: [API-048, SESS-063]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session, api]

@@ -1,7 +1,7 @@
 ---
 id: "036"
 title: The call window keeps clear of the reader's header and side panel (SurfaceHost 1.2 insets)
-status: proposed
+status: approved
 features: [HOST-008]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [host-integration, session]
