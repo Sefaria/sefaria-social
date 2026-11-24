@@ -11,7 +11,6 @@ import {
   type RemoteTrack,
 } from "livekit-client";
 import {
-  MediaPermissionError,
   asPermissionError,
   type CallMedia,
   type CallParticipant,
@@ -160,18 +159,19 @@ export function createLiveKitEngine(): MediaEngine {
       const room = new Room({ adaptiveStream: true, dynacast: true, publishDefaults: { simulcast: true } });
       await room.connect(o.url, o.token);
       const media = connected(room);
-      // A device refused after connecting leaves the viewer in the call, listening (AC-005); anything else fails the join.
-      const enable = async (work: Promise<unknown>) => {
-        try {
-          await work;
-        } catch (e) {
-          if (!(asPermissionError(e) instanceof MediaPermissionError)) throw e;
-        }
-      };
-      if (o.mic)
-        await enable(room.localParticipant.setMicrophoneEnabled(true, o.audioDeviceId ? { deviceId: o.audioDeviceId } : {}));
-      if (o.camera)
-        await enable(room.localParticipant.setCameraEnabled(true, o.videoDeviceId ? { deviceId: o.videoDeviceId } : {}));
+      // Devices turn on after the connection, not before it returns: a getUserMedia that waits (an operating-system
+      // permission prompt, a busy device) must not leave the viewer on "Connecting…". The panel follows the local
+      // participant, so a microphone or camera shows as on once it is published. A refused device leaves the viewer in
+      // the call, listening (AC-005); the browser's own error reaches nobody else.
+      const enable = (work: () => Promise<unknown>) => work().catch(() => undefined);
+      void (async () => {
+        if (o.mic)
+          await enable(() =>
+            room.localParticipant.setMicrophoneEnabled(true, o.audioDeviceId ? { deviceId: o.audioDeviceId } : {}),
+          );
+        if (o.camera)
+          await enable(() => room.localParticipant.setCameraEnabled(true, o.videoDeviceId ? { deviceId: o.videoDeviceId } : {}));
+      })();
       return media;
     },
     canShareScreen: () => typeof navigator !== "undefined" && !!navigator.mediaDevices?.getDisplayMedia,
