@@ -5,6 +5,31 @@ import { describe, expect, it } from "vitest";
 const generators = import.meta.glob("./server/api/openapi.ts");
 const breakingModules = import.meta.glob("./server/api/breaking.ts");
 
+describe("spec 033: the call token in the API document", () => {
+  // @feature SESS-056 Calls switch and the room's calls field
+  // @ac 033/AC-008
+  it("documents the call token endpoint and the room's calls field, and the generated client carries both", async () => {
+    const { committed } = await import("../scripts/openapi");
+    const onDisk = committed();
+    type Schema = { properties?: Record<string, unknown>; required?: string[] };
+    type Op = {
+      operationId?: string;
+      security?: unknown[];
+      responses?: Record<string, { content?: Record<string, { schema?: Schema }> }>;
+    };
+    const doc = JSON.parse(onDisk.openapi) as { paths: Record<string, Record<string, Op>> };
+    const op = doc.paths["/api/v1/rooms/{roomId}/call/token"]?.post;
+    expect(op?.operationId, "POST /api/v1/rooms/{roomId}/call/token is documented").toBe("getCallToken");
+    expect(op?.security?.length, "the call token endpoint needs a token").toBeGreaterThan(0);
+    expect(Object.keys(op?.responses ?? {})).toEqual(expect.arrayContaining(["200", "401", "404", "503"]));
+    const room = doc.paths["/api/v1/rooms/{roomId}"]?.get?.responses?.["200"]?.content?.["application/json"]?.schema;
+    expect(room?.properties, "the room response").toHaveProperty("calls");
+    expect(room?.required).toContain("calls");
+    expect(onDisk.schema).toContain('"/api/v1/rooms/{roomId}/call/token"');
+    expect(onDisk.schema).toMatch(/calls: \{\s*available: boolean;\s*\}/);
+  });
+});
+
 describe("spec 007: API contract", () => {
   // @ac 007/AC-006
   it("keeps the committed OpenAPI document and client types equal to the generated ones", async () => {
@@ -102,30 +127,5 @@ describe("spec 007: API contract", () => {
     const declared = verdict(changes, [{ id: "009", contractImpact: "api-major" }]);
     expect(declared.ok).toBe(true);
     expect(declared.lines[0]).toContain("PASS with notice");
-  });
-});
-
-describe("spec 033: the call token in the API document", () => {
-  // @feature SESS-056 Calls switch and the room's calls field
-  // @ac 033/AC-008
-  it("documents the call token endpoint and the room's calls field, and the generated client carries both", async () => {
-    const { committed } = await import("../scripts/openapi");
-    const onDisk = committed();
-    type Schema = { properties?: Record<string, unknown>; required?: string[] };
-    type Op = {
-      operationId?: string;
-      security?: unknown[];
-      responses?: Record<string, { content?: Record<string, { schema?: Schema }> }>;
-    };
-    const doc = JSON.parse(onDisk.openapi) as { paths: Record<string, Record<string, Op>> };
-    const op = doc.paths["/api/v1/rooms/{roomId}/call/token"]?.post;
-    expect(op?.operationId, "POST /api/v1/rooms/{roomId}/call/token is documented").toBe("getCallToken");
-    expect(op?.security?.length, "the call token endpoint needs a token").toBeGreaterThan(0);
-    expect(Object.keys(op?.responses ?? {})).toEqual(expect.arrayContaining(["200", "401", "404", "503"]));
-    const room = doc.paths["/api/v1/rooms/{roomId}"]?.get?.responses?.["200"]?.content?.["application/json"]?.schema;
-    expect(room?.properties, "the room response").toHaveProperty("calls");
-    expect(room?.required).toContain("calls");
-    expect(onDisk.schema).toContain('"/api/v1/rooms/{roomId}/call/token"');
-    expect(onDisk.schema).toMatch(/calls: \{\s*available: boolean;\s*\}/);
   });
 });
