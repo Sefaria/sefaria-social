@@ -110,6 +110,29 @@
       "changed": []
     },
     {
+      "id": "API-048",
+      "area": "api",
+      "name": "Owner mutes or removes a call participant",
+      "description": "POST .../call/mute and .../call/remove, owner only (403 member, 404 outsider, 503 when calls are off), through LiveKit server API; removal keeps them in the room and refuses their call tokens for 15 minutes (call_removals).",
+      "status": "planned",
+      "spec": "039",
+      "acs": [
+        "039/AC-001",
+        "039/AC-002",
+        "039/AC-003",
+        "039/AC-004",
+        "039/AC-005"
+      ],
+      "surfaces": [
+        "session",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "FEED-015",
       "area": "feed",
       "name": "Feed API: live, scheduled and recent for the viewer",
@@ -2031,6 +2054,26 @@
       ],
       "surfaces": [
         "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-063",
+      "area": "sess",
+      "name": "Owner tile menu, and what the muted and removed see",
+      "description": "An owner sees a menu on every other tile (mute microphone, turn off camera, stop screen share, remove); the muted are told the host muted them and can unmute; the removed are told so and stay in the room.",
+      "status": "planned",
+      "spec": "039",
+      "acs": [
+        "039/AC-006",
+        "039/AC-007"
+      ],
+      "surfaces": [
+        "session",
+        "api"
       ],
       "depends_on": {},
       "tests": [],
