@@ -817,7 +817,7 @@
       "area": "host",
       "name": "SurfaceHost 1.2 chrome insets for the call window",
       "description": "The pinned contract is SurfaceHost 1.2 with an optional ui.chrome (the reader chrome insets); the call window keeps inside the viewport minus them and re-places when they change, falls back to a 64px top inset on an older reader, and reports bad values once. The fake host offers settable insets and a 1.1 variant.",
-      "status": "planned",
+      "status": "built",
       "spec": "036",
       "acs": [
         "036/AC-001",
@@ -831,7 +831,11 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/surface/call-insets.test.tsx",
+        "packages/host-contract/src/schemas.test.ts",
+        "packages/host-contract/src/fake-host.test.ts"
+      ],
       "since": null,
       "changed": []
     },
