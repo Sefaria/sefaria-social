@@ -9,6 +9,32 @@ async function load() {
   return mod!;
 }
 
+describe("SurfaceHost 1.2 (spec 036)", () => {
+  // @feature HOST-008 SurfaceHost 1.2 chrome insets for the call window
+  // @ac 036/AC-001
+  it("pins contract 1.2 with an optional ui.chrome, and checks inset values at run time", async () => {
+    const m = await load();
+    const { SURFACE_HOST_CONTRACT } = await import("./contract");
+    expect(SURFACE_HOST_CONTRACT).toEqual({ major: 1, minor: 2 });
+    const insets = (m as unknown as { chromeInsetsSchema?: { safeParse(v: unknown): { success: boolean } } }).chromeInsetsSchema;
+    expect(insets, "chromeInsetsSchema is exported").toBeDefined();
+    expect(insets!.safeParse({ top: 60, inlineStart: 0, inlineEnd: 420, bottom: 0 }).success).toBe(true);
+    for (const bad of [
+      { top: -1, inlineStart: 0, inlineEnd: 0, bottom: 0 },
+      { top: Infinity, inlineStart: 0, inlineEnd: 0, bottom: 0 },
+      { top: 1 },
+      null,
+    ])
+      expect(insets!.safeParse(bad).success, JSON.stringify(bad)).toBe(false);
+    const fn = () => undefined;
+    const ui = { interfaceLang: "english", theme: "light", subscribe: fn };
+    const shape = m.surfaceHostShapeSchema.shape.ui;
+    expect(shape.safeParse(ui).success, "1.1 ui without chrome").toBe(true);
+    expect(shape.safeParse({ ...ui, chrome: { get: fn, subscribe: fn } }).success, "1.2 ui with chrome").toBe(true);
+    expect(shape.safeParse({ ...ui, chrome: { get: 1 } }).success, "a malformed chrome").toBe(false);
+  });
+});
+
 describe("contract schemas", () => {
   // @feature HOST-001 Pinned SurfaceHost contract with runtime schemas
   // @ac 001/AC-001

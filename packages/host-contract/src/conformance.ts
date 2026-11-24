@@ -2,8 +2,9 @@
 // reader changes a type in the contract (and the pin is updated), `npm run typecheck` fails here until the schema follows.
 // Nothing in this file runs.
 import type { z } from "zod";
-import type { ReaderSnapshot, SnapshotChange, SurfaceHost } from "./contract";
+import type { ChromeInsets, ReaderSnapshot, SnapshotChange, SurfaceHost } from "./contract";
 import type {
+  chromeInsetsSchema,
   contractVersionSchema,
   hostConfigSchema,
   hostLocationSchema,
@@ -25,4 +26,5 @@ export type Conformance = [
   Assert<Same<z.infer<typeof reportEventSchema>, Parameters<SurfaceHost["report"]>[0]>>,
   Assert<Same<z.infer<typeof readerSnapshotSchema>, ReaderSnapshot>>,
   Assert<Same<z.infer<typeof snapshotChangeSchema>, SnapshotChange>>,
+  Assert<Same<z.infer<typeof chromeInsetsSchema>, ChromeInsets>>,
 ];

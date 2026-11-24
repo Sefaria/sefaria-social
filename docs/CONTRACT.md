@@ -13,6 +13,7 @@ Source: [PLAN.md](PLAN.md) section 4.2.
   029; not yet merged into `reader-next`). Types are re-exported from the pinned `.ts` file (`src/contract.ts`), never hand-copied; the reader generates a JSON
   Schema only for the manifest. Re-pin with `npm run pin -w @sefaria-social/host-contract -- <reader checkout> <commit>` (the
   `contract-sync` skill); `npm run check -w @sefaria-social/host-contract` (CI `contract` job) fails on a hand edit.
+- **Re-pinned for 1.2 (spec 036):** `reader-next-surface-chrome` @ `6349c65f83` (Sefaria/Sefaria-Project#4148, not yet merged; re-pin from the merge commit once it lands — only `SOURCE.json` changes).
 - `src/schemas.ts` validates every value that crosses the contract; `src/conformance.ts` proves at compile time that each
   schema's type equals the pinned type.
 
@@ -86,3 +87,10 @@ own width (`container: social / inline-size` on the frame), since the column is 
 
 Decorations in (mark a segment for a person), segment actions out ("discuss this"), `prefetch(ref)`, `renderSegment(el, ref)`, and
 a panel slot in the reader's workspace layout. Each needs its own spec and reader work.
+
+## 1.2: the reader's chrome insets (spec 036)
+
+`ui.chrome?: { get(): ChromeInsets; subscribe(cb) }` gives the CSS pixels at each edge of the viewport that the reader's own chrome
+occupies now (the site header and sticky panel headers at the top, an open connections panel at the inline end), so the call
+window keeps clear of them. Optional: on a 1.0 or 1.1 reader the surface uses fixed insets (top 64). Values are checked with
+`chromeInsetsSchema` before use; a bad value or a `get()` that throws gives the fallback and one `av.error` `chrome_invalid`.
