@@ -1502,7 +1502,12 @@
         "app/src/server/config.test.ts"
       ],
       "since": null,
-      "changed": []
+      "changed": [
+        {
+          "spec": "040",
+          "date": "2026-11-24"
+        }
+      ]
     },
     {
       "id": "ROOM-001",
