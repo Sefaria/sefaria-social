@@ -1,7 +1,8 @@
 // LiveKit, the media server for room calls (spec 033; design docs/design/audio-video.md 5.1–5.2). The only module that
 // imports livekit-server-sdk. The API key and secret stay here: a browser only ever receives a short-lived token for one
 // room. Tokens are bearer credentials for the media server; never log them or pass them anywhere but the response.
-import { AccessToken, TrackSource, WebhookReceiver } from "livekit-server-sdk";
+import { AccessToken, RoomServiceClient, TrackSource, WebhookReceiver } from "livekit-server-sdk";
+import { log } from "../log/logger";
 import { getConfig } from "../config";
 
 /** How long a call token is valid. LiveKit checks it only when a client connects, so this does not cut a live call. */
@@ -88,4 +89,43 @@ export async function verifyLivekitWebhook(raw: string, authorization: string | 
   } catch {
     return false;
   }
+}
+
+/** LiveKit's HTTP API lives at the same host as its WebSocket URL. */
+const apiHost = (url: string) => url.replace(/^ws(s?):\/\//, "http$1://");
+
+const isNotFound = (e: unknown) => {
+  const x = e as { status?: unknown; code?: unknown } | null;
+  return x?.status === 404 || x?.code === "not_found";
+};
+
+/**
+ * Remove a deleted user from every room call that is live (spec 038 AC-005). Each removal is tried twice; "not found" (they
+ * already left) counts as done. Failures are logged without the user id and never thrown: the deletion is already committed.
+ * Uses the key and secret only, not CALLS_ENABLED, so calls that outlived the switch are still covered.
+ */
+export async function removeFromLiveCalls(userId: number, roomIds: readonly string[]): Promise<{ failed: number }> {
+  const c = getConfig();
+  if (!c.LIVEKIT_URL || !c.LIVEKIT_API_KEY || !c.LIVEKIT_API_SECRET || roomIds.length === 0) return { failed: 0 };
+  const svc = new RoomServiceClient(apiHost(c.LIVEKIT_URL), c.LIVEKIT_API_KEY, c.LIVEKIT_API_SECRET, {
+    requestTimeout: 5,
+  });
+  let failed = 0;
+  await Promise.all(
+    roomIds.map(async (roomId) => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          await svc.removeParticipant(livekitRoomName(roomId), livekitIdentity(userId));
+          return;
+        } catch (e) {
+          if (isNotFound(e)) return;
+          if (attempt === 1) {
+            failed++;
+            log.error("livekit.remove_failed", { room: livekitRoomName(roomId), error: e instanceof Error ? e.name : "unknown" });
+          }
+        }
+      }
+    }),
+  );
+  return { failed };
 }

@@ -2,13 +2,16 @@
 // has already verified the signature over the raw body. Idempotent on the event id: the receipt, the deletion and the
 // tombstone commit together, so a retry after a crash either finds nothing done or everything done. After the commit (never
 // inside the transaction: no I/O there), the relay is told to drop the user from their rooms; a failure there is logged and
-// does not undo the deletion (the relay also refuses nobody else, and the user's tokens expire within 10 minutes).
+// does not undo the deletion (the relay also refuses nobody else, and the user's tokens expire within 10 minutes). Then
+// LiveKit removes them from every live call (spec 038), with the same rule: logged, never undone.
 import type { Db } from "../db/client";
 import { getDb } from "../db/client";
 import { webhookReceipts } from "../db/schema";
 import { ApiError } from "../http/errors";
 import { log } from "../log/logger";
 import { dropUserFromRelay } from "../services/relay";
+import { liveCallRoomIds } from "../services/calls";
+import { removeFromLiveCalls } from "../services/livekit";
 import { deleteUserData, roomIdsOf } from "../services/users";
 
 export interface WebhookEvent {
@@ -43,11 +46,13 @@ export async function receiveUserDeleted(
       return "ignored";
     }
     const rooms = await roomIdsOf(tx, userId);
+    const calls = await liveCallRoomIds(tx); // before the user's own rooms (and their call status) are deleted
     const counts = await deleteUserData(tx, userId, event.id);
     log.info("webhook.user_deleted.processed", { ...counts });
-    return { kind: "processed" as const, userId, rooms };
+    return { kind: "processed" as const, userId, rooms, calls };
   });
   if (typeof outcome === "string") return outcome;
   await dropUserFromRelay(outcome.userId, outcome.rooms);
+  await removeFromLiveCalls(outcome.userId, outcome.calls); // spec 038: out of every live call too
   return outcome.kind;
 }

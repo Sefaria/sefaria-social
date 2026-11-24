@@ -72,3 +72,9 @@ export async function liveCalls(roomIds: readonly string[], db: Db = getDb()): P
   const all = await callStatusOf(roomIds, db);
   return new Map([...all].filter(([, c]) => c.live));
 }
+
+/** Every room whose call is live now (read inside the deletion's transaction, before the user's own rooms go). */
+export async function liveCallRoomIds(db: Pick<Db, "select">): Promise<string[]> {
+  const rows = await db.select({ roomId: callStatus.roomId }).from(callStatus).where(eq(callStatus.live, true));
+  return rows.map((r) => r.roomId);
+}

@@ -26,6 +26,89 @@ const event = (type: string, roomId: string, participants: number, id = `EV_${++
     room: { sid: `RM_${roomId.slice(0, 8)}`, name: `room_${roomId}`, numParticipants: participants },
   });
 
+/** A local server playing LiveKit's RoomService (Twirp): records RemoveParticipant calls; `failures` sets per-room answers. */
+async function fakeLivekit(failures: Record<string, number[]> = {}) {
+  const { createServer } = await import("node:http");
+  const removed: { room: string; identity: string }[] = [];
+  const server = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      if (!req.url?.endsWith("/livekit.RoomService/RemoveParticipant")) {
+        res.writeHead(404).end();
+        return;
+      }
+      const body = JSON.parse(raw) as { room: string; identity: string };
+      removed.push(body);
+      const status = failures[body.room]?.shift() ?? 200;
+      if (status === 200) res.writeHead(200, { "content-type": "application/json" }).end("{}");
+      else if (status === 404)
+        res.writeHead(404, { "content-type": "application/json" }).end('{"code":"not_found","msg":"participant not found"}');
+      else res.writeHead(status, { "content-type": "application/json" }).end('{"code":"internal","msg":"boom"}');
+    });
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  const port = (server.address() as { port: number }).port;
+  return { url: `ws://127.0.0.1:${port}`, removed, close: () => new Promise<void>((r) => server.close(() => r())) };
+}
+
+const DELETED = 900000011;
+const OTHER = 900000012;
+const userDeleted = (id: string, userId: number) =>
+  JSON.stringify({ event: "user.deleted", id, occurred_at: "2026-11-24T01:02:03Z", user_id: userId });
+
+describe("spec 038: a deleted account leaves every call", () => {
+  // @feature API-047 LiveKit webhooks, call status, and deletion leaving calls
+  // @ac 038/AC-005
+  it("asks LiveKit to remove the user from every live call, retries a failure once, and still completes the deletion", async () => {
+    expect(served("POST", WEBHOOK), `POST ${WEBHOOK} is served`).toBeTypeOf("function");
+    const h = await load();
+    const owner = await h.token(OTHER);
+    const mk = async (title: string) =>
+      ((await h.call("POST", "/api/v1/rooms", { token: owner, body: { title } })).json as Room).id;
+    const [r, s, flaky, broken, quiet] = [await mk("R"), await mk("S"), await mk("Flaky"), await mk("Broken"), await mk("Quiet")];
+    for (const id of [r, s, flaky, broken]) await h.livekitWebhook(event("participant_joined", id, 2));
+    await h.livekitWebhook(event("participant_joined", quiet, 1));
+    await h.livekitWebhook(event("participant_left", quiet, 0));
+    const lk = await fakeLivekit({ [`room_${s}`]: [404], [`room_${flaky}`]: [500], [`room_${broken}`]: [500, 500] });
+    process.env.LIVEKIT_URL = lk.url;
+    const { resetConfig } = await import("~/server/config");
+    resetConfig();
+    try {
+      await h.token(DELETED, { name: "Leaving" });
+      const res = await h.webhook(userDeleted("evt-leave-calls", DELETED));
+      expect([res.status, res.json]).toEqual([200, { status: "processed" }]);
+      const byRoom = (room: string) => lk.removed.filter((x) => x.room === `room_${room}`);
+      expect(lk.removed.every((x) => x.identity === `u:${DELETED}`)).toBe(true);
+      expect([byRoom(r).length, byRoom(s).length, byRoom(flaky).length, byRoom(broken).length, byRoom(quiet).length]).toEqual([
+        1, 1, 2, 2, 0,
+      ]);
+      const failed = h.logs.filter((l) => l.includes("livekit.remove_failed"));
+      expect(failed).toHaveLength(1);
+      expect(failed[0]).not.toContain(String(DELETED));
+      expect(await h.sql("select user_id from deleted_users where user_id = $1", [DELETED])).toEqual([
+        { user_id: String(DELETED) },
+      ]);
+    } finally {
+      await lk.close();
+    }
+  });
+
+  // @feature API-047 LiveKit webhooks, call status, and deletion leaving calls
+  // @ac 038/AC-006
+  it("leaves no row for the deleted user in any table, call_status included", async () => {
+    expect(served("POST", WEBHOOK), `POST ${WEBHOOK} is served`).toBeTypeOf("function");
+    const h = await load();
+    const walk = await import("../../test/integration/schema-walk");
+    const seeded = await walk.seedEveryTable(h.sql, DELETED, OTHER, 900000013);
+    expect(seeded).toContain("call_status");
+    expect(await walk.uncoveredTables(h.sql, seeded)).toEqual([]);
+    expect((await h.sql("select count(*)::int as n from call_status")) as unknown).toEqual([{ n: 2 }]);
+    await h.webhook(userDeleted("evt-walk", DELETED));
+    expect(await walk.userValues(h.sql, DELETED)).toEqual(["deleted_users.user_id: 1"]);
+  });
+});
+
 describe("spec 038: call status in the API", () => {
   // @feature ROOM-045 N on a call in the lobby and on cards
   // @ac 038/AC-004
