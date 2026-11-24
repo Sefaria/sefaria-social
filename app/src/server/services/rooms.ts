@@ -3,10 +3,19 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
-import { roomMembers, rooms } from "../db/schema";
+import { callRemovals, roomMembers, rooms } from "../db/schema";
 import { ApiError } from "../http/errors";
 import { createRateLimiter } from "../http/rate-limit";
-import { callsAvailable, callsConfig, mintCallToken, type CallTokenDto } from "./livekit";
+import {
+  callsAvailable,
+  callsConfig,
+  livekitIdentity,
+  mintCallToken,
+  muteTrack,
+  removeFromCall,
+  type CallTokenDto,
+  type ModeratedSource,
+} from "./livekit";
 import { relayStatus, type RoomStatusDto } from "./relay";
 import { liveCalls, type CallStatusDto } from "./calls";
 import { upsertDisplay } from "./users";
@@ -150,6 +159,13 @@ export async function getCallToken(identity: Identity, roomId: string, db: Db = 
   });
   const config = callsConfig();
   if (!config) throw new ApiError(503, "call.unavailable");
+  // spec 039: the owner removed them from this call a short while ago
+  const [removed] = await db
+    .select({ until: callRemovals.until })
+    .from(callRemovals)
+    .where(and(eq(callRemovals.roomId, roomId), eq(callRemovals.userId, identity.userId), sql`${callRemovals.until} > now()`))
+    .limit(1);
+  if (removed) throw new ApiError(403, "call.removed");
   return mintCallToken({
     config,
     roomId,
@@ -157,4 +173,54 @@ export async function getCallToken(identity: Identity, roomId: string, db: Db = 
     name: identity.name,
     role: m.role === "owner" ? "owner" : "member",
   });
+}
+
+/** How long a participant the owner removed is refused new call tokens for the room (spec 039 AC-003). */
+export const REMOVAL_MINUTES = 15;
+
+const IDENTITY = /^u:([1-9][0-9]{0,15})$/;
+
+/** The checks every moderation shares (spec 039 AC-004, AC-005): calls on, a member, the owner, a well-formed identity. */
+async function moderation(identity: Identity, roomId: string, participant: string, db: Db) {
+  const config = callsConfig();
+  if (!config) throw new ApiError(503, "call.unavailable");
+  const m = await membership(db, identity, roomId);
+  if (m.role !== "owner") throw new ApiError(403, "room.forbidden");
+  const userId = Number(IDENTITY.exec(participant)?.[1]);
+  if (!Number.isSafeInteger(userId) || livekitIdentity(userId) !== participant)
+    throw new ApiError(404, "call.participant_not_found");
+  return { config, userId };
+}
+
+/** The owner mutes one of a participant's tracks (spec 039 AC-001). */
+export async function muteParticipant(
+  identity: Identity,
+  roomId: string,
+  participant: string,
+  source: ModeratedSource,
+  db: Db = getDb(),
+): Promise<void> {
+  const { config } = await moderation(identity, roomId, participant, db);
+  if ((await muteTrack(config, roomId, participant, source)) === "not-in-call")
+    throw new ApiError(404, "call.participant_not_found");
+}
+
+/** The owner removes a participant from the call; they stay a member, and new call tokens are refused for a while (AC-002, AC-003). */
+export async function removeParticipant(
+  identity: Identity,
+  roomId: string,
+  participant: string,
+  db: Db = getDb(),
+): Promise<void> {
+  const { config, userId } = await moderation(identity, roomId, participant, db);
+  // Recorded first, so a token request racing the removal is already refused.
+  await db
+    .insert(callRemovals)
+    .values({ roomId, userId, until: sql`now() + make_interval(mins => ${REMOVAL_MINUTES})` })
+    .onConflictDoUpdate({
+      target: [callRemovals.roomId, callRemovals.userId],
+      set: { until: sql`now() + make_interval(mins => ${REMOVAL_MINUTES})` },
+    });
+  if ((await removeFromCall(config, roomId, participant)) === "not-in-call")
+    throw new ApiError(404, "call.participant_not_found");
 }

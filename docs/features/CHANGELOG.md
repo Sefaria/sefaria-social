@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-24 — API-048 "Owner mutes or removes a call participant": built (spec 039).
 - 2026-11-24 — API-047 "LiveKit webhooks, call status, and deletion leaving calls": built (spec 038).
 - 2026-11-24 — ROOM-045 "N on a call in the lobby and on cards": built (spec 038).
 - 2026-11-24 — SESS-062 "The call on a phone: a docked strip": built (spec 037).

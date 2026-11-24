@@ -14,6 +14,8 @@ export type ErrorCode =
   | "room.forbidden"
   | "room.owner_cannot_leave"
   | "call.unavailable"
+  | "call.removed"
+  | "call.participant_not_found"
   | "post.not_found"
   | "post.forbidden"
   | "reply.not_found"
@@ -37,6 +39,8 @@ const MESSAGES: Record<ErrorCode, string> = {
   "room.forbidden": "Only the room's owner can do that.",
   "room.owner_cannot_leave": "The owner cannot leave their own room; delete it instead.",
   "call.unavailable": "Calls are not available right now.",
+  "call.removed": "The room's owner removed you from this call. You can join again later.",
+  "call.participant_not_found": "That person is not in this call.",
   "post.not_found": "Post not found.",
   "post.forbidden": "Only the post's author can do that.",
   "reply.not_found": "Reply not found.",

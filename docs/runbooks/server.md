@@ -20,6 +20,8 @@ Built in milestone P2 (specs 005–008). Design: [PLAN.md](../PLAN.md) sections 
 | `DELETE /api/v1/rooms/{roomId}/members/me` | token + member                 | Leave; owner: 403 `room.owner_cannot_leave` (P3)                                                              |
 | `GET /api/v1/rooms/{roomId}/status`        | token + member                 | `{live, ref, title, participants}` from the relay; offline fallback (P3)                                      |
 | `POST /api/v1/rooms/{roomId}/call/token`   | token + member                 | `{url, token, expiresAt}`: a 10-minute LiveKit token for the room's call; 20/min per user and room (spec 033) |
+| `POST /api/v1/rooms/{roomId}/call/mute`    | token + owner                  | `{participant, source}`: mute a participant's microphone, camera or screen share (spec 039)                   |
+| `POST /api/v1/rooms/{roomId}/call/remove`  | token + owner                  | `{participant}`: remove from the call; their call tokens are refused for 15 min (spec 039)                    |
 
 - **Token:** `Authorization: Bearer <JWT>` from Django's `POST /api/social/token` (RS256, `aud` `sefaria-social`, `sub` =
   `auth_user.id`, 10 minutes). Verified with `jose` against the JWKS URL (3 s timeout, keys cached, refetch on an unknown
@@ -94,6 +96,7 @@ foreign key is indexed (tested).
 | `user_display`     | `user_id`, `name`, `img`, `updated_at` (cache of token claims)                                            | the user                   |
 | `deleted_users`    | `user_id`, `deleted_at`, `event_id` (tombstone)                                                           | the only place an id stays |
 | `call_status`      | `room_id` → rooms cascade, `live`, `participants`, `started_at`, `updated_at` (LiveKit webhooks)          | none                       |
+| `call_removals`    | (`room_id` → rooms cascade, `user_id`), `until`                                                           | the removed user           |
 | `webhook_receipts` | `event_id`, `event_type`, `received_at` (idempotency)                                                     | none                       |
 
 Changing the schema: edit `schema.ts`, run `npm run db:generate -- --name <what>`, commit the migration. CI fails when

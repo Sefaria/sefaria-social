@@ -8,6 +8,7 @@ const migrations = import.meta.glob("./server/db/migrations/*.sql", { query: "?r
 const ruleModules = import.meta.glob("./server/db/migration-rules.ts");
 
 const TABLES = [
+  "call_removals",
   "call_status",
   "deleted_users",
   "follows",
@@ -57,7 +58,7 @@ describe("spec 005: database", () => {
       order by 1`);
     expect(unindexed).toEqual([]);
     const fks = await h.sql("select conname from pg_constraint where contype = 'f'");
-    expect(fks.length).toBe(15);
+    expect(fks.length).toBe(16);
   });
 
   // @ac 005/AC-002

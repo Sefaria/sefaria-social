@@ -298,6 +298,33 @@ export const getCallToken = defineEndpoint({
   responses: { 200: { description: "The LiveKit URL and a token for this room's call.", schema: CallToken } },
 });
 
+const Participant = z.string().max(100);
+
+export const muteCallParticipant = defineEndpoint({
+  operationId: "muteCallParticipant",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/call/mute",
+  summary: "The room's owner mutes a participant's microphone, camera or screen share in the call (spec 039).",
+  tags: ["rooms", "calls"],
+  params: RoomParams,
+  body: z.strictObject({ participant: Participant, source: z.enum(["microphone", "camera", "screen_share"]) }),
+  errors: [403, 404, 503],
+  responses: { 204: { description: "Muted." } },
+});
+
+export const removeCallParticipant = defineEndpoint({
+  operationId: "removeCallParticipant",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/call/remove",
+  summary:
+    "The room's owner removes a participant from the call (spec 039). They stay a member; their call tokens are refused for 15 minutes.",
+  tags: ["rooms", "calls"],
+  params: RoomParams,
+  body: z.strictObject({ participant: Participant }),
+  errors: [403, 404, 503],
+  responses: { 204: { description: "Removed from the call." } },
+});
+
 export const getFeed = defineEndpoint({
   operationId: "getFeed",
   method: "GET",
@@ -549,6 +576,8 @@ export const ENDPOINTS = [
   leaveRoom,
   getRoomStatus,
   getCallToken,
+  muteCallParticipant,
+  removeCallParticipant,
   getFeed,
   getTimeline,
   createPost,
