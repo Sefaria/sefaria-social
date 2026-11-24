@@ -2227,7 +2227,11 @@
         "room-lobby"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/replay/state-track.test.ts",
+        "app/src/features/replay/player.test.ts",
+        "app/src/features/replay/replay-controller.test.ts"
+      ],
       "since": null,
       "changed": []
     },
