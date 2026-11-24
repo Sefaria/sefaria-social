@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:f4a61c9c63307595070cd7c74c49b7ca411784eb1e2958a5d2b07430ec5d5974",
   "feature_sha": "sha256:23d236bc7878a194aa7f761cc9063a6a30b71bc6785cdb9daa3548f8e7c2007d",
-  "tasks_sha": "sha256:c6fea2a985b6a4f4ea9b3c1794909ca27eb5e1c2d73e42194fbc183e5b1e0072",
+  "tasks_sha": "sha256:68521be8d5b316973cd819c94c036daa30636d6c23b8740b7ce6ff09a9a0d3da",
   "risk": "high",
   "features": [
     "API-047",
@@ -39,6 +39,7 @@
         "packages/api-client/src/schema.ts",
         "test/integration/harness.ts",
         "test/integration/schema-walk.ts",
+        "app/src/db.int.test.ts",
         "docs/runbooks/server.md"
       ],
       "depends_on": [],
