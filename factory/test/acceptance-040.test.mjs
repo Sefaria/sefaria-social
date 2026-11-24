@@ -3,7 +3,7 @@
 // @feature OPS-094 Call chunk budget
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -121,6 +121,7 @@ describe("spec 040: the call chunk's own budget", () => {
   // @ac 040/AC-001
   it("the committed budget sets the call chunk's limit and the entry before calls, and the build names the call chunk", () => {
     const budget = JSON.parse(readFileSync(path.join(REPO, "app/surface-budget.json"), "utf8"));
+    expect(typeof budget.callChunkGzip, "app/surface-budget.json sets callChunkGzip").toBe("number");
     expect(budget.callChunkGzip).toBeGreaterThan(0);
     expect(budget.entryGzipBeforeCalls).toBe(77_055);
     const config = readFileSync(path.join(REPO, "app/vite.surface.config.ts"), "utf8");
@@ -137,6 +138,7 @@ describe("spec 040: the call journey runs in CI", () => {
     expect(e2e, "a CI job runs npm run test:e2e").toBeDefined();
     const config = readFileSync(path.join(REPO, "playwright.config.ts"), "utf8");
     expect(config, "the call journey is not ignored").not.toMatch(/calls\.spec/);
+    expect(existsSync(path.join(REPO, "e2e/calls.spec.ts")), "e2e/calls.spec.ts exists").toBe(true);
     const spec = readFileSync(path.join(REPO, "e2e/calls.spec.ts"), "utf8");
     expect(spec).toContain("--use-fake-device-for-media-stream");
     expect(spec).toContain("--use-fake-ui-for-media-stream");
