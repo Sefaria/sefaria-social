@@ -1797,6 +1797,72 @@
       "changed": []
     },
     {
+      "id": "SESS-057",
+      "area": "sess",
+      "name": "Call state machine and controller",
+      "description": "One call per tab, tied to a room session: pre-join, connecting, in call, reconnecting with a fresh token (30 s, then Rejoin), ended. Leaving the call keeps the room; leaving the room ends the call first. Reports carry no personal data.",
+      "status": "planned",
+      "spec": "034",
+      "acs": [
+        "034/AC-001",
+        "034/AC-007",
+        "034/AC-008",
+        "034/AC-011",
+        "034/AC-012"
+      ],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-058",
+      "area": "sess",
+      "name": "Join a call with devices off, and talk",
+      "description": "Join call in the lobby and the follow bar when calls are available; a pre-join step with microphone and camera off, device choosers and a preview; denied permission still lets you listen; tiles, microphone, camera and screen share controls.",
+      "status": "planned",
+      "spec": "034",
+      "acs": [
+        "034/AC-002",
+        "034/AC-004",
+        "034/AC-005",
+        "034/AC-006"
+      ],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-059",
+      "area": "sess",
+      "name": "Calls load on demand and survive reading",
+      "description": "No LiveKit code, connection or device request before Join call; the call stays connected through every in-reader navigation; a reload offers Join call and never rejoins by itself.",
+      "status": "planned",
+      "spec": "034",
+      "acs": [
+        "034/AC-003",
+        "034/AC-009",
+        "034/AC-010"
+      ],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SHIUR-001",
       "area": "shiur",
       "name": "Shiur page at /social/s/$shiurId",

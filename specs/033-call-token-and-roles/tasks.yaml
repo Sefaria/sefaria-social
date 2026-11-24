@@ -44,7 +44,8 @@
   verify:
     [
       "npm run test:integration -- api.calls api.rooms api.join",
-      "npm test -- RoomLobbyPage api.contract",
+      "npm test -- RoomLobbyPage PresenceList",
+      "npm run test:contract",
       "npm run api:breaking",
       "npm run typecheck",
     ]
