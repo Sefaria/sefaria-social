@@ -1,0 +1,65 @@
+- id: T-001
+  title: Call token endpoint for room members, with LiveKit configuration and grants
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "app/src/server/config.ts"
+    - "app/src/server/services/livekit.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.call.token.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.calls.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "test/integration/harness.ts"
+    - "app/package.json"
+    - "package-lock.json"
+    - "docs/runbooks/server.md"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- api.calls", "npm run typecheck", "npm run api:breaking"]
+  completes: [API-046]
+- id: T-002
+  title: The calls switch, the room's calls field, and the API document
+  acs: [AC-005, AC-008]
+  files:
+    - "app/src/server/config.ts"
+    - "app/src/server/services/livekit.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/api.calls.int.test.ts"
+    - "app/src/api.rooms.int.test.ts"
+    - "app/src/api.join.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "app/src/features/room/RoomLobbyPage.test.tsx"
+  depends_on: [T-001]
+  parallel: false
+  verify:
+    [
+      "npm run test:integration -- api.calls api.rooms api.join",
+      "npm test -- RoomLobbyPage api.contract",
+      "npm run api:breaking",
+      "npm run typecheck",
+    ]
+  completes: [SESS-056]
+- id: T-003
+  title: Rate limit on token requests, and secrets kept out of the log
+  acs: [AC-006, AC-007]
+  files:
+    - "app/src/server/http/rate-limit.ts"
+    - "app/src/server/http/rate-limit.test.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/http/endpoint.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/api.calls.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+  depends_on: [T-002]
+  parallel: false
+  verify: ["npm test -- rate-limit", "npm run test:integration -- api.calls", "npm run typecheck"]

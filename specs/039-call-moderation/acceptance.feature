@@ -11,7 +11,7 @@ Feature: A room's owner can mute a participant or remove them from the call
     Given Avi owns room R and Dana is in its call
     When Avi removes Dana from the call
     Then the answer is 204, Dana is out of the call and still a member of room R
-    And Dana's call token requests for room R answer 403 "removed_from_call" for 15 minutes
+    And Dana's call token requests for room R answer 403 with error code "call.removed" for 15 minutes
 
   @AC-004
   Scenario: AC-004 only the owner may moderate

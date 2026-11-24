@@ -29,13 +29,13 @@ Feature: A room member can get a LiveKit token to join the room's call
   Scenario: AC-005 calls switched off
     Given CALLS_ENABLED is not "true"
     When Dana requests a call token for room R and reads room R
-    Then the token request answers 503 "calls_unavailable" and the room says calls are not available
+    Then the token request answers 503 with error code "call.unavailable" and the room says calls are not available
 
   @AC-006
   Scenario: AC-006 too many token requests
     Given calls are available and Dana is a member of room R
     When Dana requests 21 call tokens for room R within a minute
-    Then the 21st answer is 429 with a retry-after header
+    Then the 21st answer is 429 with error code "request.rate_limited" and a retry-after header
 
   @AC-007
   Scenario: AC-007 secrets never reach the log

@@ -28,10 +28,10 @@ is (their Sefaria user id, never the hashed username) and what they may do in wh
   in both cases and issue no token
 - AC-004 WHEN the request has no Django identity token or an invalid one THE SYSTEM SHALL answer 401 and issue no token
 - AC-005 WHEN calls are not available (any of `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` unset, or `CALLS_ENABLED`
-  not `true`) THE SYSTEM SHALL answer 503 `{ "error": "calls_unavailable" }` to the token request, and `GET /api/v1/rooms/{id}`
+  not `true`) THE SYSTEM SHALL answer 503 with error code `call.unavailable` to the token request, and `GET /api/v1/rooms/{id}`
   for a member SHALL include `calls: { available: false }` (`true` when available)
-- AC-006 WHEN one user makes more than 20 token requests for the same room within a minute THE SYSTEM SHALL answer 429 to the
-  excess requests with a `retry-after` header
+- AC-006 WHEN one user makes more than 20 token requests for the same room within a minute THE SYSTEM SHALL answer 429 with error code
+  `request.rate_limited` and a `retry-after` header (seconds) to the excess requests
 - AC-007 WHEN a token request is handled, successfully or not THE SYSTEM SHALL log neither the token, nor the API key, nor the
   API secret, nor the caller's Django token
 - AC-008 WHEN the OpenAPI document is generated THE SYSTEM SHALL include the token endpoint and the `calls` field, and the

@@ -23,7 +23,7 @@ microphone, camera or screen share, and remove someone from the call, without th
 - AC-002 WHEN a room's owner calls `POST /api/v1/rooms/{roomId}/call/remove` with `{ participant }` THE SYSTEM SHALL remove the
   participant from the call through LiveKit's server API, answer 204, and keep them a member of the room
 - AC-003 WHEN a removed user asks for a call token for that room within 15 minutes of removal THE SYSTEM SHALL answer 403
-  `{ "error": "removed_from_call" }`
+  with error code `call.removed`
 - AC-004 WHEN the caller is a member but not the owner THE SYSTEM SHALL answer 403; WHEN not a member, 404; WHEN calls are not
   available, 503 as for the token
 - AC-005 WHEN `participant` is not `u:<id>` of someone currently in that room's call THE SYSTEM SHALL answer 404 and call nothing

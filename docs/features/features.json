@@ -62,6 +62,31 @@
       "changed": []
     },
     {
+      "id": "API-046",
+      "area": "api",
+      "name": "Call token endpoint for room members",
+      "description": "POST /api/v1/rooms/{roomId}/call/token: a member gets a 10-minute LiveKit token for that room only, identity u:<user id>, role in metadata, publish microphone, camera and screen share, no data; 404 for non-members, 401 without identity, rate limited, secrets never logged.",
+      "status": "planned",
+      "spec": "033",
+      "acs": [
+        "AC-001",
+        "AC-002",
+        "AC-003",
+        "AC-004",
+        "AC-006",
+        "AC-007"
+      ],
+      "surfaces": [
+        "session",
+        "api",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "FEED-015",
       "area": "feed",
       "name": "Feed API: live, scheduled and recent for the viewer",
@@ -1749,6 +1774,27 @@
       "tests": [
         "e2e/feed.spec.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-056",
+      "area": "sess",
+      "name": "Calls switch and the room's calls field",
+      "description": "Calls are available only with LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET set and CALLS_ENABLED=true; otherwise the token request is 503 call.unavailable. Every room response carries calls.available.",
+      "status": "planned",
+      "spec": "033",
+      "acs": [
+        "AC-005",
+        "AC-008"
+      ],
+      "surfaces": [
+        "session",
+        "api",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
