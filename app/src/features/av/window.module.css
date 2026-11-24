@@ -12,12 +12,11 @@
   border-radius: var(--sefaria-radius-lg);
   box-shadow: 0 6px 24px rgb(0 0 0 / 18%);
   contain: layout paint;
+  /* Size changes animate; position does not: a drag moves the window with transform and the release commits left/top
+     at once, so the window is exactly where the pointer left it, then in its corner. */
   transition:
-    transform 150ms ease,
     width 150ms ease,
-    height 150ms ease,
-    left 150ms ease,
-    top 150ms ease;
+    height 150ms ease;
 }
 
 .dragging {

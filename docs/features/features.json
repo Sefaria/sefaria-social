@@ -2019,7 +2019,7 @@
       "area": "sess",
       "name": "Floating call window: place, move, resize",
       "description": "The call floats over the reader in a fixed window, top inline-end by default; sizes pill, small, medium, large; dragged by its handle and snapped to a corner; resized within limits; kept on screen; its place remembered; hidden tiles send no video. The text column never moves.",
-      "status": "planned",
+      "status": "built",
       "spec": "035",
       "acs": [
         "035/AC-001",
@@ -2035,7 +2035,11 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "e2e/call-window.spec.ts",
+        "app/src/features/av/window-geometry.test.ts",
+        "app/src/surface/call-window.test.tsx"
+      ],
       "since": null,
       "changed": []
     },
