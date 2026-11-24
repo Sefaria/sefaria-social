@@ -211,8 +211,13 @@ describe("joining a call", () => {
       call.setRemote([
         { id: "u:5151", name: "Avi Owner", mic: true, camera: true, screen: false, speaking: true },
         { id: "u:6161", name: "רבקה", mic: false, camera: false, screen: true, speaking: false },
+        { id: "u:7171", name: "Late Video", mic: true, camera: true, screen: false, speaking: false, pending: true },
       ]),
     );
+    // a camera that is on before its track arrives is attached when the track arrives
+    expect(call.attached.some((a) => a.participantId === "u:7171")).toBe(false);
+    await act(async () => call.release("u:7171"));
+    await vi.waitFor(() => expect(call.attached).toContainEqual({ participantId: "u:7171", source: "camera" }));
     await vi.waitFor(() => expect(t.$('[data-participant="u:5151"] video')).not.toBeNull());
     expect(call.attached).toEqual(
       expect.arrayContaining([

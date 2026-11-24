@@ -53,8 +53,11 @@ export interface CallMedia {
   setMicrophone(on: boolean): Promise<void>;
   setCamera(on: boolean): Promise<void>;
   setScreenShare(on: boolean): Promise<void>;
-  /** Show a participant's camera or screen in a video element; returns the detach. */
-  attach(participantId: string, source: TrackSource, el: HTMLVideoElement): () => void;
+  /**
+   * Show a participant's camera or screen in a video element; returns the detach, or null when the track has not arrived yet
+   * (a camera can be on before its track is subscribed): try again on the next change.
+   */
+  attach(participantId: string, source: TrackSource, el: HTMLVideoElement): (() => void) | null;
   /** Whether hidden tiles may stop receiving video (adaptive stream): the panel says which participants are visible. */
   setVisible(participantIds: readonly string[]): void;
   /** True when the browser blocked audio until a user gesture; `startAudio` must run inside one. */

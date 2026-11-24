@@ -118,7 +118,7 @@ function connected(room: Room): CallMedia {
       const p =
         room.localParticipant.identity === participantId ? room.localParticipant : room.remoteParticipants.get(participantId);
       const track = p?.getTrackPublication(SOURCE[source])?.track;
-      if (!track) return () => undefined;
+      if (!track) return null;
       track.attach(el);
       return () => void track.detach(el);
     },

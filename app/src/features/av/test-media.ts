@@ -19,8 +19,10 @@ export interface FakeCall extends CallMedia {
   visible: readonly string[];
   attached: { participantId: string; source: TrackSource }[];
   calls: { mic: boolean[]; camera: boolean[]; screen: boolean[]; startAudio: number };
-  /** Play the server: someone joins, changes, leaves. */
-  setRemote(participants: Omit<CallParticipant, "local">[]): void;
+  /** Play the server: someone joins, changes, leaves. `pending` holds their tracks back until `release(id)`. */
+  setRemote(participants: (Omit<CallParticipant, "local"> & { pending?: boolean })[]): void;
+  /** Their tracks arrive (subscribed). */
+  release(participantId: string): void;
   /** Play the network: reconnecting, back, or gone (with the server's reason). */
   drop(state: ConnectionState, reason?: DisconnectReason): void;
   blockAudio(blocked: boolean): void;
@@ -100,6 +102,7 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
         speaking: false,
       };
       let remote: CallParticipant[] = [];
+      const pending = new Set<string>();
       let audioBlocked = false;
       const listeners = new Set<() => void>();
       const connListeners = new Set<(s: ConnectionState, r?: DisconnectReason) => void>();
@@ -136,6 +139,7 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
           emit();
         },
         attach(participantId, source) {
+          if (pending.has(participantId)) return null;
           const entry = { participantId, source };
           call.attached.push(entry);
           return () => {
@@ -158,7 +162,14 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
           local.screen = false;
         },
         setRemote(ps) {
-          remote = ps.map((p) => ({ ...p, local: false }));
+          remote = ps.map(({ pending: held, ...p }) => {
+            if (held) pending.add(p.id);
+            return { ...p, local: false };
+          });
+          emit();
+        },
+        release(participantId) {
+          pending.delete(participantId);
           emit();
         },
         drop(state, reason) {

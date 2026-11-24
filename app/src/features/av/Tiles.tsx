@@ -16,10 +16,21 @@ function Video({
   label: string;
 }) {
   const el = useRef<HTMLVideoElement>(null);
+  // The track can arrive after the tile shows (a camera is on before its track is subscribed): try again on every change.
   useEffect(() => {
     const media = controller.media();
-    if (!media || !el.current) return;
-    return media.attach(participantId, source, el.current);
+    const video = el.current;
+    if (!media || !video) return;
+    let detach: (() => void) | null = null;
+    const tryAttach = () => {
+      if (!detach) detach = media.attach(participantId, source, video);
+    };
+    tryAttach();
+    const off = media.subscribe(tryAttach);
+    return () => {
+      off();
+      detach?.();
+    };
   }, [controller, participantId, source]);
   return <video ref={el} className={styles.video} aria-label={label} autoPlay muted playsInline />;
 }
