@@ -619,7 +619,12 @@ describe("createSessionClient", () => {
     // @feature SESS-072 Follow a person by clicking them; the leader takes followers along
     it("passes on a move the leader took from someone they follow, once per move", async () => {
       const { t, s, client } = setup();
-      t.deliver(people(me, reader1, reader2));
+      // reader1 follows me (the leader); reader2 is the one I will follow.
+      const following = (who: Participant, of: ParticipantId | null) => ({ ...who, following: of, away: false });
+      t.deliver({
+        ch: "presence",
+        body: { type: "participants", participants: [following(me, null), following(reader1, "me"), following(reader2, null)] },
+      });
       t.deliver(roomMsg("me", 1));
       expect(client.getState().status).toBe("leading");
       const keyframesSent = () =>
@@ -634,10 +639,39 @@ describe("createSessionClient", () => {
       expect(keyframesSent().slice(before)).toEqual(["/Exodus.3"]);
       expect(s.writers[0]!.stopped).toBe(false);
 
-      // The same place again (reader2 answering with what it got from us) is not sent back.
+      // The same place again is not sent twice.
       t.deliver(keyframe("reader2", "/Exodus.3", 1));
       await wait(200);
       expect(keyframesSent().slice(before)).toEqual(["/Exodus.3"]);
+
+      // Lead again, then follow reader2 again, still on Exodus 3: those who follow me are taken there again.
+      client.follow(null);
+      client.follow("reader2");
+      t.deliver(keyframe("reader2", "/Exodus.3", 0));
+      await wait(200);
+      expect(
+        keyframesSent()
+          .slice(before)
+          .filter((u) => u === "/Exodus.3"),
+      ).toHaveLength(2);
+    });
+
+    // @feature SESS-072 Follow a person by clicking them; the leader takes followers along
+    it("does not pass a move back to the one it came from, and ignores the leader's echo of one's own place", async () => {
+      const { a, t, client } = setup();
+      const following = (who: Participant, of: ParticipantId | null) => ({ ...who, following: of, away: false });
+      // reader1 leads and follows me; I follow reader1 (the spotlight).
+      t.deliver({
+        ch: "presence",
+        body: { type: "participants", participants: [following(me, "reader1"), following(reader1, "me")] },
+      });
+      t.deliver(roomMsg("reader1", 1));
+      expect(client.getState().following).toBe("reader1");
+      t.deliver(keyframe("reader1", "/Exodus.3", 0, 1));
+      await wait(200);
+      expect(a.urls(), "the leader's stream is my own place echoed back").toEqual([]);
+      const sentKeyframes = t.sent.filter((e) => e.ch === "state" && e.body.type === "keyframe").length;
+      expect(sentKeyframes).toBe(1); // only the keyframe of being followed, nothing passed back
     });
   });
 });

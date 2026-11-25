@@ -348,6 +348,8 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
       return;
     }
     if (!reader || !env.from || env.from !== readerOf) return;
+    // Spec 048 AC-008: while the leader follows this person, the leader's stream is this person's own place echoed back.
+    if (env.from === room.spotlight && participants.find((p) => p.id === env.from)?.following === self.id) return;
     // A lagging message from an earlier spotlight term must not pull followers back to the previous leader.
     if (chosen === null && env.term !== undefined && env.term < room.term) return;
     track(reader.push(body));
@@ -412,6 +414,8 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
    */
   function passOn(): void {
     if (ended || !writer || passOnTimer) return;
+    // Only someone other than the person this reader follows needs it: they already have their own place.
+    if (!participants.some((p) => p.id !== self.id && p.id !== readerOf && p.following === self.id)) return;
     passOnTimer = setTimeout(() => {
       passOnTimer = null;
       if (ended || !writer || isLeading()) return;
@@ -446,6 +450,7 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
 
   /** The person's input (spec 048 AC-001): with `drifted`, wait until the reader is still, then compare places. */
   function onInput(): void {
+    lastPassedOn = null; // the person acts: whatever they reach next is new to those who follow them
     if (!opts.drifted) return breakAway();
     if (ended || paused || !reader || state.status === "leading") return;
     // A local change while the timer runs (the scroll the input started) pushes the comparison back; a new address is a
@@ -529,6 +534,7 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
       chosen = participantId === self.id ? null : participantId;
       paused = false;
       cancelSettle();
+      lastPassedOn = null;
       const before = readerOf;
       retarget();
       // Same stream as before (e.g. picking the spotlight holder explicitly): just resume it.
@@ -539,6 +545,7 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
       if (ended || !paused) return;
       paused = false;
       cancelSettle();
+      lastPassedOn = null;
       if (reader) track(reader.resume());
       update();
     },
