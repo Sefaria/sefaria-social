@@ -6,6 +6,8 @@
 //   every 5 s: a media chunk → PUT media/:seq;  state messages so far → POST state (≤ 256 KB a batch)
 //   stop → MediaRecorder stops (its last chunk) → final keyframe → last state batch → queue drained → finish { durationMs }
 //   three failed uploads in a row → everything stops, status failed; what was stored stays (no finish)
+//   pause → MediaRecorder pauses and the shared clock stops (spec 050 AC-001); nothing is sent while paused; resume → the clock
+//   goes on from where it stopped and a keyframe says where the reader is now. Paused time is cut from both tracks.
 import { createStreamWriter, type ReaderStateApi, type StreamMessage } from "@sefaria-social/session";
 import type { RecordingApi } from "./recording-api";
 import { createUploader } from "./uploader";
@@ -38,6 +40,8 @@ export interface MediaRecorderLike {
   onerror: ((e: unknown) => void) | null;
   start(timeslice?: number): void;
   stop(): void;
+  pause?(): void;
+  resume?(): void;
 }
 
 export interface MediaRecorderOptionsLike {
@@ -76,6 +80,11 @@ export interface SessionRecorder {
   elapsed(): number;
   /** The mime type the MediaRecorder chose. */
   mimeType(): string;
+  /** Spec 050 AC-001: stop the media and the clock; nothing is sent until resume(). (Optional for older test doubles.) */
+  pause?(): void;
+  /** Go on from where pause() stopped, with a keyframe of where the reader is now. */
+  resume?(): void;
+  paused?(): boolean;
 }
 
 /** The first mime type this browser records, or undefined to let it choose. */
@@ -133,8 +142,12 @@ export function createSessionRecorder(opts: SessionRecorderOptions): SessionReco
   let mediaStopped: Promise<void> = Promise.resolve();
   let started = false;
 
-  const elapsed = () => Math.max(0, (stoppedAt ?? clock()) - t0);
-  const writer = createStreamWriter(opts.reader, { now: () => clock() - t0 });
+  /** While paused the clock stands at the moment it paused; time spent paused is cut (spec 050 AC-001). */
+  let pausedAt: number | null = null;
+  let pausedTotal = 0;
+  const mediaTime = (at: number) => at - t0 - pausedTotal;
+  const elapsed = () => Math.max(0, mediaTime(stoppedAt ?? pausedAt ?? clock()));
+  const writer = createStreamWriter(opts.reader, { now: () => mediaTime(pausedAt ?? clock()) });
 
   const current = (): RecorderStatus => status;
   const setStatus = (next: RecorderStatus) => {
@@ -202,14 +215,16 @@ export function createSessionRecorder(opts: SessionRecorderOptions): SessionReco
       mr.start(TIMESLICE_MS);
       // The clock starts with the media: the writer's keyframe at start has t 0.
       t0 = clock();
-      writer.start((m) => pending.push(m));
+      writer.start((m) => {
+        if (pausedAt === null) pending.push(m);
+      });
       batchTimer = set(flushState, STATE_BATCH_MS);
     },
 
     async stop() {
       if (status !== "recording" || !mediaRecorder) return;
       setStatus("stopping");
-      stoppedAt = clock();
+      stoppedAt = pausedAt ?? clock();
       const mr = mediaRecorder;
       if (mr.state !== "inactive") mr.stop();
       await mediaStopped; // the last chunk has arrived (dataavailable fires before stop)
@@ -228,6 +243,29 @@ export function createSessionRecorder(opts: SessionRecorderOptions): SessionReco
       }
     },
 
+    pause() {
+      if (status !== "recording" || !mediaRecorder || pausedAt !== null) return;
+      try {
+        mediaRecorder.pause?.();
+      } catch {
+        return;
+      }
+      pausedAt = clock();
+    },
+
+    resume() {
+      if (status !== "recording" || !mediaRecorder || pausedAt === null) return;
+      try {
+        mediaRecorder.resume?.();
+      } catch {
+        return;
+      }
+      pausedTotal += clock() - pausedAt;
+      pausedAt = null;
+      writer.keyframe();
+    },
+
+    paused: () => pausedAt !== null,
     status: () => status,
     elapsed,
     mimeType: () => mediaRecorder?.mimeType ?? "",

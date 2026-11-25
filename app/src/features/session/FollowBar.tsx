@@ -1,5 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
+import type { SessionState } from "@sefaria-social/session";
 import { CallButton } from "~/features/av/CallButton";
+import { RecordToggle } from "~/features/recording/RecordButton";
 import { useChromeInsets } from "~/features/av/insets";
 import { useRoomsApi } from "~/features/api/rooms-api";
 import { HostLink } from "~/features/host/HostLink";
@@ -97,6 +99,8 @@ export function FollowBar({ roomId }: { roomId: string }) {
           </button>
         )}
         <CallButton roomId={roomId} />
+        {/* Spec 050 AC-001: the room's owner, while leading, records from here. */}
+        {status === "leading" && state?.self && isOwner(state) && <RecordToggle roomId={roomId} />}
       </div>
       <div className={styles.people}>
         <PresenceList roomId={roomId} onFollow={(id) => controller?.pick(id)} />
@@ -255,6 +259,9 @@ function Window({
 function Dot({ tone }: { tone: "live" | "own" | "waiting" }) {
   return <span className={styles.dot} data-tone={tone} aria-hidden="true" />;
 }
+
+/** The viewer is the room's owner: the relay marks only the owner's join as a host (spec 048 AC-005). */
+export const isOwner = (s: SessionState) => !!s.participants.find((p) => p.id === s.self.id)?.isHost;
 
 const COLLAPSED_KEY = "social.roomWindow";
 let collapsedNow: boolean | null = null;

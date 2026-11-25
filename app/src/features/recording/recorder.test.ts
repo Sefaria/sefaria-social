@@ -31,7 +31,12 @@ function fakeMediaRecorders() {
   const made: {
     stream: MediaStream & { tracks?: MediaStreamTrack[] };
     options: RecorderModule.MediaRecorderOptionsLike;
-    rec: RecorderModule.MediaRecorderLike & { timeslice: number | null; stops: number; chunk(label: string): void };
+    rec: RecorderModule.MediaRecorderLike & {
+      timeslice: number | null;
+      stops: number;
+      pauses: number;
+      chunk(label: string): void;
+    };
   }[] = [];
   const create = (stream: MediaStream, options: RecorderModule.MediaRecorderOptionsLike) => {
     const rec = {
@@ -48,6 +53,14 @@ function fakeMediaRecorders() {
       },
       chunk(label: string) {
         rec.ondataavailable?.({ data: new Blob([label]) });
+      },
+      pauses: 0,
+      pause() {
+        rec.pauses++;
+        rec.state = "paused";
+      },
+      resume() {
+        rec.state = "recording";
       },
       stop() {
         rec.stops++;
@@ -164,6 +177,43 @@ function setup(mod: typeof RecorderModule, opts: { failMedia?: boolean; supporte
   });
   return { api, reader, time, recorders, recorder, compositor, video, audio, statuses };
 }
+
+describe("Record on and off (spec 050)", () => {
+  // @feature SESS-074 Record on and off during a session, on one clock
+  // @ac 050/AC-001
+  it("pauses the media and the clock, sends nothing while paused, and cuts the paused time from both tracks", async () => {
+    const mod = await loadRecorder();
+    const { api, reader, time, recorders, recorder } = setup(mod);
+    expect(typeof recorder.pause, "the recorder can pause").toBe("function");
+    recorder.start();
+    const [{ rec }] = recorders.made as [(typeof recorders.made)[number]];
+
+    time.advance(1_000);
+    reader.move("/Genesis.2");
+    time.advance(2_000);
+    recorder.pause!();
+    expect(rec.pauses).toBe(1);
+    expect(recorder.paused!()).toBe(true);
+    time.advance(5_000);
+    reader.move("/Genesis.9"); // while paused: not recorded
+    time.advance(5_000);
+    recorder.resume!();
+    expect(recorder.paused!()).toBe(false);
+    time.advance(2_000);
+    reader.move("/Genesis.3");
+    time.advance(1_000);
+    await recorder.stop();
+
+    expect(api.finished).toEqual([{ id: "rec-1", durationMs: 6_000 }]);
+    expect(api.state.map((m) => [m.type, m.t, m.type === "keyframe" ? m.snapshot.url : m.change.url])).toEqual([
+      ["keyframe", 0, "/Genesis.1"],
+      ["change", 1_000, "/Genesis.2"],
+      ["keyframe", 3_000, "/Genesis.9"], // resuming says where the reader is now, at the clock's own 3 s
+      ["change", 5_000, "/Genesis.3"],
+      ["keyframe", 6_000, "/Genesis.3"],
+    ]);
+  });
+});
 
 describe("recording a session in the owner's browser (spec 041)", () => {
   // @feature SESS-064 Record a room's session (state and call media) in the owner's browser
