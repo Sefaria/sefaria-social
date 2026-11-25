@@ -1,7 +1,7 @@
 ---
 id: "047"
 title: The call window looks like a call — video tiles, initials when the camera is off, an icon control bar, a real pre-join
-status: draft
+status: approved
 features: [SESS-069]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [call]

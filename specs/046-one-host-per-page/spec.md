@@ -1,7 +1,7 @@
 ---
 id: "046"
 title: "The reader's two mounts share one call and one room connection, so Join call opens the call window"
-status: draft
+status: approved
 features: [HOST-009]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [host-integration, call, session]
