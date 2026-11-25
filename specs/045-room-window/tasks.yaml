@@ -1,0 +1,25 @@
+- id: T-001
+  title: Stay in the room while reading around
+  acs: [AC-001, AC-002]
+  files:
+    - "app/src/features/session/**"
+    - "e2e/room-window.spec.ts"
+  depends_on: []
+  parallel: false
+  completes: [SESS-067]
+  verify: ["npm test -- features/session", "npm run typecheck"]
+- id: T-002
+  title: The room window, its pill, the mini view, and calls-off in the lobby
+  acs: [AC-003, AC-004, AC-005, AC-006]
+  files:
+    - "app/src/features/session/**"
+    - "app/src/features/presence/**"
+    - "app/src/features/room/**"
+    - "app/src/features/av/CallButton.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/**"
+    - "e2e/room-window.spec.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [SESS-068, ROOM-051]
+  verify: ["npm test -- features/session features/room surface", "npm run typecheck"]

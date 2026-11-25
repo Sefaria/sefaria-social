@@ -1805,6 +1805,23 @@
       "changed": []
     },
     {
+      "id": "ROOM-051",
+      "area": "room",
+      "name": "You stay in a room while you read around, in a room window that looks and works like part of Sefaria",
+      "description": "",
+      "status": "planned",
+      "spec": "045",
+      "acs": [],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SESS-001",
       "area": "sess",
       "name": "Social context in the reader's ctx parameter",
@@ -2391,6 +2408,40 @@
         "app/src/surface/call.test.tsx",
         "e2e/broadcast.spec.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-067",
+      "area": "sess",
+      "name": "You stay in a room while you read around, in a room window that looks and works like part of Sefaria",
+      "description": "",
+      "status": "planned",
+      "spec": "045",
+      "acs": [],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-068",
+      "area": "sess",
+      "name": "You stay in a room while you read around, in a room window that looks and works like part of Sefaria",
+      "description": "",
+      "status": "planned",
+      "spec": "045",
+      "acs": [],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
