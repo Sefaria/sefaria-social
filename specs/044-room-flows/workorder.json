@@ -4,7 +4,7 @@
   "title": "People start, find, invite to, rename, delete and leave rooms from the interface",
   "approved": true,
   "approved_by": "akiva@sefaria.org",
-  "spec_sha": "sha256:221f398d51f48b86220cbb0697867736f914f9a2501351f14aef7a946f4d4d2f",
+  "spec_sha": "sha256:840bbfc2e4cbaf19b6a6c06474a13cf2ac6448967fd23794099870d0d8cb35f5",
   "feature_sha": "sha256:6437caed9390cc0a032dd163eb089bf4854ef0918b5f25fa63b5d25e7559afb1",
   "tasks_sha": "sha256:50f2e0bba4c973867d3965da8534b054abba5c6a7d3c4e26af5da5bf1d7494ee",
   "risk": "high",
@@ -119,7 +119,7 @@
     },
     {
       "ac": "AC-005",
-      "text": "WHEN the owner presses Delete room THE SYSTEM SHALL ask \"Delete “Title”? Its recordings will be deleted too, and no one will be able to open it.\" and, on Delete, close any session of that room in this browser, delete it with `DELETE /api/v1/rooms/:id`, and open `/social/rooms` saying \"“Title” was deleted.\"",
+      "text": "WHEN the owner presses Delete room THE SYSTEM SHALL ask \"Delete “Title”? Its recordings will be deleted too, and no one will be able to open it.\" and, on Delete, close any session of that room in this browser, delete it with `DELETE",
       "scenarios": [
         "AC-005 deleting a room"
       ],
