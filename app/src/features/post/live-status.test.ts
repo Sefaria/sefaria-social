@@ -116,6 +116,35 @@ describe("spec 056: the live cards' poller", () => {
   });
 
   // @ac 056/AC-004
+  it("reads a card that comes into view during a read as soon as that read ends", async () => {
+    expect(Object.keys(modules), "features/post/live-status.ts exists").toEqual(["./live-status.ts"]);
+    const { LivePoller } = await modules["./live-status.ts"]!();
+    const calls: string[][] = [];
+    let release: () => void = () => {};
+    const source = {
+      liveStatus: vi.fn(async (ids: string[]) => {
+        calls.push([...ids]);
+        if (calls.length === 1) await new Promise<void>((r) => (release = r));
+        return ids.map((id) => status(id, "r"));
+      }),
+    };
+    const fake = fakeEnv();
+    const poller = new LivePoller(source, fake.env);
+    const a = {};
+    const b = {};
+    poller.watch("a", a, () => {});
+    poller.watch("b", b, () => {});
+    fake.show(a, true);
+    await vi.advanceTimersByTimeAsync(100);
+    fake.show(b, true); // while the first read is under way
+    await vi.advanceTimersByTimeAsync(1_000);
+    release();
+    await vi.advanceTimersByTimeAsync(100);
+    expect(calls).toEqual([["a"], ["a", "b"]]);
+    poller.dispose();
+  });
+
+  // @ac 056/AC-004
   it("splits more than 50 visible cards into requests of 50", async () => {
     expect(Object.keys(modules), "features/post/live-status.ts exists").toEqual(["./live-status.ts"]);
     const { LivePoller, POLL_MS } = await modules["./live-status.ts"]!();

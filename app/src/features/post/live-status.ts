@@ -43,6 +43,8 @@ export class LivePoller {
   private known = new Map<string, LiveStatus>();
   private timer: ReturnType<typeof setTimeout> | null = null;
   private reading = false;
+  /** A card came into view during a read: read again as soon as it ends. */
+  private again = false;
   private observer: ObserverLike;
   private stopVisibility: () => void;
 
@@ -63,7 +65,8 @@ export class LivePoller {
         } else this.onScreen.delete(e.target);
       }
       // A card never read is read at once; one coming back into view restarts the reads if they had stopped (nothing on screen).
-      if (fresh || (entered && this.timer === null && !this.reading)) this.schedule(SOON_MS);
+      if (this.reading && fresh) this.again = true;
+      else if (fresh || (entered && this.timer === null && !this.reading)) this.schedule(SOON_MS);
     });
     this.stopVisibility = env.onVisibilityChange(() => {
       if (env.isHidden()) this.clear();
@@ -117,7 +120,11 @@ export class LivePoller {
     if (this.env.isHidden()) return; // becoming visible schedules the next read
     const ids = this.visibleIds();
     if (!ids.length) return; // a card coming into view schedules the next read
-    if (!this.reading) {
+    if (this.reading) {
+      this.again = true; // the read under way schedules this one when it ends
+      return;
+    }
+    {
       this.reading = true;
       try {
         for (let i = 0; i < ids.length; i += BATCH) {
@@ -131,7 +138,10 @@ export class LivePoller {
         this.reading = false;
       }
     }
-    if (this.timer === null) this.schedule(POLL_MS);
+    if (this.timer !== null) return;
+    const soon = this.again;
+    this.again = false;
+    this.schedule(soon ? SOON_MS : POLL_MS);
   }
 }
 

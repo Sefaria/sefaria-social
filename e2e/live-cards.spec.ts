@@ -24,6 +24,12 @@ test.describe("live cards in posts", () => {
       summary: { ref: `Genesis ${n}`, heRef: null, title: "Genesis" },
     });
     const publisher = await publish(browser, LEADER, [at(1)]);
+    // Only a room's people may post it (spec 055): the viewer joins first, as an invitee would.
+    const joined = await fetch(`http://127.0.0.1:${STACK.apiPort}/api/v1/rooms/${room.id}/members`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${viewerToken}` },
+    });
+    expect(joined.status).toBe(200);
     expect(await postWithEmbed(viewerToken, "Come learn with us", { kind: "room", id: room.id })).toBe(201);
 
     const context = await browser.newContext();
@@ -50,6 +56,17 @@ test.describe("live cards in posts", () => {
     await expect(card.locator("[data-source-text=ready]")).toHaveCount(1);
     await card.scrollIntoViewIfNeeded(); // the text made the card taller; keep it in view, as a reader would
 
+    // The relay sends at most one report per room per 5 seconds (AC-001); AC-005 is the leader's next move after that.
+    await expect
+      .poll(
+        async () => {
+          const res = await fetch(`http://127.0.0.1:${STACK.apiPort}/api/v1/live?ids=${room.id}`);
+          const [s] = (await res.json()) as { updatedAt: string | null }[];
+          return s?.updatedAt ? Date.now() - Date.parse(s.updatedAt) : 0;
+        },
+        { timeout: 15_000 },
+      )
+      .toBeGreaterThan(5_500);
     await move(publisher, 0, at(2), 1);
     const moved = Date.now();
     await expect(card.locator("[data-embed-ref]")).toHaveText("Genesis 2", { timeout: 20_000 });
