@@ -378,6 +378,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
+      # The processing and transcript tests make their media with ffmpeg when they load, on the base as on the head.
+      - name: ffmpeg for asset processing (spec 052)
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg)
       - name: Prove red
         env:
           FACTORY_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
