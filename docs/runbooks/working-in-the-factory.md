@@ -15,8 +15,7 @@ The commands are `npm run factory -- <command>`; `npm run factory -- help` lists
    `spec-gate` refuses it.
 5. **Build** (`/build-task NNN/T-xxx`): one task, one session, one PR, test first. The skill writes `.factory/active.json`;
    the `guard-paths` hook then allows edits only inside that task's file globs. Commits carry trailers:
-   `--trailer "Spec: NNN" --trailer "Task: T-xxx"`. Keep them in the message's last paragraph. Git reads only the final
-   trailer block, so a paragraph appended after the trailers hides them from the gate.
+   `--trailer "Spec: NNN" --trailer "Task: T-xxx"`.
 6. **Verify** (`/verify`): commands and real output in the PR body, ending in `VERDICT: PASS`.
 7. **CI**, then a human approves the merge.
 
@@ -36,17 +35,17 @@ A change to an agreed spec is its own PR: edit, human review, re-approve, recomp
 
 Failures and their fixes (the gate prints the same text):
 
-| Gate says                                                                  | Fix                                                                                                                                        |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `no 'Spec:' trailer on any commit in this PR`                              | build from a work order (`/build-task`), or `git commit --amend --trailer 'Spec: NNN' --trailer 'Task: T-001'`; no spec yet: `/shape-spec` |
-| `no 'Task:' trailer`                                                       | add `Task: T-xxx` (or `Task: NNN/T-xxx` when several specs are named)                                                                      |
-| `spec NNN does not exist`                                                  | shape it                                                                                                                                   |
-| `spec NNN has no work order` / `workorder.json is stale`                   | `npm run factory -- compile NNN` (after a spec, feature or tasks change)                                                                   |
-| `spec NNN not approved`                                                    | a human code owner reviews and runs `approve NNN --by <email>`, then `compile NNN`; commit both files                                      |
-| `spec NNN is approved but … is still a draft`                              | `npm run factory -- compile NNN` (without `--draft`)                                                                                       |
-| `N changed file(s) are outside the named task(s)`                          | move them to their own PR, or add them to the task's `files` (a planning change) and recompile                                             |
-| `this PR changes the agreed spec NNN … and product code together`          | split: spec change first, in its own PR                                                                                                    |
-| `task(s) complete AREA-NNN but docs/features/features.json is not updated` | set the entry `built`, list its tagged tests, add a `docs/features/CHANGELOG.md` line                                                      |
+| Gate says                                                                  | Fix                                                                                                                                                                                                                                                                |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `no 'Spec:' trailer on any commit in this PR`                              | build from a work order (`/build-task`), or `git commit --amend --trailer 'Spec: NNN' --trailer 'Task: T-001'`; no spec yet: `/shape-spec`. Git reads only the last paragraph of a message, so keep the trailers there: a paragraph appended after them hides them |
+| `no 'Task:' trailer`                                                       | add `Task: T-xxx` (or `Task: NNN/T-xxx` when several specs are named)                                                                                                                                                                                              |
+| `spec NNN does not exist`                                                  | shape it                                                                                                                                                                                                                                                           |
+| `spec NNN has no work order` / `workorder.json is stale`                   | `npm run factory -- compile NNN` (after a spec, feature or tasks change)                                                                                                                                                                                           |
+| `spec NNN not approved`                                                    | a human code owner reviews and runs `approve NNN --by <email>`, then `compile NNN`; commit both files                                                                                                                                                              |
+| `spec NNN is approved but … is still a draft`                              | `npm run factory -- compile NNN` (without `--draft`)                                                                                                                                                                                                               |
+| `N changed file(s) are outside the named task(s)`                          | move them to their own PR, or add them to the task's `files` (a planning change) and recompile                                                                                                                                                                     |
+| `this PR changes the agreed spec NNN … and product code together`          | split: spec change first, in its own PR                                                                                                                                                                                                                            |
+| `task(s) complete AREA-NNN but docs/features/features.json is not updated` | set the entry `built`, list its tagged tests, add a `docs/features/CHANGELOG.md` line                                                                                                                                                                              |
 
 A new spec may arrive in the same PR as its first build (the owner reviews spec and code together); the gate then needs
 the approval recorded in that PR. Changing a spec that was already agreed on the base is what must be split.

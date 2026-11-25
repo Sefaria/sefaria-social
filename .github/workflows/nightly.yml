@@ -46,8 +46,6 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U social -d postgres" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      # Each project names its own database and its setup creates it from the admin database:
-      # test/integration reads TEST_DATABASE_URL, e2e/stack reads E2E_DATABASE_URL.
       TEST_DATABASE_URL: postgres://social:social@127.0.0.1:5432/sefaria_social_test
       E2E_DATABASE_URL: postgres://social:social@127.0.0.1:5432/sefaria_social_e2e_test
     steps:
@@ -69,7 +67,6 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Build for Playwright
         if: steps.e2e.outputs.count != '0'
-        # What `npm run test:e2e` builds first: the harness page the browser loads and the Start server the stack runs.
         run: npm run build && npm run build:surface && npm run build:harness
       - name: Run every suite three times
         run: |
