@@ -39,6 +39,7 @@ const settingsOf = async (page: Page) =>
 
 test.describe("two learners in one room", () => {
   // @feature SESS-050 Two learners in one room on the harness
+  // @feature ROOM-053 One Join takes an invitee into the room and its call
   // @ac 014/AC-004
   test("the follower's reader follows the leader; a refresh reconnects; Back leaves; the follower's settings stay", async ({
     browser,
@@ -66,13 +67,11 @@ test.describe("two learners in one room", () => {
     await move(leader.page, "/Genesis.2");
     await expect(location(leader.page)).toHaveText(`/Genesis.2?${ctx}`);
 
-    // Follower: the link, Join, the presence list shows both, Enter lands on the leader's place.
+    // Follower: the link and one Join land on the leader's place (spec 049 AC-002); the room window shows both.
     await follower.page.goto(`/social/r/${room.id}`);
     await follower.page.getByRole("button", { name: "Join" }).click();
-    await expect(follower.page.locator("h1")).toHaveText("Bereshit together");
-    await expect(follower.page.locator("[data-social-presence] li")).toHaveCount(2);
-    await follower.page.getByRole("button", { name: "Enter the room" }).click();
     await expect(location(follower.page)).toHaveText(`/Genesis.2?${ctx}`);
+    await expect(follower.page.locator("[data-social-presence] li")).toHaveCount(2);
     await expect(follower.page.locator("[data-follow-line]")).toHaveText("Following Leader Learner");
 
     // The leader moves; the follower's reader follows, by replacing (no new history entry), with its own settings intact.

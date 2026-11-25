@@ -39,6 +39,63 @@ describe("relay", () => {
     `ticket.${ticket}`,
   ];
 
+  // @feature SESS-071 The room's owner is its one leader
+  // @ac 048/AC-005
+  it("makes only the owner's ticket for the room and the user a leader; everyone else joins as a member", async () => {
+    expect(Object.keys(workers), "packages/relay/src/worker.ts exists").toEqual(["./worker.ts"]);
+    const { connect, join, lastParticipants } = support;
+    // Signed like the server signs them; the role field is a plain string in the format.
+    const roomTicket = (b: string, sub: string, role: string, secret?: string) =>
+      ticketFor({ b, sub, role: role as "host" }, secret);
+    const asHost = async (room: string, sub: string, ticket: string | null) => {
+      const protocols = [...protocolsFor(await relay.token({ sub })), ...(ticket ? [`ticket.${ticket}`] : [])];
+      const peer = await connect(relay.mf, `/r/${room}`, { protocols, owner: false });
+      expect(peer.status, `${room} admits ${sub}`).toBe(101);
+      peer.send(join(sub)); // the client claims to be a host; only the ticket decides
+      await vi.waitFor(() => expect(lastParticipants(peer)?.some((p) => p.id === sub)).toBe(true));
+      const me = lastParticipants(peer)!.find((p) => p.id === sub) as { isHost?: boolean; canLead?: boolean };
+      return { peer, lead: { isHost: me.isHost, canLead: me.canLead } };
+    };
+    const member = { isHost: false, canLead: false };
+
+    const owner = await asHost("own-0001", "4242", await roomTicket("own-0001", "4242", "owner"));
+    expect(owner.lead).toEqual({ isHost: true, canLead: true });
+
+    const cases = {
+      memberTicket: await asHost("own-0002", "5151", await roomTicket("own-0002", "5151", "member")),
+      noTicket: await asHost("own-0003", "5151", null),
+      otherRoom: await asHost("own-0004", "5151", await roomTicket("own-9999", "5151", "owner")),
+      otherUser: await asHost("own-0005", "5151", await roomTicket("own-0005", "4242", "owner")),
+      wrongSecret: await asHost("own-0006", "5151", await roomTicket("own-0006", "5151", "owner", "not-the-relay-secret")),
+      expired: await asHost(
+        "own-0007",
+        "5151",
+        await ticketFor({ b: "own-0007", sub: "5151", role: "owner" as "host", expSeconds: -1 }),
+      ),
+      broadcastHost: await asHost("own-0008", "5151", await roomTicket("own-0008", "5151", "host")),
+    };
+    expect(Object.fromEntries(Object.entries(cases).map(([k, v]) => [k, v.lead]))).toEqual(
+      Object.fromEntries(Object.keys(cases).map((k) => [k, member])),
+    );
+
+    // A member in the owner's room cannot take the spotlight.
+    const guest = await connect(relay.mf, "/r/own-0001", {
+      protocols: [
+        ...protocolsFor(await relay.token({ sub: "6161" })),
+        `ticket.${await roomTicket("own-0001", "6161", "member")}`,
+      ],
+    });
+    guest.send(join("6161"));
+    await vi.waitFor(() => expect(lastParticipants(guest)?.length).toBe(2));
+    guest.send({ ch: "control", body: { type: "spotlight", to: "6161" } });
+    await vi.waitFor(() =>
+      expect(guest.received).toContainEqual(
+        expect.objectContaining({ ch: "control", body: { type: "refused", of: "spotlight", reason: "not permitted" } }),
+      ),
+    );
+    for (const p of [owner.peer, guest, ...Object.values(cases).map((c) => c.peer)]) p.socket?.close();
+  });
+
   // @feature SESS-066 Broadcast a session and watch it as a view-only viewer
   // @ac 043/AC-003
   it("refuses a broadcast room without a valid ticket for that broadcast and the token's user", async () => {
@@ -108,8 +165,9 @@ describe("relay", () => {
         "host",
       ),
     ).toEqual([]);
-    expect(await spoof("/r/room-ticket-02", protocolsFor(await relay.token({ sub: "4242" })), "viewer")).toEqual([
-      expect.objectContaining({ id: "4242", isHost: true }),
+    // In an ordinary room a spoofed header is overwritten too: without an owner ticket the join is a member's (spec 048).
+    expect(await spoof("/r/room-ticket-02", protocolsFor(await relay.token({ sub: "4242" })), "owner")).toEqual([
+      expect.objectContaining({ id: "4242", isHost: false }),
     ]);
   });
 

@@ -51,6 +51,7 @@ import { Route as ApiV1RoomsRoomIdBroadcastsRouteImport } from './routes/api/v1/
 import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/rooms.$roomId.members'
 import { Route as ApiV1RoomsRoomIdRecordingsRouteImport } from './routes/api/v1/rooms.$roomId.recordings'
 import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
+import { Route as ApiV1RoomsRoomIdTicketRouteImport } from './routes/api/v1/rooms.$roomId.ticket'
 import { Route as ApiV1BroadcastsBroadcastIdCallTokenRouteImport } from './routes/api/v1/broadcasts.$broadcastId.call.token'
 import { Route as ApiV1RecordingsRecordingIdMediaSeqRouteImport } from './routes/api/v1/recordings.$recordingId.media.$seq'
 import { Route as ApiV1RoomsRoomIdCallMuteRouteImport } from './routes/api/v1/rooms.$roomId.call.mute'
@@ -281,6 +282,11 @@ const ApiV1RoomsRoomIdStatusRoute = ApiV1RoomsRoomIdStatusRouteImport.update({
   path: '/status',
   getParentRoute: () => ApiV1RoomsRoomIdRoute,
 } as any)
+const ApiV1RoomsRoomIdTicketRoute = ApiV1RoomsRoomIdTicketRouteImport.update({
+  id: '/ticket',
+  path: '/ticket',
+  getParentRoute: () => ApiV1RoomsRoomIdRoute,
+} as any)
 const ApiV1BroadcastsBroadcastIdCallTokenRoute =
   ApiV1BroadcastsBroadcastIdCallTokenRouteImport.update({
     id: '/call/token',
@@ -361,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/ticket': typeof ApiV1RoomsRoomIdTicketRoute
   '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
   '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
@@ -411,6 +418,7 @@ export interface FileRoutesByTo {
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/ticket': typeof ApiV1RoomsRoomIdTicketRoute
   '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
   '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
@@ -462,6 +470,7 @@ export interface FileRoutesById {
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/rooms/$roomId/ticket': typeof ApiV1RoomsRoomIdTicketRoute
   '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
   '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
@@ -514,6 +523,7 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/ticket'
     | '/api/v1/broadcasts/$broadcastId/call/token'
     | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
@@ -564,6 +574,7 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/ticket'
     | '/api/v1/broadcasts/$broadcastId/call/token'
     | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
@@ -614,6 +625,7 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/rooms/$roomId/ticket'
     | '/api/v1/broadcasts/$broadcastId/call/token'
     | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
@@ -945,6 +957,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdStatusRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdRoute
     }
+    '/api/v1/rooms/$roomId/ticket': {
+      id: '/api/v1/rooms/$roomId/ticket'
+      path: '/ticket'
+      fullPath: '/api/v1/rooms/$roomId/ticket'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdTicketRouteImport
+      parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
     '/api/v1/broadcasts/$broadcastId/call/token': {
       id: '/api/v1/broadcasts/$broadcastId/call/token'
       path: '/call/token'
@@ -1075,6 +1094,7 @@ interface ApiV1RoomsRoomIdRouteChildren {
   ApiV1RoomsRoomIdMembersRoute: typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   ApiV1RoomsRoomIdRecordingsRoute: typeof ApiV1RoomsRoomIdRecordingsRoute
   ApiV1RoomsRoomIdStatusRoute: typeof ApiV1RoomsRoomIdStatusRoute
+  ApiV1RoomsRoomIdTicketRoute: typeof ApiV1RoomsRoomIdTicketRoute
   ApiV1RoomsRoomIdCallMuteRoute: typeof ApiV1RoomsRoomIdCallMuteRoute
   ApiV1RoomsRoomIdCallRemoveRoute: typeof ApiV1RoomsRoomIdCallRemoveRoute
   ApiV1RoomsRoomIdCallTokenRoute: typeof ApiV1RoomsRoomIdCallTokenRoute
@@ -1085,6 +1105,7 @@ const ApiV1RoomsRoomIdRouteChildren: ApiV1RoomsRoomIdRouteChildren = {
   ApiV1RoomsRoomIdMembersRoute: ApiV1RoomsRoomIdMembersRouteWithChildren,
   ApiV1RoomsRoomIdRecordingsRoute: ApiV1RoomsRoomIdRecordingsRoute,
   ApiV1RoomsRoomIdStatusRoute: ApiV1RoomsRoomIdStatusRoute,
+  ApiV1RoomsRoomIdTicketRoute: ApiV1RoomsRoomIdTicketRoute,
   ApiV1RoomsRoomIdCallMuteRoute: ApiV1RoomsRoomIdCallMuteRoute,
   ApiV1RoomsRoomIdCallRemoveRoute: ApiV1RoomsRoomIdCallRemoveRoute,
   ApiV1RoomsRoomIdCallTokenRoute: ApiV1RoomsRoomIdCallTokenRoute,

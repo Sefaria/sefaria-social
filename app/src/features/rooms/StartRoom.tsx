@@ -1,10 +1,17 @@
-// Start a room (spec 044 AC-001): a button that opens a small dialog asking for the room's name, creates it and opens its lobby.
+// Start a room (spec 044 AC-001): a button that opens a small dialog asking for the room's name and creates it. Spec 049 AC-001:
+// Start then takes the starter straight into the room (its reader context) and its call, with no lobby, Enter or pre-join step.
 // The name is required (Start stays disabled while it is blank) and at most 120 characters, as the API requires. Escape and
 // Cancel close the dialog and return focus to the button; a failed create keeps it open with the reason.
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useHost } from "~/features/host/host-context";
 import { useViewer } from "~/features/host/use-viewer";
 import { useRoomsApi } from "~/features/api/rooms-api";
+import { useCallController } from "~/features/av/use-call";
+import { broadcastControllerFor } from "~/features/broadcast/broadcast-controller";
+import { recordingControllerFor } from "~/features/recording/recording-controller";
+import { enterRoom } from "~/features/room/enter";
+import { setSessionKind, type SessionKind } from "~/features/session/session-kind";
+import { useRoomController } from "~/features/session/use-room-session";
 import { useStrings } from "~/features/shell/use-strings";
 import kit from "~/ui/kit.module.css";
 import styles from "./rooms.module.css";
@@ -16,10 +23,19 @@ export function StartRoom({ variant = "primary" }: { variant?: "primary" | "seco
   const host = useHost();
   const api = useRoomsApi();
   const viewer = useViewer();
+  const { controller: rooms } = useRoomController();
+  const call = useCallController();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  // Spec 050 AC-006: what the session is, and whether to record it (on by default for a broadcast and for just me).
+  const [kind, setKind] = useState<SessionKind>("room");
+  const [record, setRecord] = useState(false);
+  const chooseKind = (k: SessionKind) => {
+    setKind(k);
+    setRecord(k !== "room");
+  };
   const button = useRef<HTMLButtonElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const titleId = useId();
@@ -41,6 +57,8 @@ export function StartRoom({ variant = "primary" }: { variant?: "primary" | "seco
     setOpen(false);
     setName("");
     setFailed(false);
+    setKind("room");
+    setRecord(false);
     button.current?.focus();
   }
 
@@ -54,7 +72,17 @@ export function StartRoom({ variant = "primary" }: { variant?: "primary" | "seco
       const room = await api.create(title);
       setOpen(false);
       setName("");
-      host?.navigate(`/social/r/${room.id}`);
+      if (!rooms || !host) {
+        host?.navigate(`/social/r/${room.id}`); // no room controller (a test page without one): the lobby
+        return;
+      }
+      setSessionKind(room.id, kind);
+      // A broadcast has its own call (spec 043): the room's call is not joined for one.
+      const calls = kind !== "broadcast" && (room.calls?.available ?? false);
+      await enterRoom({ roomId: room.id, owner: true, calls, rooms, call });
+      if (kind === "broadcast") await broadcastControllerFor(host).start(room.id);
+      if (record) await recordingControllerFor(host).start(room.id);
+      chooseKind("room");
     } catch {
       setFailed(true);
     } finally {
@@ -105,6 +133,32 @@ export function StartRoom({ variant = "primary" }: { variant?: "primary" | "seco
                 onChange={(e) => setName(e.target.value)}
                 data-room-name=""
               />
+            </label>
+            <fieldset className={styles.kinds} data-session-kinds="">
+              <legend className={kit.label}>{t.sessionKind}</legend>
+              {(
+                [
+                  ["room", t.kindRoom],
+                  ["broadcast", t.kindBroadcast],
+                  ["recording", t.kindRecording],
+                ] as const
+              ).map(([k, label]) => (
+                <label key={k} className={styles.kind}>
+                  <input
+                    type="radio"
+                    name="kind"
+                    value={k}
+                    checked={kind === k}
+                    onChange={() => chooseKind(k)}
+                    data-session-kind={k}
+                  />
+                  {label}
+                </label>
+              ))}
+            </fieldset>
+            <label className={styles.kind}>
+              <input type="checkbox" checked={record} onChange={(e) => setRecord(e.target.checked)} data-record-session="" />
+              {t.recordSession}
             </label>
             {failed && (
               <p role="alert" className={styles.error}>

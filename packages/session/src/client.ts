@@ -14,6 +14,7 @@
 import { createStreamReader, createStreamWriter } from "./core/stream";
 import type {
   ApplyContext,
+  ReaderSnapshot,
   ReaderStateApi,
   RestoreWarning,
   StateTransport,
@@ -119,11 +120,24 @@ export interface SessionClientOptions {
    * room's reader context; call `refresh()` when the answer changes (local change in social's copy).
    */
   canPublish?: () => boolean;
+  /**
+   * Has this reader clearly moved away from the place of the person it follows (spec 048)? With it, input alone never breaks
+   * away: input starts a settle timer (`settleMs`, reset by more input or a local change), and when the reader is still the
+   * client compares its own snapshot with the followed stream's (`mine`, `theirs`) and breaks away only on `true`. Without it,
+   * any input breaks away at once.
+   */
+  drifted?: (mine: ReaderSnapshot, theirs: ReaderSnapshot) => boolean;
+  /** How long the reader must be still after input before `drifted` is asked (ms). Default 400. */
+  settleMs?: number;
 }
 
 /** Follow streams scroll at most 10 times a second (READER_STATE_API.md, "Streams"). */
 const FOLLOW_SCROLL_SAMPLE_MS = 100;
 const FOLLOW_APPLY: ApplyContext = { origin: "follow", persist: false };
+/** Spec 048 AC-002: the reader is "still" this long after the last input or local change. */
+const SETTLE_MS = 400;
+/** Spec 048 AC-008: moves taken from a followed stream are passed on at most this often (trailing edge). */
+const PASS_ON_MS = 150;
 
 const INITIAL_ROOM: RoomState = { spotlight: null, term: 0, mode: "presenter", hands: [], ended: false };
 
@@ -154,6 +168,12 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
   let readerOf: ParticipantId | null = null;
   let offGap: (() => void) | null = null;
   let lastPresence: string | null = null;
+  /** Spec 048: the settle timer after input, and the local-change subscription that resets it while it runs. */
+  let settleTimer: ReturnType<typeof setTimeout> | null = null;
+  let offSettleChanges: (() => void) | null = null;
+  /** Spec 048 AC-008: the pending pass-on of a followed move, and the last snapshot passed on (the loop guard). */
+  let passOnTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastPassedOn: string | null = null;
 
   const listeners = new Set<() => void>();
   let state: SessionState = buildState();
@@ -311,6 +331,7 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
         if (!res || ended) return;
         warnings = res.warnings;
         update();
+        passOn();
       },
       () => {
         /* applySnapshot never throws by contract; a broken reader must not take the session down */
@@ -327,6 +348,8 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
       return;
     }
     if (!reader || !env.from || env.from !== readerOf) return;
+    // Spec 048 AC-008: while the leader follows this person, the leader's stream is this person's own place echoed back.
+    if (env.from === room.spotlight && participants.find((p) => p.id === env.from)?.following === self.id) return;
     // A lagging message from an earlier spotlight term must not pull followers back to the previous leader.
     if (chosen === null && env.term !== undefined && env.term < room.term) return;
     track(reader.push(body));
@@ -383,13 +406,79 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
     update();
   }
 
+  /**
+   * This reader just took a move from the stream it follows. If anyone needs this reader's own stream (it holds the spotlight,
+   * or someone follows it), send them where it is now: an applied change is never reported as the person's own, so without
+   * this the leader's followers would stay behind when the leader follows someone (spec 048 AC-008). Trailing, and never the
+   * same snapshot twice, so two people who follow each other stop after one exchange.
+   */
+  function passOn(): void {
+    if (ended || !writer || passOnTimer) return;
+    // Only someone other than the person this reader follows needs it: they already have their own place.
+    if (!participants.some((p) => p.id !== self.id && p.id !== readerOf && p.following === self.id)) return;
+    passOnTimer = setTimeout(() => {
+      passOnTimer = null;
+      if (ended || !writer || isLeading()) return;
+      const key = JSON.stringify(outgoing.getSnapshot());
+      if (key === lastPassedOn) return;
+      lastPassedOn = key;
+      writer.keyframe();
+    }, PASS_ON_MS);
+  }
+
   // ── Breaking away ──────────────────────────────────────────────────────────────────────────────────────────
 
   function breakAway(): void {
     if (ended || paused || !reader || state.status === "leading") return;
+    cancelSettle();
     paused = true;
     reader.pause();
     update();
+  }
+
+  function cancelSettle(): void {
+    if (settleTimer) clearTimeout(settleTimer);
+    settleTimer = null;
+    offSettleChanges?.();
+    offSettleChanges = null;
+  }
+
+  function armSettle(): void {
+    if (settleTimer) clearTimeout(settleTimer);
+    settleTimer = setTimeout(onSettled, opts.settleMs ?? SETTLE_MS);
+  }
+
+  /** The person's input (spec 048 AC-001): with `drifted`, wait until the reader is still, then compare places. */
+  function onInput(): void {
+    lastPassedOn = null; // the person acts: whatever they reach next is new to those who follow them
+    if (!opts.drifted) return breakAway();
+    if (ended || paused || !reader || state.status === "leading") return;
+    // A local change while the timer runs (the scroll the input started) pushes the comparison back; a new address is a
+    // finished move (a link, Back), compared at once.
+    offSettleChanges ??= api.subscribe((change) => {
+      if (!settleTimer) return;
+      if (change.url !== undefined) {
+        clearTimeout(settleTimer);
+        onSettled();
+      } else armSettle();
+    });
+    armSettle();
+  }
+
+  function onSettled(): void {
+    settleTimer = null;
+    offSettleChanges?.();
+    offSettleChanges = null;
+    if (ended || paused || !reader) return;
+    const theirs = reader.current();
+    if (!theirs) return;
+    let away = false;
+    try {
+      away = opts.drifted!(api.getSnapshot(), theirs);
+    } catch {
+      away = false; // a comparator that cannot tell keeps the person following
+    }
+    if (away) breakAway();
   }
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────────────────────────────────────
@@ -402,9 +491,10 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
   const offs: (() => void)[] = [];
   offs.push(transport.onMessage(onMessage));
   offs.push(transport.onStatus(onStatus));
-  // Breaking away is decided by the person's input alone. A local change with no input is the reader settling itself — the text panel
+  // Breaking away starts with the person's input. A local change with no input is the reader settling itself — the text panel
   // reporting its first position after a join, a column restoring its anchor — and must not pause a follower (it did, 1 join in 15).
-  offs.push(api.onLocalInput(breakAway));
+  // With `drifted` (spec 048), input only starts the comparison; the place decides.
+  offs.push(api.onLocalInput(onInput));
   if (typeof document !== "undefined") {
     document.addEventListener("visibilitychange", onVisibility);
     offs.push(() => document.removeEventListener("visibilitychange", onVisibility));
@@ -415,6 +505,9 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
     if (ended) return;
     if (leave) sendControl({ type: "leave" });
     ended = true;
+    cancelSettle();
+    if (passOnTimer) clearTimeout(passOnTimer);
+    passOnTimer = null;
     writer?.stop();
     writer = null;
     dropReader();
@@ -440,6 +533,8 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
       if (ended) return;
       chosen = participantId === self.id ? null : participantId;
       paused = false;
+      cancelSettle();
+      lastPassedOn = null;
       const before = readerOf;
       retarget();
       // Same stream as before (e.g. picking the spotlight holder explicitly): just resume it.
@@ -449,6 +544,8 @@ export function createSessionClient(opts: SessionClientOptions): SessionClient {
     followAgain() {
       if (ended || !paused) return;
       paused = false;
+      cancelSettle();
+      lastPassedOn = null;
       if (reader) track(reader.resume());
       update();
     },

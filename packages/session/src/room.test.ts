@@ -582,3 +582,59 @@ describe("envelope stamping and recipients", () => {
     expect(s.room.recipients("gone")).toEqual([]);
   });
 });
+
+describe("spec 050: a session ends, and starts again", () => {
+  // @feature SESS-075 Close, Finish and Leave, and the closed room
+  // @ac 050/AC-004
+  it("keeps an ended room ended for a member, and starts a new session when a host comes in", () => {
+    const { room } = setup();
+    enter(room, "c1", host);
+    enter(room, "c2", dan);
+    room.handle("c1", ctl({ type: "end" }));
+    expect(room.snapshot().ended).toBe(true);
+    room.disconnect("c1");
+    room.disconnect("c2");
+
+    // A member first: still closed.
+    const member = enter(room, "c3", dan);
+    expect(roomMsgs(member)[0]?.envelope.body).toMatchObject({ ended: true });
+    expect(room.snapshot().participants).toEqual([]);
+
+    // The host: a new session, with the spotlight and a new term.
+    const termBefore = room.snapshot().term;
+    const back = enter(room, "c4", host);
+    expect(room.snapshot()).toMatchObject({ ended: false, spotlight: "host" });
+    expect(room.snapshot().term).toBeGreaterThan(termBefore);
+    expect(roomMsgs(back).map((m) => m.envelope.body)).toContainEqual(
+      expect.objectContaining({ ended: false, spotlight: "host" }),
+    );
+  });
+
+  // @feature SESS-075 Close, Finish and Leave, and the closed room
+  // @ac 050/AC-005
+  it("ends a live session 2 minutes after its last host left, unless a host comes back first", () => {
+    const quick = setup();
+    enter(quick.room, "c1", host);
+    enter(quick.room, "c2", dan);
+    quick.room.disconnect("c1");
+    quick.advance(60_000);
+    expect(quick.room.tick()).toEqual(expect.any(Array));
+    expect(quick.room.snapshot().ended).toBe(false);
+    enter(quick.room, "c3", host); // back within 2 minutes
+    quick.advance(120_000);
+    quick.room.tick();
+    expect(quick.room.snapshot().ended).toBe(false);
+
+    const gone = setup();
+    enter(gone.room, "c1", host);
+    enter(gone.room, "c2", dan);
+    gone.room.disconnect("c1");
+    gone.advance(119_000);
+    gone.room.tick();
+    expect(gone.room.snapshot().ended).toBe(false);
+    gone.advance(1_000);
+    const out = gone.room.tick();
+    expect(gone.room.snapshot().ended).toBe(true);
+    expect(roomMsgs(out).map((m) => [m.to, m.envelope.body.type])).toEqual([["all", "room"]]);
+  });
+});

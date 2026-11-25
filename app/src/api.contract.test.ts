@@ -96,6 +96,7 @@ describe("spec 007: API contract", () => {
       "POST /api/v1/rooms/{roomId}/call/token getCallToken secured",
       "POST /api/v1/rooms/{roomId}/members joinRoom secured",
       "POST /api/v1/rooms/{roomId}/recordings startRecording secured",
+      "POST /api/v1/rooms/{roomId}/ticket getRoomTicket secured",
       "PUT /api/v1/posts/{postId}/reaction addReaction secured",
       "PUT /api/v1/posts/{postId}/repost addRepost secured",
       "PUT /api/v1/profiles/{profileId}/follow followProfile secured",

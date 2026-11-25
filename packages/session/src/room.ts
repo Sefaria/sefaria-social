@@ -54,6 +54,11 @@ export interface RoomOptions {
   now: () => number;
   /** How long the spotlight waits for a holder who left before it moves to a connected host (or clears). */
   graceMs?: number;
+  /**
+   * Spec 050 AC-005: how long a live session goes on once no host is connected (ms, default 2 minutes). Then the room ends it,
+   * as if the host had closed it.
+   */
+  endAfterMs?: number;
   limits?: RoomLimits;
 }
 
@@ -110,7 +115,7 @@ const MAX_ID_LENGTH = 128;
 const MAX_NAME_LENGTH = 200;
 const MODES: readonly LeadershipMode[] = ["presenter", "hand-raise", "open"];
 
-export function createRoom({ now, graceMs = 30_000, limits = LIMITS }: RoomOptions): Room {
+export function createRoom({ now, graceMs = 30_000, endAfterMs = 120_000, limits = LIMITS }: RoomOptions): Room {
   const conns = new Map<ConnId, Conn>();
   // Insertion order is join order: the participants list and "a connected host" both use it.
   const members = new Map<ParticipantId, Member>();
@@ -121,6 +126,8 @@ export function createRoom({ now, graceMs = 30_000, limits = LIMITS }: RoomOptio
   let hands: ParticipantId[] = [];
   let ended = false;
   let graceUntil: number | null = null;
+  /** When the last connected host left a live session (spec 050 AC-005); null while a host is here. */
+  let hostGoneSince: number | null = null;
   let controlSeq = 0;
 
   // ── Outgoing envelopes ──────────────────────────────────────────────────────────────────────────────────────
@@ -185,6 +192,7 @@ export function createRoom({ now, graceMs = 30_000, limits = LIMITS }: RoomOptio
     } else {
       streams.delete(id);
     }
+    if (member.participant.isHost && !ended && firstConnectedHost() === null) hostGoneSince = now();
     return roomChanged;
   }
 
@@ -197,8 +205,21 @@ export function createRoom({ now, graceMs = 30_000, limits = LIMITS }: RoomOptio
     return out;
   }
 
+  /** Spec 050 AC-004: a host who comes into an ended room starts a new session in it. */
+  function reopen(): void {
+    ended = false;
+    hands = [];
+    graceUntil = null;
+    hostGoneSince = null;
+    streams.clear();
+    spotlight = null;
+    mode = "presenter";
+  }
+
   function join(connId: ConnId, conn: Conn, participant: Participant): Outgoing[] {
-    if (ended) return [roomState(connId)];
+    if (ended && !participant.isHost) return [roomState(connId)];
+    if (ended) reopen();
+    if (participant.isHost) hostGoneSince = null;
     const out: Outgoing[] = [];
     let roomChanged = false;
     // A second join on one connection replaces the first.
@@ -286,6 +307,7 @@ export function createRoom({ now, graceMs = 30_000, limits = LIMITS }: RoomOptio
         if (!self.isHost) return [refused(connId, "end", "host only")];
         ended = true;
         graceUntil = null;
+        hostGoneSince = null;
         return [roomState("all")];
       }
       default:
@@ -407,7 +429,15 @@ export function createRoom({ now, graceMs = 30_000, limits = LIMITS }: RoomOptio
     },
 
     tick() {
-      if (ended || graceUntil === null || now() < graceUntil) return [];
+      if (ended) return [];
+      if (hostGoneSince !== null && now() - hostGoneSince >= endAfterMs) {
+        // Spec 050 AC-005: nobody who may lead has been here for endAfterMs: the session ends for everyone.
+        ended = true;
+        graceUntil = null;
+        hostGoneSince = null;
+        return [roomState("all")];
+      }
+      if (graceUntil === null || now() < graceUntil) return [];
       setSpotlight(firstConnectedHost());
       return [roomState("all")];
     },

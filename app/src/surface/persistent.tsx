@@ -4,7 +4,7 @@ import { CallSlot } from "~/features/av/CallSlot";
 import { WatchBar } from "~/features/broadcast/WatchBar";
 import { HostLink } from "~/features/host/HostLink";
 import { ReplaySlot } from "~/features/replay/ReplaySlot";
-import { FollowBar, MiniView } from "~/features/session/FollowBar";
+import { ClosedNotice, FollowBar, MiniView } from "~/features/session/FollowBar";
 import { useLiveRooms, useRoomController } from "~/features/session/use-room-session";
 import { useStrings } from "~/features/shell/use-strings";
 import { decodeCtx } from "~/lib/ctx";
@@ -24,6 +24,7 @@ export function PersistentView({ host }: { host: SurfaceHost }) {
   return (
     <>
       <RoomView host={host} />
+      <ClosedNotice />
       <WatchBar />
       <CallSlot />
       <ReplaySlot />

@@ -8,17 +8,17 @@ and facts, not a diary.
 
 States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awaiting approval), `approved`, `merged`.
 
-| Spec | Title                                                           | State       | PR  | Notes |
-| ---- | --------------------------------------------------------------- | ----------- | --- | ----- |
-| 048  | Sticky following, a fixed leader, follow a person by their head | not started |     |       |
-| 049  | One press to get in                                             | not started |     |       |
-| 050  | Session kinds and endings                                       | not started |     |       |
-| 051  | The asset in object storage                                     | not started |     |       |
-| 052  | Processing                                                      | not started |     |       |
-| 053  | The player                                                      | not started |     |       |
-| 054  | Transcript                                                      | not started |     |       |
-| 055  | Links in posts                                                  | not started |     |       |
-| 056  | Live cards                                                      | not started |     |       |
+| Spec | Title                                                           | State       | PR      | Notes                                                                                                                         |
+| ---- | --------------------------------------------------------------- | ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 048  | Sticky following, a fixed leader, follow a person by their head | built       | group A | Awaiting `factory approve 048`. Broadcast viewers still break away on any input (Back to live).                               |
+| 049  | One press to get in                                             | built       | group A | Awaiting `factory approve 049`. The lobby's Join call keeps its device step (for coming back to a call).                      |
+| 050  | Session kinds and endings                                       | built       | group A | Awaiting `factory approve 050`. A broadcast started from the dialog does not join the host to the broadcast's call by itself. |
+| 051  | The asset in object storage                                     | not started |         |                                                                                                                               |
+| 052  | Processing                                                      | not started |         |                                                                                                                               |
+| 053  | The player                                                      | not started |         |                                                                                                                               |
+| 054  | Transcript                                                      | not started |         |                                                                                                                               |
+| 055  | Links in posts                                                  | not started |         |                                                                                                                               |
+| 056  | Live cards                                                      | not started |         |                                                                                                                               |
 
 ## Waiting on the owner
 
@@ -34,18 +34,39 @@ States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awa
 List here each open point of section 8 that code now depends on, with the spec and the file, so it can be found and changed
 if the owner decides otherwise.
 
-- (none yet)
+- 049: a first-time starter enters with the microphone on and the camera off (`app/src/features/av/device-memory.ts`,
+  `FIRST_TIME`).
+- 049: the lobby's "Join call" (for someone who left the call) keeps its device-choice step; Start, Join and Enter skip it.
+  The plan said the pre-join step is removed; D6 only requires that entering joins the call.
+- 050: a session ends 2 minutes after its owner is gone (`packages/session/src/room.ts`, `endAfterMs`).
+- 050: a closed room starts a new session when its owner enters (`room.ts`, `reopen`). The relay keeps rooms in memory only,
+  so an emptied closed room may be forgotten; remembering it belongs with the asset (spec 051).
+- 050: the session's kind is kept per room for the tab (`features/session/session-kind.ts`); after a reload the owner sees
+  Close room, or End broadcast while a broadcast is live.
 
 ## QA passes
 
-| Group | Date | Preview | Result |
-| ----- | ---- | ------- | ------ |
-|       |      |         |        |
+| Group | Date       | Preview                                                | Result                                                                                                                                                                                                                                                                                                      |
+| ----- | ---------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A     | 2026-11-25 | not run on the preview (two signed-in accounts needed) | Independent code review by a fresh agent: 5 findings (forged `?join=1`, pass-on repeat guard, echo between mutual followers, minimised room not told it closed, holds lost when a session was replaced), all fixed with tests; full desktop e2e suite 28 passed against the real server, relay and LiveKit. |
 
 ## Log
 
 Newest first. One or two lines per entry: what changed, and anything the next session must know that the code does not say.
 
+- 2026-11-25: Group A review fixes. Known limits left: an owner's second tab displaces the first in the relay (older
+  rule), so the 2-minute end can start while the first tab is open; a room ticket fetch that fails on the network makes the
+  owner a member until the socket reconnects. The broadcast relay test's join order was a race: the relay test helper now
+  orders participants by id.
+- 2026-11-25: Spec 050 built. The recorder pauses MediaRecorder and its shared clock; messages from the state writer are
+  dropped while paused (a seq gap, which readers recover from at the resume keyframe). The in-app test relay takes
+  `owners` to mirror owner tickets. Group A's local checks all pass; e2e journeys run with livekit-server from the
+  Homebrew cache.
+- 2026-11-25: Spec 049 built. A Join pressed while signed out rides in the lobby's address (`?join=1`), because reader-next
+  sends sign-in to `/login?next=<page>` and the lobby mounts again on return; nothing is stored.
+- 2026-11-25: Spec 048 built. Room relay tickets (`POST /api/v1/rooms/{id}/ticket`, roles owner/member) make the owner the
+  only leader; decision 0012 supersedes 0008's everyone-may-lead. Relay tests' `connect` offers an owner ticket by default
+  (`owner: false` for a member), so older relay tests keep their meaning. Sticky following applies to rooms only.
 - 2026-11-25: Plan, kickoff prompt and this file added. Upload cap fixed and size budget raised in #33 (merged). Two points
   of section 4.2 were checked in the code and the plan now states the findings: a non-host cannot take the spotlight in
   `presenter` mode, and a change applied with origin `follow` is not published.

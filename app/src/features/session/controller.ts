@@ -44,9 +44,22 @@ export interface RoomController {
   leave(roomId: string): void;
   /** Run `cb(roomId)` at the start of every leave, before the room's holds are released (a call ends first, spec 034). */
   onLeave(cb: (roomId: string) => void): () => void;
+  /** Spec 050 AC-002: the room whose session was closed while the viewer was in it (for the notice); null when none. */
+  closedRoom(): string | null;
+  dismissClosed(): void;
+  /**
+   * Spec 050 AC-002: the owner ends the session for everyone (the relay's `end`). The caller finishes a recording and ends a
+   * broadcast first (features/room/close.ts); this leaves the room and its call here.
+   */
+  close(roomId: string): void;
+  /** Follow a participant; null follows the room's leader again (spec 048). */
   follow(participantId: string | null): void;
+  /**
+   * The viewer clicked a person, in who is here or on their call tile (spec 048 AC-007): follow them; the one already followed,
+   * or the leader, takes the viewer back to the leader. Clicking oneself does nothing.
+   */
+  pick(participantId: string): void;
   followAgain(): void;
-  lead(): void;
   dispose(): void;
 }
 
@@ -67,6 +80,9 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
   let offClient: (() => void) | null = null;
   let enterTimer: ReturnType<typeof setTimeout> | null = null;
   let restoreAfterLeave: ReaderSnapshot | null = null;
+  let closed: string | null = null;
+  /** Spec 050 AC-002: a watch on each live room's session, so a minimised room that closes is left and reported too. */
+  const endWatch = new Map<string, () => void>();
   const prefetched = new Map<string, { release: () => void; timer: ReturnType<typeof setTimeout> }>();
   const dropPrefetch = (roomId: string) => {
     const p = prefetched.get(roomId);
@@ -109,7 +125,14 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
     const session = sessions.get(roomId);
     if (!session) return;
     const sync = () => {
-      const status = session.client.getState().status;
+      const { status, room } = session.client.getState();
+      // The room ended (not this viewer leaving, which ends their client too).
+      if (status === "ended" && room.ended) {
+        offClient?.();
+        offClient = null;
+        roomEnded(roomId);
+        return;
+      }
       if (status === "paused" && view.kind === "expanded") step({ type: "detach" });
       else if (status !== "paused" && view.kind === "detached") step({ type: "rejoin" });
       const following = status !== "leading";
@@ -118,6 +141,26 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
     };
     offClient = session.client.subscribe(sync);
     sync();
+  }
+
+  /** Spec 050 AC-002: the room was closed (or its owner was gone too long): out of it and its call, with a notice. */
+  function roomEnded(roomId: string) {
+    if (!live.has(roomId) && roomOf(view) !== roomId) return; // already left
+    closed = roomId;
+    controller.leave(roomId);
+  }
+
+  function watchEnd(roomId: string) {
+    if (endWatch.has(roomId)) return;
+    const client = sessions.get(roomId)?.client;
+    if (!client) return;
+    endWatch.set(
+      roomId,
+      client.subscribe(() => {
+        const { status, room } = client.getState();
+        if (status === "ended" && room.ended) roomEnded(roomId);
+      }),
+    );
   }
 
   function entered(roomId: string) {
@@ -209,8 +252,17 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
     return session.reader.held();
   }
 
-  return {
+  const controller: RoomController = {
     view: () => view,
+    closedRoom: () => closed,
+    dismissClosed() {
+      if (closed === null) return;
+      closed = null;
+      emit();
+    },
+    close(roomId) {
+      sessions.get(roomId)?.client.end();
+    },
     subscribe(cb) {
       listeners.add(cb);
       return () => listeners.delete(cb);
@@ -228,6 +280,7 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       const location = host.location.get();
       const ownPlace = isReaderPage(location.pathname) ? host.reader.state.getSnapshot() : null;
       if (!live.has(roomId)) live.set(roomId, sessions.acquire(roomId, "live"));
+      watchEnd(roomId);
       dropPrefetch(roomId); // the live hold keeps the prepared session (and its socket) open from here
       emit();
       // R9 (2): the target, validated by the follow gate when it arrived.
@@ -279,6 +332,8 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       if (roomOf(view) === roomId) this.minimise();
       live.get(roomId)?.();
       live.delete(roomId);
+      endWatch.get(roomId)?.();
+      endWatch.delete(roomId);
       emit();
     },
 
@@ -291,14 +346,17 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       const roomId = roomOf(view);
       if (roomId) sessions.get(roomId)?.client.follow(participantId);
     },
+    pick(participantId) {
+      const roomId = roomOf(view);
+      const client = roomId ? sessions.get(roomId)?.client : null;
+      if (!client) return;
+      const s = client.getState();
+      if (participantId === s.self.id) return;
+      client.follow(participantId === s.chosen || participantId === s.room.spotlight ? null : participantId);
+    },
     followAgain() {
       const roomId = roomOf(view);
       if (roomId) sessions.get(roomId)?.client.followAgain();
-    },
-    lead() {
-      const roomId = roomOf(view);
-      const session = roomId ? sessions.get(roomId) : null;
-      session?.client.spotlight(session.client.getState().self.id);
     },
 
     dispose() {
@@ -307,10 +365,13 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       dropContext();
       for (const release of live.values()) release();
       live.clear();
+      for (const off of endWatch.values()) off();
+      endWatch.clear();
       for (const roomId of [...prefetched.keys()]) dropPrefetch(roomId);
       if (enterTimer) clearTimeout(enterTimer);
     },
   };
+  return controller;
 }
 
 const perHost = new WeakMap<SurfaceHost, RoomController>();

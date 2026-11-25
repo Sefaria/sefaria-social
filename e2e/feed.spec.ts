@@ -3,11 +3,11 @@
 // card's source inside the same document (no reload); Back returns to the feed. Desktop only: several browser contexts.
 import { expect, test, type Page } from "@playwright/test";
 import { STACK } from "./stack/config";
-import { createRoom, feedOf, publish, type LiveRoom } from "./stack/publisher";
+import { createRoom, feedOf, joinRoom, publish, type LiveRoom } from "./stack/publisher";
 import { tokenFor, type Persona } from "./stack/tokens";
 
 const VIEWER: Persona = { id: 7301, name: "Feed Viewer" };
-const PUBLISHER: Persona = { id: 7302, name: "Feed Publisher" };
+const PUBLISHER: Persona = { id: 7311, name: "Feed Publisher" }; // owns its rooms (spec 048): an id no other journey uses
 
 /** The ref a reader address shows, the way the publisher's summary derives it ("/Exodus.3" → "Exodus 3"). */
 const refOf = (url: string) => decodeURIComponent(url.split(/[?#]/)[0]!.split("/").filter(Boolean)[0]!).replace(/[._]/g, " ");
@@ -23,7 +23,10 @@ test.describe("the feed", () => {
   }) => {
     const token = await tokenFor(VIEWER);
     const titles = ["Bereshit together", "Shemot study", "Tehillim"];
-    const rooms = await Promise.all(titles.map((t) => createRoom(token, t)));
+    // The publisher owns the rooms (only the owner leads, spec 048); the viewer is a member of each.
+    const publisherToken = await tokenFor(PUBLISHER);
+    const rooms = await Promise.all(titles.map((t) => createRoom(publisherToken, t)));
+    await Promise.all(rooms.map((r) => joinRoom(token, r.id)));
     const live: LiveRoom[] = [
       { roomId: rooms[0]!.id, url: "/Genesis.1", summary: { ref: "Genesis 1", heRef: "בראשית א׳", title: "Genesis" } },
       { roomId: rooms[1]!.id, url: "/Exodus.3", summary: { ref: "Exodus 3", heRef: "שמות ג׳", title: "Exodus" } },

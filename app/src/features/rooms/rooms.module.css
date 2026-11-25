@@ -99,3 +99,19 @@
   gap: var(--sefaria-space-3, 12px);
   margin-block-start: var(--sefaria-space-4, 16px);
 }
+
+/* Spec 050 AC-006: what the session is, and Record this session. */
+.kinds {
+  display: grid;
+  gap: var(--sefaria-space-1, 4px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.kind {
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+  font-size: 0.875rem;
+}

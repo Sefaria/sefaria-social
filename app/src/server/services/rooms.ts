@@ -2,6 +2,8 @@
 // room.not_found, so ids cannot be probed; a member who is not the owner is room.forbidden for owner-only changes.
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
+import { signTicket, TICKET_TTL_SECONDS, type RoomRole } from "../broadcast-ticket";
+import { getConfig } from "../config";
 import { getDb, type Db } from "../db/client";
 import { broadcasts, callRemovals, roomMembers, rooms } from "../db/schema";
 import { ApiError } from "../http/errors";
@@ -99,6 +101,33 @@ export async function membership(db: Db | Parameters<Parameters<Db["transaction"
     .limit(1);
   if (!row) throw new ApiError(404, "room.not_found");
   return row;
+}
+
+export interface RoomTicketDto {
+  ticket: string;
+  role: RoomRole;
+  relayRoom: string;
+  expiresAt: string;
+}
+
+/**
+ * A relay ticket for an ordinary room (spec 048 AC-004): the caller's role, `owner` for the room's owner (who leads) and
+ * `member` for anyone else in it, valid for TICKET_TTL_SECONDS. 404 for a room the caller is not in; 503 when the relay secret
+ * is not configured. The relay makes only an owner ticket a host (AC-005).
+ */
+export async function roomTicket(
+  identity: Identity,
+  roomId: string,
+  db: Db = getDb(),
+  nowSeconds: number = Math.floor(Date.now() / 1000),
+): Promise<RoomTicketDto> {
+  const m = await membership(db, identity, roomId);
+  const secret = getConfig().RELAY_INTERNAL_SECRET;
+  if (!secret) throw new ApiError(503, "room.relay_unavailable");
+  const role: RoomRole = m.role === "owner" ? "owner" : "member";
+  const exp = nowSeconds + TICKET_TTL_SECONDS;
+  const ticket = await signTicket({ b: roomId, sub: String(identity.userId), role, exp }, secret);
+  return { ticket, role, relayRoom: roomId, expiresAt: new Date(exp * 1000).toISOString() };
 }
 
 export async function getRoom(identity: Identity, roomId: string, db: Db = getDb()): Promise<RoomDto> {

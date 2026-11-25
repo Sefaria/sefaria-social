@@ -27,7 +27,7 @@ export type RecordingFailure = "upload" | "unavailable" | "already-recording" | 
 export type RecordingView =
   | { kind: "idle" }
   | { kind: "starting"; roomId: string }
-  | { kind: "recording"; roomId: string; since: number }
+  | { kind: "recording"; roomId: string; since: number; paused?: true }
   | { kind: "stopping"; roomId: string }
   | { kind: "failed"; roomId: string; reason: RecordingFailure };
 
@@ -36,6 +36,11 @@ export interface RecordingController {
   subscribe(cb: () => void): () => void;
   start(roomId: string): Promise<void>;
   stop(): Promise<void>;
+  /** Spec 050 AC-001: pause the recording (the paused time is cut); resume goes on in the same recording. */
+  pause(): void;
+  resume(): void;
+  /** The recorded time so far in ms, paused time left out; 0 when not recording. */
+  elapsed(): number;
   /** Clear a failure (the owner read it). */
   dismiss(): void;
   dispose(): void;
@@ -203,6 +208,22 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
       report("recording.stop", { durationS: Math.round(recorder.elapsed() / 1000) });
       set({ kind: "idle" });
     },
+
+    pause() {
+      if (view.kind !== "recording" || view.paused || !active?.recorder.pause) return;
+      active.recorder.pause();
+      set({ kind: "recording", roomId: view.roomId, since: view.since, paused: true });
+      report("recording.pause");
+    },
+
+    resume() {
+      if (view.kind !== "recording" || !view.paused || !active?.recorder.resume) return;
+      active.recorder.resume();
+      set({ kind: "recording", roomId: view.roomId, since: view.since });
+      report("recording.resume");
+    },
+
+    elapsed: () => (view.kind === "recording" || view.kind === "stopping" ? (active?.recorder.elapsed() ?? 0) : 0),
 
     dismiss() {
       if (view.kind === "failed") set({ kind: "idle" });

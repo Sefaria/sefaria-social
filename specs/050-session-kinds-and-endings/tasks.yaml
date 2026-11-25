@@ -1,0 +1,55 @@
+- id: T-001
+  title: The room ends for everyone, starts again for its owner, and ends after the owner is gone 2 minutes
+  acs: [AC-004, AC-005]
+  files:
+    - "packages/session/src/room.ts"
+    - "packages/session/src/room.test.ts"
+    - "packages/session/README.md"
+  depends_on: []
+  parallel: false
+  completes: []
+  verify: ["npm test -- packages/session/src/room.test.ts", "npm run typecheck"]
+- id: T-002
+  title: Record on and off with pause and resume on one clock
+  acs: [AC-001]
+  files:
+    - "app/src/features/recording/recorder.ts"
+    - "app/src/features/recording/recorder.test.ts"
+    - "app/src/features/recording/recording-controller.ts"
+    - "app/src/features/recording/recording-controller.test.ts"
+    - "app/src/features/recording/RecordButton.tsx"
+    - "app/src/features/recording/use-recording.ts"
+    - "app/src/features/recording/recording.module.css"
+    - "app/src/features/session/FollowBar.tsx"
+    - "app/src/features/session/room-window.module.css"
+    - "app/src/features/shell/strings.ts"
+    - "e2e/session-endings.spec.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [SESS-074]
+  verify: ["npm test -- app/src/features/recording", "npm run typecheck"]
+- id: T-003
+  title: Close, Finish, End and Leave, the closed notice, and the kind chosen at Start
+  acs: [AC-002, AC-003, AC-006, AC-007]
+  files:
+    - "app/src/features/session/controller.ts"
+    - "app/src/features/session/FollowBar.tsx"
+    - "app/src/features/session/room-window.module.css"
+    - "app/src/features/session/session-kind.ts"
+    - "app/src/surface/endings.test.tsx"
+    - "app/src/features/session/test-relay.ts"
+    - "app/src/features/rooms/StartRoom.tsx"
+    - "app/src/features/rooms/rooms.module.css"
+    - "app/src/features/rooms/rooms.test.tsx"
+    - "app/src/features/room/enter.ts"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/persistent.tsx"
+    - "e2e/room-flows.spec.ts"
+    - "e2e/session-endings.spec.ts"
+    - "app/src/features/room/close.ts"
+    - "app/src/features/session/sessions.ts"
+    - "app/src/features/session/sessions.test.ts"
+  depends_on: [T-002]
+  parallel: false
+  completes: [SESS-075, ROOM-054]
+  verify: ["npm test -- app/src/features/session app/src/features/rooms", "npm run typecheck"]

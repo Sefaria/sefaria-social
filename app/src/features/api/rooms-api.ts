@@ -47,7 +47,12 @@ export interface RoomsApi {
   remove?(roomId: string): Promise<void>;
   /** Spec 044: leave a room (not its owner). */
   leave?(roomId: string): Promise<void>;
+  /** Spec 048: a relay ticket naming the caller's role in the room; null when there is none to have (not a member, no relay). */
+  ticket?(roomId: string): Promise<RoomTicket | null>;
 }
+
+/** A relay ticket for an ordinary room (spec 048). A bearer credential: kept in memory, never stored, logged or put in a URL. */
+export type RoomTicket = { ticket: string; role: "owner" | "member"; expiresAt: string };
 
 /** The API's error for anything other than the statuses a caller handles. */
 export class RoomsApiError extends Error {
@@ -120,6 +125,12 @@ export function createRoomsApi(host: SurfaceHost): RoomsApi {
     async leave(roomId) {
       const { response } = await client.DELETE("/api/v1/rooms/{roomId}/members/me", { params: { path: { roomId } } });
       if (response.status !== 204) throw new RoomsApiError(response.status);
+    },
+    async ticket(roomId) {
+      const { data, response } = await client.POST("/api/v1/rooms/{roomId}/ticket", { params: { path: { roomId } } });
+      if (data) return { ticket: data.ticket, role: data.role, expiresAt: data.expiresAt };
+      if (response.status === 404 || response.status === 400 || response.status === 503) return null;
+      throw new RoomsApiError(response.status);
     },
     async join(roomId) {
       const { data, response } = await client.POST("/api/v1/rooms/{roomId}/members", { params: { path: { roomId } } });

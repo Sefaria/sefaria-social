@@ -16,6 +16,7 @@ import { loadLiveKit } from "./load-livekit";
 import { INITIAL_CALL, callRoom, transition, type CallEvent, type CallView, type DeviceChoice } from "./machine";
 import { MediaPermissionError, type CallMedia, type DeviceList, type LoadEngine, type MediaEngine, type Preview } from "./media";
 import { documentHostFor } from "~/features/host/document-host";
+import { rememberChoice, type CallChoice } from "./device-memory";
 
 /** How long a lost call keeps trying before it ends with Rejoin (AC-011). */
 export const RECONNECT_GIVE_UP_MS = 30_000;
@@ -70,6 +71,11 @@ export interface CallController {
   moderate(action: "mute" | "remove", participant: string, source?: "microphone" | "camera" | "screen_share"): Promise<void>;
   /** Opens the pre-join step for a room's call, or (with `source`) another call such as a broadcast's. */
   open(roomId: string, source?: CallSource): Promise<void>;
+  /**
+   * Spec 049: straight into a room's call with this microphone and camera, without the pre-join step (entering a room joins its
+   * call). Leaves any other call first; nothing happens if the viewer is already in (or joining) this room's call.
+   */
+  enter(roomId: string, choice: CallChoice): Promise<void>;
   /** Joins `key`'s call view only, straight through the pre-join step with every device off (a broadcast's viewer). */
   joinWith(key: string, source: CallSource): Promise<void>;
   mode(): CallMode;
@@ -391,6 +397,17 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
       await joined(roomId, devices);
     },
 
+    async enter(roomId, choice) {
+      if (callRoom(view) === roomId && view.kind !== "ended" && view.kind !== "prejoin") return;
+      if (view.kind === "ended") step({ type: "dismiss" });
+      else if (view.kind === "prejoin") controller.cancel();
+      else if (view.kind !== "off") await controller.leave();
+      sources.delete(roomId);
+      const devices: DeviceChoice = { ...ALL_OFF, mic: choice.mic, camera: choice.camera };
+      if (!step({ type: "open", roomId }) || !step({ type: "choose", devices }) || !step({ type: "join" })) return;
+      await joined(roomId, devices);
+    },
+
     async joinWith(key, source) {
       if (callRoom(view) === key && view.kind !== "ended") return;
       if (view.kind === "ended") step({ type: "dismiss" });
@@ -428,6 +445,7 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
       if (view.kind === "in-call" && media) {
         const self = media.participants().find((p) => p.local);
         step({ type: "toggle", mic: self?.mic ?? on });
+        if (role === "owner") rememberChoice({ mic: self?.mic ?? on }); // spec 049 AC-006
       }
     },
     async setCamera(on) {
@@ -436,6 +454,7 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
       if (view.kind === "in-call" && media) {
         const self = media.participants().find((p) => p.local);
         step({ type: "toggle", camera: self?.camera ?? on });
+        if (role === "owner") rememberChoice({ camera: self?.camera ?? on }); // spec 049 AC-006
       }
     },
     async setScreen(on) {

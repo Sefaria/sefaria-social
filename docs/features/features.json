@@ -1848,6 +1848,82 @@
       "changed": []
     },
     {
+      "id": "ROOM-052",
+      "area": "room",
+      "name": "Start a room and land in it, in its call",
+      "description": "Naming a room and pressing Start takes the starter straight into the room's reader context (the library from a Social page) and its call with their last microphone and camera choice; no lobby, Enter or pre-join step.",
+      "status": "built",
+      "spec": "049",
+      "acs": [
+        "049/AC-001"
+      ],
+      "surfaces": [
+        "rooms",
+        "room-lobby",
+        "call",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/rooms/rooms.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-053",
+      "area": "room",
+      "name": "One Join takes an invitee into the room and its call",
+      "description": "An invitee's one Join makes them a member, takes them to the leader's place and into the call with microphone and camera off; signed out, it carries on after sign-in; Enter the room also joins the call; without calls nothing else changes.",
+      "status": "built",
+      "spec": "049",
+      "acs": [
+        "049/AC-002",
+        "049/AC-003",
+        "049/AC-004",
+        "049/AC-005"
+      ],
+      "surfaces": [
+        "rooms",
+        "room-lobby",
+        "call",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/room/RoomLobbyPage.test.tsx",
+        "e2e/room-flows.spec.ts",
+        "e2e/rooms.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-054",
+      "area": "room",
+      "name": "Choose at Start what the session is and whether to record it",
+      "description": "The start dialog offers a room, a broadcast or just me, and Record this session (on by default for a broadcast and for just me); Start begins the session that way.",
+      "status": "built",
+      "spec": "050",
+      "acs": [
+        "050/AC-006"
+      ],
+      "surfaces": [
+        "session",
+        "recording",
+        "rooms",
+        "broadcast"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/rooms/rooms.test.tsx",
+        "e2e/session-endings.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SESS-001",
       "area": "sess",
       "name": "Social context in the reader's ctx parameter",
@@ -2500,6 +2576,162 @@
       "depends_on": {},
       "tests": [
         "app/src/surface/call-design.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-070",
+      "area": "sess",
+      "name": "Sticky following: break away only by a clear move",
+      "description": "Input alone never pauses a follower: once the reader is still for 400 ms its place is compared with the followed person's, and only another book or section, or 5 or more segments away, sets them on their own.",
+      "status": "built",
+      "spec": "048",
+      "acs": [
+        "048/AC-001",
+        "048/AC-002",
+        "048/AC-003"
+      ],
+      "surfaces": [
+        "session",
+        "presence",
+        "call",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "packages/session/src/client.test.ts",
+        "app/src/features/session/place.test.ts",
+        "e2e/room-window.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-071",
+      "area": "sess",
+      "name": "The room's owner is its one leader",
+      "description": "The server signs a room relay ticket naming the caller as owner or member; the relay makes only an owner ticket a host who may lead, so members cannot take the spotlight, and the room window offers no Lead button.",
+      "status": "built",
+      "spec": "048",
+      "acs": [
+        "048/AC-004",
+        "048/AC-005",
+        "048/AC-006"
+      ],
+      "surfaces": [
+        "session",
+        "presence",
+        "call",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.room-tickets.int.test.ts",
+        "packages/relay/src/relay.test.ts",
+        "app/src/features/session/room-window.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-072",
+      "area": "sess",
+      "name": "Follow a person by clicking them; the leader takes followers along",
+      "description": "Clicking a person in who is here or on their call tile follows them, clicking again returns to the leader, a leader who follows someone gets Lead again, and moves the leader takes from someone they follow reach the leader's followers.",
+      "status": "built",
+      "spec": "048",
+      "acs": [
+        "048/AC-007",
+        "048/AC-008"
+      ],
+      "surfaces": [
+        "session",
+        "presence",
+        "call",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/room-following.test.tsx",
+        "app/src/features/av/Tiles.test.tsx",
+        "packages/session/src/client.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-073",
+      "area": "sess",
+      "name": "Entering a room joins its call; the owner's choice is remembered",
+      "description": "The call controller enters a room's call straight through the pre-join step; the room owner's microphone and camera choices are kept in this browser for the next room (first time: microphone on, camera off); invitees start with both off.",
+      "status": "built",
+      "spec": "049",
+      "acs": [
+        "049/AC-006"
+      ],
+      "surfaces": [
+        "rooms",
+        "room-lobby",
+        "call",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/av/call-controller.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-074",
+      "area": "sess",
+      "name": "Record on and off during a session, on one clock",
+      "description": "The room's owner, while leading, has one Record control in the room window: Record, then Pause recording and Resume recording any number of times; the MediaRecorder and the state track pause together, so the recording's length is the recorded time.",
+      "status": "built",
+      "spec": "050",
+      "acs": [
+        "050/AC-001"
+      ],
+      "surfaces": [
+        "session",
+        "recording",
+        "rooms",
+        "broadcast"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/recording/recorder.test.ts",
+        "e2e/session-endings.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-075",
+      "area": "sess",
+      "name": "Close, Finish and Leave, and the closed room",
+      "description": "The owner ends the session for everyone (Close room, End broadcast or Finish and save, with a confirmation), which finishes a recording and ends a broadcast; everyone is taken out and told the room was closed; anyone else Leaves alone. A closed room starts again for its owner, and a session ends 2 minutes after its owner is gone.",
+      "status": "built",
+      "spec": "050",
+      "acs": [
+        "050/AC-002",
+        "050/AC-003",
+        "050/AC-004",
+        "050/AC-005",
+        "050/AC-007"
+      ],
+      "surfaces": [
+        "session",
+        "recording",
+        "rooms",
+        "broadcast"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/endings.test.tsx",
+        "packages/session/src/room.test.ts",
+        "e2e/session-endings.spec.ts"
       ],
       "since": null,
       "changed": []

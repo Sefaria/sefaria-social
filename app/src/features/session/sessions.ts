@@ -11,8 +11,10 @@ import {
 } from "@sefaria-social/session";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
 import { pageTextSource } from "~/lib/sefaria-text";
+import { drifted } from "./place";
 import { roomReader, type RoomReader } from "./room-reader";
 import { documentHostFor } from "~/features/host/document-host";
+import { roomsApiFor, type RoomTicket } from "~/features/api/rooms-api";
 
 export const RELAY_SUBPROTOCOL = "sefaria-social.v1";
 /** "prefetch": a press on a feed card prepares the room before the click lands (spec 017 AC-004). "call": the viewer is in
@@ -71,9 +73,13 @@ export type TransportFactory = (url: string, protocols: () => Promise<string[]>)
 const defaultTransport: TransportFactory = (url, protocols) => createWebSocketTransport<AnyEnvelope>(url, { protocols });
 
 const CLOSED: SessionPolicy = { isOpen: () => false, canPublish: () => false };
+/** A held room ticket is replaced when it has less than this left (it is checked only when a socket connects). */
+const TICKET_MARGIN_MS = 60_000;
 
 export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFactory = defaultTransport): RoomSessions {
-  const sessions = new Map<string, RoomSession & { holds: Set<Hold>; counts: Map<Hold, number> }>();
+  /** `next`: the session that replaced this ended one (spec 050); holds taken on this one count on it. */
+  type Entry = RoomSession & { holds: Set<Hold>; counts: Map<Hold, number>; next?: Entry };
+  const sessions = new Map<string, Entry>();
   const listeners = new Set<() => void>();
   let policy = CLOSED;
   const emit = () => [...listeners].forEach((cb) => cb());
@@ -82,18 +88,19 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
     const viewer = host.viewer.get();
     // Signed out, or a reader with no relay configured (it sends relayOrigin ""): no socket, the same as signed out.
     if (!viewer || !host.config.relayOrigin) return null;
+    const extra = opts.extraProtocols ?? roomTickets(roomId);
     const transport = makeTransport(relayUrl(host.config.relayOrigin, roomId), async () => [
       RELAY_SUBPROTOCOL,
       `bearer.${await host.viewer.identityToken()}`,
-      ...((await opts.extraProtocols?.()) ?? []),
+      ...(await extra()),
     ]);
     const reader = roomReader(host.reader.state, {
       isOpen: opts.isOpen ?? (() => policy.isOpen(roomId)),
       commands: host.reader.commands,
       titles: pageTextSource(),
     });
-    // The relay replaces id and name with the token's; sending the same values keeps the client's idea of "self" right.
-    // Everyone may lead (the relay cannot see room roles yet; decision 0008).
+    // The relay replaces id and name with the token's; sending the same values keeps the client's idea of "self" right. The
+    // flags are a claim the relay overwrites from the room ticket: only the owner's ticket makes a leader (spec 048 AC-005).
     const self = { id: String(viewer.id), name: viewer.name, ...(opts.role ?? { isHost: true, canLead: true }) };
     const client = createSessionClient({
       api: reader.api,
@@ -101,16 +108,46 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
       self,
       clientName: "sefaria-social",
       canPublish: opts.canPublish ?? (() => policy.canPublish(roomId)),
+      // Spec 048: in a room a follower breaks away only by a clear move, never by a click (features/session/place.ts). A
+      // broadcast's viewer (relay room `b_<id>`) still breaks away on any input, with Back to live (spec 043).
+      ...(roomId.startsWith("b_") ? {} : { drifted }),
     });
     const s = { roomId, client, reader, holds: new Set<Hold>(), counts: new Map<Hold, number>() };
     sessions.set(roomId, s);
     return s;
   }
 
+  /**
+   * The room's relay ticket, offered at every connect (spec 048): asked for again a minute before it expires. Without one (not
+   * a member, the API unreachable) the socket connects without it and the relay makes this person a member.
+   */
+  function roomTickets(roomId: string): () => Promise<string[]> {
+    let held: RoomTicket | null = null;
+    return async () => {
+      if (!held || Date.parse(held.expiresAt) - Date.now() < TICKET_MARGIN_MS) {
+        held = await (roomsApiFor(host).ticket?.(roomId) ?? Promise.resolve(null)).catch(() => null);
+      }
+      return held ? [`ticket.${held.ticket}`] : [];
+    };
+  }
+
   return {
     acquire(roomId, hold, opts) {
-      const s = sessions.get(roomId) ?? open(roomId, opts);
+      // A session that ended (the room was closed, spec 050) is not joined again: a new connection may start a new session.
+      // Holds taken on the ended one move to the new one, so a lobby still open keeps it alive.
+      const old = sessions.get(roomId);
+      let s: Entry | null;
+      if (old && old.client.getState().status === "ended") {
+        sessions.delete(roomId);
+        s = open(roomId, opts);
+        if (s) {
+          for (const [h, n] of old.counts) s.counts.set(h, (s.counts.get(h) ?? 0) + n);
+          for (const h of old.holds) s.holds.add(h);
+          old.next = s;
+        }
+      } else s = old ?? open(roomId, opts);
       if (!s) return () => undefined;
+      const taken = s;
       s.counts.set(hold, (s.counts.get(hold) ?? 0) + 1);
       s.holds.add(hold);
       emit();
@@ -118,6 +155,8 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
       return () => {
         if (released) return;
         released = true;
+        let s = taken;
+        while (s.next) s = s.next;
         const n = (s.counts.get(hold) ?? 1) - 1;
         if (n > 0) s.counts.set(hold, n);
         else {

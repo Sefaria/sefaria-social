@@ -55,3 +55,58 @@ export function RecordButton({ roomId }: { roomId: string }) {
     </div>
   );
 }
+
+/**
+ * The one Record control of the room window (spec 050 AC-001), for the room's owner while they lead: Record starts recording the
+ * room, then the same control pauses and resumes it, any number of times; the time shown leaves the paused stretches out. The
+ * recording is finished by the session's ending (Finish and save, Close room) or Stop recording in the lobby.
+ */
+export function RecordToggle({ roomId }: { roomId: string }) {
+  const t = useStrings();
+  const controller = useRecordingController();
+  const view = useRecordingView(controller);
+  const [, tick] = useState(0);
+  const running = view.kind === "recording" && !view.paused;
+  useEffect(() => {
+    if (!running) return;
+    const timer = setInterval(() => tick((n) => n + 1), 1000);
+    return () => clearInterval(timer);
+  }, [running]);
+  if (!controller) return null;
+  if (view.kind !== "idle" && view.kind !== "failed" && view.roomId !== roomId) return null;
+  const busy = view.kind === "starting" || view.kind === "stopping";
+  const state = view.kind === "recording" ? (view.paused ? "paused" : "recording") : view.kind;
+  const press = () => {
+    if (view.kind === "recording") return view.paused ? controller.resume() : controller.pause();
+    if (view.kind === "idle" || view.kind === "failed") void controller.start(roomId);
+  };
+  const label =
+    view.kind === "recording"
+      ? view.paused
+        ? t.resumeRecording
+        : t.pauseRecording
+      : view.kind === "starting"
+        ? t.startingRecording
+        : view.kind === "stopping"
+          ? t.stoppingRecording
+          : t.record;
+  return (
+    <div className={styles.record} data-record-toggle={state}>
+      <button
+        type="button"
+        data-action="record-toggle"
+        aria-pressed={view.kind === "recording" && !view.paused}
+        disabled={busy}
+        onClick={press}
+      >
+        {label}
+      </button>
+      {view.kind === "recording" && <span data-recording-elapsed="">{t.recordingElapsed(clock(controller.elapsed()))}</span>}
+      {view.kind === "failed" && view.roomId === roomId && (
+        <p role="alert" data-recording-error={view.reason} className={styles.error}>
+          {view.reason === "upload" ? t.recordingUploadFailed : t.recordingUnavailable}
+        </p>
+      )}
+    </div>
+  );
+}

@@ -1,6 +1,6 @@
 # 0008. Joining by link, everyone may lead, and publishing only from inside the room
 
-- Status: proposed
+- Status: superseded by 0012 (leading); the rest stands
 - Date: 2026-11-23
 - Deciders: milestone P3 worker; a human owner confirms by approving the PR
 

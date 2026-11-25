@@ -69,6 +69,32 @@ async function inRoom() {
   return { relay, leader, other, leaderMoves, otherMoves, fake, controller, view, button, click };
 }
 
+describe("following a person by clicking them (spec 048)", () => {
+  // @feature SESS-072 Follow a person by clicking them; the leader takes followers along
+  // @ac 048/AC-007
+  it("follows the person clicked, returns to the leader on a second click, and offers the leader Lead again", async () => {
+    const { leader, button, click, view } = await inRoom();
+    const line = () => view.el.querySelector("[data-follow-line]")?.textContent;
+    await click(button("follow", "6161"));
+    await vi.waitFor(() => expect(line()).toBe("Following Other"));
+    await click(button("follow", "6161"));
+    await vi.waitFor(() => expect(line()).toBe("Following Leader"));
+    await click(button("follow", "6161"));
+    await vi.waitFor(() => expect(line()).toBe("Following Other"));
+    await click(button("follow", "5151"));
+    await vi.waitFor(() => expect(line()).toBe("Following Leader"));
+
+    // The leader hands the viewer the spotlight; the viewer follows Other, and Lead again brings them back to leading.
+    leader.send({ ch: "control", body: { type: "spotlight", to: "4242" } });
+    await vi.waitFor(() => expect(line()).toBe("You are leading"));
+    expect(button("lead-again")).toBeNull();
+    await click(button("follow", "6161"));
+    await vi.waitFor(() => expect(line()).toBe("Following Other"));
+    await click(button("lead-again"));
+    await vi.waitFor(() => expect(line()).toBe("You are leading"));
+  });
+});
+
 describe("following", () => {
   // @feature SESS-014 Follow, follow again and lead
   // @ac 014/AC-001
@@ -89,10 +115,11 @@ describe("following", () => {
   });
 
   // @feature SESS-014 Follow, follow again and lead
-  // @ac 014/AC-002
+  // Spec 048 replaced 014/AC-002's "any input pauses": the viewer now has to move clearly away (proof: @ac 048/AC-001..003).
   it("stops applying when the viewer moves themselves, offers Follow again, and catches up at once when pressed", async () => {
     const { fake, leaderMoves, controller, button, click, view } = await inRoom();
-    fake.localInput(); // the person scrolls the reader
+    fake.localInput(); // the person goes to another book in the reader
+    fake.localMove("/Exodus.20");
     await vi.waitFor(() => expect(controller.view().kind).toBe("detached"));
     const applied = fake.calls.applied.length;
     leaderMoves("/Genesis.9");
@@ -105,10 +132,10 @@ describe("following", () => {
   });
 
   // @feature SESS-014 Follow, follow again and lead
-  // @ac 014/AC-003
-  it("takes the lead on Lead, and then the viewer's own moves reach those who follow (without ctx)", async () => {
-    const { fake, relay, leader, button, click, view } = await inRoom();
-    await click(button("lead"));
+  // Spec 048 removed Lead (014/AC-003's way in): the room's owner hands the spotlight here; the moves still reach followers.
+  it("once the viewer holds the spotlight, their own moves reach those who follow (without ctx)", async () => {
+    const { fake, relay, leader, view } = await inRoom();
+    leader.send({ ch: "control", body: { type: "spotlight", to: "4242" } });
     await vi.waitFor(() => expect(relay.room(ID).snapshot().spotlight).toBe("4242"));
     await vi.waitFor(() => expect(view.el.querySelector("[data-follow-line]")?.textContent).toBe("You are leading"));
     fake.localMove("/Leviticus.1");

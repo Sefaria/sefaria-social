@@ -6,6 +6,7 @@ import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import { createHmac } from "node:crypto";
 import { exportJWK, generateKeyPair, SignJWT, type CryptoKey as JoseKey } from "jose";
 import { convertV4MiniflareOptions, Miniflare } from "miniflare";
 
@@ -100,14 +101,45 @@ export interface Peer {
   send(envelope: unknown): void;
 }
 
+/** An owner ticket for `room` and `sub`, signed as the social server signs it (spec 048). */
+export function ownerTicket(room: string, sub: string, expSeconds = 600): string {
+  const exp = Math.floor(Date.now() / 1000) + expSeconds;
+  const body = Buffer.from(JSON.stringify({ b: room, sub, role: "owner", exp })).toString("base64url");
+  return `${body}.${createHmac("sha256", SECRET).update(body, "ascii").digest("base64url")}`;
+}
+
+/** The `sub` of the bearer token among the protocols, read without verifying (the relay verifies). */
+function subOf(protocols: string[]): string | null {
+  const token = protocols.find((p) => p.startsWith("bearer."))?.slice("bearer.".length);
+  const payload = token?.split(".")[1];
+  if (!payload) return null;
+  try {
+    const sub = (JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { sub?: unknown }).sub;
+    return typeof sub === "string" ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Opens a socket to `roomPath`. In an ordinary room only an owner ticket makes a leader (spec 048); tests written before that
+ * joined as leaders, so a connection with a bearer token and no ticket offers an owner ticket for the token's user, the way
+ * a room's owner connects. `owner: false` connects without one (a member).
+ */
 export async function connect(
   mf: Miniflare,
   roomPath: string,
-  opts: { origin?: string | null; protocols?: string[] } = {},
+  opts: { origin?: string | null; protocols?: string[]; owner?: boolean } = {},
 ): Promise<Peer> {
   const headers: Record<string, string> = { Upgrade: "websocket" };
   if (opts.origin !== null) headers.Origin = opts.origin ?? ORIGIN;
-  if (opts.protocols) headers["Sec-WebSocket-Protocol"] = opts.protocols.join(", ");
+  let protocols = opts.protocols;
+  const room = /^\/r\/([^/]+)$/.exec(roomPath)?.[1];
+  if (protocols && room && !room.startsWith("b_") && opts.owner !== false && !protocols.some((p) => p.startsWith("ticket."))) {
+    const sub = subOf(protocols);
+    if (sub) protocols = [...protocols, `ticket.${ownerTicket(decodeURIComponent(room), sub)}`];
+  }
+  if (protocols) headers["Sec-WebSocket-Protocol"] = protocols.join(", ");
   const res = await mf.dispatchFetch(`http://relay.test${roomPath}`, { headers });
   const peer: Peer = {
     status: res.status,
@@ -134,11 +166,15 @@ export const join = (id: string, name = "claimed") => ({
   body: { type: "join", participant: { id, name, isHost: true, canLead: true } },
 });
 
-/** The last participants list a peer received. */
+/**
+ * The last participants list a peer received, ordered by id. The room lists people in the order their joins arrived, and joins
+ * sent from two sockets one after the other may arrive either way round; ordering here keeps the tests about who, not when.
+ */
 export function lastParticipants(peer: Peer): { id: string; name?: string }[] | undefined {
   const lists = peer.received.filter(
     (m): m is { ch: "presence"; body: { type: "participants"; participants: { id: string; name?: string }[] } } =>
       typeof m === "object" && m !== null && (m as { ch?: string }).ch === "presence",
   );
-  return lists.at(-1)?.body.participants;
+  const last = lists.at(-1)?.body.participants;
+  return last ? [...last].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) : undefined;
 }

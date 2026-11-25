@@ -4,11 +4,11 @@
  * the participants list it receives names the host only (viewers do not see each other). Pure, so they test without workerd.
  */
 import { LIMITS_FOR_RELAY, type Outgoing } from "./room";
-import type { BroadcastRole } from "./ticket";
+import type { TicketRole } from "./ticket";
 
 export const BROADCAST_ROOM_PREFIX = "b_";
 
-/** The broadcast role crosses from the Worker to the room object in this header; the Worker always sets or removes it. */
+/** The role crosses from the Worker to the room object in this header; the Worker always sets it. */
 export const ROLE_HEADER = "X-Relay-Role";
 
 export const isBroadcastRoom = (roomId: string): boolean => roomId.startsWith(BROADCAST_ROOM_PREFIX);
@@ -33,12 +33,15 @@ export function admitFromViewer(text: string): string | null {
   return VIEWER_ALLOWED.has(`${v.ch}.${v.body.type}`) ? text : null;
 }
 
-/** A `join` gets the role's flags (a host leads, a viewer never does); every other message passes untouched. */
-export function withRole(text: string, role: BroadcastRole): string {
+/**
+ * A `join` gets the role's flags: a broadcast's host and a room's owner lead; a viewer and a room's member never do (spec 048
+ * AC-005, whatever the client claimed). Every other message passes untouched.
+ */
+export function withRole(text: string, role: TicketRole): string {
   const v = parse(text);
   if (v?.ch !== "control" || v.body?.type !== "join" || typeof v.body.participant !== "object" || v.body.participant === null)
     return text;
-  const isHost = role === "host";
+  const isHost = role === "host" || role === "owner";
   v.body.participant = { ...(v.body.participant as object), isHost, canLead: isHost };
   return JSON.stringify(v);
 }

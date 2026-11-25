@@ -72,7 +72,16 @@ export function tileOrder(participants: CallParticipant[]): CallParticipant[] {
  * speaking ring; screen shares get their own tile. Audio plays through the engine's hidden elements, not here. The window's
  * size decides how many tiles show (spec 035); only participants with a tile receive video (AC-011), and audio is untouched.
  */
-export function Tiles({ controller, participants }: { controller: CallController; participants: CallParticipant[] }) {
+export function Tiles({
+  controller,
+  participants,
+  onPick,
+}: {
+  controller: CallController;
+  participants: CallParticipant[];
+  /** Spec 048 AC-007: the viewer clicked another person's tile (to follow them in the room). */
+  onPick?: (participantId: string) => void;
+}) {
   const t = useStrings();
   const size = useCallWindowSize();
   const ordered = size === "strip" ? speakerFirst(participants) : tileOrder(participants);
@@ -109,6 +118,16 @@ export function Tiles({ controller, participants }: { controller: CallController
             <span className={styles.initials} aria-hidden="true" data-initials="">
               {initialsOf(p.name || t.someone)}
             </span>
+          )}
+          {onPick && !p.local && (
+            <button
+              type="button"
+              className={styles.tilePick}
+              data-action="follow-tile"
+              aria-label={t.followName(p.name || t.someone)}
+              title={t.followName(p.name || t.someone)}
+              onClick={() => onPick(p.id)}
+            />
           )}
           <span className={styles.name}>
             {!p.mic && (

@@ -1,0 +1,28 @@
+- id: T-001
+  title: The call controller enters a room's call directly, with a remembered choice
+  acs: [AC-006]
+  files:
+    - "app/src/features/av/call-controller.ts"
+    - "app/src/features/av/call-controller.test.ts"
+    - "app/src/features/av/device-memory.ts"
+  depends_on: []
+  parallel: false
+  completes: [SESS-073]
+  verify: ["npm test -- app/src/features/av", "npm run typecheck"]
+- id: T-002
+  title: Start, Join and Enter take one press into the room and its call
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "app/src/features/room/enter.ts"
+    - "app/src/features/room/RoomLobbyPage.tsx"
+    - "app/src/features/room/RoomLobbyPage.test.tsx"
+    - "app/src/features/rooms/StartRoom.tsx"
+    - "app/src/features/rooms/rooms.test.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "e2e/room-flows.spec.ts"
+    - "e2e/calls.spec.ts"
+    - "e2e/rooms.spec.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [ROOM-052, ROOM-053]
+  verify: ["npm test -- app/src/features/room app/src/features/rooms", "npm run typecheck"]

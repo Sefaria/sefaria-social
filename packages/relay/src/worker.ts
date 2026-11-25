@@ -17,7 +17,7 @@ import {
 } from "./internal";
 import { SUBPROTOCOL, identityFrom, identityHeaders, tokenFromProtocols, verifyToken, type Identity } from "./auth";
 import { ROLE_HEADER, admitFromViewer, forViewer, isBroadcastRoom, withRole } from "./broadcast";
-import { ticketFromProtocols, verifyTicket, type BroadcastRole } from "./ticket";
+import { ticketFromProtocols, verifyTicket, type TicketRole } from "./ticket";
 
 export interface Env {
   ROOMS: DurableObjectNamespace<Room>;
@@ -71,18 +71,28 @@ export default {
     if (!identity) return new Response("unauthorized", { status: 401 });
     if (await tombstones(env).isDropped(identity.userId)) return new Response("unauthorized", { status: 401 });
     const roomId = match[1]!;
-    let role: BroadcastRole | null = null;
+    const raw = ticketFromProtocols(req.headers.get("Sec-WebSocket-Protocol"));
+    const ticket = raw ? await verifyTicket(raw, env.RELAY_INTERNAL_SECRET, Math.floor(Date.now() / 1000)) : null;
+    const mine = ticket !== null && ticket.sub === identity.userId;
+    let role: TicketRole;
     if (isBroadcastRoom(roomId)) {
       // A broadcast room also needs the server's ticket for this broadcast and this user (spec 043 AC-003).
-      const raw = ticketFromProtocols(req.headers.get("Sec-WebSocket-Protocol"));
-      const ticket = raw ? await verifyTicket(raw, env.RELAY_INTERNAL_SECRET, Math.floor(Date.now() / 1000)) : null;
-      if (!ticket || ticket.b !== roomId.slice(2) || ticket.sub !== identity.userId)
+      if (!mine || ticket.b !== roomId.slice(2) || (ticket.role !== "host" && ticket.role !== "viewer"))
         return new Response("unauthorized", { status: 401 });
       role = ticket.role;
+    } else {
+      // An ordinary room admits whoever holds its id (decision 0008), but only the owner's ticket for this room and this user
+      // makes a leader (spec 048 AC-005); anything else joins as a member.
+      role = mine && ticket.b === roomId && ticket.role === "owner" ? "owner" : "member";
     }
     return forwardToRoom(env, roomId, req, identity, role);
   },
 } satisfies ExportedHandler<Env>;
+
+/** The role the Worker put in the header; the object never trusts anything else, and a missing one is a member's. */
+function roleFrom(header: string | null): TicketRole {
+  return header === "host" || header === "viewer" || header === "owner" ? header : "member";
+}
 
 const tombstones = (env: Env) => env.TOMBSTONES.get(env.TOMBSTONES.idFromName("global"));
 const json = (body: unknown, status = 200) =>
@@ -108,20 +118,13 @@ async function internal(req: Request, url: URL, env: Env): Promise<Response> {
 }
 
 /**
- * Hands the upgrade to the room's object with the verified identity and broadcast role in internal headers (overwriting any the
- * client sent; an ordinary room gets no role).
+ * Hands the upgrade to the room's object with the verified identity and role in internal headers (overwriting any the client
+ * sent).
  */
-function forwardToRoom(
-  env: Env,
-  roomId: string,
-  req: Request,
-  identity: Identity,
-  role: BroadcastRole | null,
-): Promise<Response> {
+function forwardToRoom(env: Env, roomId: string, req: Request, identity: Identity, role: TicketRole): Promise<Response> {
   const headers = new Headers(req.headers);
   for (const [k, v] of Object.entries(identityHeaders(identity))) headers.set(k, v);
-  if (role) headers.set(ROLE_HEADER, role);
-  else headers.delete(ROLE_HEADER);
+  headers.set(ROLE_HEADER, role);
   return env.ROOMS.get(env.ROOMS.idFromName(roomId)).fetch(new Request(req.url, { headers }));
 }
 
@@ -134,8 +137,8 @@ export class Room extends DurableObject<Env> {
 
   /** Which user each connection is (from the verified token). */
   private users = new Map<string, Identity>();
-  /** Each connection's broadcast role (from the verified ticket); none in an ordinary room. */
-  private roles = new Map<string, BroadcastRole>();
+  /** Each connection's role (from the verified ticket, or `member` in an ordinary room without an owner ticket). */
+  private roles = new Map<string, TicketRole>();
 
   override async fetch(req: Request): Promise<Response> {
     const identity = identityFrom(req.headers);
@@ -145,9 +148,8 @@ export class Room extends DurableObject<Env> {
     const conn = `ws-${this.nextConn++}`;
     this.sockets.set(conn, server);
     this.users.set(conn, identity);
-    const roleHeader = req.headers.get(ROLE_HEADER);
-    const role: BroadcastRole | null = roleHeader === "host" || roleHeader === "viewer" ? roleHeader : null;
-    if (role) this.roles.set(conn, role);
+    const role = roleFrom(req.headers.get(ROLE_HEADER));
+    this.roles.set(conn, role);
     this.room.connect(conn);
     this.ticker ??= setInterval(() => this.deliver(this.room.tick()), 1000);
 
@@ -157,7 +159,7 @@ export class Room extends DurableObject<Env> {
       const text = role === "viewer" ? admitFromViewer(e.data) : e.data;
       if (text === null) return;
       const named = withIdentity(text, identity);
-      this.deliver(this.room.handle(conn, role ? withRole(named, role) : named));
+      this.deliver(this.room.handle(conn, withRole(named, role)));
     });
     const gone = () => this.gone(conn);
     server.addEventListener("close", gone);

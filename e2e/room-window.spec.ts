@@ -39,6 +39,7 @@ test.describe("the room stays with you", () => {
 
   // @feature SESS-067 Stay in the room while reading around the reader
   // @feature SESS-068 The room window in the reader: a card with the room, its status and who is here
+  // @feature SESS-070 Sticky following: break away only by a clear move
   test("following a reader link keeps the leader and the follower in the room, in its window", async ({ browser }) => {
     test.setTimeout(90_000);
     const leader = await learner(browser, LEADER);
@@ -74,6 +75,15 @@ test.describe("the room stays with you", () => {
     await expect(location(leader.page)).toHaveText(`/Genesis.1?${ctx}`);
     await expect(card.locator("[data-follow-line]")).toHaveText("You are leading");
     await expect(location(follower.page)).toHaveText(`/Genesis.1?${ctx}`, { timeout: 15_000 });
+
+    // Spec 048 AC-001 and AC-006: clicks on the room window keep the follower following, and nobody but the owner is offered Lead.
+    const followerCard = follower.page.getByRole("region", { name: "Room: Chumash chavruta" });
+    await expect(followerCard.locator("[data-follow-line]")).toHaveText("Following Window Leader");
+    await followerCard.getByRole("heading", { name: "Chumash chavruta" }).click();
+    await followerCard.locator("[data-follow-line]").click();
+    await follower.page.waitForTimeout(800);
+    await expect(followerCard.locator("[data-follow-line]")).toHaveText("Following Window Leader");
+    await expect(followerCard.locator("button[data-action=lead]")).toHaveCount(0);
 
     // The follower reads around and follows a link: still in the room, on their own; Follow again (AC-002).
     await move(follower.page, "/Exodus.1");

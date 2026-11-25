@@ -27,6 +27,7 @@ export type ErrorCode =
   | "broadcast.forbidden"
   | "broadcast.already_live"
   | "broadcast.unavailable"
+  | "room.relay_unavailable"
   | "post.not_found"
   | "post.forbidden"
   | "reply.not_found"
@@ -63,6 +64,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   "broadcast.forbidden": "Only the broadcast's host can do that.",
   "broadcast.already_live": "This room is already broadcasting.",
   "broadcast.unavailable": "Broadcasts are not available right now.",
+  "room.relay_unavailable": "Following in rooms is not available right now.",
   "post.not_found": "Post not found.",
   "post.forbidden": "Only the post's author can do that.",
   "reply.not_found": "Reply not found.",
