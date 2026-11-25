@@ -3,6 +3,21 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-25 — SESS-069 "The call window looks like a call: tiles, initials, an icon control bar, a real pre-join": built (spec 047).
+- 2026-11-25 — HOST-009 "One call and one room connection for both of the reader's mounts": built (spec 046).
+- 2026-11-25 — ROOM-051 "The lobby says when calls are off": built (spec 045).
+- 2026-11-25 — SESS-068 "The room window in the reader: a card with the room, its status and who is here": built (spec 045).
+- 2026-11-25 — SESS-067 "Stay in the room while reading around the reader": built (spec 045).
+- 2026-11-25 — ROOM-050 "Leave a room you joined": built (spec 044).
+- 2026-11-25 — ROOM-049 "Rename or delete a room you own": built (spec 044).
+- 2026-11-25 — ROOM-048 "Invite people from a room's lobby: its link with Copy and Share": built (spec 044).
+- 2026-11-25 — ROOM-047 "Your rooms at /social/rooms and Rooms in Social's navigation": built (spec 044).
+- 2026-11-25 — ROOM-046 "Start a room from Social and land in its lobby": built (spec 044).
+- 2026-11-25 — SESS-066 "Broadcast a session and watch it as a view-only viewer": built (spec 043).
+- 2026-11-25 — API-050 "Broadcasts API: start, end, relay tickets and view-only call grants": built (spec 043).
+- 2026-11-25 — SESS-064 "Record a room's session (state and call media) in the owner's browser": built (spec 041).
+- 2026-11-25 — API-049 "Recordings API: start, upload, list, read and delete a session recording": built (spec 041).
+- 2026-11-25 — SESS-065 "Replay a recording in the reader with the video in the floating window": built (spec 042).
 - 2026-11-24 — SESS-057 "Call state machine and controller": fixed — a newcomer now hears the people already in the call (the engine listens before connecting; found by CI's two-browser journey) (spec 034).
 - 2026-11-24 — OPS-095 "Two-browser call journey on a local LiveKit": changed — the audio check presses Start audio where the browser blocks autoplay, and reports each audio element on failure (spec 040).
 - 2026-11-24 — SESS-063 "Owner tile menu, and what the muted and removed see": built (spec 039).

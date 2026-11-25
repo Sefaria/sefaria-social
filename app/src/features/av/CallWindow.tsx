@@ -1,7 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useInterfaceLang } from "~/features/host/host-context";
 import { useStrings } from "~/features/shell/use-strings";
+import { RecordingBadge } from "~/features/recording/RecordingBadge";
+import { useCallRecording } from "~/features/recording/use-recording";
 import { useChromeInsets } from "./insets";
+import { useCallController } from "./use-call";
 import {
   area,
   browserStorage,
@@ -34,6 +37,8 @@ const toPhysical = (c: Corner, dir: Dir): Physical => {
 /** The frame's size, for what goes inside it (how many tiles, the pill): a window size, or the phone strip (spec 037). */
 export type FrameSize = SizeName | "strip";
 export const CallWindowSize = createContext<FrameSize>("small");
+/** What a frame holds: the call, or a recording's replay (spec 042). */
+export type FrameOwner = "call" | "replay";
 export const useCallWindowSize = () => useContext(CallWindowSize);
 
 /** The viewport's size, following resizes and rotation. */
@@ -57,7 +62,21 @@ export function useViewport() {
  * resized from the corner away from its anchor; moved by arrow keys and a menu, each move announced; Escape collapses it to
  * the pill. Not a modal: no focus trap. Its place and size are remembered (window-geometry.ts).
  */
-export function CallWindow({ children, pill }: { children: ReactNode; pill: (expand: () => void) => ReactNode }) {
+export function CallWindow({
+  children,
+  pill,
+  prompt,
+  owner = "call",
+  label,
+  title,
+}: {
+  children: ReactNode;
+  pill: (expand: () => void) => ReactNode;
+  prompt?: ReactNode;
+  owner?: FrameOwner;
+  label?: string;
+  title?: string;
+}) {
   const t = useStrings();
   const dir: Dir = useInterfaceLang() === "hebrew" ? "rtl" : "ltr";
   const viewport = useViewport();
@@ -66,6 +85,7 @@ export function CallWindow({ children, pill }: { children: ReactNode; pill: (exp
   const [drag, setDrag] = useState<{ dx: number; dy: number } | null>(null);
   const [menu, setMenu] = useState(false);
   const [status, setStatus] = useState("");
+  const recording = useCallRecording(useCallController());
   const gesture = useRef<{ kind: "move" | "resize"; x: number; y: number; width: number } | null>(null);
 
   const a = area(viewport, insets, dir);
@@ -138,9 +158,10 @@ export function CallWindow({ children, pill }: { children: ReactNode; pill: (exp
     <CallWindowSize.Provider value={placement.size}>
       <section
         data-call-window=""
+        data-window-owner={owner}
         data-size={placement.size}
         data-corner={placement.corner}
-        aria-label={t.callWindow}
+        aria-label={label ?? t.callWindow}
         className={`${styles.window} ${drag ? styles.dragging : ""}`}
         style={{
           left: box.left,
@@ -167,8 +188,9 @@ export function CallWindow({ children, pill }: { children: ReactNode; pill: (exp
               }}
               onKeyDown={onHandleKey}
             >
-              {t.call}
+              {title ?? t.call}
             </button>
+            {owner === "call" && <RecordingBadge on={recording} />}
             <button
               type="button"
               data-action="call-window-menu"
@@ -215,6 +237,7 @@ export function CallWindow({ children, pill }: { children: ReactNode; pill: (exp
             ))}
           </div>
         )}
+        {prompt}
         <div className={styles.body}>{pillMode ? pill(() => setSize("small")) : children}</div>
         {!pillMode && (
           <button

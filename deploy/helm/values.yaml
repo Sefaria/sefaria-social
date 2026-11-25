@@ -99,6 +99,8 @@ configMap:
     # Calls (spec 033): off in production until owner decision D-AV4 (minors and calls) is answered.
     LIVEKIT_URL: wss://sefaria.livekit.cloud # placeholder: the LiveKit project URL for this environment
     CALLS_ENABLED: "false"
+    # Session recordings (spec 041): production opts in after the consent and retention policy (design D-REC1).
+    RECORDINGS_ENABLED: "false"
 
 # Secret values, by name only. The Secret (sefaria-social-secrets) is created by the cluster's secret store.
 secret:
@@ -134,6 +136,8 @@ env:
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: LIVEKIT_URL } }
   - name: CALLS_ENABLED
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: CALLS_ENABLED } }
+  - name: RECORDINGS_ENABLED
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: RECORDINGS_ENABLED } }
   - name: LIVEKIT_API_KEY
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: LIVEKIT_API_KEY } }
   - name: LIVEKIT_API_SECRET

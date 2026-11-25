@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SocialIndexRouteImport } from './routes/social.index'
 import { Route as SocialSplatRouteImport } from './routes/social.$'
 import { Route as SocialNotificationsRouteImport } from './routes/social.notifications'
+import { Route as SocialRoomsRouteImport } from './routes/social.rooms'
 import { Route as SocialSettingsRouteImport } from './routes/social.settings'
 import { Route as ApiV1FeedRouteImport } from './routes/api/v1/feed'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
@@ -21,24 +22,37 @@ import { Route as ApiV1PostsRouteImport } from './routes/api/v1/posts'
 import { Route as ApiV1ProfilesRouteImport } from './routes/api/v1/profiles'
 import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
 import { Route as ApiV1TimelineRouteImport } from './routes/api/v1/timeline'
+import { Route as SocialBBroadcastIdRouteImport } from './routes/social.b.$broadcastId'
 import { Route as SocialPPostIdRouteImport } from './routes/social.p.$postId'
 import { Route as SocialRRoomIdRouteImport } from './routes/social.r.$roomId'
+import { Route as SocialRecRecordingIdRouteImport } from './routes/social.rec.$recordingId'
 import { Route as SocialSShiurIdRouteImport } from './routes/social.s.$shiurId'
 import { Route as SocialUProfileIdRouteImport } from './routes/social.u.$profileId'
+import { Route as ApiV1BroadcastsBroadcastIdRouteImport } from './routes/api/v1/broadcasts.$broadcastId'
 import { Route as ApiV1InternalUserDeletedRouteImport } from './routes/api/v1/internal.user-deleted'
 import { Route as ApiV1NotificationsReadRouteImport } from './routes/api/v1/notifications.read'
 import { Route as ApiV1PostsPostIdRouteImport } from './routes/api/v1/posts.$postId'
 import { Route as ApiV1ProfilesProfileIdRouteImport } from './routes/api/v1/profiles.$profileId'
 import { Route as ApiV1ProfilesMeRouteImport } from './routes/api/v1/profiles.me'
+import { Route as ApiV1RecordingsRecordingIdRouteImport } from './routes/api/v1/recordings.$recordingId'
 import { Route as ApiV1RepliesReplyIdRouteImport } from './routes/api/v1/replies.$replyId'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
+import { Route as ApiV1BroadcastsBroadcastIdEndRouteImport } from './routes/api/v1/broadcasts.$broadcastId.end'
+import { Route as ApiV1BroadcastsBroadcastIdTicketRouteImport } from './routes/api/v1/broadcasts.$broadcastId.ticket'
 import { Route as ApiV1InternalLivekitWebhookRouteImport } from './routes/api/v1/internal.livekit.webhook'
 import { Route as ApiV1PostsPostIdReactionRouteImport } from './routes/api/v1/posts.$postId.reaction'
 import { Route as ApiV1PostsPostIdRepliesRouteImport } from './routes/api/v1/posts.$postId.replies'
 import { Route as ApiV1PostsPostIdRepostRouteImport } from './routes/api/v1/posts.$postId.repost'
 import { Route as ApiV1ProfilesProfileIdFollowRouteImport } from './routes/api/v1/profiles.$profileId.follow'
+import { Route as ApiV1RecordingsRecordingIdFinishRouteImport } from './routes/api/v1/recordings.$recordingId.finish'
+import { Route as ApiV1RecordingsRecordingIdMediaRouteImport } from './routes/api/v1/recordings.$recordingId.media'
+import { Route as ApiV1RecordingsRecordingIdStateRouteImport } from './routes/api/v1/recordings.$recordingId.state'
+import { Route as ApiV1RoomsRoomIdBroadcastsRouteImport } from './routes/api/v1/rooms.$roomId.broadcasts'
 import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/rooms.$roomId.members'
+import { Route as ApiV1RoomsRoomIdRecordingsRouteImport } from './routes/api/v1/rooms.$roomId.recordings'
 import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
+import { Route as ApiV1BroadcastsBroadcastIdCallTokenRouteImport } from './routes/api/v1/broadcasts.$broadcastId.call.token'
+import { Route as ApiV1RecordingsRecordingIdMediaSeqRouteImport } from './routes/api/v1/recordings.$recordingId.media.$seq'
 import { Route as ApiV1RoomsRoomIdCallMuteRouteImport } from './routes/api/v1/rooms.$roomId.call.mute'
 import { Route as ApiV1RoomsRoomIdCallRemoveRouteImport } from './routes/api/v1/rooms.$roomId.call.remove'
 import { Route as ApiV1RoomsRoomIdCallTokenRouteImport } from './routes/api/v1/rooms.$roomId.call.token'
@@ -57,6 +71,11 @@ const SocialSplatRoute = SocialSplatRouteImport.update({
 const SocialNotificationsRoute = SocialNotificationsRouteImport.update({
   id: '/social/notifications',
   path: '/social/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialRoomsRoute = SocialRoomsRouteImport.update({
+  id: '/social/rooms',
+  path: '/social/rooms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialSettingsRoute = SocialSettingsRouteImport.update({
@@ -104,6 +123,11 @@ const ApiV1TimelineRoute = ApiV1TimelineRouteImport.update({
   path: '/api/v1/timeline',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SocialBBroadcastIdRoute = SocialBBroadcastIdRouteImport.update({
+  id: '/social/b/$broadcastId',
+  path: '/social/b/$broadcastId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SocialPPostIdRoute = SocialPPostIdRouteImport.update({
   id: '/social/p/$postId',
   path: '/social/p/$postId',
@@ -112,6 +136,11 @@ const SocialPPostIdRoute = SocialPPostIdRouteImport.update({
 const SocialRRoomIdRoute = SocialRRoomIdRouteImport.update({
   id: '/social/r/$roomId',
   path: '/social/r/$roomId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialRecRecordingIdRoute = SocialRecRecordingIdRouteImport.update({
+  id: '/social/rec/$recordingId',
+  path: '/social/rec/$recordingId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialSShiurIdRoute = SocialSShiurIdRouteImport.update({
@@ -124,6 +153,12 @@ const SocialUProfileIdRoute = SocialUProfileIdRouteImport.update({
   path: '/social/u/$profileId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1BroadcastsBroadcastIdRoute =
+  ApiV1BroadcastsBroadcastIdRouteImport.update({
+    id: '/api/v1/broadcasts/$broadcastId',
+    path: '/api/v1/broadcasts/$broadcastId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiV1InternalUserDeletedRoute =
   ApiV1InternalUserDeletedRouteImport.update({
     id: '/api/v1/internal/user-deleted',
@@ -150,6 +185,12 @@ const ApiV1ProfilesMeRoute = ApiV1ProfilesMeRouteImport.update({
   path: '/me',
   getParentRoute: () => ApiV1ProfilesRoute,
 } as any)
+const ApiV1RecordingsRecordingIdRoute =
+  ApiV1RecordingsRecordingIdRouteImport.update({
+    id: '/api/v1/recordings/$recordingId',
+    path: '/api/v1/recordings/$recordingId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiV1RepliesReplyIdRoute = ApiV1RepliesReplyIdRouteImport.update({
   id: '/api/v1/replies/$replyId',
   path: '/api/v1/replies/$replyId',
@@ -160,6 +201,18 @@ const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
   path: '/$roomId',
   getParentRoute: () => ApiV1RoomsRoute,
 } as any)
+const ApiV1BroadcastsBroadcastIdEndRoute =
+  ApiV1BroadcastsBroadcastIdEndRouteImport.update({
+    id: '/end',
+    path: '/end',
+    getParentRoute: () => ApiV1BroadcastsBroadcastIdRoute,
+  } as any)
+const ApiV1BroadcastsBroadcastIdTicketRoute =
+  ApiV1BroadcastsBroadcastIdTicketRouteImport.update({
+    id: '/ticket',
+    path: '/ticket',
+    getParentRoute: () => ApiV1BroadcastsBroadcastIdRoute,
+  } as any)
 const ApiV1InternalLivekitWebhookRoute =
   ApiV1InternalLivekitWebhookRouteImport.update({
     id: '/api/v1/internal/livekit/webhook',
@@ -188,16 +241,58 @@ const ApiV1ProfilesProfileIdFollowRoute =
     path: '/follow',
     getParentRoute: () => ApiV1ProfilesProfileIdRoute,
   } as any)
+const ApiV1RecordingsRecordingIdFinishRoute =
+  ApiV1RecordingsRecordingIdFinishRouteImport.update({
+    id: '/finish',
+    path: '/finish',
+    getParentRoute: () => ApiV1RecordingsRecordingIdRoute,
+  } as any)
+const ApiV1RecordingsRecordingIdMediaRoute =
+  ApiV1RecordingsRecordingIdMediaRouteImport.update({
+    id: '/media',
+    path: '/media',
+    getParentRoute: () => ApiV1RecordingsRecordingIdRoute,
+  } as any)
+const ApiV1RecordingsRecordingIdStateRoute =
+  ApiV1RecordingsRecordingIdStateRouteImport.update({
+    id: '/state',
+    path: '/state',
+    getParentRoute: () => ApiV1RecordingsRecordingIdRoute,
+  } as any)
+const ApiV1RoomsRoomIdBroadcastsRoute =
+  ApiV1RoomsRoomIdBroadcastsRouteImport.update({
+    id: '/broadcasts',
+    path: '/broadcasts',
+    getParentRoute: () => ApiV1RoomsRoomIdRoute,
+  } as any)
 const ApiV1RoomsRoomIdMembersRoute = ApiV1RoomsRoomIdMembersRouteImport.update({
   id: '/members',
   path: '/members',
   getParentRoute: () => ApiV1RoomsRoomIdRoute,
 } as any)
+const ApiV1RoomsRoomIdRecordingsRoute =
+  ApiV1RoomsRoomIdRecordingsRouteImport.update({
+    id: '/recordings',
+    path: '/recordings',
+    getParentRoute: () => ApiV1RoomsRoomIdRoute,
+  } as any)
 const ApiV1RoomsRoomIdStatusRoute = ApiV1RoomsRoomIdStatusRouteImport.update({
   id: '/status',
   path: '/status',
   getParentRoute: () => ApiV1RoomsRoomIdRoute,
 } as any)
+const ApiV1BroadcastsBroadcastIdCallTokenRoute =
+  ApiV1BroadcastsBroadcastIdCallTokenRouteImport.update({
+    id: '/call/token',
+    path: '/call/token',
+    getParentRoute: () => ApiV1BroadcastsBroadcastIdRoute,
+  } as any)
+const ApiV1RecordingsRecordingIdMediaSeqRoute =
+  ApiV1RecordingsRecordingIdMediaSeqRouteImport.update({
+    id: '/$seq',
+    path: '/$seq',
+    getParentRoute: () => ApiV1RecordingsRecordingIdMediaRoute,
+  } as any)
 const ApiV1RoomsRoomIdCallMuteRoute =
   ApiV1RoomsRoomIdCallMuteRouteImport.update({
     id: '/call/mute',
@@ -226,6 +321,7 @@ const ApiV1RoomsRoomIdMembersMeRoute =
 export interface FileRoutesByFullPath {
   '/social/$': typeof SocialSplatRoute
   '/social/notifications': typeof SocialNotificationsRoute
+  '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -236,24 +332,37 @@ export interface FileRoutesByFullPath {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/social/u/$profileId': typeof SocialUProfileIdRoute
+  '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
   '/api/v1/profiles/$profileId': typeof ApiV1ProfilesProfileIdRouteWithChildren
   '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
+  '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
+  '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
+  '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
+  '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
+  '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
+  '/api/v1/rooms/$roomId/broadcasts': typeof ApiV1RoomsRoomIdBroadcastsRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
+  '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
+  '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
   '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
@@ -262,6 +371,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/social/$': typeof SocialSplatRoute
   '/social/notifications': typeof SocialNotificationsRoute
+  '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -272,24 +382,37 @@ export interface FileRoutesByTo {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/social/u/$profileId': typeof SocialUProfileIdRoute
+  '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
   '/api/v1/profiles/$profileId': typeof ApiV1ProfilesProfileIdRouteWithChildren
   '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
+  '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
+  '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
+  '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
+  '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
+  '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
+  '/api/v1/rooms/$roomId/broadcasts': typeof ApiV1RoomsRoomIdBroadcastsRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
+  '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
+  '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
   '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
@@ -299,6 +422,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/social/$': typeof SocialSplatRoute
   '/social/notifications': typeof SocialNotificationsRoute
+  '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -309,24 +433,37 @@ export interface FileRoutesById {
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
+  '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
   '/social/r/$roomId': typeof SocialRRoomIdRoute
+  '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/social/u/$profileId': typeof SocialUProfileIdRoute
+  '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
   '/api/v1/profiles/$profileId': typeof ApiV1ProfilesProfileIdRouteWithChildren
   '/api/v1/profiles/me': typeof ApiV1ProfilesMeRoute
+  '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
+  '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
+  '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
+  '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
+  '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
+  '/api/v1/rooms/$roomId/broadcasts': typeof ApiV1RoomsRoomIdBroadcastsRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
+  '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
+  '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
+  '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
   '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
@@ -337,6 +474,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/social/$'
     | '/social/notifications'
+    | '/social/rooms'
     | '/social/settings'
     | '/social/'
     | '/api/v1/feed'
@@ -347,24 +485,37 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/b/$broadcastId'
     | '/social/p/$postId'
     | '/social/r/$roomId'
+    | '/social/rec/$recordingId'
     | '/social/s/$shiurId'
     | '/social/u/$profileId'
+    | '/api/v1/broadcasts/$broadcastId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
     | '/api/v1/profiles/$profileId'
     | '/api/v1/profiles/me'
+    | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/broadcasts/$broadcastId/end'
+    | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
+    | '/api/v1/recordings/$recordingId/finish'
+    | '/api/v1/recordings/$recordingId/media'
+    | '/api/v1/recordings/$recordingId/state'
+    | '/api/v1/rooms/$roomId/broadcasts'
     | '/api/v1/rooms/$roomId/members'
+    | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/broadcasts/$broadcastId/call/token'
+    | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
     | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
@@ -373,6 +524,7 @@ export interface FileRouteTypes {
   to:
     | '/social/$'
     | '/social/notifications'
+    | '/social/rooms'
     | '/social/settings'
     | '/social'
     | '/api/v1/feed'
@@ -383,24 +535,37 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/b/$broadcastId'
     | '/social/p/$postId'
     | '/social/r/$roomId'
+    | '/social/rec/$recordingId'
     | '/social/s/$shiurId'
     | '/social/u/$profileId'
+    | '/api/v1/broadcasts/$broadcastId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
     | '/api/v1/profiles/$profileId'
     | '/api/v1/profiles/me'
+    | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/broadcasts/$broadcastId/end'
+    | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
+    | '/api/v1/recordings/$recordingId/finish'
+    | '/api/v1/recordings/$recordingId/media'
+    | '/api/v1/recordings/$recordingId/state'
+    | '/api/v1/rooms/$roomId/broadcasts'
     | '/api/v1/rooms/$roomId/members'
+    | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/broadcasts/$broadcastId/call/token'
+    | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
     | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
@@ -409,6 +574,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/social/$'
     | '/social/notifications'
+    | '/social/rooms'
     | '/social/settings'
     | '/social/'
     | '/api/v1/feed'
@@ -419,24 +585,37 @@ export interface FileRouteTypes {
     | '/api/v1/profiles'
     | '/api/v1/rooms'
     | '/api/v1/timeline'
+    | '/social/b/$broadcastId'
     | '/social/p/$postId'
     | '/social/r/$roomId'
+    | '/social/rec/$recordingId'
     | '/social/s/$shiurId'
     | '/social/u/$profileId'
+    | '/api/v1/broadcasts/$broadcastId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
     | '/api/v1/profiles/$profileId'
     | '/api/v1/profiles/me'
+    | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/broadcasts/$broadcastId/end'
+    | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
+    | '/api/v1/recordings/$recordingId/finish'
+    | '/api/v1/recordings/$recordingId/media'
+    | '/api/v1/recordings/$recordingId/state'
+    | '/api/v1/rooms/$roomId/broadcasts'
     | '/api/v1/rooms/$roomId/members'
+    | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
+    | '/api/v1/broadcasts/$broadcastId/call/token'
+    | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
     | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
@@ -446,6 +625,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   SocialSplatRoute: typeof SocialSplatRoute
   SocialNotificationsRoute: typeof SocialNotificationsRoute
+  SocialRoomsRoute: typeof SocialRoomsRoute
   SocialSettingsRoute: typeof SocialSettingsRoute
   SocialIndexRoute: typeof SocialIndexRoute
   ApiV1FeedRoute: typeof ApiV1FeedRoute
@@ -456,11 +636,15 @@ export interface RootRouteChildren {
   ApiV1ProfilesRoute: typeof ApiV1ProfilesRouteWithChildren
   ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
   ApiV1TimelineRoute: typeof ApiV1TimelineRoute
+  SocialBBroadcastIdRoute: typeof SocialBBroadcastIdRoute
   SocialPPostIdRoute: typeof SocialPPostIdRoute
   SocialRRoomIdRoute: typeof SocialRRoomIdRoute
+  SocialRecRecordingIdRoute: typeof SocialRecRecordingIdRoute
   SocialSShiurIdRoute: typeof SocialSShiurIdRoute
   SocialUProfileIdRoute: typeof SocialUProfileIdRoute
+  ApiV1BroadcastsBroadcastIdRoute: typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
   ApiV1InternalUserDeletedRoute: typeof ApiV1InternalUserDeletedRoute
+  ApiV1RecordingsRecordingIdRoute: typeof ApiV1RecordingsRecordingIdRouteWithChildren
   ApiV1RepliesReplyIdRoute: typeof ApiV1RepliesReplyIdRoute
   ApiV1InternalLivekitWebhookRoute: typeof ApiV1InternalLivekitWebhookRoute
 }
@@ -486,6 +670,13 @@ declare module '@tanstack/react-router' {
       path: '/social/notifications'
       fullPath: '/social/notifications'
       preLoaderRoute: typeof SocialNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/rooms': {
+      id: '/social/rooms'
+      path: '/social/rooms'
+      fullPath: '/social/rooms'
+      preLoaderRoute: typeof SocialRoomsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/social/settings': {
@@ -551,6 +742,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1TimelineRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/social/b/$broadcastId': {
+      id: '/social/b/$broadcastId'
+      path: '/social/b/$broadcastId'
+      fullPath: '/social/b/$broadcastId'
+      preLoaderRoute: typeof SocialBBroadcastIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/social/p/$postId': {
       id: '/social/p/$postId'
       path: '/social/p/$postId'
@@ -565,6 +763,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SocialRRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/social/rec/$recordingId': {
+      id: '/social/rec/$recordingId'
+      path: '/social/rec/$recordingId'
+      fullPath: '/social/rec/$recordingId'
+      preLoaderRoute: typeof SocialRecRecordingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/social/s/$shiurId': {
       id: '/social/s/$shiurId'
       path: '/social/s/$shiurId'
@@ -577,6 +782,13 @@ declare module '@tanstack/react-router' {
       path: '/social/u/$profileId'
       fullPath: '/social/u/$profileId'
       preLoaderRoute: typeof SocialUProfileIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/broadcasts/$broadcastId': {
+      id: '/api/v1/broadcasts/$broadcastId'
+      path: '/api/v1/broadcasts/$broadcastId'
+      fullPath: '/api/v1/broadcasts/$broadcastId'
+      preLoaderRoute: typeof ApiV1BroadcastsBroadcastIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/internal/user-deleted': {
@@ -614,6 +826,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ProfilesMeRouteImport
       parentRoute: typeof ApiV1ProfilesRoute
     }
+    '/api/v1/recordings/$recordingId': {
+      id: '/api/v1/recordings/$recordingId'
+      path: '/api/v1/recordings/$recordingId'
+      fullPath: '/api/v1/recordings/$recordingId'
+      preLoaderRoute: typeof ApiV1RecordingsRecordingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/replies/$replyId': {
       id: '/api/v1/replies/$replyId'
       path: '/api/v1/replies/$replyId'
@@ -627,6 +846,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/rooms/$roomId'
       preLoaderRoute: typeof ApiV1RoomsRoomIdRouteImport
       parentRoute: typeof ApiV1RoomsRoute
+    }
+    '/api/v1/broadcasts/$broadcastId/end': {
+      id: '/api/v1/broadcasts/$broadcastId/end'
+      path: '/end'
+      fullPath: '/api/v1/broadcasts/$broadcastId/end'
+      preLoaderRoute: typeof ApiV1BroadcastsBroadcastIdEndRouteImport
+      parentRoute: typeof ApiV1BroadcastsBroadcastIdRoute
+    }
+    '/api/v1/broadcasts/$broadcastId/ticket': {
+      id: '/api/v1/broadcasts/$broadcastId/ticket'
+      path: '/ticket'
+      fullPath: '/api/v1/broadcasts/$broadcastId/ticket'
+      preLoaderRoute: typeof ApiV1BroadcastsBroadcastIdTicketRouteImport
+      parentRoute: typeof ApiV1BroadcastsBroadcastIdRoute
     }
     '/api/v1/internal/livekit/webhook': {
       id: '/api/v1/internal/livekit/webhook'
@@ -663,11 +896,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ProfilesProfileIdFollowRouteImport
       parentRoute: typeof ApiV1ProfilesProfileIdRoute
     }
+    '/api/v1/recordings/$recordingId/finish': {
+      id: '/api/v1/recordings/$recordingId/finish'
+      path: '/finish'
+      fullPath: '/api/v1/recordings/$recordingId/finish'
+      preLoaderRoute: typeof ApiV1RecordingsRecordingIdFinishRouteImport
+      parentRoute: typeof ApiV1RecordingsRecordingIdRoute
+    }
+    '/api/v1/recordings/$recordingId/media': {
+      id: '/api/v1/recordings/$recordingId/media'
+      path: '/media'
+      fullPath: '/api/v1/recordings/$recordingId/media'
+      preLoaderRoute: typeof ApiV1RecordingsRecordingIdMediaRouteImport
+      parentRoute: typeof ApiV1RecordingsRecordingIdRoute
+    }
+    '/api/v1/recordings/$recordingId/state': {
+      id: '/api/v1/recordings/$recordingId/state'
+      path: '/state'
+      fullPath: '/api/v1/recordings/$recordingId/state'
+      preLoaderRoute: typeof ApiV1RecordingsRecordingIdStateRouteImport
+      parentRoute: typeof ApiV1RecordingsRecordingIdRoute
+    }
+    '/api/v1/rooms/$roomId/broadcasts': {
+      id: '/api/v1/rooms/$roomId/broadcasts'
+      path: '/broadcasts'
+      fullPath: '/api/v1/rooms/$roomId/broadcasts'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdBroadcastsRouteImport
+      parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
     '/api/v1/rooms/$roomId/members': {
       id: '/api/v1/rooms/$roomId/members'
       path: '/members'
       fullPath: '/api/v1/rooms/$roomId/members'
       preLoaderRoute: typeof ApiV1RoomsRoomIdMembersRouteImport
+      parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
+    '/api/v1/rooms/$roomId/recordings': {
+      id: '/api/v1/rooms/$roomId/recordings'
+      path: '/recordings'
+      fullPath: '/api/v1/rooms/$roomId/recordings'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdRecordingsRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdRoute
     }
     '/api/v1/rooms/$roomId/status': {
@@ -676,6 +944,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/rooms/$roomId/status'
       preLoaderRoute: typeof ApiV1RoomsRoomIdStatusRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
+    '/api/v1/broadcasts/$broadcastId/call/token': {
+      id: '/api/v1/broadcasts/$broadcastId/call/token'
+      path: '/call/token'
+      fullPath: '/api/v1/broadcasts/$broadcastId/call/token'
+      preLoaderRoute: typeof ApiV1BroadcastsBroadcastIdCallTokenRouteImport
+      parentRoute: typeof ApiV1BroadcastsBroadcastIdRoute
+    }
+    '/api/v1/recordings/$recordingId/media/$seq': {
+      id: '/api/v1/recordings/$recordingId/media/$seq'
+      path: '/$seq'
+      fullPath: '/api/v1/recordings/$recordingId/media/$seq'
+      preLoaderRoute: typeof ApiV1RecordingsRecordingIdMediaSeqRouteImport
+      parentRoute: typeof ApiV1RecordingsRecordingIdMediaRoute
     }
     '/api/v1/rooms/$roomId/call/mute': {
       id: '/api/v1/rooms/$roomId/call/mute'
@@ -789,7 +1071,9 @@ const ApiV1RoomsRoomIdMembersRouteWithChildren =
   )
 
 interface ApiV1RoomsRoomIdRouteChildren {
+  ApiV1RoomsRoomIdBroadcastsRoute: typeof ApiV1RoomsRoomIdBroadcastsRoute
   ApiV1RoomsRoomIdMembersRoute: typeof ApiV1RoomsRoomIdMembersRouteWithChildren
+  ApiV1RoomsRoomIdRecordingsRoute: typeof ApiV1RoomsRoomIdRecordingsRoute
   ApiV1RoomsRoomIdStatusRoute: typeof ApiV1RoomsRoomIdStatusRoute
   ApiV1RoomsRoomIdCallMuteRoute: typeof ApiV1RoomsRoomIdCallMuteRoute
   ApiV1RoomsRoomIdCallRemoveRoute: typeof ApiV1RoomsRoomIdCallRemoveRoute
@@ -797,7 +1081,9 @@ interface ApiV1RoomsRoomIdRouteChildren {
 }
 
 const ApiV1RoomsRoomIdRouteChildren: ApiV1RoomsRoomIdRouteChildren = {
+  ApiV1RoomsRoomIdBroadcastsRoute: ApiV1RoomsRoomIdBroadcastsRoute,
   ApiV1RoomsRoomIdMembersRoute: ApiV1RoomsRoomIdMembersRouteWithChildren,
+  ApiV1RoomsRoomIdRecordingsRoute: ApiV1RoomsRoomIdRecordingsRoute,
   ApiV1RoomsRoomIdStatusRoute: ApiV1RoomsRoomIdStatusRoute,
   ApiV1RoomsRoomIdCallMuteRoute: ApiV1RoomsRoomIdCallMuteRoute,
   ApiV1RoomsRoomIdCallRemoveRoute: ApiV1RoomsRoomIdCallRemoveRoute,
@@ -819,9 +1105,65 @@ const ApiV1RoomsRouteWithChildren = ApiV1RoomsRoute._addFileChildren(
   ApiV1RoomsRouteChildren,
 )
 
+interface ApiV1BroadcastsBroadcastIdRouteChildren {
+  ApiV1BroadcastsBroadcastIdEndRoute: typeof ApiV1BroadcastsBroadcastIdEndRoute
+  ApiV1BroadcastsBroadcastIdTicketRoute: typeof ApiV1BroadcastsBroadcastIdTicketRoute
+  ApiV1BroadcastsBroadcastIdCallTokenRoute: typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
+}
+
+const ApiV1BroadcastsBroadcastIdRouteChildren: ApiV1BroadcastsBroadcastIdRouteChildren =
+  {
+    ApiV1BroadcastsBroadcastIdEndRoute: ApiV1BroadcastsBroadcastIdEndRoute,
+    ApiV1BroadcastsBroadcastIdTicketRoute:
+      ApiV1BroadcastsBroadcastIdTicketRoute,
+    ApiV1BroadcastsBroadcastIdCallTokenRoute:
+      ApiV1BroadcastsBroadcastIdCallTokenRoute,
+  }
+
+const ApiV1BroadcastsBroadcastIdRouteWithChildren =
+  ApiV1BroadcastsBroadcastIdRoute._addFileChildren(
+    ApiV1BroadcastsBroadcastIdRouteChildren,
+  )
+
+interface ApiV1RecordingsRecordingIdMediaRouteChildren {
+  ApiV1RecordingsRecordingIdMediaSeqRoute: typeof ApiV1RecordingsRecordingIdMediaSeqRoute
+}
+
+const ApiV1RecordingsRecordingIdMediaRouteChildren: ApiV1RecordingsRecordingIdMediaRouteChildren =
+  {
+    ApiV1RecordingsRecordingIdMediaSeqRoute:
+      ApiV1RecordingsRecordingIdMediaSeqRoute,
+  }
+
+const ApiV1RecordingsRecordingIdMediaRouteWithChildren =
+  ApiV1RecordingsRecordingIdMediaRoute._addFileChildren(
+    ApiV1RecordingsRecordingIdMediaRouteChildren,
+  )
+
+interface ApiV1RecordingsRecordingIdRouteChildren {
+  ApiV1RecordingsRecordingIdFinishRoute: typeof ApiV1RecordingsRecordingIdFinishRoute
+  ApiV1RecordingsRecordingIdMediaRoute: typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
+  ApiV1RecordingsRecordingIdStateRoute: typeof ApiV1RecordingsRecordingIdStateRoute
+}
+
+const ApiV1RecordingsRecordingIdRouteChildren: ApiV1RecordingsRecordingIdRouteChildren =
+  {
+    ApiV1RecordingsRecordingIdFinishRoute:
+      ApiV1RecordingsRecordingIdFinishRoute,
+    ApiV1RecordingsRecordingIdMediaRoute:
+      ApiV1RecordingsRecordingIdMediaRouteWithChildren,
+    ApiV1RecordingsRecordingIdStateRoute: ApiV1RecordingsRecordingIdStateRoute,
+  }
+
+const ApiV1RecordingsRecordingIdRouteWithChildren =
+  ApiV1RecordingsRecordingIdRoute._addFileChildren(
+    ApiV1RecordingsRecordingIdRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   SocialSplatRoute: SocialSplatRoute,
   SocialNotificationsRoute: SocialNotificationsRoute,
+  SocialRoomsRoute: SocialRoomsRoute,
   SocialSettingsRoute: SocialSettingsRoute,
   SocialIndexRoute: SocialIndexRoute,
   ApiV1FeedRoute: ApiV1FeedRoute,
@@ -832,11 +1174,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1ProfilesRoute: ApiV1ProfilesRouteWithChildren,
   ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,
   ApiV1TimelineRoute: ApiV1TimelineRoute,
+  SocialBBroadcastIdRoute: SocialBBroadcastIdRoute,
   SocialPPostIdRoute: SocialPPostIdRoute,
   SocialRRoomIdRoute: SocialRRoomIdRoute,
+  SocialRecRecordingIdRoute: SocialRecRecordingIdRoute,
   SocialSShiurIdRoute: SocialSShiurIdRoute,
   SocialUProfileIdRoute: SocialUProfileIdRoute,
+  ApiV1BroadcastsBroadcastIdRoute: ApiV1BroadcastsBroadcastIdRouteWithChildren,
   ApiV1InternalUserDeletedRoute: ApiV1InternalUserDeletedRoute,
+  ApiV1RecordingsRecordingIdRoute: ApiV1RecordingsRecordingIdRouteWithChildren,
   ApiV1RepliesReplyIdRoute: ApiV1RepliesReplyIdRoute,
   ApiV1InternalLivekitWebhookRoute: ApiV1InternalLivekitWebhookRoute,
 }

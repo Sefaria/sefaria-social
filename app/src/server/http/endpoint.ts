@@ -4,8 +4,10 @@
 //   2. checks access BEFORE reading anything else: `user` (the default) needs a verified Sefaria token, `livekit-webhook` a
 //      LiveKit-signed Authorization over the raw body (spec 038), `sefaria-webhook`
 //      a valid signature over the raw body, and `public` is allowed only for endpoints on PUBLIC_ENDPOINTS;
-//   3. validates path parameters and the body with the contract's zod schemas (400 request.invalid);
-//   4. validates the handler's response against the contract, so nothing undeclared leaves the server;
+//   3. validates path parameters and the body with the contract's zod schemas (400 request.invalid); a binary body
+//      (`binaryBody`, spec 041) is read as bytes up to its cap (413 request.too_large), never parsed;
+//   4. validates the handler's response against the contract, so nothing undeclared leaves the server; a `binary` response
+//      is written as is with the content type the handler names;
 //   5. maps errors to { error: { code, message } } and writes exactly one log line, without headers, body or token;
 //   6. adds CORS headers for an allowed Origin (./cors.ts); a CORS preflight (OPTIONS) is answered without a token.
 // Protect by default: there is no way to skip step 2, and a method a route does not declare answers 401/405 the same way.
@@ -29,6 +31,8 @@ export const MAX_BODY_BYTES = 64 * 1024;
 export interface ResponseSpec {
   description: string;
   schema?: z.ZodType;
+  /** The body is raw bytes (spec 041): the handler returns `{ status, body: Uint8Array, contentType }`. */
+  binary?: true;
 }
 
 export interface EndpointSpec {
@@ -44,6 +48,10 @@ export interface EndpointSpec {
   /** Search parameters (each a string or absent); validated like params, unknown ones rejected by a strict schema. */
   query?: z.ZodObject;
   body?: z.ZodType;
+  /** The JSON body's size limit in bytes, when it is not MAX_BODY_BYTES (for example a recording's state batch). */
+  maxBodyBytes?: number;
+  /** The body is raw bytes (application/octet-stream) of at most `maxBytes`; the handler gets them as `bytes`. */
+  binaryBody?: { maxBytes: number };
   /** Responses the handler returns. Error responses are added by the OpenAPI generator from `access`, inputs and `errors`. */
   responses: Readonly<Record<number, ResponseSpec>>;
   /** Extra error statuses the handler can throw (as ApiError), for the OpenAPI document; for example [403, 404]. */
@@ -56,16 +64,19 @@ export interface HandlerInput<S extends EndpointSpec> {
   params: S["params"] extends z.ZodType ? z.output<S["params"]> : Record<string, never>;
   query: S["query"] extends z.ZodType ? z.output<S["query"]> : Record<string, never>;
   body: S["body"] extends z.ZodType ? z.output<S["body"]> : undefined;
+  bytes: S["binaryBody"] extends { maxBytes: number } ? Uint8Array : undefined;
   identity: AccessOf<S> extends "user" ? Identity : undefined;
   correlationId: string;
   request: Request;
 }
 
 export type HandlerResult<S extends EndpointSpec> = {
-  [K in keyof S["responses"] & number]: {
-    status: K;
-    body: S["responses"][K]["schema"] extends z.ZodType ? z.input<S["responses"][K]["schema"]> : undefined;
-  };
+  [K in keyof S["responses"] & number]: S["responses"][K]["binary"] extends true
+    ? { status: K; body: Uint8Array; contentType: string }
+    : {
+        status: K;
+        body: S["responses"][K]["schema"] extends z.ZodType ? z.input<S["responses"][K]["schema"]> : undefined;
+      };
 }[keyof S["responses"] & number];
 
 /** What Start passes to a server-route handler (the parts we use). */
@@ -94,12 +105,53 @@ function json(status: number, body: unknown, correlationId: string, extra: Recor
   return new Response(JSON.stringify(body), { status, headers: { ...headers, "content-type": "application/json" } });
 }
 
-async function readRaw(request: Request): Promise<string> {
+/** A binary response (spec 041): the bytes as they are, with the handler's content type. */
+function bytesResponse(
+  status: number,
+  body: Uint8Array,
+  contentType: string,
+  correlationId: string,
+  extra: Record<string, string>,
+): Response {
+  const headers = {
+    "cache-control": "no-store",
+    [CORRELATION_HEADER]: correlationId,
+    ...extra,
+    "content-type": contentType,
+    "content-length": String(body.byteLength),
+  };
+  return new Response(body as Uint8Array<ArrayBuffer>, { status, headers });
+}
+
+/** The body as bytes, refused (413) as soon as it passes `max`: a declared length is checked first, then the stream itself. */
+async function readBytes(request: Request, max: number): Promise<Uint8Array> {
   const declared = Number(request.headers.get("content-length") ?? "0");
-  if (declared > MAX_BODY_BYTES) throw new ApiError(413, "request.too_large");
-  const text = await request.text();
-  if (Buffer.byteLength(text, "utf8") > MAX_BODY_BYTES) throw new ApiError(413, "request.too_large");
-  return text;
+  if (declared > max) throw new ApiError(413, "request.too_large");
+  if (!request.body) return new Uint8Array(0);
+  const reader = request.body.getReader();
+  const parts: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > max) {
+      await reader.cancel().catch(() => undefined);
+      throw new ApiError(413, "request.too_large");
+    }
+    parts.push(value);
+  }
+  const out = new Uint8Array(total);
+  let at = 0;
+  for (const p of parts) {
+    out.set(p, at);
+    at += p.byteLength;
+  }
+  return out;
+}
+
+async function readRaw(request: Request, max: number = MAX_BODY_BYTES): Promise<string> {
+  return new TextDecoder().decode(await readBytes(request, max));
 }
 
 function parseJson(raw: string): unknown {
@@ -143,7 +195,7 @@ async function run(
   method: string,
   route: string,
   ctx: RouteCtx,
-  inner: (correlationId: string) => Promise<{ status: number; body: unknown }>,
+  inner: (correlationId: string) => Promise<{ status: number; body: unknown; contentType?: string }>,
 ): Promise<Response> {
   const started = performance.now();
   const correlationId = correlationIdFrom(ctx.request.headers.get(CORRELATION_HEADER));
@@ -152,6 +204,8 @@ async function run(
   try {
     const result = await inner(correlationId);
     status = result.status;
+    if (result.contentType !== undefined && result.body instanceof Uint8Array)
+      return bytesResponse(result.status, result.body, result.contentType, correlationId, cors);
     return json(result.status, result.body, correlationId, cors);
   } catch (e) {
     if (e instanceof ApiError) {
@@ -188,20 +242,28 @@ export function bind<const S extends EndpointSpec & { access: Access }>(
       const params = spec.params ? validate(spec.params, ctx.params ?? {}) : {};
       const query = spec.query ? validate(spec.query, Object.fromEntries(new URL(ctx.request.url).searchParams)) : {};
       let body: unknown;
-      if (spec.body) body = validate(spec.body, parseJson(raw ?? (await readRaw(ctx.request))));
+      if (spec.body) body = validate(spec.body, parseJson(raw ?? (await readRaw(ctx.request, spec.maxBodyBytes))));
+      const bytes = spec.binaryBody ? await readBytes(ctx.request, spec.binaryBody.maxBytes) : undefined;
       const result = (await handler({
         params,
         query,
         body,
+        bytes,
         identity,
         correlationId,
         request: ctx.request,
       } as HandlerInput<S>)) as {
         status: number;
         body: unknown;
+        contentType?: unknown;
       };
       const declared = spec.responses[result.status];
       if (!declared) throw new Error(`Undeclared status ${result.status} from ${spec.operationId}`);
+      if (declared.binary) {
+        if (!(result.body instanceof Uint8Array) || typeof result.contentType !== "string")
+          throw new TypeError(`Response of ${spec.operationId} is not bytes with a content type`);
+        return { status: result.status, body: result.body, contentType: result.contentType };
+      }
       if (!declared.schema) return { status: result.status, body: undefined };
       const out = declared.schema.safeParse(result.body);
       if (!out.success) throw new TypeError(`Response of ${spec.operationId} does not match its schema`);

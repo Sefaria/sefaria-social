@@ -3,7 +3,9 @@ import { useStrings } from "~/features/shell/use-strings";
 import type { CallController } from "./call-controller";
 import type { CallParticipant, TrackSource } from "./media";
 import { useCallWindowSize } from "./CallWindow";
+import { MicIcon, initialsOf } from "./icons";
 import { TileMenu } from "./TileMenu";
+import { registerTileVideo } from "./tile-registry";
 import type { SizeName } from "./window-geometry";
 import styles from "./av.module.css";
 
@@ -35,6 +37,12 @@ function Video({
       detach?.();
     };
   }, [controller, participantId, source]);
+  // The recorder's compositor draws camera tiles from the registry (spec 041).
+  useEffect(() => {
+    const video = el.current;
+    if (source !== "camera" || !video) return;
+    return registerTileVideo(participantId, video);
+  }, [participantId, source]);
   return <video ref={el} className={styles.video} aria-label={label} autoPlay muted playsInline />;
 }
 
@@ -92,10 +100,22 @@ export function Tiles({ controller, participants }: { controller: CallController
           key={p.id}
           data-participant={p.id}
           data-speaking={p.speaking}
+          data-camera={p.camera || undefined}
           className={`${styles.tile} ${p.speaking ? styles.speaking : ""}`}
         >
-          {p.camera && <Video controller={controller} participantId={p.id} source="camera" label={p.name || t.someone} />}
+          {p.camera ? (
+            <Video controller={controller} participantId={p.id} source="camera" label={p.name || t.someone} />
+          ) : (
+            <span className={styles.initials} aria-hidden="true" data-initials="">
+              {initialsOf(p.name || t.someone)}
+            </span>
+          )}
           <span className={styles.name}>
+            {!p.mic && (
+              <span className={styles.mutedIcon}>
+                <MicIcon off />
+              </span>
+            )}
             <bdi dir="auto">{p.name || t.someone}</bdi>
             {p.local && <> ({t.you})</>}
             {!p.mic && <span className={styles.muted}> · {t.muted}</span>}
@@ -104,7 +124,7 @@ export function Tiles({ controller, participants }: { controller: CallController
         </li>
       ))}
       {more > 0 && (
-        <li data-more-participants="" className={styles.tile}>
+        <li data-more-participants="" className={`${styles.tile} ${styles.moreTile}`}>
           {t.moreParticipants(more)}
         </li>
       )}

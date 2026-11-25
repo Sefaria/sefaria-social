@@ -1,0 +1,32 @@
+- id: T-001
+  title: Rooms API client, Start a room, the rooms page and the ways in
+  acs: [AC-001, AC-002, AC-007]
+  files:
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/rooms/**"
+    - "app/src/features/feed/**"
+    - "app/src/features/shell/**"
+    - "app/src/routes/social.rooms.tsx"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/route-trees.test.ts"
+    - "app/src/surface/**"
+    - "factory/surface-map.yaml"
+  depends_on: []
+  parallel: false
+  verify: ["npm test -- features/rooms features/feed features/shell surface", "npm run typecheck"]
+- id: T-002
+  title: The lobby's invite, role and room settings; rename, delete, leave; back to the room
+  acs: [AC-003, AC-004, AC-005, AC-006, AC-007]
+  files:
+    - "app/src/features/room/**"
+    - "app/src/features/rooms/**"
+    - "app/src/features/replay/RecordingPage.tsx"
+    - "app/src/features/replay/RecordingPage.test.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/features/session/**"
+    - "app/src/features/av/**"
+    - "e2e/room-flows.spec.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [ROOM-046, ROOM-047, ROOM-048, ROOM-049, ROOM-050]
+  verify: ["npm test -- features/room features/rooms features/replay", "npm run typecheck"]

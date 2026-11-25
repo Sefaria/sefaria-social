@@ -5,7 +5,15 @@ import { useRoomsApi, type Room } from "~/features/api/rooms-api";
 import { useStrings } from "~/features/shell/use-strings";
 import { PresenceList } from "~/features/presence/PresenceList";
 import { CallButton } from "~/features/av/CallButton";
+import { BroadcastPanel } from "~/features/broadcast/BroadcastPanel";
+import { RecordButton } from "~/features/recording/RecordButton";
+import { RecordingsList } from "~/features/recording/RecordingsList";
+import { isRecordingFlag, recordingHere, useRecordingController, useRecordingView } from "~/features/recording/use-recording";
 import { useRoomController, useRoomHold } from "~/features/session/use-room-session";
+import kit from "~/ui/kit.module.css";
+import { InvitePanel } from "./InvitePanel";
+import { RoomSettings } from "./RoomSettings";
+import styles from "./lobby.module.css";
 
 type LobbyState =
   | { kind: "loading" }
@@ -27,6 +35,8 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
   const [state, setState] = useState<LobbyState>({ kind: "loading" });
   const [joining, setJoining] = useState(false);
   const [onCall, setOnCall] = useState<number | null>(null);
+  const [statusRecording, setStatusRecording] = useState(false);
+  const recordingView = useRecordingView(useRecordingController());
   const { controller } = useRoomController();
   // A member's lobby holds the room's connection open (spec 012): who is here, live.
   useRoomHold(roomId, "lobby", state.kind === "member");
@@ -52,7 +62,11 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
     if (state.kind !== "member" || !api?.getStatus) return;
     let live = true;
     api.getStatus(roomId).then(
-      (s) => live && setOnCall(s?.call?.live ? s.call.participants : null),
+      (s) => {
+        if (!live) return;
+        setOnCall(s?.call?.live ? s.call.participants : null);
+        setStatusRecording(isRecordingFlag(s));
+      },
       () => live && setOnCall(null),
     );
     return () => {
@@ -76,35 +90,95 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
     }
   }, [api, host, roomId, viewer]);
 
+  // While the room is being recorded everyone in it is told (spec 041 AC-006): from the room read, its status, or this browser.
+  const recording =
+    state.kind === "member" && (isRecordingFlag(state.room) || statusRecording || recordingHere(recordingView, roomId));
+
+  const owner = state.kind === "member" && state.room.role === "owner";
+
+  // Spec 044: a member's lobby is a header (title, whether they own the room), the main actions (Enter the room, the call), what
+  // is happening now, then cards — Invite people, the owner's session tools, who is here, recordings, room settings.
   return (
-    <main data-social-page="room" data-room-state={state.kind}>
+    <main data-social-page="room" data-room-state={state.kind} className={styles.page}>
       {state.kind === "member" ? (
-        <h1>
-          <bdi dir="auto">{state.room.title}</bdi>
-        </h1>
+        <header className={styles.header}>
+          <h1>
+            <bdi dir="auto">{state.room.title}</bdi>
+          </h1>
+          <p className={styles.role} data-room-role={state.room.role}>
+            {owner ? t.youOwnRoom : t.youAreMember}
+          </p>
+        </header>
       ) : (
-        <h1>{t.room}</h1>
+        <>
+          <h1>{t.room}</h1>
+          <p>
+            {t.roomId}: <bdi>{roomId}</bdi>
+          </p>
+        </>
       )}
-      <p>
-        {t.roomId}: <bdi>{roomId}</bdi>
-      </p>
       {state.kind === "loading" && <p role="status">{t.loading}</p>}
       {state.kind === "outsider" && (
-        <section aria-label={t.joinRoom}>
+        <section aria-label={t.joinRoom} className={styles.card}>
           <p>{t.invited}</p>
-          <button type="button" onClick={join} disabled={joining} data-action="join">
-            {t.join}
-          </button>
+          <div className={styles.actions}>
+            <button type="button" onClick={join} disabled={joining} data-action="join" className={`${kit.button} ${kit.primary}`}>
+              {t.join}
+            </button>
+          </div>
         </section>
       )}
       {state.kind === "member" && (
         <>
-          <button type="button" data-action="enter" onClick={() => void controller?.enlarge(roomId)}>
-            {t.enter}
-          </button>
-          {onCall !== null && <p data-call-count="">{t.onCall(onCall)}</p>}
-          <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
-          <PresenceList roomId={roomId} />
+          <div className={styles.primary}>
+            <button
+              type="button"
+              data-action="enter"
+              className={`${kit.button} ${kit.primary}`}
+              onClick={() => void controller?.enlarge(roomId)}
+            >
+              {t.enter}
+            </button>
+            <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
+            {/* Spec 045 AC-006: say so when this server does not offer calls, rather than showing nothing. */}
+            {!state.room.calls?.available && (
+              <span className={kit.hint} data-calls-off="">
+                {t.callsOff}
+              </span>
+            )}
+          </div>
+          {(recording || onCall !== null) && (
+            <div className={styles.status}>
+              {recording && (
+                <p role="status" data-room-recording="" className={kit.badge}>
+                  {t.recording}
+                </p>
+              )}
+              {onCall !== null && (
+                <p data-call-count="" className={kit.badge}>
+                  {t.onCall(onCall)}
+                </p>
+              )}
+            </div>
+          )}
+          <InvitePanel roomId={roomId} title={state.room.title} />
+          {owner && (
+            <section className={styles.card} aria-labelledby="social-owner-tools" data-owner-tools="">
+              <h2 id="social-owner-tools" className={styles.cardTitle}>
+                {t.ownerTools}
+              </h2>
+              <p className={kit.hint}>{t.ownerToolsHint}</p>
+              <div className={styles.tools}>
+                <RecordButton roomId={roomId} />
+                <BroadcastPanel roomId={roomId} live={state.room.broadcast} />
+              </div>
+            </section>
+          )}
+          <div className={styles.card}>
+            <PresenceList roomId={roomId} />
+          </div>
+          <RecordingsList roomId={roomId} />
+          <RoomSettings room={state.room} onRenamed={(room) => setState({ kind: "member", room })} />
         </>
       )}
       {state.kind === "not-found" && <p role="alert">{t.roomNotFound}</p>}

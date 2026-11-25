@@ -1,0 +1,54 @@
+- id: T-001
+  title: Broadcasts, signed tickets and call grants on the server
+  acs: [AC-001, AC-002, AC-005]
+  files:
+    - "app/src/server/broadcast-ticket.ts"
+    - "app/src/server/broadcast-ticket.test.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/services/**"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/api/openapi.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.broadcasts.ts"
+    - "app/src/routes/api/v1/broadcasts.*.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.broadcasts.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "test/integration/harness.ts"
+    - "test/integration/schema-walk.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:integration -- api.broadcasts api.routes", "npm run typecheck", "npm run test:contract"]
+- id: T-002
+  title: The relay requires a ticket for a broadcast room and lets a viewer only receive
+  acs: [AC-003, AC-004]
+  files:
+    - "packages/relay/src/**"
+  depends_on: []
+  parallel: true
+  verify: ["npm run test:relay"]
+- id: T-003
+  title: Broadcasting from the lobby and watching as a viewer
+  acs: [AC-006, AC-007, AC-008]
+  files:
+    - "app/src/features/broadcast/**"
+    - "app/src/features/session/**"
+    - "app/src/features/av/**"
+    - "app/src/features/room/**"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/api/social-api.ts"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/**"
+    - "app/src/routes/social.b.$broadcastId.tsx"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/route-trees.test.ts"
+    - "e2e/broadcast.spec.ts"
+  depends_on: [T-001, T-002]
+  parallel: false
+  completes: [API-050, SESS-066]
+  verify: ["npm test -- features/broadcast", "npm run typecheck"]

@@ -142,6 +142,58 @@
       "changed": []
     },
     {
+      "id": "API-049",
+      "area": "api",
+      "name": "Recordings API: start, upload, list, read and delete a session recording",
+      "description": "POST /api/v1/rooms/:roomId/recordings starts a recording for the room's owner, whose browser uploads numbered media chunks and the state track and finishes it with its duration; members list and read a room's recordings, and its recorder or the room's owner deletes one.",
+      "status": "built",
+      "spec": "041",
+      "acs": [
+        "041/AC-001",
+        "041/AC-002",
+        "041/AC-003",
+        "041/AC-004",
+        "041/AC-005"
+      ],
+      "surfaces": [
+        "api",
+        "session",
+        "room-lobby",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.recordings.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "API-050",
+      "area": "api",
+      "name": "Broadcasts API: start, end, relay tickets and view-only call grants",
+      "description": "POST /api/v1/rooms/:roomId/broadcasts (the owner only, one live per room) and POST /api/v1/broadcasts/:id/end, GET a broadcast, a 10-minute HMAC relay ticket naming the broadcast, the user and their role (host or viewer), and a LiveKit token for bcast_<id> that lets the host publish and a viewer only subscribe, hidden.",
+      "status": "built",
+      "spec": "043",
+      "acs": [
+        "043/AC-001",
+        "043/AC-002",
+        "043/AC-005"
+      ],
+      "surfaces": [
+        "api",
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.broadcasts.int.test.ts",
+        "app/src/server/broadcast-ticket.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "FEED-015",
       "area": "feed",
       "name": "Feed API: live, scheduled and recent for the viewer",
@@ -839,6 +891,29 @@
         "app/src/surface/call-insets.test.tsx",
         "packages/host-contract/src/schemas.test.ts",
         "packages/host-contract/src/fake-host.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "HOST-009",
+      "area": "host",
+      "name": "One call and one room connection for both of the reader's mounts",
+      "description": "The reader may give the page and persistent mounts different host objects; the call, room, sessions, recording, broadcast and replay controllers and the window owner are kept once per page (features/host/document-host.ts), so Join call in the lobby opens the call window and a room has one connection.",
+      "status": "built",
+      "spec": "046",
+      "acs": [
+        "046/AC-001",
+        "046/AC-002"
+      ],
+      "surfaces": [
+        "host-integration",
+        "call",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/two-hosts.test.tsx"
       ],
       "since": null,
       "changed": []
@@ -1643,6 +1718,136 @@
       "changed": []
     },
     {
+      "id": "ROOM-046",
+      "area": "room",
+      "name": "Start a room from Social and land in its lobby",
+      "description": "Start a room on the home rail, the rooms page and empty states: a dialog asks for the name (required, at most 120 characters), creates the room and opens its lobby; a failure keeps the dialog open. The rail also links to all rooms, and a recording's page links back to its room.",
+      "status": "built",
+      "spec": "044",
+      "acs": [
+        "044/AC-001",
+        "044/AC-007"
+      ],
+      "surfaces": [
+        "feed",
+        "rooms",
+        "recording"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/rooms/rooms.test.tsx",
+        "app/src/features/feed/Feed.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-047",
+      "area": "room",
+      "name": "Your rooms at /social/rooms and Rooms in Social's navigation",
+      "description": "Every room the viewer is a member of, newest first, with Owner or Member and a link to its lobby; empty and signed-out states; a one-shot notice after a room is deleted or left.",
+      "status": "built",
+      "spec": "044",
+      "acs": [
+        "044/AC-002"
+      ],
+      "surfaces": [
+        "rooms"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/rooms/rooms.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-048",
+      "area": "room",
+      "name": "Invite people from a room's lobby: its link with Copy and Share",
+      "description": "A member's lobby says whether they own the room and shows Invite people: the room's full link, Copy (announced), and the Share menu.",
+      "status": "built",
+      "spec": "044",
+      "acs": [
+        "044/AC-003"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/room/room-settings.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-049",
+      "area": "room",
+      "name": "Rename or delete a room you own",
+      "description": "Room settings in the lobby: the owner renames the room in place, or deletes it after a confirmation that says its recordings go too, then lands on the rooms page with a notice.",
+      "status": "built",
+      "spec": "044",
+      "acs": [
+        "044/AC-004",
+        "044/AC-005"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/room/room-settings.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-050",
+      "area": "room",
+      "name": "Leave a room you joined",
+      "description": "A member who is not the owner leaves the room from room settings after a confirmation; the session of that room in this browser closes first; the rooms page says so.",
+      "status": "built",
+      "spec": "044",
+      "acs": [
+        "044/AC-006"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/room/room-settings.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-051",
+      "area": "room",
+      "name": "The lobby says when calls are off",
+      "description": "Where Join call would be, the lobby says video calls are not turned on when the server does not offer them.",
+      "status": "built",
+      "spec": "045",
+      "acs": [
+        "045/AC-006"
+      ],
+      "surfaces": [
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/room/room-settings.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SESS-001",
       "area": "sess",
       "name": "Social context in the reader's ctx parameter",
@@ -2130,6 +2335,171 @@
       "depends_on": {},
       "tests": [
         "app/src/surface/call-moderation.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-064",
+      "area": "sess",
+      "name": "Record a room's session (state and call media) in the owner's browser",
+      "description": "The room's owner records a session from the call: their browser mixes the call's audio, composes its video and records the reader's state stream beside it, uploading both as it goes, while everyone in the room sees a Recording badge in the lobby and the call window.",
+      "status": "built",
+      "spec": "041",
+      "acs": [
+        "041/AC-006",
+        "041/AC-007",
+        "041/AC-008"
+      ],
+      "surfaces": [
+        "api",
+        "session",
+        "room-lobby",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.recordings.int.test.ts",
+        "app/src/features/recording/RecordingBadge.test.tsx",
+        "app/src/features/recording/recorder.test.ts",
+        "app/src/features/room/RoomLobbyPage.test.tsx",
+        "app/src/surface/call-strip.test.tsx",
+        "app/src/surface/call-window.test.tsx",
+        "e2e/recording.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-065",
+      "area": "sess",
+      "name": "Replay a recording in the reader with the video in the floating window",
+      "description": "A room's ready recordings are listed in its lobby and have their own page (Play, Download state, Delete for the recorder or the room's owner); Play opens the reader at the recording's first text in its context with the video in the floating call window (the strip on a phone), whose transport drives the media and the reader together, and the call and a replay never share the window.",
+      "status": "built",
+      "spec": "042",
+      "acs": [
+        "042/AC-001",
+        "042/AC-002",
+        "042/AC-003",
+        "042/AC-004",
+        "042/AC-005",
+        "042/AC-006",
+        "042/AC-007",
+        "042/AC-008"
+      ],
+      "surfaces": [
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/replay/state-track.test.ts",
+        "app/src/features/replay/player.test.ts",
+        "app/src/features/replay/replay-controller.test.ts",
+        "app/src/features/replay/ReplayWindow.test.tsx",
+        "app/src/features/replay/RecordingPage.test.tsx",
+        "app/src/features/room/RoomLobbyPage.test.tsx",
+        "app/src/surface/replay.test.tsx",
+        "e2e/recording.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-066",
+      "area": "sess",
+      "name": "Broadcast a session and watch it as a view-only viewer",
+      "description": "A room's owner presses Broadcast in the lobby to publish their reader to a broadcast relay room (b_<id>) holding the spotlight, with a link to copy, the number watching, the broadcast's call and End broadcast; anyone signed in with the link presses Watch on /social/b/<id> to follow the host in the reader with ctx=social.watch.<id> (breaking away, then Back to live) and see and hear the host view only, until \"The broadcast has ended\".",
+      "status": "built",
+      "spec": "043",
+      "acs": [
+        "043/AC-003",
+        "043/AC-004",
+        "043/AC-006",
+        "043/AC-007",
+        "043/AC-008"
+      ],
+      "surfaces": [
+        "api",
+        "session",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "packages/relay/src/broadcast.test.ts",
+        "packages/relay/src/relay.test.ts",
+        "app/src/features/broadcast/broadcast-controller.test.ts",
+        "app/src/features/broadcast/BroadcastPanel.test.tsx",
+        "app/src/features/broadcast/WatchPage.test.tsx",
+        "app/src/surface/call.test.tsx",
+        "e2e/broadcast.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-067",
+      "area": "sess",
+      "name": "Stay in the room while reading around the reader",
+      "description": "A reader page reached without ctx while in a room (a link, a search) gets the room's ctx back with a replace, so the viewer stays in the room; Back to where they entered from, a Social page or another room still leaves.",
+      "status": "built",
+      "spec": "045",
+      "acs": [
+        "045/AC-001",
+        "045/AC-002"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/session/stay-in-room.test.ts",
+        "e2e/room-window.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-068",
+      "area": "sess",
+      "name": "The room window in the reader: a card with the room, its status and who is here",
+      "description": "The follow bar and mini view as one card at the bottom inline-start corner: title and live dot, status, Follow again or Lead, Join call, who is here with Follow, the room's page, Minimise; folds into a pill for the session.",
+      "status": "built",
+      "spec": "045",
+      "acs": [
+        "045/AC-003",
+        "045/AC-004",
+        "045/AC-005"
+      ],
+      "surfaces": [
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/session/room-window.test.tsx",
+        "e2e/room-window.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-069",
+      "area": "sess",
+      "name": "The call window looks like a call: tiles, initials, an icon control bar, a real pre-join",
+      "description": "Dark 16:10 tiles with the camera or the person's initials, a name label with a muted mark and a speaking ring; one row of round icon buttons with names and on/off states and a red Leave call; the pre-join step's preview with its toggles, Join and Cancel on it.",
+      "status": "built",
+      "spec": "047",
+      "acs": [
+        "047/AC-001",
+        "047/AC-002",
+        "047/AC-003"
+      ],
+      "surfaces": [
+        "call"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/call-design.test.tsx"
       ],
       "since": null,
       "changed": []

@@ -20,6 +20,8 @@ import {
   shiurRecordings,
   userDisplay,
   callRemovals,
+  sessionRecordings,
+  broadcasts,
 } from "../db/schema";
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
@@ -73,6 +75,10 @@ export async function deleteUserData(tx: Executor, userId: number, eventId: stri
   const display = await tx.delete(userDisplay).where(eq(userDisplay.userId, userId)).returning({ id: userDisplay.userId });
   // spec 039: not in the counts, which are a published report format (purge-user prints them)
   await tx.delete(callRemovals).where(eq(callRemovals.userId, userId));
+  // spec 041: the user's session recordings, with their chunks (cascade); recordings in the user's own rooms went with them
+  await tx.delete(sessionRecordings).where(eq(sessionRecordings.ownerUserId, userId));
+  // spec 043: the broadcasts the user hosted (those of the user's own rooms went with them)
+  await tx.delete(broadcasts).where(eq(broadcasts.hostUserId, userId));
   // Social graph and posts (specs 023-026). The person profile's cascade removes its posts, replies, followers and the
   // notifications it caused; posts and replies the user wrote as an institution go too.
   const notified = await tx

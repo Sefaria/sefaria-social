@@ -115,6 +115,23 @@ const windowCss = () => readFileSync(path.join(process.cwd(), "app/src/features/
 const tiles = () => document.querySelectorAll("[data-call-window] [data-participant]").length;
 const more = () => document.querySelector("[data-more-participants]")?.textContent ?? null;
 
+describe("the call window while the room is recorded (spec 041)", () => {
+  // @feature SESS-064 Record a room's session (state and call media) in the owner's browser
+  // @ac 041/AC-006
+  it("shows a Recording badge in the window and the pill while the media server says so, and removes it when it stops", async () => {
+    const { call, win, size } = await inCall({ participants: 3 });
+    const play = call as unknown as { setRecording?: (on: boolean) => void };
+    expect(typeof play.setRecording, "the call can be told the room is recorded").toBe("function");
+    expect(win().querySelector("[data-recording-badge]")).toBeNull();
+    await act(async () => play.setRecording!(true));
+    expect(win().querySelector("[data-recording-badge]")?.textContent).toBe("Recording");
+    await size("pill");
+    expect(win().querySelector("[data-call-pill] [data-recording-badge]")?.getAttribute("role")).toBe("status");
+    await act(async () => play.setRecording!(false));
+    expect(document.querySelector("[data-recording-badge]")).toBeNull();
+  });
+});
+
 describe("the call window", () => {
   // @feature SESS-060 Floating call window: place, move, resize
   // @ac 035/AC-003

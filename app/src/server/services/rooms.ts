@@ -3,7 +3,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
-import { callRemovals, roomMembers, rooms } from "../db/schema";
+import { broadcasts, callRemovals, roomMembers, rooms } from "../db/schema";
 import { ApiError } from "../http/errors";
 import { createRateLimiter } from "../http/rate-limit";
 import {
@@ -18,6 +18,7 @@ import {
 } from "./livekit";
 import { relayStatus, type RoomStatusDto } from "./relay";
 import { liveCalls, type CallStatusDto } from "./calls";
+import { recordingOf } from "./recordings";
 import { upsertDisplay } from "./users";
 
 export interface RoomDto {
@@ -28,6 +29,25 @@ export interface RoomDto {
   createdAt: string;
   updatedAt: string;
   calls: { available: boolean };
+  /** Present (true) only while the room is being recorded (spec 041 AC-006), so other reads are unchanged. */
+  recording?: true;
+  /** The live broadcast, present only while one is live (spec 043), so other reads are unchanged. */
+  broadcast?: { id: string; link: string };
+}
+
+/** `{ broadcast }` while the room has a live broadcast, nothing otherwise (spec 043: the host's panel finds it after a reload). */
+async function broadcastField(roomId: string, db: Db): Promise<{ broadcast?: { id: string; link: string } }> {
+  const [row] = await db
+    .select({ id: broadcasts.id })
+    .from(broadcasts)
+    .where(and(eq(broadcasts.roomId, roomId), eq(broadcasts.status, "live")))
+    .limit(1);
+  return row ? { broadcast: { id: row.id, link: `/social/b/${row.id}` } } : {};
+}
+
+/** `{ recording: true }` while the room is being recorded, nothing otherwise (spec 041 AC-006). */
+async function recordingField(roomId: string, db: Db): Promise<{ recording?: true }> {
+  return (await recordingOf([roomId], db)).has(roomId) ? { recording: true } : {};
 }
 
 const columns = {
@@ -70,7 +90,7 @@ export async function listRooms(identity: Identity, db: Db = getDb()): Promise<R
   return rows.map(toDto);
 }
 
-async function membership(db: Db | Parameters<Parameters<Db["transaction"]>[0]>[0], identity: Identity, roomId: string) {
+export async function membership(db: Db | Parameters<Parameters<Db["transaction"]>[0]>[0], identity: Identity, roomId: string) {
   const [row] = await db
     .select(columns)
     .from(roomMembers)
@@ -82,7 +102,8 @@ async function membership(db: Db | Parameters<Parameters<Db["transaction"]>[0]>[
 }
 
 export async function getRoom(identity: Identity, roomId: string, db: Db = getDb()): Promise<RoomDto> {
-  return toDto(await membership(db, identity, roomId));
+  const room = toDto(await membership(db, identity, roomId));
+  return { ...room, ...(await recordingField(roomId, db)), ...(await broadcastField(roomId, db)) };
 }
 
 export async function renameRoom(identity: Identity, roomId: string, title: string, db: Db = getDb()): Promise<RoomDto> {
@@ -134,11 +155,11 @@ export async function getRoomStatus(
   identity: Identity,
   roomId: string,
   db: Db = getDb(),
-): Promise<RoomStatusDto & { call?: CallStatusDto }> {
+): Promise<RoomStatusDto & { call?: CallStatusDto; recording?: true }> {
   await membership(db, identity, roomId);
-  const [relay, calls] = await Promise.all([relayStatus(roomId), liveCalls([roomId], db)]);
+  const [relay, calls, recording] = await Promise.all([relayStatus(roomId), liveCalls([roomId], db), recordingField(roomId, db)]);
   const call = calls.get(roomId);
-  return call ? { ...relay, call } : relay;
+  return { ...(call ? { ...relay, call } : relay), ...recording };
 }
 
 /** 20 call tokens per user and room per minute (spec 033 AC-006): each one is a credential for the media server. */

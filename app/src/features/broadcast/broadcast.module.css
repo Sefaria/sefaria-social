@@ -1,0 +1,25 @@
+/* The lobby's broadcast panel, the watch page and the viewer's bar (spec 043). */
+.panel,
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sefaria-space-2);
+}
+
+.actions,
+.link,
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-2);
+}
+
+.link input {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+}
+
+.muted {
+  color: var(--sefaria-color-text-muted);
+}

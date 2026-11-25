@@ -26,6 +26,10 @@ export interface FakeCall extends CallMedia {
   /** Play the network: reconnecting, back, or gone (with the server's reason). */
   drop(state: ConnectionState, reason?: DisconnectReason): void;
   blockAudio(blocked: boolean): void;
+  /** Play the call's audio: the tracks `audioTracks()` returns from now on (spec 041). */
+  setAudioTracks(tracks: MediaStreamTrack[]): void;
+  /** Play the server setting or clearing the room metadata's `recording` (spec 041). */
+  setRecording(on: boolean): void;
   /** Play the owner muting one of the viewer's tracks through the server (spec 039). */
   muteByHost(source: "microphone" | "camera" | "screen_share"): void;
 }
@@ -106,6 +110,8 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
       let remote: CallParticipant[] = [];
       const pending = new Set<string>();
       let audioBlocked = false;
+      let audio: MediaStreamTrack[] = [];
+      let recording = false;
       const listeners = new Set<() => void>();
       const connListeners = new Set<(s: ConnectionState, r?: DisconnectReason) => void>();
       const hostMuteListeners = new Set<(s: "microphone" | "camera" | "screen_share") => void>();
@@ -162,6 +168,16 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
         },
         setVisible(ids) {
           call.visible = [...ids];
+        },
+        audioTracks: () => [...audio],
+        recording: () => recording,
+        setAudioTracks(tracks) {
+          audio = [...tracks];
+          emit();
+        },
+        setRecording(on) {
+          recording = on;
+          emit();
         },
         audioBlocked: () => audioBlocked,
         async startAudio() {

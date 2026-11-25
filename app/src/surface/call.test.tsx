@@ -109,6 +109,45 @@ async function setup(url: string, opts: { available?: boolean; canShareScreen?: 
   return { fake, engine, loadEngine, api, calls, rooms, relay, getUserMedia, lobby, $, press, choose, flush };
 }
 
+describe("a broadcast's call, view only (spec 043)", () => {
+  // @feature SESS-066 Broadcast a session and watch it as a view-only viewer
+  // @ac 043/AC-007
+  it("joins with the broadcast's token and no pre-join or device, shows the host's video, and offers Leave only", async () => {
+    const t = await setup("/Genesis.1");
+    expect(typeof t.calls.joinWith, "the call controller joins view only").toBe("function");
+    const tokenSource = vi.fn(async () => ({
+      kind: "ok" as const,
+      url: "wss://livekit.test",
+      token: "bcast-token",
+      expiresAt: "2026-11-25T00:10:00Z",
+    }));
+    await act(async () => t.calls.joinWith(`bcast_${ID}`, { tokenSource, viewer: true }));
+    await vi.waitFor(() => expect(t.$('[data-social-call="in-call"]')).not.toBeNull());
+    expect(t.calls.mode()).toBe("viewer");
+    expect(t.$('[data-social-call="in-call"]')?.getAttribute("data-call-mode")).toBe("viewer");
+    // no pre-join step, no device asked for, nothing published, and the room's own call token is not asked for
+    expect(t.engine.calls.listDevices).toBe(0);
+    expect(t.engine.calls.connects).toEqual([expect.objectContaining({ token: "bcast-token", mic: false, camera: false })]);
+    expect(t.getUserMedia).not.toHaveBeenCalled();
+    expect(t.api.getCallToken).not.toHaveBeenCalled();
+    expect(t.relay.opened.filter((o) => o.url.includes("bcast_"))).toEqual([]);
+
+    const call = t.engine.last();
+    await act(async () =>
+      call.setRemote([{ id: "u:5151", name: "Avi Host", mic: true, camera: true, screen: false, speaking: true }]),
+    );
+    await vi.waitFor(() => expect(t.$('[data-participant="u:5151"] video')).not.toBeNull());
+    expect(t.$('[data-participant="u:4242"]')).toBeNull(); // no tile of their own
+    const actions = [...document.querySelectorAll('[data-social-call="in-call"] button[data-action]')].map((b) =>
+      b.getAttribute("data-action"),
+    );
+    expect(actions.filter((a) => ["mic", "camera", "screen", "record", "leave-call"].includes(a ?? ""))).toEqual(["leave-call"]);
+    await t.press('[data-social-call="in-call"] [data-action="leave-call"]');
+    expect(t.calls.view().kind).toBe("off");
+    expect(call.disconnected).toBe(true);
+  });
+});
+
 describe("joining a call", () => {
   // @feature SESS-058 Join a call with devices off, and talk
   // @ac 034/AC-002

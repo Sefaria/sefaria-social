@@ -1,7 +1,7 @@
 // The OpenAPI 3.1 document, built from the endpoint contracts (plan section 6.2). Deterministic: the same contracts always
 // give the same bytes, so the committed packages/api-client/openapi.json can be compared in CI.
 import { z } from "zod";
-import type { EndpointSpec } from "../http/endpoint";
+import { MAX_BODY_BYTES, type EndpointSpec } from "../http/endpoint";
 import { ENDPOINTS, ErrorBody } from "./contracts";
 
 type Json = Record<string, unknown>;
@@ -12,9 +12,22 @@ const ERROR_DESCRIPTIONS: Record<number, string> = {
   403: "Not allowed for this caller (for example room.forbidden).",
   404: "Not found, or not visible to this caller (for example room.not_found).",
   405: "Method not allowed on this route (method.not_allowed).",
-  413: "The request body is larger than 64 KiB (request.too_large).",
   503: "A dependency is unavailable (auth.unavailable, webhook.unavailable).",
 };
+
+/** Raw bytes (spec 041): a binary request body or response. */
+const BINARY = { type: "string", format: "binary" } as const;
+
+/** "64 KiB", "4 MiB": a body limit as the error description states it. */
+function sizeOf(bytes: number): string {
+  if (bytes % (1024 * 1024) === 0) return `${bytes / (1024 * 1024)} MiB`;
+  if (bytes % 1024 === 0) return `${bytes / 1024} KiB`;
+  return `${bytes} bytes`;
+}
+
+function bodyLimit(e: EndpointSpec): number {
+  return e.binaryBody?.maxBytes ?? e.maxBodyBytes ?? MAX_BODY_BYTES;
+}
 
 function schemaOf(schema: z.ZodType, io: "input" | "output"): Json {
   const out = z.toJSONSchema(schema, { io, unrepresentable: "throw" }) as Json;
@@ -25,7 +38,7 @@ function schemaOf(schema: z.ZodType, io: "input" | "output"): Json {
 function errorStatuses(e: EndpointSpec & { access: string }): number[] {
   const s = new Set<number>(e.errors ?? []);
   if (e.params || e.query || e.body) s.add(400);
-  if (e.body) s.add(413);
+  if (e.body || e.binaryBody) s.add(413);
   if (e.access !== "public") s.add(401).add(503);
   return [...s].filter((code) => !(code in e.responses)).sort((a, b) => a - b);
 }
@@ -46,14 +59,20 @@ function operation(e: EndpointSpec & { access: string }): Json {
       });
   if (parameters.length) op.parameters = parameters;
   if (e.body) op.requestBody = { required: true, content: { "application/json": { schema: schemaOf(e.body, "input") } } };
+  if (e.binaryBody) op.requestBody = { required: true, content: { "application/octet-stream": { schema: BINARY } } };
   const responses: Json = {};
   for (const [status, spec] of Object.entries(e.responses))
-    responses[status] = spec.schema
-      ? { description: spec.description, content: { "application/json": { schema: schemaOf(spec.schema, "output") } } }
-      : { description: spec.description };
+    responses[status] = spec.binary
+      ? { description: spec.description, content: { "application/octet-stream": { schema: BINARY } } }
+      : spec.schema
+        ? { description: spec.description, content: { "application/json": { schema: schemaOf(spec.schema, "output") } } }
+        : { description: spec.description };
   for (const code of errorStatuses(e))
     responses[String(code)] = {
-      description: ERROR_DESCRIPTIONS[code] ?? "Error.",
+      description:
+        code === 413
+          ? `The request body is larger than ${sizeOf(bodyLimit(e))} (request.too_large).`
+          : (ERROR_DESCRIPTIONS[code] ?? "Error."),
       content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
     };
   op.responses = responses;

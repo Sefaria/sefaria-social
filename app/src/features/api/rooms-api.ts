@@ -8,6 +8,7 @@ import { createApiClient, type paths, type Room } from "@sefaria-social/api-clie
 /** A room's live status (spec 011), with its call while one is live (spec 038). */
 export type RoomStatus = paths["/api/v1/rooms/{roomId}/status"]["get"]["responses"][200]["content"]["application/json"];
 import { useHost } from "~/features/host/host-context";
+import { documentHostFor } from "~/features/host/document-host";
 
 export type { Room };
 
@@ -36,6 +37,16 @@ export interface RoomsApi {
     participant: string,
     source?: "microphone" | "camera" | "screen_share",
   ): Promise<"ok" | "not-in-call" | "forbidden" | "unavailable">;
+  /** Spec 044: the caller's rooms, newest first. Optional like the above, so older fakes keep working. */
+  list?(): Promise<Room[]>;
+  /** Spec 044: create a room owned by the caller. */
+  create?(title: string): Promise<Room>;
+  /** Spec 044: rename a room (owner only). */
+  rename?(roomId: string, title: string): Promise<Room>;
+  /** Spec 044: delete a room and everything in it (owner only). */
+  remove?(roomId: string): Promise<void>;
+  /** Spec 044: leave a room (not its owner). */
+  leave?(roomId: string): Promise<void>;
 }
 
 /** The API's error for anything other than the statuses a caller handles. */
@@ -87,6 +98,29 @@ export function createRoomsApi(host: SurfaceHost): RoomsApi {
         return { kind: "limited", retryAfterSeconds: Number(response.headers.get("retry-after")) || 5 };
       throw new RoomsApiError(response.status);
     },
+    async list() {
+      const { data, response } = await client.GET("/api/v1/rooms");
+      if (data) return data.rooms;
+      throw new RoomsApiError(response.status);
+    },
+    async create(title) {
+      const { data, response } = await client.POST("/api/v1/rooms", { body: { title } });
+      if (data) return data;
+      throw new RoomsApiError(response.status);
+    },
+    async rename(roomId, title) {
+      const { data, response } = await client.PATCH("/api/v1/rooms/{roomId}", { params: { path: { roomId } }, body: { title } });
+      if (data) return data;
+      throw new RoomsApiError(response.status);
+    },
+    async remove(roomId) {
+      const { response } = await client.DELETE("/api/v1/rooms/{roomId}", { params: { path: { roomId } } });
+      if (response.status !== 204) throw new RoomsApiError(response.status);
+    },
+    async leave(roomId) {
+      const { response } = await client.DELETE("/api/v1/rooms/{roomId}/members/me", { params: { path: { roomId } } });
+      if (response.status !== 204) throw new RoomsApiError(response.status);
+    },
     async join(roomId) {
       const { data, response } = await client.POST("/api/v1/rooms/{roomId}/members", { params: { path: { roomId } } });
       if (data) return { kind: "joined", room: data };
@@ -102,7 +136,8 @@ export const RoomsApiContext = createContext<RoomsApi | null>(null);
 const built = new WeakMap<SurfaceHost, RoomsApi>();
 
 /** The rooms API built from this host (one per host). */
-export function roomsApiFor(host: SurfaceHost): RoomsApi {
+export function roomsApiFor(rawHost: SurfaceHost): RoomsApi {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let api = built.get(host);
   if (!api) {
     api = createRoomsApi(host);

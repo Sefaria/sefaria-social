@@ -65,6 +65,13 @@ export interface CallMedia {
   /** True when the browser blocked audio until a user gesture; `startAudio` must run inside one. */
   audioBlocked(): boolean;
   startAudio(): Promise<void>;
+  /**
+   * Every audio track in the call: the remote participants' subscribed tracks and the viewer's own microphone (spec 041, for
+   * the recorder's mix). `subscribe` fires when the set changes.
+   */
+  audioTracks(): MediaStreamTrack[];
+  /** Whether the room is being recorded, from the media server's room metadata `{ recording }` (spec 041); `subscribe` fires. */
+  recording(): boolean;
   /** Leave: stops every local track and closes the connection. */
   disconnect(): Promise<void>;
 }

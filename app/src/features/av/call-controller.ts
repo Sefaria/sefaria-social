@@ -15,6 +15,7 @@ import { roomSessionsFor } from "~/features/session/sessions";
 import { loadLiveKit } from "./load-livekit";
 import { INITIAL_CALL, callRoom, transition, type CallEvent, type CallView, type DeviceChoice } from "./machine";
 import { MediaPermissionError, type CallMedia, type DeviceList, type LoadEngine, type MediaEngine, type Preview } from "./media";
+import { documentHostFor } from "~/features/host/document-host";
 
 /** How long a lost call keeps trying before it ends with Rejoin (AC-011). */
 export const RECONNECT_GIVE_UP_MS = 30_000;
@@ -36,6 +37,19 @@ export interface CallDeps {
   rooms: { onLeave(cb: (roomId: string) => void): () => void };
 }
 
+/**
+ * A call that is not a room's (a broadcast's, spec 043): where its token comes from instead of the room's call-token endpoint.
+ * Such a call holds no room session (its owner keeps its own connection). `viewer`: view only, joined with `joinWith`: no
+ * pre-join, no devices, nothing published; the window shows the others with Leave only.
+ */
+export interface CallSource {
+  tokenSource: () => Promise<CallTokenResult>;
+  viewer?: boolean;
+}
+
+/** What kind of call this is: a room's, a broadcast's host's, or a broadcast's view-only viewer's. */
+export type CallMode = "room" | "broadcast" | "viewer";
+
 export interface CallController {
   view(): CallView;
   subscribe(cb: () => void): () => void;
@@ -54,7 +68,11 @@ export interface CallController {
   notice(): "muted-by-host" | null;
   /** The owner mutes a participant's track or removes them from the call (spec 039). */
   moderate(action: "mute" | "remove", participant: string, source?: "microphone" | "camera" | "screen_share"): Promise<void>;
-  open(roomId: string): Promise<void>;
+  /** Opens the pre-join step for a room's call, or (with `source`) another call such as a broadcast's. */
+  open(roomId: string, source?: CallSource): Promise<void>;
+  /** Joins `key`'s call view only, straight through the pre-join step with every device off (a broadcast's viewer). */
+  joinWith(key: string, source: CallSource): Promise<void>;
+  mode(): CallMode;
   choose(devices: DeviceChoice): void;
   cancel(): void;
   join(): Promise<void>;
@@ -101,6 +119,7 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
   let generation = 0; // bumps on every leave or switch, so a late connect from an old attempt is dropped
   let role: "owner" | "member" | null = null;
   let notice: "muted-by-host" | null = null;
+  const sources = new Map<string, CallSource>();
 
   const emit = () => [...listeners].forEach((cb) => cb());
   const step = (event: CallEvent) => {
@@ -145,9 +164,10 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
   }
 
   async function token(roomId: string): Promise<CallTokenResult | { kind: "network" }> {
-    if (!api.getCallToken) return { kind: "unavailable" };
+    const source = sources.get(roomId);
+    if (!source && !api.getCallToken) return { kind: "unavailable" };
     try {
-      return await api.getCallToken(roomId);
+      return source ? await source.tokenSource() : await api.getCallToken!(roomId);
     } catch {
       return { kind: "network" };
     }
@@ -292,6 +312,25 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
     }
   }
 
+  /** From `connecting`: hold the room (a room's call only), connect, and settle. */
+  async function joined(roomId: string, devices: DeviceChoice) {
+    leaving = false;
+    lastDevices = devices;
+    startedAt = Date.now();
+    peak = 0;
+    release = sources.has(roomId) ? null : sessions.acquire(roomId, "call");
+    const r = await connect(roomId, { mic: devices.mic, camera: devices.camera }, devices);
+    if (r === "stale" || controller.view().kind !== "connecting") return;
+    if (r === "ok") {
+      step({ type: "connected" });
+      report("av.join", { participants: media?.participants().length ?? 1 });
+      return;
+    }
+    void teardown();
+    step({ type: "failed" });
+    report("av.error", { kind: `join_${r}` });
+  }
+
   const controller: CallController = {
     view: () => view,
     subscribe(cb) {
@@ -312,7 +351,11 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
       if (r !== "ok" && r !== "not-in-call") report("av.error", { kind: `moderate_${r}` });
     },
 
-    async open(roomId) {
+    async open(roomId, source) {
+      if (callRoom(view) !== roomId) {
+        if (source) sources.set(roomId, source);
+        else sources.delete(roomId);
+      }
       if (!step({ type: "open", roomId })) return;
       if (view.kind !== "prejoin") return; // a switch is waiting for confirmation
       try {
@@ -345,21 +388,23 @@ export function createCallController({ host, api, loadEngine, sessions, rooms }:
       const roomId = view.roomId;
       stopPreview();
       if (!step({ type: "join" })) return;
-      leaving = false;
-      lastDevices = devices;
-      startedAt = Date.now();
-      peak = 0;
-      release = sessions.acquire(roomId, "call");
-      const r = await connect(roomId, { mic: devices.mic, camera: devices.camera }, devices);
-      if (r === "stale" || controller.view().kind !== "connecting") return;
-      if (r === "ok") {
-        step({ type: "connected" });
-        report("av.join", { participants: media?.participants().length ?? 1 });
-        return;
-      }
-      void teardown();
-      step({ type: "failed" });
-      report("av.error", { kind: `join_${r}` });
+      await joined(roomId, devices);
+    },
+
+    async joinWith(key, source) {
+      if (callRoom(view) === key && view.kind !== "ended") return;
+      if (view.kind === "ended") step({ type: "dismiss" });
+      else if (view.kind !== "off") await controller.leave();
+      sources.set(key, { ...source, viewer: true });
+      // Straight through the pre-join step: nothing to choose, and no device is ever asked for.
+      if (!step({ type: "open", roomId: key }) || !step({ type: "join" })) return;
+      await joined(key, ALL_OFF);
+    },
+
+    mode() {
+      const key = callRoom(view);
+      const source = key ? sources.get(key) : undefined;
+      return !source ? "room" : source.viewer ? "viewer" : "broadcast";
     },
 
     async leave() {
@@ -442,7 +487,8 @@ const perHost = new WeakMap<SurfaceHost, CallController>();
  * The call controller for this host. The first call creates it; `overrides` (tests, the harness) replace the rooms API or the
  * media engine and are ignored once it exists.
  */
-export function callControllerFor(host: SurfaceHost, overrides: Partial<Omit<CallDeps, "host">> = {}): CallController {
+export function callControllerFor(rawHost: SurfaceHost, overrides: Partial<Omit<CallDeps, "host">> = {}): CallController {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let c = perHost.get(host);
   if (!c) {
     c = createCallController({

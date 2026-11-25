@@ -7,6 +7,7 @@ import { useSocialApi } from "~/features/api/social-api";
 import { useViewer } from "~/features/host/use-viewer";
 import { useStrings } from "~/features/shell/use-strings";
 import kit from "~/ui/kit.module.css";
+import { RoomsBar } from "~/features/rooms/RoomsBar";
 import { Feed } from "./Feed";
 import { FeedPage } from "./FeedPage";
 import styles from "./home.module.css";
@@ -43,6 +44,7 @@ export function HomePage() {
         ) : null}
         <aside className={styles.rooms} aria-label={t.feedLive}>
           <Feed />
+          {signedIn ? <RoomsBar /> : null}
         </aside>
         {signedIn ? (
           <aside className={styles.follow} aria-label={t.whoToFollow}>

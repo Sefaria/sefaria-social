@@ -33,6 +33,30 @@ surfaces:
     paths:
       - "app/src/routes/social.settings*"
       - "app/src/features/settings/**"
+  rooms:
+    description: The rooms page at /social/rooms and Start a room (spec 044).
+    reach: "harness: /social/rooms (signed in), or Start a room on /social"
+    paths:
+      - "app/src/features/rooms/**"
+      - "app/src/routes/social.rooms*"
+  call:
+    description: A room's call — the pre-join, the floating window and strip, tiles, controls, moderation (specs 033–040).
+    reach: "harness: a room lobby's Join call; two browser contexts with fake media"
+    paths:
+      - "app/src/features/av/**"
+  recording:
+    description: Recording a room's session, the recordings list, a recording's page and the replay player (specs 041, 042).
+    reach: "harness: Record from a room's call, then /social/rec/<recordingId> and Play"
+    paths:
+      - "app/src/features/recording/**"
+      - "app/src/features/replay/**"
+      - "app/src/routes/social.rec.*"
+  broadcast:
+    description: Broadcasting a room and watching it at /social/b/$broadcastId (spec 043).
+    reach: "harness: Broadcast in a room's lobby, then the link in a second browser context"
+    paths:
+      - "app/src/features/broadcast/**"
+      - "app/src/routes/social.b.*"
   session:
     description: Being in a room from any reader route — follow, enlarge, minimise, the persistent mount.
     reach: "harness: any reader route with a social ctx value; two browser contexts"

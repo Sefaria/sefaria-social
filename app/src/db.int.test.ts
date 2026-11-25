@@ -8,6 +8,7 @@ const migrations = import.meta.glob("./server/db/migrations/*.sql", { query: "?r
 const ruleModules = import.meta.glob("./server/db/migration-rules.ts");
 
 const TABLES = [
+  "broadcasts",
   "call_removals",
   "call_status",
   "deleted_users",
@@ -17,10 +18,13 @@ const TABLES = [
   "profile_admins",
   "profiles",
   "reactions",
+  "recording_media_chunks",
+  "recording_state_chunks",
   "replies",
   "reposts",
   "room_members",
   "rooms",
+  "session_recordings",
   "shiur_recordings",
   "shiurim",
   "user_display",
@@ -58,7 +62,7 @@ describe("spec 005: database", () => {
       order by 1`);
     expect(unindexed).toEqual([]);
     const fks = await h.sql("select conname from pg_constraint where contype = 'f'");
-    expect(fks.length).toBe(16);
+    expect(fks.length).toBe(20);
   });
 
   // @ac 005/AC-002

@@ -95,6 +95,23 @@ async function onPhone() {
   return { fake, engine, call, calls, strip, press };
 }
 
+describe("the call on a phone while the room is recorded (spec 041)", () => {
+  // @feature SESS-064 Record a room's session (state and call media) in the owner's browser
+  // @ac 041/AC-006
+  it("shows the Recording badge in the collapsed and the expanded strip, and removes it when the recording stops", async () => {
+    const { call, strip, press } = await onPhone();
+    const play = call as unknown as { setRecording?: (on: boolean) => void };
+    expect(typeof play.setRecording, "the call can be told the room is recorded").toBe("function");
+    await act(async () => play.setRecording!(true));
+    expect(strip()!.querySelector("[data-recording-badge]")?.textContent).toBe("Recording");
+    await press('[data-action="expand-call"]');
+    expect(strip()!.dataset.expanded).toBe("true");
+    expect(strip()!.querySelector("[data-recording-badge]")?.textContent).toBe("Recording");
+    await act(async () => play.setRecording!(false));
+    expect(document.querySelector("[data-recording-badge]")).toBeNull();
+  });
+});
+
 describe("the call on a phone", () => {
   // @feature SESS-062 The call on a phone: a docked strip
   // @ac 037/AC-001

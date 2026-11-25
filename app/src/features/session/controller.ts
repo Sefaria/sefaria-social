@@ -6,12 +6,14 @@
 //   Enlarge (R9):  own place (only from a reader page) → target snapshot (what the followed stream holds) → push with ctx →
 //                  on contextReady, the follow gate opens and the target is applied with origin "follow".
 //   In context (R10): the stream applies through applySnapshot, which replaces: one enlarge, one history entry.
-//   Back / ctx gone: contextLost → idle; nothing more is applied.
+//   Back / ctx gone: contextLost → idle; nothing more is applied. A reader page reached without ctx while in the room (a link,
+//                  a search) gets the ctx back instead (spec 045): the room stays until Minimise, Leave, Back or a Social page.
 //   Minimise (R12): push the own place without ctx (then restore it), else the lobby; the connection stays ("live").
 import type { ReaderSnapshot, SurfaceHost } from "@sefaria-social/host-contract";
 import { decodeCtx, withCtx, withoutCtx } from "~/lib/ctx";
 import { INITIAL_SESSION, transition, type SessionEvent, type SessionView } from "./machine";
 import { roomSessionsFor, type RoomSessions } from "./sessions";
+import { documentHostFor } from "~/features/host/document-host";
 
 /** How long Enlarge waits for the followed person's state before entering without it (they may be idle in their lobby). */
 export const TARGET_WAIT_MS = 1_500;
@@ -151,7 +153,15 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       return;
     }
     if ((view.kind === "expanded" || view.kind === "detached") && inRoom !== current) {
-      step({ type: "contextLost" }); // Back, a plain link, another room's link: out of this room's context
+      // Spec 045 AC-001: reading around in the reader keeps the viewer in the room. A reader page reached without any ctx (a
+      // link, a search) gets the room's ctx back, replacing the entry. Back to the page they entered from, a Social page, or
+      // another room's address still leaves (spec 013 AC-002, R10).
+      if (!ctx && current && stayInRoom(view.ownPlace?.url ?? null)) {
+        const { pathname, search, hash } = host.location.get();
+        host.navigate(withCtx(`${pathname}${search}${hash}`, { kind: "room", id: current }), { replace: true });
+        return;
+      }
+      step({ type: "contextLost" }); // Back, a Social page, another room's link: out of this room's context
       dropContext();
     }
     if (inRoom && (view.kind === "idle" || view.kind === "card") && host.viewer.get()) {
@@ -161,6 +171,14 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       step({ type: "enlarge", target: { kind: "room", id: inRoom }, ownPlace: null });
       entered(inRoom);
     }
+  }
+
+  /** Whether the address the reader is now on is a reader page to keep the room on (not Social's, not where they entered from). */
+  function stayInRoom(ownUrl: string | null): boolean {
+    const { pathname, search } = host.location.get();
+    if (pathname === "/social" || pathname.startsWith("/social/")) return false;
+    if (ownUrl && samePlace(withoutCtx(ownUrl), `${pathname}${search}`)) return false;
+    return true;
   }
 
   const offContext = host.reader.context.subscribe(onContext);
@@ -298,11 +316,22 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
 const perHost = new WeakMap<SurfaceHost, RoomController>();
 
 /** The one controller of this host (page mount and persistent mount share it). */
-export function roomControllerFor(host: SurfaceHost): RoomController {
+export function roomControllerFor(rawHost: SurfaceHost): RoomController {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let c = perHost.get(host);
   if (!c) {
     c = createRoomController(host);
     perHost.set(host, c);
   }
   return c;
+}
+
+/** Two same-site addresses name the same place: same path and the same query parameters in any order (the fragment aside). */
+function samePlace(a: string, b: string): boolean {
+  const norm = (u: string) => {
+    const url = new URL(u, "https://x.invalid");
+    const params = [...url.searchParams.entries()].map(([k, v]) => `${k}=${v}`).sort();
+    return `${decodeURIComponent(url.pathname)}?${params.join("&")}`;
+  };
+  return norm(a) === norm(b);
 }

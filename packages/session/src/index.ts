@@ -9,7 +9,8 @@ export { createWebSocketTransport, MAX_FRAME_BYTES } from "./core/transports/web
 export { createMemoryPair } from "./core/transports/memory";
 export { isSessionId, newParticipantId, newSessionId } from "./ids";
 export { fold, diff, isEmptyChange } from "./core/diff";
-export { parseSnapshot, parseStreamMessage } from "./core/schema";
+export { parseRecording, parseSnapshot, parseStreamMessage } from "./core/schema";
+export { createStreamWriter } from "./core/stream";
 export type {
   ApplyContext,
   ApplyResult,
@@ -20,5 +21,7 @@ export type {
   SnapshotChange,
   StateTransport,
   StreamMessage,
+  StreamWriter,
+  StreamWriterOptions,
   TransportStatus,
 } from "./core/types";

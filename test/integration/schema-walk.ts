@@ -58,6 +58,26 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       profile!.id,
       post!.id,
     ]);
+    // spec 041: session recordings in the user's room, one by the user and one by the other (as with shiur recordings), each
+    // with a media chunk and a state batch; the deletion removes the user's own and everything in the user's room
+    const [own] = await sql<{ id: string }>(
+      "insert into session_recordings (room_id, owner_user_id, title, status, mime, media_bytes, state_messages) values ($1, $2, 'Seed session', 'ready', 'video/webm', 3, 1) returning id",
+      [room!.id, user],
+    );
+    await sql(
+      "insert into session_recordings (room_id, owner_user_id, title, status) values ($1, $2, 'Seed session (other)', 'ready')",
+      [room!.id, other],
+    );
+    await sql("insert into recording_media_chunks (recording_id, seq, bytes) values ($1, 0, '\\x010203')", [own!.id]);
+    await sql(
+      `insert into recording_state_chunks (recording_id, first_seq, last_seq, messages) values ($1, 0, 0, '[{"type":"keyframe","seq":0,"t":0,"snapshot":{"v":1,"url":"/Genesis.1","slices":{}}}]')`,
+      [own!.id],
+    );
+    // spec 043: broadcasts of the user's room, one hosted by the user (live) and one by the other (ended)
+    await sql(
+      "insert into broadcasts (room_id, host_user_id, title, status) values ($1, $2, 'Seed broadcast', 'live'), ($1, $3, 'Seed broadcast (other)', 'ended')",
+      [room!.id, user, other],
+    );
     // spec 038: the room's call status (no user id, but every table must be seeded)
     await sql("insert into call_status (room_id, live, participants, started_at) values ($1, true, 2, now())", [room!.id]);
     for (const t of [
@@ -75,6 +95,10 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       "reactions",
       "reposts",
       "notifications",
+      "session_recordings",
+      "recording_media_chunks",
+      "recording_state_chunks",
+      "broadcasts",
     ])
       written.add(t);
   }

@@ -1,0 +1,11 @@
+- id: T-001
+  title: Tiles with initials, an icon control bar, and a real pre-join
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/features/av/**"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/surface/call-design.test.tsx"
+  depends_on: []
+  parallel: false
+  completes: [SESS-069]
+  verify: ["npm test -- features/av surface", "npm run typecheck"]

@@ -43,9 +43,12 @@ describe("route trees", () => {
     const expected = [
       "/social",
       "/social/$",
+      "/social/b/$broadcastId",
       "/social/notifications",
       "/social/p/$postId",
       "/social/r/$roomId",
+      "/social/rec/$recordingId",
+      "/social/rooms",
       "/social/s/$shiurId",
       "/social/settings",
       "/social/u/$profileId",

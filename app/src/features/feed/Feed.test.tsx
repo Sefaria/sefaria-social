@@ -28,6 +28,17 @@ async function setup(opts: SupportModule.FeedSetup | ((s: typeof SupportModule) 
 
 const headings = (el: HTMLElement) => [...el.querySelectorAll("[data-social-page=feed] h2")].map((h) => h.textContent);
 
+describe("the rail's ways into rooms (spec 044)", () => {
+  // @feature ROOM-046 Start a room from Social and land in its lobby
+  // @ac 044/AC-007
+  it("says when the reader is in no room yet, and asks them to start one", async () => {
+    const { el } = await setup({ feed: { live: [], scheduled: [], recent: [] } });
+    await vi.waitFor(() => expect(el.querySelector("[data-feed-state]")?.getAttribute("data-feed-state")).toBe("ready"));
+    expect(el.querySelector("[data-rooms-empty]")?.textContent).toContain("You are not in any room yet.");
+    expect(el.querySelector("[data-rooms-empty]")?.textContent).toContain("Start one and send its link");
+  });
+});
+
 describe("the feed page", () => {
   // @feature FEED-051 Feed page at /social
   // @ac 015/AC-003

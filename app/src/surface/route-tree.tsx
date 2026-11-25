@@ -36,6 +36,9 @@ const ShiurPage = lazyRouteComponent(() => import("~/features/shiur/ShiurPage"),
 const SettingsPage = lazyRouteComponent(() => import("~/features/settings/SettingsPage"), "SettingsPage");
 const PostPage = lazyRouteComponent(() => import("~/features/post/PostPage"), "PostPage");
 const ProfilePage = lazyRouteComponent(() => import("~/features/profile/ProfilePage"), "ProfilePage");
+const RecordingPage = lazyRouteComponent(() => import("~/features/replay/RecordingPage"), "RecordingPage");
+const WatchPage = lazyRouteComponent(() => import("~/features/broadcast/WatchPage"), "WatchPage");
+const RoomsPage = lazyRouteComponent(() => import("~/features/rooms/RoomsPage"), "RoomsPage");
 const ActivityPage = lazyRouteComponent(() => import("~/features/notifications/ActivityPage"), "ActivityPage");
 
 const roomRoute = createRoute({
@@ -78,6 +81,34 @@ const profileRoute = createRoute({
   },
 });
 
+const recordingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SOCIAL_PATHS.recording,
+  validateSearch: validateNoSearch,
+  beforeLoad: ({ params }) => requireId(params.recordingId),
+  component: function RecordingRoute() {
+    return <RecordingPage recordingId={recordingRoute.useParams().recordingId} />;
+  },
+});
+
+// A broadcast's page (spec 043). The path is written here and in its file route (social-routes.ts is outside this task).
+const broadcastRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/social/b/$broadcastId",
+  validateSearch: validateNoSearch,
+  beforeLoad: ({ params }) => requireId(params.broadcastId),
+  component: function BroadcastRoute() {
+    return <WatchPage broadcastId={broadcastRoute.useParams().broadcastId} />;
+  },
+});
+
+const roomsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SOCIAL_PATHS.rooms,
+  validateSearch: validateNoSearch,
+  component: RoomsPage,
+});
+
 const notificationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SOCIAL_PATHS.notifications,
@@ -107,6 +138,9 @@ export const surfaceRouteTree = rootRoute.addChildren([
   shiurRoute,
   postRoute,
   profileRoute,
+  recordingRoute,
+  broadcastRoute,
+  roomsRoute,
   notificationsRoute,
   settingsRoute,
   notFoundRoute,
