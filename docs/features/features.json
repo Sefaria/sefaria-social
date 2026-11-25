@@ -1695,6 +1695,101 @@
       "changed": []
     },
     {
+      "id": "ROOM-046",
+      "area": "room",
+      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
+      "description": "",
+      "status": "planned",
+      "spec": "044",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "rooms",
+        "room-lobby",
+        "recording"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-047",
+      "area": "room",
+      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
+      "description": "",
+      "status": "planned",
+      "spec": "044",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "rooms",
+        "room-lobby",
+        "recording"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-048",
+      "area": "room",
+      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
+      "description": "",
+      "status": "planned",
+      "spec": "044",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "rooms",
+        "room-lobby",
+        "recording"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-049",
+      "area": "room",
+      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
+      "description": "",
+      "status": "planned",
+      "spec": "044",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "rooms",
+        "room-lobby",
+        "recording"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-050",
+      "area": "room",
+      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
+      "description": "",
+      "status": "planned",
+      "spec": "044",
+      "acs": [],
+      "surfaces": [
+        "feed",
+        "rooms",
+        "room-lobby",
+        "recording"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SESS-001",
       "area": "sess",
       "name": "Social context in the reader's ctx parameter",
