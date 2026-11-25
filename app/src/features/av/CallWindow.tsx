@@ -70,6 +70,7 @@ export function CallWindow({
   owner = "call",
   label,
   title,
+  pinned = null,
 }: {
   children: ReactNode;
   pill: (expand: () => void) => ReactNode;
@@ -77,6 +78,8 @@ export function CallWindow({
   owner?: FrameOwner;
   label?: string;
   title?: string;
+  /** Spec 053: hold the window at this box (viewport fractions) — a replay's talking head where the leader had it. */
+  pinned?: { x: number; y: number; w: number; h: number } | null;
 }) {
   const t = useStrings();
   const dir: Dir = useInterfaceLang() === "hebrew" ? "rtl" : "ltr";
@@ -91,12 +94,20 @@ export function CallWindow({
 
   const a = area(viewport, insets, dir);
   const dims = dimensions(placement, viewport);
-  const box = rect(placement, dims, a, dir);
-  // Spec 051 AC-003: a recording keeps where the talking head is.
+  const placed = rect(placement, dims, a, dir);
+  const box = pinned
+    ? {
+        left: Math.round(pinned.x * viewport.width),
+        top: Math.round(pinned.y * viewport.height),
+        width: Math.round(pinned.w * viewport.width),
+        height: Math.round(pinned.h * viewport.height),
+      }
+    : placed;
+  // Spec 051 AC-003: a recording keeps where the talking head is (the call's window only; a replay's is not the viewer's).
   useEffect(() => {
-    setHeadPlace(box, viewport);
-  }, [box.left, box.top, box.width, box.height, viewport.width, viewport.height]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => () => setHeadPlace(null), []);
+    if (owner === "call") setHeadPlace(box, viewport);
+  }, [owner, box.left, box.top, box.width, box.height, viewport.width, viewport.height]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => void (owner === "call" && setHeadPlace(null)), [owner]);
   const anchoredRight = box.left + box.width / 2 > (a.left + a.right) / 2;
 
   const commit = useCallback((next: Placement, announce: string) => {

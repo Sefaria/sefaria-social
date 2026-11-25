@@ -91,3 +91,40 @@ export function snapshotAt(rec: Recording, t: number): { snapshot: ReaderSnapsho
   }
   return { snapshot, key: `${keyframeIndex}:${applied}` };
 }
+
+/** Spec 053: where the leader's talking head was at `t` and whether their camera was on (spec 051's overlay slice). */
+export interface OverlayAt {
+  camera: boolean;
+  head: { x: number; y: number; w: number; h: number } | null;
+}
+
+const fraction = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 1;
+
+/** The recording's `social.overlay` slice at `t`, checked; null when the recording has none (made before spec 051). */
+export function overlayAt(rec: Recording, t: number): OverlayAt | null {
+  const value = snapshotAt(rec, t).snapshot.slices["social.overlay"]?.value as
+    { camera?: unknown; head?: { x?: unknown; y?: unknown; w?: unknown; h?: unknown } | null } | undefined;
+  if (!value || typeof value !== "object") return null;
+  const h = value.head;
+  const head =
+    h && fraction(h.x) && fraction(h.y) && fraction(h.w) && fraction(h.h)
+      ? { x: h.x as number, y: h.y as number, w: h.w as number, h: h.h as number }
+      : null;
+  return { camera: value.camera === true, head };
+}
+
+export interface Chapter {
+  t: number;
+  ref: string;
+  heRef: string | null;
+}
+
+/** The chapter playing at `t`: the last one that starts at or before it; null before the first. */
+export function chapterAt(chapters: readonly Chapter[], t: number): Chapter | null {
+  let found: Chapter | null = null;
+  for (const c of chapters) {
+    if (c.t <= t) found = c;
+    else break;
+  }
+  return found;
+}

@@ -89,6 +89,7 @@ describe("replay controller", () => {
     expect(requests.map((r) => r.url)).toEqual([
       `${API}/api/v1/recordings/${REC}`,
       `${API}/api/v1/recordings/${REC}/state`,
+      `${API}/api/v1/assets/${REC}/manifest`, // spec 053: its chapters, once processed (here: none, 404)
       `${API}/api/v1/recordings/${REC}/media`,
     ]);
     expect(requests.every((r) => /^Bearer [\w-]+\.[\w-]+\.[\w-]+$/.test(r.auth ?? ""))).toBe(true);
@@ -144,7 +145,8 @@ describe("replay controller", () => {
     expect(fake.calls.applied).toEqual([]);
     expect(fake.calls.navigate).toEqual([]);
     expect(fake.url()).toBe(`/Genesis.1?ctx=social.rec.${REC}`);
-    expect(requests).toHaveLength(1);
+    // Spec 053: refused as a member, it asks the public read (a ready recording opens for anyone with its link); also refused.
+    expect(requests.map((r) => r.url)).toEqual([`${API}/api/v1/recordings/${REC}`, `${API}/api/v1/assets/${REC}`]);
   });
 
   // @feature SESS-065 Replay a recording in the reader with the video in the floating window
