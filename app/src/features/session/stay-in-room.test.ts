@@ -63,7 +63,7 @@ describe("staying in the room while reading around (spec 045)", () => {
   });
 
   // @feature SESS-067 Stay in the room while reading around the reader
-  // @ac 045/AC-001
+  // A guard rather than proof: these leave on the base too, and must keep leaving (spec 013 AC-002, R10).
   it("Back to the page they entered from, a Social page, or another room's address still leaves", async () => {
     const fromReader = await setup("/Exodus.2");
     await fromReader.controller.enlarge(ID);
