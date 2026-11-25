@@ -46,14 +46,18 @@ if the owner decides otherwise.
 
 ## QA passes
 
-| Group | Date | Preview | Result |
-| ----- | ---- | ------- | ------ |
-|       |      |         |        |
+| Group | Date       | Preview                                                | Result                                                                                                                                                                                                                                                                                                      |
+| ----- | ---------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A     | 2026-11-25 | not run on the preview (two signed-in accounts needed) | Independent code review by a fresh agent: 5 findings (forged `?join=1`, pass-on repeat guard, echo between mutual followers, minimised room not told it closed, holds lost when a session was replaced), all fixed with tests; full desktop e2e suite 28 passed against the real server, relay and LiveKit. |
 
 ## Log
 
 Newest first. One or two lines per entry: what changed, and anything the next session must know that the code does not say.
 
+- 2026-11-25: Group A review fixes. Known limits left: an owner's second tab displaces the first in the relay (older
+  rule), so the 2-minute end can start while the first tab is open; a room ticket fetch that fails on the network makes the
+  owner a member until the socket reconnects. The broadcast relay test's join order was a race: the relay test helper now
+  orders participants by id.
 - 2026-11-25: Spec 050 built. The recorder pauses MediaRecorder and its shared clock; messages from the state writer are
   dropped while paused (a seq gap, which readers recover from at the resume keyframe). The in-app test relay takes
   `owners` to mirror owner tickets. Group A's local checks all pass; e2e journeys run with livekit-server from the
