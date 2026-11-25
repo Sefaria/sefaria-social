@@ -2846,7 +2846,33 @@
       ],
       "depends_on": {},
       "tests": [
-        "app/src/api.processing.int.test.ts"
+        "app/src/api.processing.int.test.ts",
+        "e2e/recording.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-006",
+      "area": "shiur",
+      "name": "The shiur player: a bar with chapters, the talking head in place, open to anyone",
+      "description": "A replay has a bar docked at the bottom (play, seek with chapter markers named by ref, back and forward, speed, Hide video, Close, Space and arrows); the video is the talking head pinned where the leader had it, gone while their camera was off or for an audio-only shiur; signed out it loads through the public reads.",
+      "status": "built",
+      "spec": "053",
+      "acs": [
+        "053/AC-001",
+        "053/AC-002",
+        "053/AC-003",
+        "053/AC-004",
+        "053/AC-005"
+      ],
+      "surfaces": [
+        "recording"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/replay/shiur-player.test.tsx",
+        "e2e/recording.spec.ts"
       ],
       "since": null,
       "changed": []

@@ -10,7 +10,7 @@ const ENTRIES = {
       "A finished recording is queued on its own row and processed in the background with ffmpeg into media.webm (seekable), audio.m4a, timeline.json and manifest.json with chapters; served by byte range; retried twice with a wait, then failed with the raw chunks kept; safe to run twice.",
     acs: ["052/AC-001", "052/AC-002", "052/AC-003", "052/AC-004", "052/AC-005", "052/AC-006"],
     status: "built",
-    tests: ["app/src/api.processing.int.test.ts"],
+    tests: ["app/src/api.processing.int.test.ts", "e2e/recording.spec.ts"],
   },
 };
 
