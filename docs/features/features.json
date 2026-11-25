@@ -1697,95 +1697,110 @@
     {
       "id": "ROOM-046",
       "area": "room",
-      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
-      "description": "",
-      "status": "planned",
+      "name": "Start a room from Social and land in its lobby",
+      "description": "Start a room on the home rail, the rooms page and empty states: a dialog asks for the name (required, at most 120 characters), creates the room and opens its lobby; a failure keeps the dialog open. The rail also links to all rooms, and a recording's page links back to its room.",
+      "status": "built",
       "spec": "044",
-      "acs": [],
+      "acs": [
+        "044/AC-001",
+        "044/AC-007"
+      ],
       "surfaces": [
         "feed",
         "rooms",
-        "room-lobby",
         "recording"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/rooms/rooms.test.tsx",
+        "app/src/features/feed/Feed.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "ROOM-047",
       "area": "room",
-      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
-      "description": "",
-      "status": "planned",
+      "name": "Your rooms at /social/rooms and Rooms in Social's navigation",
+      "description": "Every room the viewer is a member of, newest first, with Owner or Member and a link to its lobby; empty and signed-out states; a one-shot notice after a room is deleted or left.",
+      "status": "built",
       "spec": "044",
-      "acs": [],
+      "acs": [
+        "044/AC-002"
+      ],
       "surfaces": [
-        "feed",
-        "rooms",
-        "room-lobby",
-        "recording"
+        "rooms"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/rooms/rooms.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "ROOM-048",
       "area": "room",
-      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
-      "description": "",
-      "status": "planned",
+      "name": "Invite people from a room's lobby: its link with Copy and Share",
+      "description": "A member's lobby says whether they own the room and shows Invite people: the room's full link, Copy (announced), and the Share menu.",
+      "status": "built",
       "spec": "044",
-      "acs": [],
+      "acs": [
+        "044/AC-003"
+      ],
       "surfaces": [
-        "feed",
-        "rooms",
-        "room-lobby",
-        "recording"
+        "room-lobby"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/room/room-settings.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "ROOM-049",
       "area": "room",
-      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
-      "description": "",
-      "status": "planned",
+      "name": "Rename or delete a room you own",
+      "description": "Room settings in the lobby: the owner renames the room in place, or deletes it after a confirmation that says its recordings go too, then lands on the rooms page with a notice.",
+      "status": "built",
       "spec": "044",
-      "acs": [],
+      "acs": [
+        "044/AC-004",
+        "044/AC-005"
+      ],
       "surfaces": [
-        "feed",
-        "rooms",
-        "room-lobby",
-        "recording"
+        "room-lobby"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/room/room-settings.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "ROOM-050",
       "area": "room",
-      "name": "People start, find, invite to, rename, delete and leave rooms from the interface",
-      "description": "",
-      "status": "planned",
+      "name": "Leave a room you joined",
+      "description": "A member who is not the owner leaves the room from room settings after a confirmation; the session of that room in this browser closes first; the rooms page says so.",
+      "status": "built",
       "spec": "044",
-      "acs": [],
+      "acs": [
+        "044/AC-006"
+      ],
       "surfaces": [
-        "feed",
-        "rooms",
-        "room-lobby",
-        "recording"
+        "room-lobby"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/room/room-settings.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
       "since": null,
       "changed": []
     },

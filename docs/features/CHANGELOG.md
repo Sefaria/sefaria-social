@@ -3,6 +3,11 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-25 — ROOM-050 "Leave a room you joined": built (spec 044).
+- 2026-11-25 — ROOM-049 "Rename or delete a room you own": built (spec 044).
+- 2026-11-25 — ROOM-048 "Invite people from a room's lobby: its link with Copy and Share": built (spec 044).
+- 2026-11-25 — ROOM-047 "Your rooms at /social/rooms and Rooms in Social's navigation": built (spec 044).
+- 2026-11-25 — ROOM-046 "Start a room from Social and land in its lobby": built (spec 044).
 - 2026-11-25 — SESS-066 "Broadcast a session and watch it as a view-only viewer": built (spec 043).
 - 2026-11-25 — API-050 "Broadcasts API: start, end, relay tickets and view-only call grants": built (spec 043).
 - 2026-11-25 — SESS-064 "Record a room's session (state and call media) in the owner's browser": built (spec 041).
