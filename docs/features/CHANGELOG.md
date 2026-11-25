@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-25 — OPS-087 "Nightly flake detection over three runs": changed — the tests-3x job gets the database URLs its suites read and builds the harness and the Start server before the browser leg (spec 084).
 - 2026-11-24 — SESS-057 "Call state machine and controller": fixed — a newcomer now hears the people already in the call (the engine listens before connecting; found by CI's two-browser journey) (spec 034).
 - 2026-11-24 — OPS-095 "Two-browser call journey on a local LiveKit": changed — the audio check presses Start audio where the browser blocks autoplay, and reports each audio element on failure (spec 040).
 - 2026-11-24 — SESS-063 "Owner tile menu, and what the muted and removed see": built (spec 039).

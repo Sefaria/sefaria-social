@@ -1335,7 +1335,12 @@
         "factory/test/acceptance-084.test.mjs"
       ],
       "since": null,
-      "changed": []
+      "changed": [
+        {
+          "spec": "084",
+          "date": "2026-11-25"
+        }
+      ]
     },
     {
       "id": "OPS-088",
