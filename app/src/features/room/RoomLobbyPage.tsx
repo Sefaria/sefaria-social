@@ -162,11 +162,15 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
                 {t.ownerTools}
               </h2>
               <p className={kit.hint}>{t.ownerToolsHint}</p>
-              <RecordButton roomId={roomId} />
-              <BroadcastPanel roomId={roomId} live={state.room.broadcast} />
+              <div className={styles.tools}>
+                <RecordButton roomId={roomId} />
+                <BroadcastPanel roomId={roomId} live={state.room.broadcast} />
+              </div>
             </section>
           )}
-          <PresenceList roomId={roomId} />
+          <div className={styles.card}>
+            <PresenceList roomId={roomId} />
+          </div>
           <RecordingsList roomId={roomId} />
           <RoomSettings room={state.room} onRenamed={(room) => setState({ kind: "member", room })} />
         </>

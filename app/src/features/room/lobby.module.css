@@ -94,3 +94,51 @@
   color: var(--sefaria-color-text-muted, #6f6f6f);
   font-size: 0.8125rem;
 }
+
+/* Buttons that the call, recording and broadcast features render without the kit's classes take the kit's secondary look
+   inside the lobby, so the page reads as one design. */
+.page button:not([class]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 36px;
+  padding-inline: var(--sefaria-space-4, 16px);
+  border: 1px solid var(--sefaria-color-border-strong, #b5b5b5);
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: transparent;
+  color: var(--sefaria-color-text, #121212);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page button:not([class]):hover:not(:disabled) {
+  background: var(--sefaria-color-surface-muted, #fafafa);
+}
+
+.page button:not([class]):disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.page button:not([class]):focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1976d2);
+  outline-offset: 2px;
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sefaria-space-3, 12px);
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.card ul {
+  margin: 0;
+  padding-inline-start: var(--sefaria-space-5, 20px);
+}
