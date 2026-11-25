@@ -6,6 +6,7 @@ import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import { createHmac } from "node:crypto";
 import { exportJWK, generateKeyPair, SignJWT, type CryptoKey as JoseKey } from "jose";
 import { convertV4MiniflareOptions, Miniflare } from "miniflare";
 
@@ -100,14 +101,45 @@ export interface Peer {
   send(envelope: unknown): void;
 }
 
+/** An owner ticket for `room` and `sub`, signed as the social server signs it (spec 048). */
+export function ownerTicket(room: string, sub: string, expSeconds = 600): string {
+  const exp = Math.floor(Date.now() / 1000) + expSeconds;
+  const body = Buffer.from(JSON.stringify({ b: room, sub, role: "owner", exp })).toString("base64url");
+  return `${body}.${createHmac("sha256", SECRET).update(body, "ascii").digest("base64url")}`;
+}
+
+/** The `sub` of the bearer token among the protocols, read without verifying (the relay verifies). */
+function subOf(protocols: string[]): string | null {
+  const token = protocols.find((p) => p.startsWith("bearer."))?.slice("bearer.".length);
+  const payload = token?.split(".")[1];
+  if (!payload) return null;
+  try {
+    const sub = (JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { sub?: unknown }).sub;
+    return typeof sub === "string" ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Opens a socket to `roomPath`. In an ordinary room only an owner ticket makes a leader (spec 048); tests written before that
+ * joined as leaders, so a connection with a bearer token and no ticket offers an owner ticket for the token's user, the way
+ * a room's owner connects. `owner: false` connects without one (a member).
+ */
 export async function connect(
   mf: Miniflare,
   roomPath: string,
-  opts: { origin?: string | null; protocols?: string[] } = {},
+  opts: { origin?: string | null; protocols?: string[]; owner?: boolean } = {},
 ): Promise<Peer> {
   const headers: Record<string, string> = { Upgrade: "websocket" };
   if (opts.origin !== null) headers.Origin = opts.origin ?? ORIGIN;
-  if (opts.protocols) headers["Sec-WebSocket-Protocol"] = opts.protocols.join(", ");
+  let protocols = opts.protocols;
+  const room = /^\/r\/([^/]+)$/.exec(roomPath)?.[1];
+  if (protocols && room && !room.startsWith("b_") && opts.owner !== false && !protocols.some((p) => p.startsWith("ticket."))) {
+    const sub = subOf(protocols);
+    if (sub) protocols = [...protocols, `ticket.${ownerTicket(decodeURIComponent(room), sub)}`];
+  }
+  if (protocols) headers["Sec-WebSocket-Protocol"] = protocols.join(", ");
   const res = await mf.dispatchFetch(`http://relay.test${roomPath}`, { headers });
   const peer: Peer = {
     status: res.status,

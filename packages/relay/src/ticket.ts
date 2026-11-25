@@ -8,13 +8,16 @@
 export const TICKET_PREFIX = "ticket.";
 
 export type BroadcastRole = "host" | "viewer";
+/** Spec 048: an ordinary room's ticket names its owner (who leads) or a member (who follows). */
+export type RoomRole = "owner" | "member";
+export type TicketRole = BroadcastRole | RoomRole;
 
 export interface Ticket {
-  /** The broadcast id (the relay room is `b_<b>`). */
+  /** The broadcast id (the relay room is `b_<b>`), or an ordinary room's id. */
   b: string;
   /** The Sefaria user id the ticket was issued to. */
   sub: string;
-  role: BroadcastRole;
+  role: TicketRole;
   /** Expiry, Unix seconds. */
   exp: number;
 }
@@ -85,7 +88,7 @@ export async function verifyTicket(ticket: string, secret: string | undefined, n
   if (typeof value !== "object" || value === null) return null;
   const { b, sub, role, exp } = value as Record<string, unknown>;
   if (typeof b !== "string" || b.length === 0 || typeof sub !== "string" || sub.length === 0) return null;
-  if (role !== "host" && role !== "viewer") return null;
+  if (role !== "host" && role !== "viewer" && role !== "owner" && role !== "member") return null;
   if (typeof exp !== "number" || !Number.isFinite(exp) || exp <= nowSeconds) return null;
   return { b, sub, role, exp };
 }

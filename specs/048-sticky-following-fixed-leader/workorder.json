@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:edf2b862c222d6da3387e2a9460e1e099f25dafe7e1359a3800bbd6d6ce5c5d2",
   "feature_sha": "sha256:558ec2875b43f6231184680290fb1f26bfdd1aabf9b2ccbe13f26a5e6d4c840f",
-  "tasks_sha": "sha256:8e17f882ceeef33450b8000eb9053ff3a4d626b9b7d3bfbd1bbf670c27b1de61",
+  "tasks_sha": "sha256:ebed03686b7c4cd27e590cae95b5964728949bb3f530862a73d2fb9ee7d78488",
   "risk": "high",
   "features": [
     "SESS-070",
@@ -28,7 +28,8 @@
         "app/src/features/session/place.ts",
         "app/src/features/session/place.test.ts",
         "app/src/features/session/sessions.ts",
-        "app/src/features/session/sessions.test.ts"
+        "app/src/features/session/sessions.test.ts",
+        "app/src/surface/room-following.test.tsx"
       ],
       "depends_on": [],
       "parallel": false,
@@ -66,7 +67,10 @@
         "app/src/features/api/rooms-api.ts",
         "app/src/features/session/sessions.ts",
         "app/src/features/session/sessions.test.ts",
-        "app/src/features/session/test-relay.ts"
+        "app/src/features/session/test-relay.ts",
+        "app/src/server/http/errors.ts",
+        "app/src/api.room-tickets.int.test.ts",
+        "packages/relay/test-support/relay.ts"
       ],
       "depends_on": [
         "T-001"

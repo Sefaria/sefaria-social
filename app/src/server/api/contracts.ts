@@ -172,6 +172,14 @@ export const RoomInput = z.strictObject({ title: z.string().trim().min(1).max(12
 
 const RoomParams = z.object({ roomId: z.uuid() });
 
+/** A relay ticket for an ordinary room (spec 048): a bearer credential for 10 minutes; keep it in memory. */
+export const RoomTicket = z.object({
+  ticket: z.string().min(1),
+  role: z.enum(["owner", "member"]),
+  relayRoom: z.uuid(),
+  expiresAt: z.iso.datetime({ offset: true }),
+});
+
 // ── Session recordings (spec 041) ─────────────────────────────────────────────────────────────────────────────────────────
 export const Recording = z.object({
   id: z.uuid(),
@@ -370,6 +378,18 @@ export const getRoomStatus = defineEndpoint({
   params: RoomParams,
   errors: [404],
   responses: { 200: { description: "The room's live status.", schema: RoomStatus } },
+});
+
+export const getRoomTicket = defineEndpoint({
+  operationId: "getRoomTicket",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/ticket",
+  summary:
+    "A 10-minute relay ticket for the room, naming the caller and their role: owner for the room's owner (who leads), member for anyone else in it. Members only; 503 room.relay_unavailable without a relay secret.",
+  tags: ["rooms"],
+  params: RoomParams,
+  errors: [404],
+  responses: { 200: { description: "The ticket and the relay room it opens.", schema: RoomTicket } },
 });
 
 export const getCallToken = defineEndpoint({
@@ -826,6 +846,7 @@ export const ENDPOINTS = [
   joinRoom,
   leaveRoom,
   getRoomStatus,
+  getRoomTicket,
   getCallToken,
   muteCallParticipant,
   removeCallParticipant,

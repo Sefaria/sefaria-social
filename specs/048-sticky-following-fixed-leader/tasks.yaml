@@ -9,6 +9,7 @@
     - "app/src/features/session/place.test.ts"
     - "app/src/features/session/sessions.ts"
     - "app/src/features/session/sessions.test.ts"
+    - "app/src/surface/room-following.test.tsx"
   depends_on: []
   parallel: false
   completes: [SESS-070]
@@ -36,6 +37,9 @@
     - "app/src/features/session/sessions.ts"
     - "app/src/features/session/sessions.test.ts"
     - "app/src/features/session/test-relay.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/api.room-tickets.int.test.ts"
+    - "packages/relay/test-support/relay.ts"
   depends_on: [T-001]
   parallel: false
   completes: [SESS-071]

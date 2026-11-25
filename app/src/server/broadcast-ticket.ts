@@ -5,13 +5,16 @@
 // Web Crypto only, so the code runs unchanged in a Worker. A ticket is a bearer credential for 10 minutes: never log it.
 
 export type BroadcastRole = "host" | "viewer";
+/** Spec 048: an ordinary room's ticket names its owner (who leads) or a member (who follows). */
+export type RoomRole = "owner" | "member";
+export type TicketRole = BroadcastRole | RoomRole;
 
 export interface Ticket {
-  /** The broadcast id (the relay room is `b_<b>`). */
+  /** The broadcast id (the relay room is `b_<b>`), or an ordinary room's id (the relay room is `<b>`). */
   b: string;
   /** The Sefaria user id the ticket was issued to, as a string. */
   sub: string;
-  role: BroadcastRole;
+  role: TicketRole;
   /** Expiry, Unix seconds. */
   exp: number;
 }
@@ -75,7 +78,7 @@ export async function verifyTicket(ticket: string, secret: string | undefined, n
   const t = value as Partial<Record<keyof Ticket, unknown>> | null;
   if (typeof t !== "object" || t === null) return null;
   if (typeof t.b !== "string" || typeof t.sub !== "string" || typeof t.exp !== "number") return null;
-  if (t.role !== "host" && t.role !== "viewer") return null;
+  if (t.role !== "host" && t.role !== "viewer" && t.role !== "owner" && t.role !== "member") return null;
   if (!Number.isFinite(t.exp) || t.exp <= nowSeconds) return null;
   return { b: t.b, sub: t.sub, role: t.role, exp: t.exp };
 }

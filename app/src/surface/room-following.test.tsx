@@ -89,10 +89,11 @@ describe("following", () => {
   });
 
   // @feature SESS-014 Follow, follow again and lead
-  // @ac 014/AC-002
+  // Spec 048 replaced 014/AC-002's "any input pauses": the viewer now has to move clearly away (048/AC-001..AC-003 prove it).
   it("stops applying when the viewer moves themselves, offers Follow again, and catches up at once when pressed", async () => {
     const { fake, leaderMoves, controller, button, click, view } = await inRoom();
-    fake.localInput(); // the person scrolls the reader
+    fake.localInput(); // the person goes to another book in the reader
+    fake.localMove("/Exodus.20");
     await vi.waitFor(() => expect(controller.view().kind).toBe("detached"));
     const applied = fake.calls.applied.length;
     leaderMoves("/Genesis.9");
