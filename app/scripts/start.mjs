@@ -14,8 +14,9 @@ const APP = fileURLToPath(new URL("..", import.meta.url));
 const CLIENT = path.join(APP, "dist", "client");
 const PORT = Number(process.env.PORT) || 3200;
 const HOST = process.env.HOST || "0.0.0.0";
-/** Request bodies above this are refused (the API takes small JSON bodies). */
-const MAX_BODY = 1024 * 1024;
+/** Request bodies above this are refused: the largest the API takes is a recording's media chunk (4 MiB, spec 041); each
+ *  endpoint applies its own, smaller limit. At 1 MiB this refused every chunk over 1 MB, and the recording failed. */
+const MAX_BODY = 4 * 1024 * 1024;
 const TYPES = { ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json" };
 
 const app = (await import(pathToFileURL(path.join(APP, "dist", "server", "server.js")).href)).default;

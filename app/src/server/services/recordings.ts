@@ -216,6 +216,7 @@ export async function putMedia(
       .from(recordingMediaChunks)
       .where(eq(recordingMediaChunks.recordingId, recordingId));
     const next = last?.seq === null || last?.seq === undefined ? 0 : Number(last.seq) + 1;
+    if (seq === next - 1 && (await sameChunk(tx, recordingId, seq, bytes))) return; // a retry whose first try landed
     if (seq !== next) throw new ApiError(409, "recording.out_of_order");
     if (row.mediaBytes + bytes.byteLength > MAX_MEDIA_BYTES) throw new ApiError(413, "recording.too_large");
     await store(tx).putMedia(recordingId, seq, bytes);
@@ -224,6 +225,14 @@ export async function putMedia(
       .set({ mediaBytes: sql`${sessionRecordings.mediaBytes} + ${bytes.byteLength}`, lastUploadAt: sql`now()` })
       .where(eq(sessionRecordings.id, recordingId));
   });
+}
+
+async function sameChunk(tx: Executor, recordingId: string, seq: number, bytes: Uint8Array): Promise<boolean> {
+  const [kept] = await tx
+    .select({ bytes: recordingMediaChunks.bytes })
+    .from(recordingMediaChunks)
+    .where(and(eq(recordingMediaChunks.recordingId, recordingId), eq(recordingMediaChunks.seq, seq)));
+  return !!kept && Buffer.from(kept.bytes).equals(Buffer.from(bytes));
 }
 
 /**

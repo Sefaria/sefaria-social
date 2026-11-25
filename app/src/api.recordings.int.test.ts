@@ -154,6 +154,7 @@ describe("spec 041: session recordings on the server", () => {
     expect((await putChunk(rec.id, 1, new Uint8Array([4, 5]))).status).toBe(204);
     expect(code(await putChunk(rec.id, 3, new Uint8Array([9]))), "a gap").toBe("409 recording.out_of_order");
     expect(code(await putChunk(rec.id, 1, new Uint8Array([9]))), "a repeat").toBe("409 recording.out_of_order");
+    expect((await putChunk(rec.id, 1, new Uint8Array([4, 5]))).status, "the last chunk sent again (a retry)").toBe(204);
     expect(code(await putChunk(rec.id, 2, new Uint8Array([9]), dana)), "a member").toBe("403 recording.forbidden");
     expect(code(await putChunk(rec.id, 2, new Uint8Array([9]), stranger)), "a non-member").toBe("404 recording.not_found");
     expect(code(await putChunk(rec.id, 2, new Uint8Array(4 * 1024 * 1024 + 1))), "over 4 MB").toBe("413 request.too_large");
