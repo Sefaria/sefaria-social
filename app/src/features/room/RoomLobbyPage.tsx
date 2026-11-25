@@ -140,6 +140,12 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
               {t.enter}
             </button>
             <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
+            {/* Spec 045 AC-006: say so when this server does not offer calls, rather than showing nothing. */}
+            {!state.room.calls?.available && (
+              <span className={kit.hint} data-calls-off="">
+                {t.callsOff}
+              </span>
+            )}
           </div>
           {(recording || onCall !== null) && (
             <div className={styles.status}>

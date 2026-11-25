@@ -102,6 +102,16 @@ const type = async (input: HTMLInputElement, value: string) => {
   });
 };
 
+describe("calls off (spec 045)", () => {
+  // @feature ROOM-051 The lobby says when calls are off
+  // @ac 045/AC-006
+  it("says video calls are not turned on where Join call would be, when the server does not offer calls", async () => {
+    const { el } = await lobby("member");
+    expect(el.querySelector("[data-action=join-call]")).toBeNull();
+    expect(el.querySelector("[data-calls-off]")?.textContent).toBe("Video calls are not turned on here.");
+  });
+});
+
 describe("the lobby's invitation and room settings (spec 044)", () => {
   // @feature ROOM-048 Invite people from a room's lobby: its link with Copy and Share
   // @ac 044/AC-003

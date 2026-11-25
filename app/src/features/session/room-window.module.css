@@ -1,0 +1,231 @@
+/* The room window (spec 045): a card fixed at the bottom inline-start corner of the viewport, clear of the reader's own controls
+   at the inline-end corner. Its offsets come from the reader's chrome insets (inline style). */
+.window {
+  position: fixed;
+  z-index: 1;
+  display: grid;
+  gap: var(--sefaria-space-3, 12px);
+  box-sizing: border-box;
+  inline-size: min(340px, calc(100vw - 32px));
+  max-block-size: min(70vh, 560px);
+  overflow: auto;
+  padding: var(--sefaria-space-4, 16px);
+  border: 1px solid var(--sefaria-color-border, #e6e6e6);
+  border-radius: var(--sefaria-radius-lg, 12px);
+  background: var(--sefaria-color-surface, #ffffff);
+  color: var(--sefaria-color-text, #121212);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 12px 32px rgb(0 0 0 / 14%);
+  font-family: var(--sefaria-font-ui, inherit);
+  font-size: 0.875rem;
+}
+
+.collapsed {
+  inline-size: auto;
+  padding: 0;
+  overflow: visible;
+  border-radius: var(--sefaria-radius-pill, 9999px);
+}
+
+.toggle {
+  position: absolute;
+  inset-block-start: var(--sefaria-space-2, 8px);
+  inset-inline-end: var(--sefaria-space-2, 8px);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+  max-inline-size: min(360px, calc(100vw - 32px));
+  min-block-size: 40px;
+  padding-inline: var(--sefaria-space-4, 16px);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pill:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1976d2);
+  outline-offset: 2px;
+}
+
+.pillTitle {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pillStatus {
+  overflow: hidden;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+  padding-inline-end: 32px;
+}
+
+.title {
+  overflow: hidden;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 0.8125rem;
+}
+
+.dot {
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--sefaria-color-success, #2e7d32);
+  box-shadow: 0 0 0 3px rgb(46 125 50 / 18%);
+}
+
+.dot[data-tone="own"] {
+  background: var(--sefaria-color-text-muted, #6f6f6f);
+  box-shadow: 0 0 0 3px rgb(111 111 111 / 15%);
+}
+
+.dot[data-tone="waiting"] {
+  background: var(--sefaria-color-warning, #b26a00);
+  box-shadow: 0 0 0 3px rgb(178 106 0 / 18%);
+}
+
+.line {
+  margin: 0;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.actions:empty {
+  display: none;
+}
+
+/* Join call renders a plain button; give it the kit's secondary look here. */
+.actions button:not([class]) {
+  min-block-size: 32px;
+  padding-inline: var(--sefaria-space-3, 12px);
+  border: 1px solid var(--sefaria-color-border-strong, #b5b5b5);
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actions button:not([class]):focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1976d2);
+  outline-offset: 2px;
+}
+
+/* Who is here, compact: one row per person, Follow at the row's end. */
+.people {
+  border-block-start: 1px solid var(--sefaria-color-border, #e6e6e6);
+  padding-block-start: var(--sefaria-space-3, 12px);
+}
+
+.people:empty {
+  display: none;
+}
+
+.people h2 {
+  margin: 0 0 var(--sefaria-space-2, 8px);
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.people ul {
+  display: grid;
+  gap: var(--sefaria-space-1, 4px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.people li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--sefaria-space-1, 4px);
+  min-block-size: 28px;
+}
+
+.people li button {
+  margin-inline-start: auto;
+  padding: 2px var(--sefaria-space-3, 12px);
+  border: 1px solid var(--sefaria-color-border-strong, #b5b5b5);
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.people li button[aria-pressed="true"] {
+  border-color: var(--sefaria-color-brand, #18345d);
+  background: var(--sefaria-color-brand, #18345d);
+  color: var(--sefaria-color-on-brand, #ffffff);
+}
+
+.people li [data-role],
+.people li [data-following],
+.people li [data-you] {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sefaria-space-3, 12px);
+  border-block-start: 1px solid var(--sefaria-color-border, #e6e6e6);
+  padding-block-start: var(--sefaria-space-3, 12px);
+}
+
+.mini {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.mini + .mini {
+  border-block-start: 1px solid var(--sefaria-color-border, #e6e6e6);
+  padding-block-start: var(--sefaria-space-3, 12px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .window {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 30%),
+      0 12px 32px rgb(0 0 0 / 45%);
+  }
+}

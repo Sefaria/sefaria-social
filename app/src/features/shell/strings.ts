@@ -285,6 +285,14 @@ const STRINGS = {
     minutesAgo: (n: number) => `${n} min`,
     hoursAgo: (n: number) => `${n} h`,
     daysAgo: (n: number) => `${n} d`,
+    // The room window (spec 045)
+    roomWindow: (title: string) => `Room: ${title}`,
+    hideRoomWindow: "Hide the room window",
+    showRoomWindow: "Show the room window",
+    hereCount: (n: number) => (n === 1 ? "1 here" : `${n} here`),
+    roomPage: "Room page",
+    callsOff: "Video calls are not turned on here.",
+    untitledRoom: "Room",
     // Room flows (spec 044)
     rooms: "Rooms",
     yourRooms: "Your rooms",
@@ -596,6 +604,14 @@ const STRINGS = {
     minutesAgo: (n: number) => `${n} דק׳`,
     hoursAgo: (n: number) => `${n} שע׳`,
     daysAgo: (n: number) => `${n} ימים`,
+    // The room window (spec 045)
+    roomWindow: (title: string) => `חדר: ${title}`,
+    hideRoomWindow: "הסתרת חלון החדר",
+    showRoomWindow: "הצגת חלון החדר",
+    hereCount: (n: number) => (n === 1 ? "1 כאן" : `${n} כאן`),
+    roomPage: "דף החדר",
+    callsOff: "שיחות וידאו לא מופעלות כאן.",
+    untitledRoom: "חדר",
     // Room flows (spec 044)
     rooms: "חדרים",
     yourRooms: "החדרים שלך",
