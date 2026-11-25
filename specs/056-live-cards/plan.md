@@ -19,7 +19,7 @@ Plan: `docs/plans/shiur.md` 4.7 (proposed mechanics). Decision: `docs/decisions/
 ## T-002 The server keeps reports and answers `GET /api/v1/live` (AC-002, AC-003)
 
 - Migration `0008_live_status.sql` (expand only): `live_status (relay_room text pk, room_id uuid → rooms on delete cascade,
-  ref, he_ref, title, participants int, reported_at timestamptz)`; holds no user ids.
+ref, he_ref, title, participants int, reported_at timestamptz)`; holds no user ids.
 - `http/endpoint.ts`: access `relay-report` (HMAC of the raw body with `RELAY_INTERNAL_SECRET`, 503 when unset, 401 on a bad
   signature); a handler may return `headers` (the `ETag`), and a declared 304 is sent without a body.
 - `http/public-routes.ts`: `GET /api/v1/live`, with its reason.

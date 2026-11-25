@@ -21,9 +21,9 @@ Plan: `docs/plans/shiur.md` 4.7. Decision: `docs/decisions/0012-links-and-live-c
   `/social/(r|b|rec)/<uuid>` link, bare or as an http(s) URL on `sefaria.org`, `www.sefaria.org`, `sefaria.org.il`,
   `www.sefaria.org.il`, `*.sefaria.org` (cauldrons, previews) or the page's own origin (from `host.href`).
 - `features/post/linkify.tsx`: split text into strings and http(s) URLs (trailing punctuation left out); render `<a
-  href target="_blank" rel="noopener nofollow">`. No HTML is ever parsed from the text.
+href target="_blank" rel="noopener nofollow">`. No HTML is ever parsed from the text.
 - `Composer.tsx`: on change, when there is no card yet and the text contains a link, cut it out and keep `{kind, id, text,
-  at}`; the card shows under the text with Remove, which re-inserts the link text at `at`. Posting sends `embed`; text may
+at}`; the card shows under the text with Remove, which re-inserts the link text at `at`. Posting sends `embed`; text may
   be empty with a card.
 - `EmbedCard.tsx`: the card (title, "with <leader>", one button: Join, Watch, Play) that navigates through the host
   (`host.navigate(path)`; the href built by `host.href`, R8). Unavailable when title is null. Styles in

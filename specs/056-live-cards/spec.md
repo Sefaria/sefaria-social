@@ -46,7 +46,7 @@ feed opening a socket per card. Plan: `docs/plans/shiur.md` 4.7 ("Live status", 
   over the raw body (the format of `server/webhooks/signature.ts`) using `RELAY_INTERNAL_SECRET`. Unset URL: no reports.
   `SOCIAL_SERVER_URL` is a new relay variable: a setup-checklist step, not a change to `wrangler.toml` here.
 - Server: access `relay-report` in `http/endpoint.ts`; table `live_status (relay_room text pk, room_id → rooms cascade, ref,
-  he_ref, title, participants, reported_at)`, migration `0008_live_status` (expand only, no user ids). When there is no fresh
+he_ref, title, participants, reported_at)`, migration `0008_live_status` (expand only, no user ids). When there is no fresh
   report the server may read the relay's status (`services/relay.ts`, as the feed does) so cards work where the relay has no
   server URL yet; both go through a 5-second in-memory cache.
 - `GET /api/v1/live` is added to `PUBLIC_ENDPOINTS` with its reason: it answers only for sessions a post has made public (D9).
