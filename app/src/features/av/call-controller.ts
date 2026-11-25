@@ -15,6 +15,7 @@ import { roomSessionsFor } from "~/features/session/sessions";
 import { loadLiveKit } from "./load-livekit";
 import { INITIAL_CALL, callRoom, transition, type CallEvent, type CallView, type DeviceChoice } from "./machine";
 import { MediaPermissionError, type CallMedia, type DeviceList, type LoadEngine, type MediaEngine, type Preview } from "./media";
+import { documentHostFor } from "~/features/host/document-host";
 
 /** How long a lost call keeps trying before it ends with Rejoin (AC-011). */
 export const RECONNECT_GIVE_UP_MS = 30_000;
@@ -486,7 +487,8 @@ const perHost = new WeakMap<SurfaceHost, CallController>();
  * The call controller for this host. The first call creates it; `overrides` (tests, the harness) replace the rooms API or the
  * media engine and are ignored once it exists.
  */
-export function callControllerFor(host: SurfaceHost, overrides: Partial<Omit<CallDeps, "host">> = {}): CallController {
+export function callControllerFor(rawHost: SurfaceHost, overrides: Partial<Omit<CallDeps, "host">> = {}): CallController {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let c = perHost.get(host);
   if (!c) {
     c = createCallController({

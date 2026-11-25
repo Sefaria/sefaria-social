@@ -6,6 +6,7 @@
 import type { SurfaceHost } from "@sefaria-social/host-contract";
 import { replayControllerFor, type ReplayController } from "~/features/replay/replay-controller";
 import { callControllerFor, type CallController } from "./call-controller";
+import { documentHostFor } from "~/features/host/document-host";
 
 export type WindowOwner = "call" | "replay";
 
@@ -78,7 +79,8 @@ export function createWindowOwner({ call, replay }: WindowOwnerDeps): WindowOwne
 const perHost = new WeakMap<SurfaceHost, WindowOwnerControl>();
 
 /** The window's owner for this host (one per host, like the controllers it reads). */
-export function windowOwnerFor(host: SurfaceHost): WindowOwnerControl {
+export function windowOwnerFor(rawHost: SurfaceHost): WindowOwnerControl {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let w = perHost.get(host);
   if (!w) {
     w = createWindowOwner({ call: () => callControllerFor(host), replay: () => replayControllerFor(host) });

@@ -20,6 +20,7 @@ import { createCompositor, type Compositor, type CompositorOptions } from "./com
 import { createMixer, type Mixer } from "./mixer";
 import { createSessionRecorder, pickMimeType, type SessionRecorder, type SessionRecorderOptions } from "./recorder";
 import { recordingApiFor, type RecordingApi } from "./recording-api";
+import { documentHostFor } from "~/features/host/document-host";
 
 export type RecordingFailure = "upload" | "unavailable" | "already-recording" | "forbidden" | "error";
 
@@ -222,9 +223,10 @@ const perHost = new WeakMap<SurfaceHost, RecordingController>();
 
 /** The recording controller for this host. The first call creates it; `overrides` (tests) are ignored once it exists. */
 export function recordingControllerFor(
-  host: SurfaceHost,
+  rawHost: SurfaceHost,
   overrides: Partial<Omit<RecordingDeps, "host">> = {},
 ): RecordingController {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let c = perHost.get(host);
   if (!c) {
     c = createRecordingController({

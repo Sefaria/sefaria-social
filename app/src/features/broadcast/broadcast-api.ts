@@ -8,6 +8,7 @@ import type { SurfaceHost } from "@sefaria-social/host-contract";
 import { createApiClient } from "@sefaria-social/api-client";
 import type { CallTokenResult } from "~/features/api/rooms-api";
 import { useHost } from "~/features/host/host-context";
+import { documentHostFor } from "~/features/host/document-host";
 
 const broadcastSchema = z.object({
   id: z.string().min(1),
@@ -103,7 +104,8 @@ export function createBroadcastApi(host: SurfaceHost): BroadcastApi {
 const built = new WeakMap<SurfaceHost, BroadcastApi>();
 
 /** The broadcast API built from this host (one per host). */
-export function broadcastApiFor(host: SurfaceHost): BroadcastApi {
+export function broadcastApiFor(rawHost: SurfaceHost): BroadcastApi {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let api = built.get(host);
   if (!api) {
     api = createBroadcastApi(host);

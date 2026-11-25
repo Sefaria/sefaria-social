@@ -8,6 +8,7 @@ import { createApiClient, type paths, type Room } from "@sefaria-social/api-clie
 /** A room's live status (spec 011), with its call while one is live (spec 038). */
 export type RoomStatus = paths["/api/v1/rooms/{roomId}/status"]["get"]["responses"][200]["content"]["application/json"];
 import { useHost } from "~/features/host/host-context";
+import { documentHostFor } from "~/features/host/document-host";
 
 export type { Room };
 
@@ -135,7 +136,8 @@ export const RoomsApiContext = createContext<RoomsApi | null>(null);
 const built = new WeakMap<SurfaceHost, RoomsApi>();
 
 /** The rooms API built from this host (one per host). */
-export function roomsApiFor(host: SurfaceHost): RoomsApi {
+export function roomsApiFor(rawHost: SurfaceHost): RoomsApi {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let api = built.get(host);
   if (!api) {
     api = createRoomsApi(host);

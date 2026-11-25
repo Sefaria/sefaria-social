@@ -23,6 +23,7 @@ import { withoutAnyCtx } from "~/features/session/room-reader";
 import { roomSessionsFor, type RoomSession, type RoomSessions } from "~/features/session/sessions";
 import { ID_RE } from "~/lib/ids";
 import { broadcastApiFor, type BroadcastApi, type BroadcastTicket } from "./broadcast-api";
+import { documentHostFor } from "~/features/host/document-host";
 
 /** A ticket this close to its expiry is replaced before the next connect. */
 export const TICKET_MARGIN_MS = 60_000;
@@ -438,7 +439,8 @@ export function createBroadcastController(deps: BroadcastDeps): BroadcastControl
 const perHost = new WeakMap<SurfaceHost, BroadcastController>();
 
 /** The broadcast controller of this host (lobby, watch page and persistent mount share it). */
-export function broadcastControllerFor(host: SurfaceHost, overrides: Partial<Omit<BroadcastDeps, "host">> = {}) {
+export function broadcastControllerFor(rawHost: SurfaceHost, overrides: Partial<Omit<BroadcastDeps, "host">> = {}) {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let c = perHost.get(host);
   if (!c) {
     c = createBroadcastController({

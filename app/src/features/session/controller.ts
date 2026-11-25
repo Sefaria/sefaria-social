@@ -13,6 +13,7 @@ import type { ReaderSnapshot, SurfaceHost } from "@sefaria-social/host-contract"
 import { decodeCtx, withCtx, withoutCtx } from "~/lib/ctx";
 import { INITIAL_SESSION, transition, type SessionEvent, type SessionView } from "./machine";
 import { roomSessionsFor, type RoomSessions } from "./sessions";
+import { documentHostFor } from "~/features/host/document-host";
 
 /** How long Enlarge waits for the followed person's state before entering without it (they may be idle in their lobby). */
 export const TARGET_WAIT_MS = 1_500;
@@ -315,7 +316,8 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
 const perHost = new WeakMap<SurfaceHost, RoomController>();
 
 /** The one controller of this host (page mount and persistent mount share it). */
-export function roomControllerFor(host: SurfaceHost): RoomController {
+export function roomControllerFor(rawHost: SurfaceHost): RoomController {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let c = perHost.get(host);
   if (!c) {
     c = createRoomController(host);

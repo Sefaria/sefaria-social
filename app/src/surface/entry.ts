@@ -5,6 +5,7 @@ import { createElement, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
 import { surfaceHostShapeSchema, type Surface, type SurfaceHost } from "@sefaria-social/host-contract";
+import { registerMountHost } from "~/features/host/document-host";
 import { SURFACE } from "~/lib/surface-info";
 import { SurfaceHostProvider } from "./host-context";
 import { PersistentView } from "./persistent";
@@ -41,6 +42,8 @@ let activePage: { el: HTMLElement; unmount: () => void } | null = null;
 
 function mountPage(el: HTMLElement, host: SurfaceHost) {
   if (!checkHost(el, host)) return () => el.replaceChildren();
+  // The reader may give each mount its own host; page-wide controllers use one for both (features/host/document-host.ts).
+  registerMountHost(host, "page");
   // R18: one page surface at a time. A second mount replaces the first.
   if (activePage) {
     host.report({ kind: "event", name: "page-remounted" });
@@ -69,6 +72,7 @@ function mountPage(el: HTMLElement, host: SurfaceHost) {
 
 function mountPersistent(el: HTMLElement, host: SurfaceHost) {
   if (!checkHost(el, host)) return () => el.replaceChildren();
+  registerMountHost(host, "persistent");
   const root = createRoot(el);
   root.render(
     createElement(

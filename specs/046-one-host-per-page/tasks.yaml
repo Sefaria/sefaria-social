@@ -1,0 +1,21 @@
+- id: T-001
+  title: One host per page for the call, room, recording, broadcast and replay controllers
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/features/host/document-host.ts"
+    - "app/src/surface/entry.ts"
+    - "app/src/surface/two-hosts.test.tsx"
+    - "app/src/features/av/window-owner.ts"
+    - "app/src/features/av/call-controller.ts"
+    - "app/src/features/recording/recording-api.ts"
+    - "app/src/features/recording/recording-controller.ts"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/replay/replay-controller.ts"
+    - "app/src/features/broadcast/broadcast-controller.ts"
+    - "app/src/features/broadcast/broadcast-api.ts"
+    - "app/src/features/session/controller.ts"
+    - "app/src/features/session/sessions.ts"
+  depends_on: []
+  parallel: false
+  completes: [HOST-009]
+  verify: ["npm test -- surface features/session features/av", "npm run typecheck"]

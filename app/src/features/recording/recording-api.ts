@@ -4,6 +4,7 @@
 import { z } from "zod";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
 import type { StreamMessage } from "@sefaria-social/session";
+import { documentHostFor } from "~/features/host/document-host";
 
 export type StartResult =
   { kind: "ok"; id: string } | { kind: "already-recording" } | { kind: "forbidden" } | { kind: "unavailable" };
@@ -80,7 +81,8 @@ export function createRecordingApi({ apiOrigin, getToken, fetch: f = (...a) => f
 const built = new WeakMap<SurfaceHost, RecordingApi>();
 
 /** The recording API built from this host (one per host). */
-export function recordingApiFor(host: SurfaceHost): RecordingApi {
+export function recordingApiFor(rawHost: SurfaceHost): RecordingApi {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let api = built.get(host);
   if (!api) {
     api = createRecordingApi({

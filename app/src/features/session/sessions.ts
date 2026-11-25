@@ -12,6 +12,7 @@ import {
 import type { SurfaceHost } from "@sefaria-social/host-contract";
 import { pageTextSource } from "~/lib/sefaria-text";
 import { roomReader, type RoomReader } from "./room-reader";
+import { documentHostFor } from "~/features/host/document-host";
 
 export const RELAY_SUBPROTOCOL = "sefaria-social.v1";
 /** "prefetch": a press on a feed card prepares the room before the click lands (spec 017 AC-004). "call": the viewer is in
@@ -151,7 +152,8 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
 const perHost = new WeakMap<SurfaceHost, RoomSessions>();
 
 /** The one RoomSessions of this host, shared by the page mount and the persistent mount (same module, same document). */
-export function roomSessionsFor(host: SurfaceHost): RoomSessions {
+export function roomSessionsFor(rawHost: SurfaceHost): RoomSessions {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let s = perHost.get(host);
   if (!s) {
     s = createRoomSessions(host);

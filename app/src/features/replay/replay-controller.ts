@@ -13,6 +13,7 @@ import { withoutAnyCtx } from "~/features/session/room-reader";
 import { createReplayPlayer, type ReplayMedia, type ReplayPlayer, type ReplayPlayerView } from "./player";
 import { createReplayApi, ReplayApiError, type ReplayApi } from "./replay-api";
 import { InvalidRecordingError, parseStateTrack } from "./state-track";
+import { documentHostFor } from "~/features/host/document-host";
 
 export type ReplayErrorReason = "not-found" | "invalid" | "failed";
 
@@ -204,7 +205,8 @@ const perHost = new WeakMap<SurfaceHost, ReplayController>();
  * The replay controller for this host. The first call creates it; `overrides` (tests, the surface's `fix-webm-duration`) are
  * ignored once it exists.
  */
-export function replayControllerFor(host: SurfaceHost, overrides: Partial<Omit<ReplayDeps, "host">> = {}): ReplayController {
+export function replayControllerFor(rawHost: SurfaceHost, overrides: Partial<Omit<ReplayDeps, "host">> = {}): ReplayController {
+  const host = documentHostFor(rawHost); // one per page, whichever mount asks (features/host/document-host.ts)
   let c = perHost.get(host);
   if (!c) {
     c = createReplayController({ ...overrides, host, api: overrides.api ?? createReplayApi(host) });

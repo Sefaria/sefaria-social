@@ -896,6 +896,29 @@
       "changed": []
     },
     {
+      "id": "HOST-009",
+      "area": "host",
+      "name": "One call and one room connection for both of the reader's mounts",
+      "description": "The reader may give the page and persistent mounts different host objects; the call, room, sessions, recording, broadcast and replay controllers and the window owner are kept once per page (features/host/document-host.ts), so Join call in the lobby opens the call window and a room has one connection.",
+      "status": "built",
+      "spec": "046",
+      "acs": [
+        "046/AC-001",
+        "046/AC-002"
+      ],
+      "surfaces": [
+        "host-integration",
+        "call",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/two-hosts.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "IDENT-006",
       "area": "ident",
       "name": "Sefaria identity token verified on every API call",
