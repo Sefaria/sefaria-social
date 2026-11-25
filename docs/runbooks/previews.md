@@ -6,17 +6,17 @@ pull request gets a preview with its own copy of all four services, and the read
 
 ## The app
 
-| Setting             | Value                                                                                                            |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Coolify app         | `sefaria/sefaria-social` on the Sefaria Dev Server, source: the `coolify-sefaria-github` GitHub App              |
-| Build pack          | Docker Compose, `/docker-compose.yaml`, base directory `/`                                                       |
-| Branch              | `main` (auto-deploy on push)                                                                                     |
-| Preview deployments | on; preview hosts `{{pr_id}}.{{domain}}`                                                                         |
-| `app` domain        | `https://app-glwk1bupcw1mlfrjj8g6pzd2.coolifydev.sefaria.org` (port 3200, generated from `SERVICE_URL_APP_3200`) |
-| `surface` domain    | `https://surface-glwk1bupcw1mlfrjj8g6pzd2.coolifydev.sefaria.org` (port 8080, `SERVICE_URL_SURFACE_8080`)        |
-| `relay` domain      | `https://relay-glwk1bupcw1mlfrjj8g6pzd2.coolifydev.sefaria.org` (port 8787, `SERVICE_URL_RELAY_8787`)            |
+| Setting             | Value                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
+| Coolify app         | `social` on the Sefaria Dev Server, source: the `coolify-sefaria-github` GitHub App            |
+| Build pack          | Docker Compose, `/docker-compose.yaml`, base directory `/`                                     |
+| Branch              | `main` (auto-deploy on push)                                                                   |
+| Preview deployments | on; preview hosts `{{pr_id}}.{{domain}}`                                                       |
+| `app` domain        | `https://app-social.coolifydev.sefaria.org` (port 3200, generated from `SERVICE_URL_APP_3200`) |
+| `surface` domain    | `https://surface-social.coolifydev.sefaria.org` (port 8080, `SERVICE_URL_SURFACE_8080`)        |
+| `relay` domain      | `https://relay-social.coolifydev.sefaria.org` (port 8787, `SERVICE_URL_RELAY_8787`)            |
 
-Coolify generated these names (`<service>-<app uuid>`); friendlier names can be set in the app's Domains in the Coolify console. A
+These are set in the app's Domains in the Coolify console (Coolify first generated `<service>-<app uuid>` names; renamed to `-social` on 2026-11-25). A
 preview for pull request 42 is at `https://42.app-…`, `https://42.surface-…` and `https://42.relay-…`. The Coolify app's uuid is
 `glwk1bupcw1mlfrjj8g6pzd2` (project Sefaria, environment production, Sefaria Dev Server).
 
@@ -39,10 +39,10 @@ The reader's settings (`nodejs.localsettings` in a cauldron's HelmRelease, read 
 
 ```yaml
 PUBLIC_LABS: social # plus whatever else the cauldron already turns on
-PUBLIC_SOCIAL_MANIFEST_URL: https://surface-glwk1bupcw1mlfrjj8g6pzd2.coolifydev.sefaria.org/manifest.json
-PUBLIC_SOCIAL_ORIGINS: https://surface-glwk1bupcw1mlfrjj8g6pzd2.coolifydev.sefaria.org
-PUBLIC_SOCIAL_API_ORIGIN: https://app-glwk1bupcw1mlfrjj8g6pzd2.coolifydev.sefaria.org
-PUBLIC_SOCIAL_RELAY_ORIGIN: wss://relay-glwk1bupcw1mlfrjj8g6pzd2.coolifydev.sefaria.org
+PUBLIC_SOCIAL_MANIFEST_URL: https://surface-social.coolifydev.sefaria.org/manifest.json
+PUBLIC_SOCIAL_ORIGINS: https://surface-social.coolifydev.sefaria.org
+PUBLIC_SOCIAL_API_ORIGIN: https://app-social.coolifydev.sefaria.org
+PUBLIC_SOCIAL_RELAY_ORIGIN: wss://relay-social.coolifydev.sefaria.org
 PUBLIC_SOCIAL_ENVIRONMENT: staging
 PUBLIC_SOCIAL_PREVIEWS: "1" # ?social_version=<pr> (reader-next, Sefaria-Project#4129)
 ```
