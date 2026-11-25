@@ -1,5 +1,5 @@
 /**
- * The relay's reports of each room's live state to the social server (spec 056 AC-001; decision 0012). Pure: the `Room` object
+ * The relay's reports of each room's live state to the social server (spec 056 AC-001; decision 0013). Pure: the `Room` object
  * asks `observe` after every message it delivers and on its once-a-second tick, and sends what it returns. A report goes when the
  * leader's ref, Hebrew ref, title or the number connected changes, at least once a minute while anyone is there, and once more
  * when the room empties, but never two for one room within 5 seconds: a change inside the window waits for its end and goes

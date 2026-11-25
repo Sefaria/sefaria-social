@@ -1,4 +1,4 @@
-// Live cards (spec 056; decision 0012): the relay reports what each room's leader is on, and anyone may read the live state of
+// Live cards (spec 056; decision 0013): the relay reports what each room's leader is on, and anyone may read the live state of
 // the rooms, broadcasts and recordings that posts embed. A report is kept per relay room (a room's id, or `b_<broadcast id>`),
 // newest by the relay's own timestamp; one older than 5 minutes is refused. A room counts as live only with a report under 3
 // minutes old and people connected (and a broadcast only while it is live). Where no fresh report exists the server reads the
@@ -114,7 +114,7 @@ async function statusOf(db: Db, id: string, kind: LiveKind, now: number): Promis
       updatedAt: row.reportedAt.toISOString(),
     };
   }
-  // No fresh report: the relay's status route, when the server knows the relay (decision 0012).
+  // No fresh report: the relay's status route, when the server knows the relay (decision 0013).
   const read = broadcastLive ? await relayStatus(relayRoom) : null;
   if (read?.live)
     return {

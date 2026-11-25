@@ -1,6 +1,6 @@
 // Session links in a post's text (spec 055 AC-001): a room (`/social/r/<id>`), broadcast (`/social/b/<id>`) or recording
 // (`/social/rec/<id>`) link, as a bare path or an http(s) URL on a Sefaria origin or the page's own. Pure: the composer cuts
-// the first one out of the text and shows it as a card; the server stores only its kind and id (decision 0012).
+// the first one out of the text and shows it as a card; the server stores only its kind and id (decision 0013).
 
 export type EmbedKind = "room" | "broadcast" | "recording";
 
