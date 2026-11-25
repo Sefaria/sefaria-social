@@ -178,6 +178,122 @@ function setup(mod: typeof RecorderModule, opts: { failMedia?: boolean; supporte
   return { api, reader, time, recorders, recorder, compositor, video, audio, statuses };
 }
 
+/** A recording controller over a fake call whose participants and tracks the test sets; what reached the mixer, compositor and API. */
+async function recordingCall() {
+  const mod = await loadRecorder();
+  const controllerMod = (await mods.controller["./recording-controller.ts"]!())!;
+  const api = fakeApi();
+  const host = { report: () => undefined, ui: { interfaceLang: "english" } };
+  const listeners = new Set<() => void>();
+  const people = {
+    me: { id: "u:1", name: "Leader", local: true, mic: true, camera: true, screen: false, speaking: false },
+    guest: { id: "u:2", name: "Guest", local: false, mic: true, camera: true, screen: false, speaking: true },
+  };
+  let participants = [people.guest, people.me];
+  let audio = [track("audio", "guest"), track("audio", "mic")];
+  const media = {
+    audioTracks: () => audio,
+    localAudioTrack: () => audio.find((t) => t.id === "mic") ?? null,
+    participants: () => participants,
+    subscribe(cb: () => void) {
+      listeners.add(cb);
+      return () => void listeners.delete(cb);
+    },
+  };
+  const call = {
+    media: () => media as never,
+    subscribe: (cb: () => void) => (listeners.add(cb), () => void listeners.delete(cb)),
+  };
+  const mixed: string[][] = [];
+  let drawn: () => readonly { id: string }[] = () => [];
+  const recorders = fakeMediaRecorders();
+  const time = fakeTime();
+  const controller = controllerMod.createRecordingController({
+    host: host as never,
+    api,
+    call,
+    roomTitle: async () => "Daf Yomi",
+    reader: () => fakeReader().api,
+    createMixer: () => ({
+      stream: fakeStream([track("audio", "mixed")]),
+      setTracks: (ts) => void mixed.push(ts.map((t) => t.id)),
+      dispose: vi.fn(),
+    }),
+    createCompositor: (o) => {
+      drawn = o.participants;
+      return { stream: fakeStream([track("video", "canvas")]), start: vi.fn(), stop: vi.fn(), draw: vi.fn() };
+    },
+    createRecorder: (o) =>
+      mod.createSessionRecorder({
+        ...o,
+        createMediaRecorder: recorders.create,
+        isTypeSupported: () => true,
+        makeStream: fakeStream,
+        now: time.now,
+        setInterval: time.setInterval,
+        clearInterval: time.clearInterval,
+        sleep: async () => undefined,
+      }),
+  });
+  const change = (next: { participants?: typeof participants; audio?: MediaStreamTrack[] }) => {
+    if (next.participants) participants = next.participants;
+    if (next.audio) audio = next.audio;
+    listeners.forEach((cb) => cb());
+  };
+  return { controller, api, mixed, drawn: () => drawn(), people, change, time };
+}
+
+describe("only the leader is recorded, with the talking head's place (spec 051)", () => {
+  // @feature SHIUR-002 Only the leader is recorded, with the talking head's place
+  // @ac 051/AC-001
+  it("mixes only the recording person's microphone, whoever else speaks, joins or leaves", async () => {
+    const r = await recordingCall();
+    await r.controller.start("room-1");
+    expect(r.mixed.at(-1)).toEqual(["mic"]);
+    r.change({ audio: [track("audio", "guest"), track("audio", "third"), track("audio", "mic")] });
+    r.change({ audio: [track("audio", "mic")] });
+    expect(r.mixed.every((ids) => ids.length === 1 && ids[0] === "mic")).toBe(true);
+    await r.controller.stop();
+  });
+
+  // @feature SHIUR-002 Only the leader is recorded, with the talking head's place
+  // @ac 051/AC-002
+  it("draws only the recording person's own camera, never another participant's", async () => {
+    const r = await recordingCall();
+    await r.controller.start("room-1");
+    expect(r.drawn().map((p) => p.id)).toEqual(["u:1"]);
+    r.change({ participants: [r.people.guest] }); // the leader's tile went (camera off, a reconnect): the title card
+    expect(r.drawn()).toEqual([]);
+    await r.controller.stop();
+  });
+
+  // @feature SHIUR-002 Only the leader is recorded, with the talking head's place
+  // @ac 051/AC-003
+  it("keeps the camera's state and the talking head's place in the timeline's social.overlay slice", async () => {
+    const heads = import.meta.glob<typeof import("../av/head-place")>("../av/head-place.ts");
+    const head = await heads["../av/head-place.ts"]?.();
+    expect(head, "app/src/features/av/head-place.ts exists").toBeDefined();
+    head!.setHeadPlace({ left: 600, top: 400, width: 200, height: 150 }, { width: 1000, height: 800 });
+    const r = await recordingCall();
+    await r.controller.start("room-1");
+    r.time.advance(1_000);
+    head!.setHeadPlace({ left: 0, top: 0, width: 200, height: 150 }, { width: 1000, height: 800 });
+    r.time.advance(1_000);
+    r.change({ participants: [{ ...r.people.me, camera: false }, r.people.guest] });
+    await r.controller.stop();
+    const overlays = r.api.state.map((m) =>
+      m.type === "keyframe" ? m.snapshot.slices["social.overlay"]?.value : m.change.slices?.["social.overlay"]?.value,
+    );
+    expect(overlays.filter(Boolean)).toEqual([
+      { camera: true, head: { x: 0.6, y: 0.5, w: 0.2, h: 0.188 } },
+      { camera: true, head: { x: 0, y: 0, w: 0.2, h: 0.188 } },
+      { camera: false, head: { x: 0, y: 0, w: 0.2, h: 0.188 } },
+      { camera: false, head: { x: 0, y: 0, w: 0.2, h: 0.188 } },
+    ]);
+    head!.setHeadPlace(null);
+  });
+});
+
 describe("Record on and off (spec 050)", () => {
   // @feature SESS-074 Record on and off during a session, on one clock
   // @ac 050/AC-001
@@ -281,8 +397,8 @@ describe("recording a session in the owner's browser (spec 041)", () => {
   });
 
   // @feature SESS-064 Record a room's session (state and call media) in the owner's browser
-  // @ac 041/AC-008
-  it("tells the owner when the upload failed, and mixes the call's audio as it changes until then", async () => {
+  // Spec 051 replaced the mixing of every participant (was @ac 041/AC-008): only the recording person's microphone is fed.
+  it("tells the owner when the upload failed, and feeds the mixer the owner's microphone as the call changes", async () => {
     const mod = await loadRecorder();
     const controllerMod = (await mods.controller["./recording-controller.ts"]!())!;
     const api = fakeApi({ failMedia: true });
@@ -293,6 +409,7 @@ describe("recording a session in the owner's browser (spec 041)", () => {
     let audioTracks = [track("audio", "mic")];
     const media = {
       audioTracks: () => audioTracks,
+      localAudioTrack: () => audioTracks[0] ?? null,
       participants: () => [],
       subscribe(cb: () => void) {
         mediaListeners.add(cb);
@@ -340,7 +457,7 @@ describe("recording a session in the owner's browser (spec 041)", () => {
     expect(controller.view()).toEqual({ kind: "recording", roomId: "room-1", since: 50_000 });
     audioTracks = [track("audio", "mic"), track("audio", "guest")];
     mediaListeners.forEach((cb) => cb());
-    expect(mixed).toEqual([["mic"], ["mic", "guest"]]);
+    expect(mixed).toEqual([["mic"], ["mic"]]);
 
     recorders.made[0]!.rec.chunk("chunk 0");
     await vi.waitFor(() => expect(controller.view()).toEqual({ kind: "failed", roomId: "room-1", reason: "upload" }));

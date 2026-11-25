@@ -70,6 +70,8 @@ export interface CallMedia {
    * the recorder's mix). `subscribe` fires when the set changes.
    */
   audioTracks(): MediaStreamTrack[];
+  /** Spec 051 AC-001: the viewer's own microphone track, or null while there is none. A recording mixes only this. */
+  localAudioTrack?(): MediaStreamTrack | null;
   /** Whether the room is being recorded, from the media server's room metadata `{ recording }` (spec 041); `subscribe` fires. */
   recording(): boolean;
   /** Leave: stops every local track and closes the connection. */

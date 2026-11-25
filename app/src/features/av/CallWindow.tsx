@@ -20,6 +20,7 @@ import {
   type SizeName,
 } from "./window-geometry";
 import styles from "./window.module.css";
+import { setHeadPlace } from "./head-place";
 
 type Physical = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 const PHYSICAL: Physical[] = ["top-left", "top-right", "bottom-left", "bottom-right"];
@@ -91,6 +92,11 @@ export function CallWindow({
   const a = area(viewport, insets, dir);
   const dims = dimensions(placement, viewport);
   const box = rect(placement, dims, a, dir);
+  // Spec 051 AC-003: a recording keeps where the talking head is.
+  useEffect(() => {
+    setHeadPlace(box, viewport);
+  }, [box.left, box.top, box.width, box.height, viewport.width, viewport.height]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => setHeadPlace(null), []);
   const anchoredRight = box.left + box.width / 2 > (a.left + a.right) / 2;
 
   const commit = useCallback((next: Placement, announce: string) => {

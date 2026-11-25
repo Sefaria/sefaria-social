@@ -179,6 +179,7 @@ function connected(room: Room): CallMedia & { attachExisting(): void } {
       if (mic) tracks.push(mic.mediaStreamTrack);
       return tracks;
     },
+    localAudioTrack: () => room.localParticipant.getTrackPublication(Track.Source.Microphone)?.track?.mediaStreamTrack ?? null,
     recording: () => recordingOf(room.metadata),
     audioBlocked: () => !room.canPlaybackAudio,
     startAudio: () => room.startAudio(),

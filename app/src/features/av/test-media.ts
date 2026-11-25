@@ -28,6 +28,8 @@ export interface FakeCall extends CallMedia {
   blockAudio(blocked: boolean): void;
   /** Play the call's audio: the tracks `audioTracks()` returns from now on (spec 041). */
   setAudioTracks(tracks: MediaStreamTrack[]): void;
+  /** Play the viewer's own microphone track (spec 051): what `localAudioTrack()` returns from now on. */
+  setLocalAudioTrack(track: MediaStreamTrack | null): void;
   /** Play the server setting or clearing the room metadata's `recording` (spec 041). */
   setRecording(on: boolean): void;
   /** Play the owner muting one of the viewer's tracks through the server (spec 039). */
@@ -111,6 +113,7 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
       const pending = new Set<string>();
       let audioBlocked = false;
       let audio: MediaStreamTrack[] = [];
+      let localAudio: MediaStreamTrack | null = null;
       let recording = false;
       const listeners = new Set<() => void>();
       const connListeners = new Set<(s: ConnectionState, r?: DisconnectReason) => void>();
@@ -170,6 +173,11 @@ export function createFakeEngine(opts: { canShareScreen?: boolean; self?: { id: 
           call.visible = [...ids];
         },
         audioTracks: () => [...audio],
+        localAudioTrack: () => localAudio,
+        setLocalAudioTrack(track) {
+          localAudio = track;
+          emit();
+        },
         recording: () => recording,
         setAudioTracks(tracks) {
           audio = [...tracks];

@@ -2,8 +2,9 @@
 // controller: the owner starts a recording of a room from the lobby or the call window, and it keeps running across every
 // navigation until they stop it or an upload fails for good.
 //
-//   start(roomId) → POST rooms/:id/recordings → mixer (the call's audioTracks, re-fed on every change) + compositor (the
-//   registered tiles, the call's participants, else the room's title card) + the room's outgoing reader view → recorder
+//   start(roomId) → POST rooms/:id/recordings → mixer (the leader's own microphone, re-fed on every change; spec 051) +
+//   compositor (the leader's own camera tile, else the room's title card) + the room's outgoing reader view with the
+//   `social.overlay` slice (camera on, where the talking head is) → recorder
 //   stop() → recorder.stop (last chunk, final keyframe, finish) → idle
 //
 // Reports carry durations and error kinds only: never ids, names or tokens.
@@ -13,6 +14,7 @@ import { roomsApiFor } from "~/features/api/rooms-api";
 import { callControllerFor } from "~/features/av/call-controller";
 import type { CallMedia, CallParticipant } from "~/features/av/media";
 import { tileVideos } from "~/features/av/tile-registry";
+import { headPlace, onHeadPlace, type HeadPlace } from "~/features/av/head-place";
 import { roomReader } from "~/features/session/room-reader";
 import { stringsFor } from "~/features/shell/strings";
 import { pageTextSource } from "~/lib/sefaria-text";
@@ -73,6 +75,91 @@ const ordered = (ps: CallParticipant[]) =>
     .sort((a, b) => a.rank - b.rank || a.i - b.i)
     .map(({ p }) => p);
 
+/** Spec 051 AC-003: the recording's own slice, beside the reader's: whether the camera is on and where the talking head is. */
+export const OVERLAY_SLICE = "social.overlay";
+
+export interface Overlay {
+  camera: boolean;
+  head: HeadPlace | null;
+}
+
+const overlayNow = (call: RecordingCall): Overlay => ({
+  camera: !!call
+    .media()
+    ?.participants()
+    .find((p) => p.local)?.camera,
+  head: headPlace(),
+});
+
+/**
+ * The reader view the recorder writes from, with the `social.overlay` slice added: its value in every snapshot, and a change
+ * whenever the camera goes on or off or the talking head moves. The slice is data for the replay, never applied to a reader.
+ */
+export function withOverlay(
+  reader: ReaderStateApi,
+  overlay: () => Overlay,
+  onOverlayChange: (cb: () => void) => () => void,
+): ReaderStateApi {
+  const slice = () => ({ v: 1, value: overlay() as unknown as Record<string, unknown> });
+  return {
+    ...reader,
+    getSnapshot: (filter) => {
+      const snap = reader.getSnapshot(filter);
+      return { ...snap, slices: { ...snap.slices, [OVERLAY_SLICE]: slice() } };
+    },
+    applySnapshot: (snapshot, ctx) => reader.applySnapshot(snapshot, ctx),
+    subscribe(onChange, filter) {
+      let last = JSON.stringify(overlay());
+      const offReader = reader.subscribe(
+        (change, snapshot) => onChange(change, { ...snapshot, slices: { ...snapshot.slices, [OVERLAY_SLICE]: slice() } }),
+        filter,
+      );
+      const offOverlay = onOverlayChange(() => {
+        const now = JSON.stringify(overlay());
+        if (now === last) return;
+        last = now;
+        const value = slice();
+        const snap = reader.getSnapshot(filter);
+        onChange({ slices: { [OVERLAY_SLICE]: value } }, { ...snap, slices: { ...snap.slices, [OVERLAY_SLICE]: value } });
+      });
+      return () => {
+        offReader();
+        offOverlay();
+      };
+    },
+    onLocalInput: (cb) => reader.onLocalInput(cb),
+    get applying() {
+      return reader.applying;
+    },
+  };
+}
+
+/** What can change the overlay: the talking head's place, and the call (the camera going on or off). */
+function overlaySources(call: RecordingCall) {
+  return (cb: () => void) => {
+    const offHead = onHeadPlace(cb);
+    const offCall = call.subscribe(cb);
+    let offMedia: (() => void) | null = null;
+    let media: CallMedia | null = null;
+    const sync = () => {
+      const m = call.media();
+      if (m !== media) {
+        offMedia?.();
+        media = m;
+        offMedia = m ? m.subscribe(cb) : null;
+      }
+    };
+    const offSync = call.subscribe(sync);
+    sync();
+    return () => {
+      offHead();
+      offCall();
+      offSync();
+      offMedia?.();
+    };
+  };
+}
+
 export function createRecordingController(deps: RecordingDeps): RecordingController {
   const { host, api, call } = deps;
   const now = deps.now ?? (() => Date.now());
@@ -93,7 +180,11 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
   function follow(mixer: Mixer): () => void {
     let media: CallMedia | null = null;
     let offMedia: (() => void) | null = null;
-    const feed = () => mixer.setTracks(media?.audioTracks() ?? []);
+    // Spec 051 AC-001: only the person recording is heard; other participants' audio is never mixed in.
+    const feed = () => {
+      const own = media?.localAudioTrack?.() ?? null;
+      mixer.setTracks(own ? [own] : []);
+    };
     const sync = () => {
       const m = call.media();
       if (m !== media) {
@@ -156,7 +247,8 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
         const unfollow = follow(mixer);
         const compositor = (deps.createCompositor ?? createCompositor)({
           tiles: tileVideos,
-          participants: () => ordered(call.media()?.participants() ?? []),
+          // Spec 051 AC-002: only the person recording is drawn (their camera, else the title card).
+          participants: () => ordered((call.media()?.participants() ?? []).filter((p) => p.local)),
           title: () => title,
           noCall: () => strings().noCall,
           someone: () => strings().someone,
@@ -164,7 +256,7 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
         const recorder = (deps.createRecorder ?? createSessionRecorder)({
           api,
           recordingId: id,
-          reader: deps.reader(),
+          reader: withOverlay(deps.reader(), () => overlayNow(call), overlaySources(call)),
           mixer,
           compositor,
           onChange(status) {
