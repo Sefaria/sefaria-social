@@ -1,0 +1,96 @@
+/* The room lobby (specs 011, 044): a header, the main actions, then cards. */
+.page {
+  display: grid;
+  gap: var(--sefaria-space-4, 16px);
+  max-inline-size: 760px;
+}
+
+.header {
+  display: grid;
+  gap: var(--sefaria-space-1, 4px);
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.role {
+  margin: 0;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.primary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-3, 12px);
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sefaria-space-2, 8px);
+  margin: 0;
+}
+
+.card {
+  display: grid;
+  gap: var(--sefaria-space-3, 12px);
+  padding: var(--sefaria-space-4, 16px);
+  border: 1px solid var(--sefaria-color-border, #e6e6e6);
+  border-radius: var(--sefaria-radius-lg, 12px);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.card p {
+  margin: 0;
+}
+
+.linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.linkInput {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.renameForm {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.confirm {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+  padding: var(--sefaria-space-3, 12px);
+  border-radius: var(--sefaria-radius-md, 6px);
+  background: var(--sefaria-color-surface-muted, #fafafa);
+}
+
+.dangerText {
+  color: var(--sefaria-color-danger, #c03522);
+}
+
+.error {
+  color: var(--sefaria-color-danger, #c03522);
+}
+
+.roomId {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 0.8125rem;
+}

@@ -320,6 +320,8 @@ const STRINGS = {
     roomDeleted: (title: string) => `“${title}” was deleted.`,
     roomLeft: (title: string) => `You left “${title}”.`,
     backToRoomLobby: "Back to the room",
+    ownerTools: "Session tools",
+    ownerToolsHint: "Record the session with its call, or broadcast it to people who only watch.",
   },
   hebrew: {
     nav: "חברתי",
@@ -628,6 +630,8 @@ const STRINGS = {
     roomDeleted: (title: string) => `„${title}” נמחק.`,
     roomLeft: (title: string) => `יצאת מ„${title}”.`,
     backToRoomLobby: "חזרה לחדר",
+    ownerTools: "כלים למפגש",
+    ownerToolsHint: "הקליטו את המפגש עם השיחה, או שדרו אותו לצופים בלבד.",
   },
 } as const satisfies Record<InterfaceLang, unknown>;
 

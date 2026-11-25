@@ -3,7 +3,9 @@ import { useHost, useInterfaceLang } from "~/features/host/host-context";
 import { useViewer } from "~/features/host/use-viewer";
 import { useRoomsApi } from "~/features/api/rooms-api";
 import { useWindowOwner } from "~/features/av/WindowPrompt";
+import { HostLink } from "~/features/host/HostLink";
 import { useStrings } from "~/features/shell/use-strings";
+import kit from "~/ui/kit.module.css";
 import { ReplayApiError, type RecordingMeta } from "./replay-api";
 import { replayControllerFor } from "./replay-controller";
 import { parseStateTrack } from "./state-track";
@@ -148,6 +150,14 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
 
   return (
     <main data-social-page="recording" data-recording-state="ready" className={styles.page}>
+      {/* Spec 044 AC-007: the way back to the recording's room. */}
+      {recording.roomId && (
+        <p data-back-to-room="">
+          <HostLink to={`/social/r/${recording.roomId}`} className={kit.link}>
+            {t.backToRoomLobby}
+          </HostLink>
+        </p>
+      )}
       <h1>
         <bdi dir="auto">{recording.title || t.recordingOf(date)}</bdi>
       </h1>

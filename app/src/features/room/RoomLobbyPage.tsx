@@ -10,6 +10,10 @@ import { RecordButton } from "~/features/recording/RecordButton";
 import { RecordingsList } from "~/features/recording/RecordingsList";
 import { isRecordingFlag, recordingHere, useRecordingController, useRecordingView } from "~/features/recording/use-recording";
 import { useRoomController, useRoomHold } from "~/features/session/use-room-session";
+import kit from "~/ui/kit.module.css";
+import { InvitePanel } from "./InvitePanel";
+import { RoomSettings } from "./RoomSettings";
+import styles from "./lobby.module.css";
 
 type LobbyState =
   | { kind: "loading" }
@@ -90,43 +94,81 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
   const recording =
     state.kind === "member" && (isRecordingFlag(state.room) || statusRecording || recordingHere(recordingView, roomId));
 
+  const owner = state.kind === "member" && state.room.role === "owner";
+
+  // Spec 044: a member's lobby is a header (title, whether they own the room), the main actions (Enter the room, the call), what
+  // is happening now, then cards — Invite people, the owner's session tools, who is here, recordings, room settings.
   return (
-    <main data-social-page="room" data-room-state={state.kind}>
+    <main data-social-page="room" data-room-state={state.kind} className={styles.page}>
       {state.kind === "member" ? (
-        <h1>
-          <bdi dir="auto">{state.room.title}</bdi>
-        </h1>
+        <header className={styles.header}>
+          <h1>
+            <bdi dir="auto">{state.room.title}</bdi>
+          </h1>
+          <p className={styles.role} data-room-role={state.room.role}>
+            {owner ? t.youOwnRoom : t.youAreMember}
+          </p>
+        </header>
       ) : (
-        <h1>{t.room}</h1>
+        <>
+          <h1>{t.room}</h1>
+          <p>
+            {t.roomId}: <bdi>{roomId}</bdi>
+          </p>
+        </>
       )}
-      <p>
-        {t.roomId}: <bdi>{roomId}</bdi>
-      </p>
       {state.kind === "loading" && <p role="status">{t.loading}</p>}
       {state.kind === "outsider" && (
-        <section aria-label={t.joinRoom}>
+        <section aria-label={t.joinRoom} className={styles.card}>
           <p>{t.invited}</p>
-          <button type="button" onClick={join} disabled={joining} data-action="join">
-            {t.join}
-          </button>
+          <div className={styles.actions}>
+            <button type="button" onClick={join} disabled={joining} data-action="join" className={`${kit.button} ${kit.primary}`}>
+              {t.join}
+            </button>
+          </div>
         </section>
       )}
       {state.kind === "member" && (
         <>
-          <button type="button" data-action="enter" onClick={() => void controller?.enlarge(roomId)}>
-            {t.enter}
-          </button>
-          {recording && (
-            <p role="status" data-room-recording="">
-              {t.recording}
-            </p>
+          <div className={styles.primary}>
+            <button
+              type="button"
+              data-action="enter"
+              className={`${kit.button} ${kit.primary}`}
+              onClick={() => void controller?.enlarge(roomId)}
+            >
+              {t.enter}
+            </button>
+            <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
+          </div>
+          {(recording || onCall !== null) && (
+            <div className={styles.status}>
+              {recording && (
+                <p role="status" data-room-recording="" className={kit.badge}>
+                  {t.recording}
+                </p>
+              )}
+              {onCall !== null && (
+                <p data-call-count="" className={kit.badge}>
+                  {t.onCall(onCall)}
+                </p>
+              )}
+            </div>
           )}
-          {onCall !== null && <p data-call-count="">{t.onCall(onCall)}</p>}
-          {state.room.role === "owner" && <RecordButton roomId={roomId} />}
-          <CallButton roomId={roomId} available={state.room.calls?.available ?? false} />
-          {state.room.role === "owner" && <BroadcastPanel roomId={roomId} live={state.room.broadcast} />}
+          <InvitePanel roomId={roomId} title={state.room.title} />
+          {owner && (
+            <section className={styles.card} aria-labelledby="social-owner-tools" data-owner-tools="">
+              <h2 id="social-owner-tools" className={styles.cardTitle}>
+                {t.ownerTools}
+              </h2>
+              <p className={kit.hint}>{t.ownerToolsHint}</p>
+              <RecordButton roomId={roomId} />
+              <BroadcastPanel roomId={roomId} live={state.room.broadcast} />
+            </section>
+          )}
           <PresenceList roomId={roomId} />
           <RecordingsList roomId={roomId} />
+          <RoomSettings room={state.room} onRenamed={(room) => setState({ kind: "member", room })} />
         </>
       )}
       {state.kind === "not-found" && <p role="alert">{t.roomNotFound}</p>}
