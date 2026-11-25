@@ -7,7 +7,7 @@ import { createRoom, feedOf, joinRoom, publish, type LiveRoom } from "./stack/pu
 import { tokenFor, type Persona } from "./stack/tokens";
 
 const VIEWER: Persona = { id: 7301, name: "Feed Viewer" };
-const PUBLISHER: Persona = { id: 7302, name: "Feed Publisher" };
+const PUBLISHER: Persona = { id: 7311, name: "Feed Publisher" }; // owns its rooms (spec 048): an id no other journey uses
 
 /** The ref a reader address shows, the way the publisher's summary derives it ("/Exodus.3" → "Exodus 3"). */
 const refOf = (url: string) => decodeURIComponent(url.split(/[?#]/)[0]!.split("/").filter(Boolean)[0]!).replace(/[._]/g, " ");

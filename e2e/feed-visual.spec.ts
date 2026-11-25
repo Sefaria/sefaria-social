@@ -8,7 +8,7 @@ import { createRoom, feedOf, joinRoom, publish } from "./stack/publisher";
 import { tokenFor, type Persona } from "./stack/tokens";
 
 const VIEWER: Persona = { id: 7401, name: "Visual Viewer" };
-const PUBLISHER: Persona = { id: 7402, name: "Visual Publisher" };
+const PUBLISHER: Persona = { id: 7411, name: "Visual Publisher" }; // owns its room (spec 048): an id no other journey uses
 
 const variants = [
   { name: "english", interfaceLang: "english", theme: "light" },

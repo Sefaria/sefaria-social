@@ -166,11 +166,15 @@ export const join = (id: string, name = "claimed") => ({
   body: { type: "join", participant: { id, name, isHost: true, canLead: true } },
 });
 
-/** The last participants list a peer received. */
+/**
+ * The last participants list a peer received, ordered by id. The room lists people in the order their joins arrived, and joins
+ * sent from two sockets one after the other may arrive either way round; ordering here keeps the tests about who, not when.
+ */
 export function lastParticipants(peer: Peer): { id: string; name?: string }[] | undefined {
   const lists = peer.received.filter(
     (m): m is { ch: "presence"; body: { type: "participants"; participants: { id: string; name?: string }[] } } =>
       typeof m === "object" && m !== null && (m as { ch?: string }).ch === "presence",
   );
-  return lists.at(-1)?.body.participants;
+  const last = lists.at(-1)?.body.participants;
+  return last ? [...last].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) : undefined;
 }
