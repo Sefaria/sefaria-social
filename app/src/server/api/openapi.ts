@@ -83,7 +83,9 @@ function operation(e: EndpointSpec & { access: string }): Json {
         ? [{ sefariaSignature: [] }]
         : e.access === "livekit-webhook"
           ? [{ livekitSignature: [] }]
-          : [];
+          : e.access === "relay-report"
+            ? [{ relaySignature: [] }]
+            : [];
   return op;
 }
 
@@ -113,6 +115,12 @@ export function buildOpenApi(endpoints: readonly (EndpointSpec & { access: strin
           in: "header",
           name: "X-Sefaria-Signature",
           description: "sha256=<hex HMAC-SHA256 of the raw body>, for Django's webhooks.",
+        },
+        relaySignature: {
+          type: "apiKey",
+          in: "header",
+          name: "X-Relay-Signature",
+          description: "sha256=<hex HMAC-SHA256 of the raw body> with the relay's internal secret, for the relay's live reports.",
         },
         livekitSignature: {
           type: "apiKey",

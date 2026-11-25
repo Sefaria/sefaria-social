@@ -3,11 +3,13 @@
 //   1. takes or makes the correlation id;
 //   2. checks access BEFORE reading anything else: `user` (the default) needs a verified Sefaria token, `livekit-webhook` a
 //      LiveKit-signed Authorization over the raw body (spec 038), `sefaria-webhook`
-//      a valid signature over the raw body, and `public` is allowed only for endpoints on PUBLIC_ENDPOINTS;
+//      a valid signature over the raw body, `relay-report` the relay's signature over the raw body with RELAY_INTERNAL_SECRET
+//      (spec 056), and `public` is allowed only for endpoints on PUBLIC_ENDPOINTS;
 //   3. validates path parameters and the body with the contract's zod schemas (400 request.invalid); a binary body
 //      (`binaryBody`, spec 041) is read as bytes up to its cap (413 request.too_large), never parsed;
 //   4. validates the handler's response against the contract, so nothing undeclared leaves the server; a `binary` response
-//      is written as is with the content type the handler names;
+//      is written as is with the content type the handler names; a handler may add response headers (`headers`, for example
+//      an ETag and its cache-control, spec 056), and a status declared without a schema (204, 304) has no body;
 //   5. maps errors to { error: { code, message } } and writes exactly one log line, without headers, body or token;
 //   6. adds CORS headers for an allowed Origin (./cors.ts); a CORS preflight (OPTIONS) is answered without a token.
 // Protect by default: there is no way to skip step 2, and a method a route does not declare answers 401/405 the same way.
@@ -25,8 +27,10 @@ import { PUBLIC_ENDPOINTS } from "./public-routes";
 
 export const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 export type Method = (typeof METHODS)[number];
-export type Access = "user" | "public" | "sefaria-webhook" | "livekit-webhook";
+export type Access = "user" | "public" | "sefaria-webhook" | "livekit-webhook" | "relay-report";
 export const MAX_BODY_BYTES = 64 * 1024;
+/** The relay's signature over a live report's raw body: `sha256=<hex HMAC-SHA256>` with RELAY_INTERNAL_SECRET (spec 056). */
+export const RELAY_SIGNATURE_HEADER = "x-relay-signature";
 
 export interface ResponseSpec {
   description: string;
@@ -76,8 +80,13 @@ export type HandlerResult<S extends EndpointSpec> = {
     : {
         status: K;
         body: S["responses"][K]["schema"] extends z.ZodType ? z.input<S["responses"][K]["schema"]> : undefined;
+        /** Response headers the handler adds (only these names: cache validators, never anything about the caller). */
+        headers?: Partial<Record<ResponseHeader, string>>;
       };
 }[keyof S["responses"] & number];
+
+/** The headers a handler may set. A short list on purpose: CORS, the correlation id and content type stay the wrapper's. */
+export type ResponseHeader = "etag" | "cache-control";
 
 /** What Start passes to a server-route handler (the parts we use). */
 export interface RouteCtx {
@@ -101,7 +110,7 @@ export function defineEndpoint<const S extends EndpointSpec>(spec: S): S & { acc
 
 function json(status: number, body: unknown, correlationId: string, extra: Record<string, string> = {}): Response {
   const headers = { "cache-control": "no-store", [CORRELATION_HEADER]: correlationId, ...extra };
-  if (status === 204 || body === undefined) return new Response(null, { status, headers });
+  if (status === 204 || status === 304 || body === undefined) return new Response(null, { status, headers });
   return new Response(JSON.stringify(body), { status, headers: { ...headers, "content-type": "application/json" } });
 }
 
@@ -171,6 +180,20 @@ function validate<T extends z.ZodType>(schema: T, value: unknown): z.output<T> {
 async function checkAccess(access: Access, request: Request): Promise<{ identity?: Identity; raw?: string }> {
   if (access === "public") return {};
   if (access === "user") return { identity: await authenticate(request) };
+  if (access === "relay-report") {
+    // The relay's live reports (spec 056): no signature is a plain 401, before anything else, so the route is protected by
+    // default even where the secret is not configured.
+    const header = request.headers.get(RELAY_SIGNATURE_HEADER);
+    if (!header) throw new ApiError(401, "webhook.bad_signature");
+    const secret = getConfig().RELAY_INTERNAL_SECRET;
+    if (!secret) {
+      log.error("webhook.not_configured");
+      throw new ApiError(503, "webhook.unavailable");
+    }
+    const raw = await readRaw(request);
+    if (!verifySignature(secret, raw, header)) throw new ApiError(401, "webhook.bad_signature");
+    return { raw };
+  }
   if (access === "livekit-webhook") {
     const raw = await readRaw(request);
     const ok = await verifyLivekitWebhook(raw, request.headers.get("authorization"));
@@ -195,7 +218,9 @@ async function run(
   method: string,
   route: string,
   ctx: RouteCtx,
-  inner: (correlationId: string) => Promise<{ status: number; body: unknown; contentType?: string }>,
+  inner: (
+    correlationId: string,
+  ) => Promise<{ status: number; body: unknown; contentType?: string; headers?: Record<string, string> }>,
 ): Promise<Response> {
   const started = performance.now();
   const correlationId = correlationIdFrom(ctx.request.headers.get(CORRELATION_HEADER));
@@ -206,7 +231,7 @@ async function run(
     status = result.status;
     if (result.contentType !== undefined && result.body instanceof Uint8Array)
       return bytesResponse(result.status, result.body, result.contentType, correlationId, cors);
-    return json(result.status, result.body, correlationId, cors);
+    return json(result.status, result.body, correlationId, { ...result.headers, ...cors });
   } catch (e) {
     if (e instanceof ApiError) {
       status = e.status;
@@ -256,7 +281,9 @@ export function bind<const S extends EndpointSpec & { access: Access }>(
         status: number;
         body: unknown;
         contentType?: unknown;
+        headers?: Partial<Record<ResponseHeader, string>>;
       };
+      const headers = pickHeaders(result.headers);
       const declared = spec.responses[result.status];
       if (!declared) throw new Error(`Undeclared status ${result.status} from ${spec.operationId}`);
       if (declared.binary) {
@@ -264,12 +291,21 @@ export function bind<const S extends EndpointSpec & { access: Access }>(
           throw new TypeError(`Response of ${spec.operationId} is not bytes with a content type`);
         return { status: result.status, body: result.body, contentType: result.contentType };
       }
-      if (!declared.schema) return { status: result.status, body: undefined };
+      if (!declared.schema) return { status: result.status, body: undefined, headers };
       const out = declared.schema.safeParse(result.body);
       if (!out.success) throw new TypeError(`Response of ${spec.operationId} does not match its schema`);
-      return { status: result.status, body: out.data };
+      return { status: result.status, body: out.data, headers };
     });
   return Object.assign(fn, { endpoint: spec });
+}
+
+const RESPONSE_HEADERS: readonly ResponseHeader[] = ["etag", "cache-control"];
+
+/** Only the allowed header names, with string values. */
+function pickHeaders(given: Partial<Record<ResponseHeader, string>> | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const name of RESPONSE_HEADERS) if (typeof given?.[name] === "string") out[name] = given[name]!;
+  return out;
 }
 
 export type ServerHandlers = Partial<Record<Method, BoundHandler>> & { ANY: (ctx: RouteCtx) => Promise<Response> };
@@ -298,4 +334,5 @@ export function serve(handlers: Partial<Record<Method, BoundHandler>>): ServerHa
 }
 
 /** A handler result with its status kept as a literal type (so it is checked against the contract's responses). */
-export const reply = <const S extends number, B>(status: S, body: B) => ({ status, body });
+export const reply = <const S extends number, B>(status: S, body: B, headers?: Partial<Record<ResponseHeader, string>>) =>
+  headers ? { status, body, headers } : { status, body };

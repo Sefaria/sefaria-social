@@ -80,8 +80,14 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
     );
     // spec 038: the room's call status (no user id, but every table must be seeded)
     await sql("insert into call_status (room_id, live, participants, started_at) values ($1, true, 2, now())", [room!.id]);
+    // spec 056: what the relay last reported about the room (no user id, but every table must be seeded)
+    await sql(
+      "insert into live_status (relay_room, room_id, ref, participants, reported_at) values ($1::text, $1::uuid, 'Genesis 1:1', 2, now())",
+      [room!.id],
+    );
     for (const t of [
       "call_status",
+      "live_status",
       "user_display",
       "rooms",
       "room_members",

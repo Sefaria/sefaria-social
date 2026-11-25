@@ -28,6 +28,8 @@
     - "app/src/api.live.int.test.ts"
     - "app/src/api.contract.test.ts"
     - "app/src/api.routes.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "test/integration/schema-walk.ts"
     - "packages/api-client/openapi.json"
     - "packages/api-client/src/schema.ts"
   depends_on: [T-001]

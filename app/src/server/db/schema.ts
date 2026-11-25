@@ -114,6 +114,27 @@ export const callStatus = pgTable("call_status", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * What the relay last reported about a room's or broadcast's session (spec 056): the leader's ref and how many are connected,
+ * for posted live cards. One row per relay room (a room's id, or `b_<broadcast id>`), deleted with its room. Holds no user ids.
+ */
+export const liveStatus = pgTable(
+  "live_status",
+  {
+    relayRoom: text("relay_room").primaryKey(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    ref: text("ref"),
+    heRef: text("he_ref"),
+    title: text("title"),
+    participants: integer("participants").notNull().default(0),
+    /** When the relay made the report (its clock, checked to be within 5 minutes of ours). */
+    reportedAt: timestamp("reported_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [index("live_status_room_idx").on(t.roomId)],
+);
+
 /** A participant the room's owner removed from its call (spec 039): their call tokens are refused until `until`. */
 export const callRemovals = pgTable(
   "call_removals",

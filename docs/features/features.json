@@ -198,7 +198,7 @@
       "area": "api",
       "name": "Live status of posted sessions: relay reports and the public read",
       "description": "The relay reports each room's leader ref and headcount to the server, signed, at most once per 5 seconds; GET /api/v1/live answers 1-50 ids that posts embed with live, ref, heRef, here and updatedAt, with an ETag.",
-      "status": "planned",
+      "status": "built",
       "spec": "056",
       "acs": [
         "056/AC-001",
@@ -210,7 +210,10 @@
         "relay"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.live.int.test.ts",
+        "packages/relay/src/live-report.test.ts"
+      ],
       "since": null,
       "changed": []
     },
