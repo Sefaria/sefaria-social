@@ -83,6 +83,10 @@ describe("spec 056: live status of posted sessions", () => {
       (await report(h, { room: s.room, ref: "Genesis 1:1", participants: 2, at: at - 6 * 60_000 })).status,
       "a report 6 minutes old",
     ).toBe(401);
+    expect(
+      (await report(h, { room: s.room, ref: "Genesis 1:1", participants: 2, at: at + 60_000 })).status,
+      "a report from a minute in the future",
+    ).toBe(401);
 
     expect((await report(h, { room: s.room, ref: "Genesis 1:2", participants: 2, at })).status).toBe(204);
     expect((await report(h, { room: s.room, ref: "Genesis 1:1", participants: 2, at: at - 1_000 })).status).toBe(204); // older
@@ -108,6 +112,9 @@ describe("spec 056: live status of posted sessions", () => {
     const s = await setUp(h);
     await report(h, { room: s.room, ref: "Genesis 2:1", heRef: "בראשית ב:א", title: "Daf", participants: 3 });
     await report(h, { room: `b_${s.broadcast}`, ref: "Exodus 3:1", participants: 4 });
+    const whileLive = (await read(h, [s.broadcast])).json as Status[];
+    expect(whileLive.map((x) => [x.kind, x.live, x.ref, x.here])).toEqual([["broadcast", true, "Exodus 3:1", 4]]);
+    clear();
     await h.call("POST", `/api/v1/broadcasts/${s.broadcast}/end`, { token: await h.token(4242, { name: "Rav Owner" }) });
 
     const res = await read(h, [s.room, s.broadcast, s.recording, s.quiet]);

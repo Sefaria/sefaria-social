@@ -52,12 +52,20 @@ async function roomOf(db: Db, relayRoom: string): Promise<string | null> {
   return r?.id ?? null;
 }
 
-/** Keep a signed report (the wrapper checked the signature). Refuses one older than 5 minutes; ignores unknown rooms. */
+/** How far ahead of ours a relay's clock may be: a report from the future would block correct ones until then. */
+export const REPORT_MAX_AHEAD_MS = 30_000;
+/** At most this many relay status reads at once for one request (the fallback, decision 0013). */
+const RELAY_READS_AT_ONCE = 5;
+
+/**
+ * Keep a signed report (the wrapper checked the signature). Refuses one older than 5 minutes or more than 30 seconds ahead;
+ * ignores unknown rooms.
+ */
 export async function receiveReport(input: LiveReportInput, db: Db = getDb(), now = Date.now()): Promise<void> {
-  if (Math.abs(now - input.at) > REPORT_MAX_AGE_MS) throw new ApiError(401, "webhook.bad_signature");
+  if (now - input.at > REPORT_MAX_AGE_MS || input.at - now > REPORT_MAX_AHEAD_MS)
+    throw new ApiError(401, "webhook.bad_signature");
   const roomId = await roomOf(db, input.room);
   if (!roomId) return;
-  cache.delete(input.room.startsWith("b_") ? input.room.slice(2) : input.room); // this server answers the new state at once
   const row = {
     relayRoom: input.room,
     roomId,
@@ -75,10 +83,12 @@ export async function receiveReport(input: LiveReportInput, db: Db = getDb(), no
       set: { ref: row.ref, heRef: row.heRef, title: row.title, participants: row.participants, reportedAt: row.reportedAt },
       setWhere: sql`${liveStatus.reportedAt} < ${row.reportedAt.toISOString()}::timestamptz`,
     });
+  // After the write, so a read in between cannot cache the old row again: this server answers the new state at once.
+  cache.delete(input.room.startsWith("b_") ? input.room.slice(2) : input.room);
 }
 
 // ── The public read ───────────────────────────────────────────────────────────────────────────────────────────────────────
-/** Forget cached answers (tests; a report does not clear it: the cache is only 5 seconds). */
+/** Forget cached answers (tests). */
 export function clearLiveCache(): void {
   cache.clear();
 }
@@ -92,40 +102,67 @@ async function embeddedKinds(db: Db, ids: string[]): Promise<Map<string, LiveKin
   return new Map(rows.map((r) => [r.id!, r.kind as LiveKind]));
 }
 
-async function statusOf(db: Db, id: string, kind: LiveKind, now: number): Promise<LiveStatusDto> {
-  const none: LiveStatusDto = { id, kind, live: false, ref: null, heRef: null, here: 0, updatedAt: null };
-  if (kind === "recording") return none;
-  let broadcastLive = true;
-  if (kind === "broadcast") {
-    const [b] = await db.select({ status: broadcasts.status }).from(broadcasts).where(eq(broadcasts.id, id));
-    broadcastLive = b?.status === "live";
+/** Run `fn` over `items`, at most `n` at a time. */
+async function inBatches<T>(items: T[], n: number, fn: (item: T) => Promise<void>): Promise<void> {
+  for (let i = 0; i < items.length; i += n) await Promise.all(items.slice(i, i + n).map(fn));
+}
+
+/** The status of these posted ids: three queries for the whole batch, and relay reads only where no fresh report exists. */
+async function statusesOf(db: Db, kinds: Map<string, LiveKind>, now: number): Promise<Map<string, LiveStatusDto>> {
+  const out = new Map<string, LiveStatusDto>();
+  const sessions: { id: string; kind: LiveKind; relayRoom: string }[] = [];
+  for (const [id, kind] of kinds) {
+    out.set(id, { id, kind, live: false, ref: null, heRef: null, here: 0, updatedAt: null });
+    if (kind !== "recording") sessions.push({ id, kind, relayRoom: kind === "broadcast" ? `b_${id}` : id });
   }
-  const relayRoom = kind === "broadcast" ? `b_${id}` : id;
-  const [row] = await db.select().from(liveStatus).where(eq(liveStatus.relayRoom, relayRoom));
-  const fresh = row !== undefined && now - row.reportedAt.getTime() < LIVE_FRESH_MS;
-  if (fresh && row) {
-    const live = broadcastLive && row.participants > 0;
-    return {
-      ...none,
-      live,
-      ref: row.ref,
-      heRef: row.heRef,
-      here: live ? row.participants : 0,
-      updatedAt: row.reportedAt.toISOString(),
-    };
+  if (!sessions.length) return out;
+  const broadcastIds = sessions.filter((x) => x.kind === "broadcast").map((x) => x.id);
+  const [liveBroadcasts, rows] = await Promise.all([
+    broadcastIds.length
+      ? db
+          .select({ id: broadcasts.id })
+          .from(broadcasts)
+          .where(and(inArray(broadcasts.id, broadcastIds), eq(broadcasts.status, "live")))
+      : Promise.resolve([]),
+    db
+      .select()
+      .from(liveStatus)
+      .where(
+        inArray(
+          liveStatus.relayRoom,
+          sessions.map((x) => x.relayRoom),
+        ),
+      ),
+  ]);
+  const broadcastLive = new Set(liveBroadcasts.map((b) => b.id));
+  const byRoom = new Map(rows.map((r) => [r.relayRoom, r]));
+  const unreported: { id: string; relayRoom: string }[] = [];
+  for (const x of sessions) {
+    const open = x.kind !== "broadcast" || broadcastLive.has(x.id);
+    const row = byRoom.get(x.relayRoom);
+    const base = out.get(x.id)!;
+    if (row && now - row.reportedAt.getTime() < LIVE_FRESH_MS) {
+      const live = open && row.participants > 0;
+      out.set(x.id, {
+        ...base,
+        live,
+        ref: row.ref,
+        heRef: row.heRef,
+        here: live ? row.participants : 0,
+        updatedAt: row.reportedAt.toISOString(),
+      });
+      continue;
+    }
+    if (row) out.set(x.id, { ...base, ref: row.ref, heRef: row.heRef, updatedAt: row.reportedAt.toISOString() });
+    if (open) unreported.push(x);
   }
-  // No fresh report: the relay's status route, when the server knows the relay (decision 0013).
-  const read = broadcastLive ? await relayStatus(relayRoom) : null;
-  if (read?.live)
-    return {
-      ...none,
-      live: true,
-      ref: read.ref,
-      heRef: read.heRef,
-      here: read.participants,
-      updatedAt: new Date(now).toISOString(),
-    };
-  return row ? { ...none, ref: row.ref, heRef: row.heRef, updatedAt: row.reportedAt.toISOString() } : none;
+  // No fresh report: the relay's status route, when the server knows the relay (decision 0013). Its answer has no time of
+  // its own, so updatedAt stays as it was (the ETag does not change with every read).
+  await inBatches(unreported, RELAY_READS_AT_ONCE, async (x) => {
+    const read = await relayStatus(x.relayRoom);
+    if (read.live) out.set(x.id, { ...out.get(x.id)!, live: true, ref: read.ref, heRef: read.heRef, here: read.participants });
+  });
+  return out;
 }
 
 /** The live state of each id that a post embeds, in the order asked; other ids are left out. */
@@ -136,13 +173,8 @@ export async function liveStatuses(ids: string[], db: Db = getDb(), now = Date.n
     return !hit || now - hit.at >= CACHE_MS;
   });
   if (missing.length) {
-    const kinds = await embeddedKinds(db, missing);
-    await Promise.all(
-      missing.map(async (id) => {
-        const kind = kinds.get(id);
-        cache.set(id, { at: now, value: kind ? await statusOf(db, id, kind, now) : null });
-      }),
-    );
+    const found = await statusesOf(db, await embeddedKinds(db, missing), now);
+    for (const id of missing) cache.set(id, { at: now, value: found.get(id) ?? null });
   }
   if (cache.size > 10_000) for (const [id, hit] of cache) if (now - hit.at >= CACHE_MS) cache.delete(id);
   return unique.flatMap((id) => {
