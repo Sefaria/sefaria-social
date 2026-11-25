@@ -36,13 +36,25 @@ const WEBM = (() => {
   return new Uint8Array(readFileSync(out));
 })();
 
+/** A recording with no sound: nothing to transcribe. */
+const SILENT = (() => {
+  const dir = mkdtempSync(path.join(tmpdir(), "social-webm-"));
+  const out = path.join(dir, "s.webm");
+  execFileSync("ffmpeg", [
+    ...["-hide_banner", "-loglevel", "error", "-y"],
+    ...["-f", "lavfi", "-i", "testsrc=duration=2:size=160x120:rate=10"],
+    ...["-c:v", "libvpx", "-b:v", "100k", out],
+  ]);
+  return new Uint8Array(readFileSync(out));
+})();
+
 const OWNER = 954001;
 const MIME = "video/webm;codecs=vp8,opus";
 type ErrorJson = { error: { code: string } };
 const code = (r: { status: number; json: unknown }) => `${r.status} ${(r.json as ErrorJson | null)?.error?.code ?? ""}`.trim();
 
 /** Sofer.ai as its API documents it: POST returns the id; /status says PROCESSING, then `finalStatus`; GET gives the words. */
-async function fakeSofer(finalStatus = "COMPLETED") {
+async function fakeSofer(finalStatus = "COMPLETED", answer: { submit?: number; status?: number } = {}) {
   const requests: { method: string; url: string; auth: string | undefined; body: Record<string, unknown> | null }[] = [];
   let polls = 0;
   const body = (req: IncomingMessage) =>
@@ -60,7 +72,11 @@ async function fakeSofer(finalStatus = "COMPLETED") {
         body: raw ? JSON.parse(raw) : null,
       });
       const json = (v: unknown) => res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(v));
-      if (req.method === "POST" && req.url === "/v1/transcriptions/") return json("tx-1");
+      if (req.method === "POST" && req.url === "/v1/transcriptions/") {
+        if (answer.submit) return res.writeHead(answer.submit).end();
+        return json("tx-1");
+      }
+      if (req.url === "/v1/transcriptions/tx-1/status" && answer.status) return res.writeHead(answer.status).end();
       if (req.url === "/v1/transcriptions/tx-1/status")
         return json({
           id: "tx-1",
@@ -95,9 +111,9 @@ afterEach(async () => {
   cleanup = undefined;
 });
 
-async function setup(opts: { key?: boolean; finalStatus?: string } = {}) {
+async function setup(opts: { key?: boolean; finalStatus?: string; submit?: number; status?: number } = {}) {
   const h = await (await import("../../test/integration/harness")).harness(getRouter());
-  const sofer = await fakeSofer(opts.finalStatus);
+  const sofer = await fakeSofer(opts.finalStatus, { submit: opts.submit, status: opts.status });
   if (opts.key !== false) process.env.SOFER_API_KEY = "test-sofer-key";
   process.env.SOFER_API_URL = sofer.url;
   const { resetConfig } = await import("~/server/config");
@@ -110,18 +126,19 @@ async function setup(opts: { key?: boolean; finalStatus?: string } = {}) {
   };
   const process_ = await import("~/server/jobs/process-asset");
   const transcripts = await import("~/server/jobs/transcript");
+  transcripts.resetSoferCalls();
   const owner = await h.token(OWNER, { name: "Rav Leader" });
   const room = (await h.call("POST", "/api/v1/rooms", { token: owner, body: { title: "Transcribed shiur" } })).json as {
     id: string;
   };
-  const record = async (language?: string) => {
+  const record = async (language?: string, media = WEBM, mime = MIME) => {
     const rec = (
       await h.call("POST", `/api/v1/rooms/${room.id}/recordings`, {
         token: owner,
-        body: { mime: MIME, ...(language ? { transcriptLanguage: language } : {}) },
+        body: { mime, ...(language ? { transcriptLanguage: language } : {}) },
       })
     ).json as { id: string };
-    await h.call("PUT", `/api/v1/recordings/${rec.id}/media/0`, { token: owner, bytes: WEBM });
+    await h.call("PUT", `/api/v1/recordings/${rec.id}/media/0`, { token: owner, bytes: media });
     await h.call("POST", `/api/v1/recordings/${rec.id}/state`, {
       token: owner,
       body: { messages: [{ type: "keyframe", seq: 0, t: 0, snapshot: { v: 1, url: "/Genesis.1", slices: {} } }] },
@@ -229,5 +246,59 @@ describe("spec 054: a shiur's transcript from Sofer.ai", () => {
     expect([whole.status, whole.headers.get("content-type")]).toEqual([200, "audio/mp4"]);
     const part = await h.call("GET", `/api/v1/assets/${id}/audio`, { headers: { range: "bytes=0-9" } });
     expect([part.status, part.bytes?.byteLength]).toEqual([206, 10]);
+  });
+
+  it("fails a transcript 6 hours after it was sent even while Sofer.ai keeps erroring, and on CANCELLED", async () => {
+    const { h, record, due, status, manifest, run } = await setup({ status: 500 });
+    const id = await record();
+    await run();
+    expect(await status(id)).toBe("submitted");
+    await due(id);
+    await run();
+    expect(await status(id), "a failed poll waits").toBe("submitted");
+    await h.sql("update session_recordings set transcript_submitted_at = now() - interval '7 hours' where id = $1", [id]);
+    await due(id);
+    await run();
+    expect(await status(id)).toBe("failed");
+    expect((await manifest(id)).transcript.status).toBe("failed");
+    expect((await h.call("GET", `/api/v1/assets/${id}/media`)).status).toBe(200);
+    await cleanup?.();
+    const c = await setup({ finalStatus: "CANCELLED" });
+    const other = await c.record();
+    await c.run();
+    await c.due(other);
+    await c.run();
+    await c.due(other);
+    await c.run();
+    expect(await c.status(other)).toBe("failed");
+  });
+
+  it("waits on Sofer.ai's rate limit without counting it as a failure, and keeps under 5 calls a minute", async () => {
+    const limited = await setup({ submit: 429 });
+    const id = await limited.record();
+    for (let i = 0; i < 4; i++) {
+      await limited.due(id);
+      await limited.run();
+    }
+    const [row] = await limited.h.sql<{ transcript_status: string; transcript_attempts: number }>(
+      "select transcript_status, transcript_attempts from session_recordings where id = $1",
+      [id],
+    );
+    expect(row).toEqual({ transcript_status: "queued", transcript_attempts: 0 });
+    await cleanup?.();
+    const busy = await setup();
+    const ids = [];
+    for (let i = 0; i < 5; i++) ids.push(await busy.record());
+    await busy.run();
+    expect(busy.sofer.requests.length, "calls in one run").toBeLessThanOrEqual(4);
+    expect((await Promise.all(ids.map((i) => busy.status(i)))).filter((s) => s === "queued").length).toBeGreaterThan(0);
+  });
+
+  it("queues no transcript for a recording with no sound", async () => {
+    const { record, status, sofer, run } = await setup();
+    const id = await record(undefined, SILENT, "video/webm;codecs=vp8");
+    await run();
+    expect(await status(id)).toBeNull();
+    expect(sofer.requests).toEqual([]);
   });
 });

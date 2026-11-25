@@ -186,14 +186,21 @@ export async function processRecording(
       await rm(dir, { recursive: true, force: true });
     }
   }
+  // Already processed (a second run) or just now: the audio file is there exactly when the recording has sound.
+  const hasAudio = (await objects.size(assetKey(id, "audio.m4a"))) !== null;
   const marked = await db
     .update(sessionRecordings)
     .set({
       processStatus: "done",
       processAfter: null,
       // Spec 054: its transcript is next (unavailable without a Sofer.ai key, decided when the job runs).
-      transcriptStatus: sql`coalesce(${sessionRecordings.transcriptStatus}, 'queued')`,
-      transcriptAfter: sql`case when ${sessionRecordings.transcriptStatus} is null then now() else ${sessionRecordings.transcriptAfter} end`,
+      // A recording with no sound has nothing to transcribe: no transcript is queued for it.
+      transcriptStatus: hasAudio
+        ? sql`coalesce(${sessionRecordings.transcriptStatus}, 'queued')`
+        : sessionRecordings.transcriptStatus,
+      transcriptAfter: hasAudio
+        ? sql`case when ${sessionRecordings.transcriptStatus} is null then now() else ${sessionRecordings.transcriptAfter} end`
+        : sessionRecordings.transcriptAfter,
     })
     .where(
       and(

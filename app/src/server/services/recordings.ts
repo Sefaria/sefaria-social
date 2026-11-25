@@ -609,18 +609,6 @@ export async function getAssetAudio(assetId: string, range: string | null = null
   const key = assetKey(assetId, "audio.m4a");
   const size = await objects.size(key);
   if (size === null) throw new ApiError(404, "recording.not_processed");
-  const r = parseRange(range, size);
-  if (r === "unsatisfiable") throw new ApiError(416, "request.range_not_satisfiable", { "content-range": `bytes */${size}` });
-  if (r === null) {
-    const bytes = (await objects.getRange(key, 0, size - 1)) ?? new Uint8Array();
-    return { status: 200, bytes, contentType: "audio/mp4", headers: { "accept-ranges": "bytes" } };
-  }
-  const [start, wanted] = r;
-  const bytes = (await objects.getRange(key, start, Math.min(wanted, start + MAX_RANGE_BYTES - 1))) ?? new Uint8Array();
-  return {
-    status: 206,
-    bytes,
-    contentType: "audio/mp4",
-    headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${start + bytes.byteLength - 1}/${size}` },
-  };
+  // Streamed, never read whole: this is a public read, and what Sofer.ai fetches (spec 054).
+  return byRange(objects, key, size, range, "audio/mp4");
 }
