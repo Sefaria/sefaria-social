@@ -38,6 +38,7 @@ const PostPage = lazyRouteComponent(() => import("~/features/post/PostPage"), "P
 const ProfilePage = lazyRouteComponent(() => import("~/features/profile/ProfilePage"), "ProfilePage");
 const RecordingPage = lazyRouteComponent(() => import("~/features/replay/RecordingPage"), "RecordingPage");
 const WatchPage = lazyRouteComponent(() => import("~/features/broadcast/WatchPage"), "WatchPage");
+const RoomsPage = lazyRouteComponent(() => import("~/features/rooms/RoomsPage"), "RoomsPage");
 const ActivityPage = lazyRouteComponent(() => import("~/features/notifications/ActivityPage"), "ActivityPage");
 
 const roomRoute = createRoute({
@@ -101,6 +102,13 @@ const broadcastRoute = createRoute({
   },
 });
 
+const roomsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: SOCIAL_PATHS.rooms,
+  validateSearch: validateNoSearch,
+  component: RoomsPage,
+});
+
 const notificationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SOCIAL_PATHS.notifications,
@@ -132,6 +140,7 @@ export const surfaceRouteTree = rootRoute.addChildren([
   profileRoute,
   recordingRoute,
   broadcastRoute,
+  roomsRoute,
   notificationsRoute,
   settingsRoute,
   notFoundRoute,

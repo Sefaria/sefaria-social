@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SocialIndexRouteImport } from './routes/social.index'
 import { Route as SocialSplatRouteImport } from './routes/social.$'
 import { Route as SocialNotificationsRouteImport } from './routes/social.notifications'
+import { Route as SocialRoomsRouteImport } from './routes/social.rooms'
 import { Route as SocialSettingsRouteImport } from './routes/social.settings'
 import { Route as ApiV1FeedRouteImport } from './routes/api/v1/feed'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
@@ -70,6 +71,11 @@ const SocialSplatRoute = SocialSplatRouteImport.update({
 const SocialNotificationsRoute = SocialNotificationsRouteImport.update({
   id: '/social/notifications',
   path: '/social/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialRoomsRoute = SocialRoomsRouteImport.update({
+  id: '/social/rooms',
+  path: '/social/rooms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialSettingsRoute = SocialSettingsRouteImport.update({
@@ -315,6 +321,7 @@ const ApiV1RoomsRoomIdMembersMeRoute =
 export interface FileRoutesByFullPath {
   '/social/$': typeof SocialSplatRoute
   '/social/notifications': typeof SocialNotificationsRoute
+  '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -364,6 +371,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/social/$': typeof SocialSplatRoute
   '/social/notifications': typeof SocialNotificationsRoute
+  '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -414,6 +422,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/social/$': typeof SocialSplatRoute
   '/social/notifications': typeof SocialNotificationsRoute
+  '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
@@ -465,6 +474,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/social/$'
     | '/social/notifications'
+    | '/social/rooms'
     | '/social/settings'
     | '/social/'
     | '/api/v1/feed'
@@ -514,6 +524,7 @@ export interface FileRouteTypes {
   to:
     | '/social/$'
     | '/social/notifications'
+    | '/social/rooms'
     | '/social/settings'
     | '/social'
     | '/api/v1/feed'
@@ -563,6 +574,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/social/$'
     | '/social/notifications'
+    | '/social/rooms'
     | '/social/settings'
     | '/social/'
     | '/api/v1/feed'
@@ -613,6 +625,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   SocialSplatRoute: typeof SocialSplatRoute
   SocialNotificationsRoute: typeof SocialNotificationsRoute
+  SocialRoomsRoute: typeof SocialRoomsRoute
   SocialSettingsRoute: typeof SocialSettingsRoute
   SocialIndexRoute: typeof SocialIndexRoute
   ApiV1FeedRoute: typeof ApiV1FeedRoute
@@ -657,6 +670,13 @@ declare module '@tanstack/react-router' {
       path: '/social/notifications'
       fullPath: '/social/notifications'
       preLoaderRoute: typeof SocialNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/rooms': {
+      id: '/social/rooms'
+      path: '/social/rooms'
+      fullPath: '/social/rooms'
+      preLoaderRoute: typeof SocialRoomsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/social/settings': {
@@ -1143,6 +1163,7 @@ const ApiV1RecordingsRecordingIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   SocialSplatRoute: SocialSplatRoute,
   SocialNotificationsRoute: SocialNotificationsRoute,
+  SocialRoomsRoute: SocialRoomsRoute,
   SocialSettingsRoute: SocialSettingsRoute,
   SocialIndexRoute: SocialIndexRoute,
   ApiV1FeedRoute: ApiV1FeedRoute,

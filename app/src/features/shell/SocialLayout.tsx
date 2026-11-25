@@ -10,7 +10,7 @@ import styles from "./shell.module.css";
 
 /**
  * Social's frame inside the page mount (and the standalone pages): its own nav and the current page. Signed in, the nav adds
- * Activity with its unread badge (spec 026) and the viewer's profile (spec 025).
+ * Rooms (spec 044), Activity with its unread badge (spec 026) and the viewer's profile (spec 025).
  */
 export function SocialLayout({ children }: { children: ReactNode }) {
   const lang = useInterfaceLang();
@@ -39,6 +39,9 @@ function SignedInLinks() {
   const me = useMe();
   return (
     <>
+      <Link to="/social/rooms" className={styles.navLink} data-nav="rooms">
+        {t.rooms}
+      </Link>
       <Link
         to="/social/notifications"
         className={styles.navLink}

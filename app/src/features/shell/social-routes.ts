@@ -7,7 +7,7 @@ import { isId } from "~/lib/ids";
 
 /**
  * R6. Every path is under /social (R2); anything else under /social is social's not-found page. Posts, profiles and the
- * activity page joined the grammar with specs 023, 025 and 026; a recording's page with spec 042.
+ * activity page joined the grammar with specs 023, 025 and 026; a recording's page with spec 042; the rooms page with spec 044.
  */
 export const SOCIAL_PATHS = {
   feed: "/social/",
@@ -16,6 +16,7 @@ export const SOCIAL_PATHS = {
   post: "/social/p/$postId",
   profile: "/social/u/$profileId",
   recording: "/social/rec/$recordingId",
+  rooms: "/social/rooms",
   notifications: "/social/notifications",
   settings: "/social/settings",
   notFound: "/social/$",

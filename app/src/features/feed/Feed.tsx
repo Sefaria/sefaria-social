@@ -1,4 +1,4 @@
-// The feed (spec 015): the viewer's live rooms, upcoming shiurim and other rooms, as light cards (spec 016). One request to
+// The feed (spec 015), with Start a room and All rooms above it (spec 044): the viewer's live rooms, upcoming shiurim and other rooms, as light cards (spec 016). One request to
 // the social API, read again every 30 seconds while the page is open; no socket (plan 4.5). Signed out, it asks the reader
 // to sign the person in (R17) and requests nothing.
 import { useCallback, useEffect, useState, type ReactNode } from "react";
@@ -6,6 +6,9 @@ import { useHost, useInterfaceLang } from "~/features/host/host-context";
 import { useViewer } from "~/features/host/use-viewer";
 import { langAttrs } from "~/features/shell/strings";
 import { useStrings } from "~/features/shell/use-strings";
+import { HostLink } from "~/features/host/HostLink";
+import { StartRoom } from "~/features/rooms/StartRoom";
+import kit from "~/ui/kit.module.css";
 import { FeedCard, type CardItem } from "./FeedCard";
 import { HomePage } from "./HomePage";
 import { useFeedApi, type Feed as FeedData } from "./feed-api";
@@ -64,6 +67,19 @@ export function Feed() {
         <p role="alert">{t.feedError}</p>
       ) : (
         <>
+          {/* Spec 044 AC-007: the ways into rooms — start one, or see them all. */}
+          <div className={styles.roomsBar} data-rooms-bar="">
+            <StartRoom variant="secondary" />
+            <HostLink to="/social/rooms" className={kit.link}>
+              {t.allRooms}
+            </HostLink>
+          </div>
+          {state.feed.live.length + state.feed.scheduled.length + state.feed.recent.length === 0 && (
+            <section className={kit.empty} data-rooms-empty="">
+              <p className={kit.emptyTitle}>{t.noRoomsYet}</p>
+              <p className={kit.emptyBody}>{t.noRoomsBody}</p>
+            </section>
+          )}
           <Section
             id="live"
             title={t.feedLive}

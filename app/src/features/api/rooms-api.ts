@@ -36,6 +36,16 @@ export interface RoomsApi {
     participant: string,
     source?: "microphone" | "camera" | "screen_share",
   ): Promise<"ok" | "not-in-call" | "forbidden" | "unavailable">;
+  /** Spec 044: the caller's rooms, newest first. Optional like the above, so older fakes keep working. */
+  list?(): Promise<Room[]>;
+  /** Spec 044: create a room owned by the caller. */
+  create?(title: string): Promise<Room>;
+  /** Spec 044: rename a room (owner only). */
+  rename?(roomId: string, title: string): Promise<Room>;
+  /** Spec 044: delete a room and everything in it (owner only). */
+  remove?(roomId: string): Promise<void>;
+  /** Spec 044: leave a room (not its owner). */
+  leave?(roomId: string): Promise<void>;
 }
 
 /** The API's error for anything other than the statuses a caller handles. */
@@ -86,6 +96,29 @@ export function createRoomsApi(host: SurfaceHost): RoomsApi {
       if (response.status === 429)
         return { kind: "limited", retryAfterSeconds: Number(response.headers.get("retry-after")) || 5 };
       throw new RoomsApiError(response.status);
+    },
+    async list() {
+      const { data, response } = await client.GET("/api/v1/rooms");
+      if (data) return data.rooms;
+      throw new RoomsApiError(response.status);
+    },
+    async create(title) {
+      const { data, response } = await client.POST("/api/v1/rooms", { body: { title } });
+      if (data) return data;
+      throw new RoomsApiError(response.status);
+    },
+    async rename(roomId, title) {
+      const { data, response } = await client.PATCH("/api/v1/rooms/{roomId}", { params: { path: { roomId } }, body: { title } });
+      if (data) return data;
+      throw new RoomsApiError(response.status);
+    },
+    async remove(roomId) {
+      const { response } = await client.DELETE("/api/v1/rooms/{roomId}", { params: { path: { roomId } } });
+      if (response.status !== 204) throw new RoomsApiError(response.status);
+    },
+    async leave(roomId) {
+      const { response } = await client.DELETE("/api/v1/rooms/{roomId}/members/me", { params: { path: { roomId } } });
+      if (response.status !== 204) throw new RoomsApiError(response.status);
     },
     async join(roomId) {
       const { data, response } = await client.POST("/api/v1/rooms/{roomId}/members", { params: { path: { roomId } } });
