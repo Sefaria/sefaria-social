@@ -1,0 +1,36 @@
+- id: T-001
+  title: The processing queue and job, byte-range media, the manifest endpoint, ffmpeg in the image and in CI
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005, AC-006]
+  files:
+    - ".github/workflows/ci.yml"
+    - "Dockerfile"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.processing.int.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/routes/api/v1/health.ts"
+    - "app/src/routes/api/v1/assets.$assetId.manifest.ts"
+    - "app/src/routes/api/v1/assets.$assetId.media.ts"
+    - "app/src/routes/api/v1/recordings.$recordingId.media.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/0008_asset_processing.sql"
+    - "app/src/server/db/migrations/meta/_journal.json"
+    - "app/src/server/db/migrations/meta/0008_snapshot.json"
+    - "app/src/server/http/endpoint.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/jobs/chapters.ts"
+    - "app/src/server/jobs/ffmpeg.ts"
+    - "app/src/server/jobs/process-asset.ts"
+    - "app/src/server/log/logger.ts"
+    - "app/src/server/services/object-store.ts"
+    - "app/src/server/services/recordings.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "docs/runbooks/server.md"
+  depends_on: []
+  parallel: false
+  completes: [SHIUR-005]
+  verify: ["npm run test:integration", "npm run test:contract", "npm run typecheck"]
