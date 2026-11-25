@@ -1,6 +1,10 @@
 /* The call panel's contents (specs 034, 047). Spec 035's window frames them (window.module.css). */
+/* A column that fills the window's body: the tiles take what the control bar leaves. */
 .panel {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  block-size: 100%;
   gap: 6px;
   padding: 6px;
   font-family: var(--sefaria-font-ui, inherit);
@@ -31,7 +35,7 @@
 
 .prejoin {
   display: grid;
-  gap: var(--sefaria-space-3, 12px);
+  gap: 8px;
 }
 
 .previewBox {
@@ -85,6 +89,7 @@
 }
 
 .controls {
+  flex: none;
   justify-content: center;
   min-block-size: 40px;
 }
@@ -205,8 +210,9 @@
 }
 
 .startAudio {
+  flex: none;
   inline-size: 100%;
-  min-block-size: 36px;
+  min-block-size: 30px;
   border: 1px solid var(--sefaria-color-warning, #b26a00);
   border-radius: var(--sefaria-radius-md, 8px);
   background: #fff4e0;
@@ -219,8 +225,11 @@
 /* Tiles: 16:10, dark, the camera filling the tile or the person's initials; the name on a label at the bottom. */
 .tiles {
   display: grid;
+  flex: 1 1 auto;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
   gap: 6px;
+  min-block-size: 72px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -231,7 +240,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
+  min-block-size: 0;
   border-radius: var(--sefaria-radius-md, 8px);
   background: #1d2430;
   color: #ffffff;
