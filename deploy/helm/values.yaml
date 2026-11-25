@@ -99,7 +99,9 @@ configMap:
     # Calls (spec 033): off in production until owner decision D-AV4 (minors and calls) is answered.
     LIVEKIT_URL: wss://sefaria.livekit.cloud # placeholder: the LiveKit project URL for this environment
     CALLS_ENABLED: "false"
-    # Session recordings (spec 041): production opts in after the consent and retention policy (design D-REC1).
+    # Session recordings (spec 041): production opts in after the consent and retention policy (design D-REC1), and after a
+    # cloud bucket adapter replaces the filesystem object store (spec 051): pod-local disks would split a recording's media
+    # across the replicas.
     RECORDINGS_ENABLED: "false"
 
 # Secret values, by name only. The Secret (sefaria-social-secrets) is created by the cluster's secret store.

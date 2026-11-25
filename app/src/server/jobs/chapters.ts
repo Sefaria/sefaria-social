@@ -24,8 +24,17 @@ function refOf(url: string, slices: Slices): { ref: string; heRef: string | null
   if (scroll && typeof scroll === "object")
     for (const a of Object.values(scroll as Record<string, { ref?: unknown }>))
       if (typeof a?.ref === "string" && a.ref) return { ref: a.ref, heRef: null };
+  // The address alone, for a timeline without a summary: only a text's address (Genesis.1), never a malformed one or a page
+  // that is not a text (topics, search), which would otherwise become a chapter or fail the whole processing.
   const path = url.split(/[?#]/)[0]!.replace(/^\/+/, "");
-  return path ? { ref: decodeURIComponent(path).replace(/_/g, " ").replace(/\./g, " "), heRef: null } : null;
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(path);
+  } catch {
+    return null;
+  }
+  if (!/^[A-Z][^/]*$/.test(decoded)) return null;
+  return { ref: decoded.replace(/_/g, " ").replace(/\./g, " "), heRef: null };
 }
 
 export function chaptersOf(messages: readonly StreamMessage[]): { chapters: Chapter[]; hasVideo: boolean } {

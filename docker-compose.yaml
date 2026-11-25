@@ -25,6 +25,11 @@ services:
       LIVEKIT_API_KEY: "${LIVEKIT_API_KEY}"
       LIVEKIT_API_SECRET: "${LIVEKIT_API_SECRET}"
       CALLS_ENABLED: "${CALLS_ENABLED}"
+      # Transcripts (spec 054) need SOFER_API_KEY set on the app; unset, they are "unavailable".
+      SOFER_API_KEY: "${SOFER_API_KEY}"
+    # Spec 051: recordings' media until a cloud bucket replaces the filesystem store; one app container per deployment.
+    volumes:
+      - social-assets:/srv/.data
     expose:
       - "3200"
     depends_on:
@@ -72,3 +77,4 @@ services:
 
 volumes:
   social-postgres:
+  social-assets:

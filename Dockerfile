@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build && npm prune --omit=dev --ignore-scripts
 
 FROM node:22.23.5-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS runtime
-ENV NODE_ENV=production PORT=3200 HOST=0.0.0.0
+ENV NODE_ENV=production PORT=3200 HOST=0.0.0.0 ASSET_STORE_DIR=/srv/.data/assets
 WORKDIR /srv
 # Spec 052: ffmpeg remuxes recordings into seekable files and extracts their audio (from Debian's own archive).
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
@@ -30,6 +30,8 @@ COPY --from=build /src/app/package.json ./app/
 COPY --from=build /src/app/dist ./app/dist
 COPY --from=build /src/app/scripts/start.mjs /src/app/scripts/migrate.mjs ./app/scripts/
 COPY --from=build /src/app/src/server/db/migrations ./app/src/server/db/migrations
+# Spec 051: the filesystem object store for recordings, writable by the server; mount a volume here to keep it.
+RUN mkdir -p /srv/.data/assets && chown -R node:node /srv/.data
 USER node
 EXPOSE 3200
 # Node's own fetch (the slim image has no curl). 200 when the database answers within 2 s, else 503 (spec 005).

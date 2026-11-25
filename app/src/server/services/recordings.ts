@@ -11,9 +11,11 @@ import { getDb, type Db } from "../db/client";
 import { createHash } from "node:crypto";
 import { recordingStateChunks, roomMembers, sessionRecordings, userDisplay } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { log } from "../log/logger";
 import { setRoomRecording } from "./livekit";
 import { postgresStore, removeObjects, type Executor, type RecordingStore } from "./recording-store";
-import { assetKey, objectStore } from "./object-store";
+import { assetKey, objectStore, recordingPrefix, type ObjectStore } from "./object-store";
+import type { StreamBody } from "../http/endpoint";
 import { ensureAssetWorker, kickAssetWorker } from "../jobs/process-asset";
 import { membership } from "./rooms";
 import { upsertDisplay } from "./users";
@@ -394,12 +396,29 @@ export async function recordingOf(roomIds: readonly string[], db: Db = getDb()):
 export async function sweepOrphanObjects(db: Db = getDb(), objects = objectStore()): Promise<number> {
   const keys = await objects.list("recordings/");
   const ids = [...new Set(keys.map((k) => k.split("/")[1]).filter((id): id is string => !!id && UUID.test(id)))];
-  if (ids.length === 0) return 0;
-  const kept = await db.select({ id: sessionRecordings.id }).from(sessionRecordings).where(inArray(sessionRecordings.id, ids));
-  const live = new Set(kept.map((r) => r.id));
-  const gone = ids.filter((id) => !live.has(id));
-  await removeObjects(gone, objects);
-  return gone.length;
+  let removed = 0;
+  // In batches, so a store with many recordings never builds one enormous query.
+  for (let i = 0; i < ids.length; i += 500) {
+    const batch = ids.slice(i, i + 500);
+    const kept = await db
+      .select({ id: sessionRecordings.id })
+      .from(sessionRecordings)
+      .where(inArray(sessionRecordings.id, batch));
+    const live = new Set(kept.map((r) => r.id));
+    const gone = batch.filter((id) => !live.has(id));
+    await removeObjects(gone, objects);
+    removed += gone.length;
+  }
+  return removed;
+}
+
+/** The sweep after a deletion that has already committed: a failure is logged, never turned into the request's failure. */
+export async function sweepAfterDeletion(db: Db = getDb()): Promise<void> {
+  try {
+    await sweepOrphanObjects(db);
+  } catch (err) {
+    log.error("asset.sweep_failed", { error: err instanceof Error ? err.message.slice(0, 200) : "error" });
+  }
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -493,8 +512,8 @@ export async function getAssetManifest(assetId: string, db: Db = getDb(), object
 export const MAX_RANGE_BYTES = 8 * 1024 * 1024;
 
 export type MediaAnswer =
-  | { status: 200; bytes: Uint8Array; contentType: string; headers: Record<string, string> }
-  | { status: 206; bytes: Uint8Array; contentType: string; headers: Record<string, string> };
+  | { status: 200; bytes: Uint8Array | StreamBody; contentType: string; headers: Record<string, string> }
+  | { status: 206; bytes: Uint8Array | StreamBody; contentType: string; headers: Record<string, string> };
 
 /** One `bytes=` range of a file of `size` bytes: [start, end] inclusive, "unsatisfiable", or null (none, or not one range). */
 export function parseRange(header: string | null, size: number): [number, number] | "unsatisfiable" | null {
@@ -516,28 +535,55 @@ export function parseRange(header: string | null, size: number): [number, number
   return [start, end];
 }
 
-async function mediaOf(id: string, mime: string | null, range: string | null, store: RecordingStore): Promise<MediaAnswer> {
+async function mediaOf(id: string, mime: string | null, range: string | null, _store: RecordingStore): Promise<MediaAnswer> {
   const objects = objectStore();
   const key = assetKey(id, "media.webm");
   const size = await objects.size(key);
-  if (size === null) {
-    // Not processed yet: the raw chunks, whole (a MediaRecorder file cannot be seeked anyway).
-    const chunks = await store.mediaChunks(id);
-    return { status: 200, bytes: Buffer.concat(chunks), contentType: mime ?? "application/octet-stream", headers: {} };
-  }
+  if (size === null) return rawMedia(id, mime, objects);
+  return byRange(objects, key, size, range, "video/webm");
+}
+
+/**
+ * Not processed yet: the raw chunks, whole and in order, streamed one chunk at a time (spec 052 review: never the whole
+ * recording in memory). A MediaRecorder file cannot be seeked, so there are no ranges here. 404 when no chunk is there.
+ */
+async function rawMedia(id: string, mime: string | null, objects: ObjectStore): Promise<MediaAnswer> {
+  const keys = (await objects.list(`${recordingPrefix(id)}raw/`)).sort();
+  const sizes = await Promise.all(keys.map((k) => objects.size(k)));
+  if (keys.length === 0 || sizes.some((n) => n === null)) throw new ApiError(404, "recording.not_found");
+  let next = 0;
+  const stream = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (next >= keys.length) return controller.close();
+      const chunk = await objects.get(keys[next++]!);
+      if (!chunk) return controller.error(new Error("a media chunk went missing"));
+      controller.enqueue(chunk);
+    },
+  });
+  const length = sizes.reduce<number>((a, n) => a + (n ?? 0), 0);
+  return { status: 200, bytes: { stream, length }, contentType: mime ?? "application/octet-stream", headers: {} };
+}
+
+/** A stored file by byte range (at most MAX_RANGE_BYTES an answer), or whole without one; streamed either way. */
+async function byRange(
+  objects: ObjectStore,
+  key: string,
+  size: number,
+  range: string | null,
+  contentType: string,
+): Promise<MediaAnswer> {
   const r = parseRange(range, size);
   if (r === "unsatisfiable") throw new ApiError(416, "request.range_not_satisfiable", { "content-range": `bytes */${size}` });
-  if (r === null) {
-    const bytes = (await objects.getRange(key, 0, size - 1)) ?? new Uint8Array();
-    return { status: 200, bytes, contentType: "video/webm", headers: { "accept-ranges": "bytes" } };
-  }
-  const [start, wanted] = r;
-  const end = Math.min(wanted, start + MAX_RANGE_BYTES - 1);
-  const bytes = (await objects.getRange(key, start, end)) ?? new Uint8Array();
+  if (size === 0) return { status: 200, bytes: new Uint8Array(), contentType, headers: { "accept-ranges": "bytes" } };
+  const [start, end] = r === null ? [0, size - 1] : [r[0], Math.min(r[1], r[0] + MAX_RANGE_BYTES - 1)];
+  const stream = await objects.stream(key, start, end);
+  if (!stream) throw new ApiError(404, "recording.not_found");
+  const body = { stream, length: end - start + 1 };
+  if (r === null) return { status: 200, bytes: body, contentType, headers: { "accept-ranges": "bytes" } };
   return {
     status: 206,
-    bytes,
-    contentType: "video/webm",
-    headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${start + bytes.byteLength - 1}/${size}` },
+    bytes: body,
+    contentType,
+    headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${size}` },
   };
 }

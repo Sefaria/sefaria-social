@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:5b53a99a0cbd42c1de3d49e4d64ff014dbd13e65d31ad3fa585e8d5092b6a006",
   "feature_sha": "sha256:05d003aa9ca0de0db03d53b16d0eb0d3b8b0e10bd15e14459f7499fd84f81914",
-  "tasks_sha": "sha256:5ba73be1975deddf46e3842bbb480aecec8d81b9ad51f025a85760e53c3fda81",
+  "tasks_sha": "sha256:0af2e906b61f0d781f7dee413652e9065297153bea9df4d1eb71cb66d2c7744a",
   "risk": "high",
   "features": [
     "SHIUR-005"
@@ -25,6 +25,8 @@
       "files": [
         ".github/workflows/ci.yml",
         "Dockerfile",
+        "docker-compose.yaml",
+        "deploy/helm/values.yaml",
         "app/src/api.contract.test.ts",
         "app/src/api.processing.int.test.ts",
         "app/src/api.routes.int.test.ts",

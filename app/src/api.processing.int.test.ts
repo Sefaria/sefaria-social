@@ -109,6 +109,63 @@ async function setup() {
   return { h, owner, record, files, status, jobs };
 }
 
+describe("spec 052: processing stays safe (review findings)", () => {
+  // @feature SHIUR-005 Processing a recording into a seekable asset with a manifest and chapters
+  it("streams an unprocessed recording's chunks, and answers 404 when its media is missing", async () => {
+    const { h, record, jobs } = await setup();
+    void jobs;
+    const id = await record(WEBM);
+    const raw = await h.call("GET", `/api/v1/assets/${id}/media`);
+    expect([raw.status, raw.bytes?.byteLength]).toEqual([200, WEBM.byteLength]);
+    expect(raw.headers.get("content-length")).toBe(String(WEBM.byteLength));
+    const { rm } = await import("node:fs/promises");
+    await rm(path.join(ASSET_DIR, "recordings", id, "raw"), { recursive: true, force: true });
+    expect(code(await h.call("GET", `/api/v1/assets/${id}/media`))).toBe("404 recording.not_found");
+  });
+
+  // @feature SHIUR-005 Processing a recording into a seekable asset with a manifest and chapters
+  it("fails a row whose tries are spent even when the worker died without catching an error", async () => {
+    const { h, record, status, jobs } = await setup();
+    const id = await record(WEBM);
+    // Three claims that ended in a crash (no error caught): running, lease run out, attempts spent.
+    await h.sql(
+      "update session_recordings set process_status = 'running', process_attempts = 3, process_after = now() - interval '1 second' where id = $1",
+      [id],
+    );
+    expect(await jobs.runPending()).toBe(0);
+    expect(await status(id)).toEqual({ process_status: "failed", process_attempts: 3 });
+  });
+
+  // @feature SHIUR-005 Processing a recording into a seekable asset with a manifest and chapters
+  it("writes nothing for a claim another worker took over, and fails at once a recording with no media", async () => {
+    const { h, record, files, status, jobs } = await setup();
+    const id = await record(WEBM);
+    const claim = await jobs.claimNext();
+    expect(claim?.id).toBe(id);
+    // The lease ran out and another worker claimed it (attempt 2) while this one still worked.
+    await h.sql("update session_recordings set process_attempts = process_attempts + 1 where id = $1", [id]);
+    await jobs.processRecording(id, claim!.attempt);
+    expect(await files(id), "the late job wrote nothing").toEqual(["raw"]);
+    expect((await status(id))?.process_status).toBe("running");
+
+    const empty = await record(WEBM);
+    await h.sql("update session_recordings set media_chunks = 0 where id = $1", [empty]);
+    await jobs.runPending();
+    expect(await status(empty)).toEqual({ process_status: "failed", process_attempts: 1 });
+  });
+
+  // @feature SHIUR-005 Processing a recording into a seekable asset with a manifest and chapters
+  it("makes no chapter of a malformed address or a page that is not a text", async () => {
+    const { chaptersOf } = await import("~/server/jobs/chapters");
+    const at = (seq: number, t: number, url: string) =>
+      seq === 0
+        ? ({ type: "keyframe", seq, t, snapshot: { v: 1, url, nav: null, slices: {} } } as const)
+        : ({ type: "change", seq, t, change: { url } } as const);
+    const messages = [at(0, 0, "/%E0%A4%A"), at(1, 4000, "/topics/shabbat"), at(2, 9000, "/Genesis.3")];
+    expect(chaptersOf(messages as never).chapters).toEqual([{ t: 9000, ref: "Genesis 3", heRef: null }]);
+  });
+});
+
 describe("spec 052: processing a recording into its asset", () => {
   // @feature SHIUR-005 Processing a recording into a seekable asset with a manifest and chapters
   // @ac 052/AC-001
