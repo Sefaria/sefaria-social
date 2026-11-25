@@ -21,14 +21,37 @@ export async function enterRoom({ roomId, owner, calls, rooms, call }: EnterRoom
 }
 
 /**
- * A Join pressed while signed out (spec 049 AC-003) rides in the lobby's own address: the reader sends sign-in back to the page
- * it came from, so `?join=1` comes back with the person and the lobby carries on. Nothing is stored.
+ * A Join pressed while signed out (spec 049 AC-003) rides in the lobby's own address (`?join=1`): the reader sends sign-in back
+ * to the page it came from. The address alone is not enough — anyone could send such a link — so the press also leaves a marker
+ * for this tab (sessionStorage, the room's id), and the lobby carries on only when both are there.
  */
 export const PENDING_JOIN_PARAM = "join";
+const PENDING_KEY = "social.pendingJoin";
 
 export const lobbyPath = (roomId: string, pendingJoin = false) =>
   `/social/r/${roomId}${pendingJoin ? `?${PENDING_JOIN_PARAM}=1` : ""}`;
 
-export function hasPendingJoin(search: string): boolean {
+/** The person pressed Join while signed out, in this tab, for this room. */
+export function markPendingJoin(roomId: string): void {
+  try {
+    sessionStorage.setItem(PENDING_KEY, roomId);
+  } catch {
+    // without storage they press Join again after signing in
+  }
+}
+
+/** True once when the address says a Join is waiting and this tab pressed it for this room; the marker is used up. */
+export function takePendingJoin(roomId: string, search: string): boolean {
+  if (new URLSearchParams(search).get(PENDING_JOIN_PARAM) !== "1") return false;
+  try {
+    if (sessionStorage.getItem(PENDING_KEY) !== roomId) return false;
+    sessionStorage.removeItem(PENDING_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function hasPendingJoinFlag(search: string): boolean {
   return new URLSearchParams(search).get(PENDING_JOIN_PARAM) === "1";
 }

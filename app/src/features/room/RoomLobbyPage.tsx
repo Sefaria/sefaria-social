@@ -11,7 +11,7 @@ import { RecordingsList } from "~/features/recording/RecordingsList";
 import { isRecordingFlag, recordingHere, useRecordingController, useRecordingView } from "~/features/recording/use-recording";
 import { useRoomController, useRoomHold } from "~/features/session/use-room-session";
 import { useCallController } from "~/features/av/use-call";
-import { enterRoom, hasPendingJoin, lobbyPath } from "./enter";
+import { enterRoom, hasPendingJoinFlag, lobbyPath, markPendingJoin, takePendingJoin } from "./enter";
 import kit from "~/ui/kit.module.css";
 import { InvitePanel } from "./InvitePanel";
 import { RoomSettings } from "./RoomSettings";
@@ -91,12 +91,13 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
 
   const join = useCallback(async () => {
     if (!viewer || !api) {
-      // Spec 049 AC-003: sign-in returns to this address, which now says a Join is waiting.
+      // Spec 049 AC-003: sign-in returns to this address, which now says a Join is waiting (and this tab pressed it).
+      markPendingJoin(roomId);
       host?.navigate(lobbyPath(roomId, true), { replace: true });
       host?.viewer.requestSignIn();
       return;
     }
-    if (host && hasPendingJoin(host.location.get().search)) host.navigate(lobbyPath(roomId), { replace: true });
+    if (host && hasPendingJoinFlag(host.location.get().search)) host.navigate(lobbyPath(roomId), { replace: true });
     setJoining(true);
     try {
       const r = await api.join(roomId);
@@ -111,8 +112,8 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
 
   // Spec 049 AC-003: a Join pressed while signed out continues once the viewer is back, signed in, on this room's page.
   useEffect(() => {
-    if (viewer && api && host && state.kind === "outsider" && hasPendingJoin(host.location.get().search)) void join();
-  }, [api, host, join, state.kind, viewer]);
+    if (viewer && api && host && state.kind === "outsider" && takePendingJoin(roomId, host.location.get().search)) void join();
+  }, [api, host, join, roomId, state.kind, viewer]);
 
   // While the room is being recorded everyone in it is told (spec 041 AC-006): from the room read, its status, or this browser.
   const recording =
