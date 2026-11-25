@@ -2,7 +2,9 @@
 // server only (`recordings/<uuid>/raw/<seq>`, later `media.webm`, `manifest.json` …); nothing a client sends becomes a key.
 // The filesystem store serves local runs, e2e and the dev server (ASSET_STORE_DIR, default `.data/assets`); a cloud bucket gets
 // its own adapter behind this interface when the owner creates it.
-import { mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { copyFile, mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { Readable } from "node:stream";
 import path from "node:path";
 import { getConfig } from "../config";
 
@@ -18,6 +20,10 @@ export interface ObjectStore {
   size(key: string): Promise<number | null>;
   /** Spec 052: bytes `start` to `end` (inclusive) of the object, or null when there is none. */
   getRange(key: string, start: number, end: number): Promise<Uint8Array | null>;
+  /** Bytes `start` to `end` (inclusive) as a stream, read as it is sent; null when there is no such object. */
+  stream(key: string, start: number, end: number): Promise<ReadableStream<Uint8Array> | null>;
+  /** Keep the file at `file` (a local path) as the object, without reading it into memory. */
+  putFile(key: string, file: string): Promise<void>;
 }
 
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -72,6 +78,23 @@ export function fileStore(root: string): ObjectStore {
     },
     async removePrefix(prefix) {
       await rm(at(checkKey(prefix, true)), { recursive: true, force: true });
+    },
+    async stream(key, start, end) {
+      const file = at(checkKey(key));
+      try {
+        await stat(file);
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === "ENOENT") return null;
+        throw e;
+      }
+      return Readable.toWeb(createReadStream(file, { start, end })) as ReadableStream<Uint8Array>;
+    },
+    async putFile(key, source) {
+      const file = at(checkKey(key));
+      await mkdir(path.dirname(file), { recursive: true });
+      const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
+      await copyFile(source, tmp);
+      await rename(tmp, file);
     },
     async size(key) {
       try {
