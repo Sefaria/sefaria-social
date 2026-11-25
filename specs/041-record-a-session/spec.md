@@ -1,7 +1,7 @@
 ---
 id: "041"
 title: A room's owner records the live session, its reader state together with the call's audio and video
-status: draft
+status: approved
 features: [API-049, SESS-064]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [api, session, room-lobby, identity]

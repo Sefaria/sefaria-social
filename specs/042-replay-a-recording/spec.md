@@ -1,7 +1,7 @@
 ---
 id: "042"
 title: A recording plays back inside the reader, the video in the floating window driving the text
-status: draft
+status: approved
 features: [SESS-065]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session, room-lobby]

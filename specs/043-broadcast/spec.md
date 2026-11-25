@@ -1,7 +1,7 @@
 ---
 id: "043"
 title: A room's owner broadcasts live to view-only viewers, who follow the reader and watch the host but send nothing back
-status: draft
+status: approved
 features: [API-050, SESS-066]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [api, session, room-lobby]
