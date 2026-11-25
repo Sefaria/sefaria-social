@@ -1,7 +1,7 @@
 ---
 id: "049"
 title: One press to get in, starting a room lands you in it with the call, and an invitee's Join does everything
-status: proposed
+status: approved
 features: [ROOM-052, ROOM-053, SESS-073]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [rooms, room-lobby, call, session]

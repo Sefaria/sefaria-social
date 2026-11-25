@@ -1,7 +1,7 @@
 ---
 id: "050"
 title: Session kinds and endings, one Record toggle, and Close, Finish and Leave
-status: proposed
+status: approved
 features: [SESS-074, SESS-075, ROOM-054]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session, recording, rooms, broadcast]

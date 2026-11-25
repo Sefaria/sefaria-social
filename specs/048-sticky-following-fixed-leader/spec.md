@@ -1,7 +1,7 @@
 ---
 id: "048"
 title: Following is sticky, the room's owner is its one leader, and you follow a person by clicking them
-status: proposed
+status: approved
 features: [SESS-070, SESS-071, SESS-072]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session, presence, call, api]
