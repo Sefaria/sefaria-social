@@ -34,6 +34,8 @@ const Env = z.object({
   RECORDINGS_ENABLED: z.preprocess(emptyIsUnset, z.string().optional()),
   /** Spec 051: the filesystem object store's root for shiur assets (default `.data/assets` under the working directory). */
   ASSET_STORE_DIR: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
+  /** Spec 052: "off" keeps the asset processing worker from starting in this process (tests); anything else leaves it on. */
+  ASSET_WORKER: z.preprocess(emptyIsUnset, z.string().optional()),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 

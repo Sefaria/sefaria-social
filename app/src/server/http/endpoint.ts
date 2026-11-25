@@ -72,7 +72,7 @@ export interface HandlerInput<S extends EndpointSpec> {
 
 export type HandlerResult<S extends EndpointSpec> = {
   [K in keyof S["responses"] & number]: S["responses"][K]["binary"] extends true
-    ? { status: K; body: Uint8Array; contentType: string }
+    ? { status: K; body: Uint8Array; contentType: string; headers?: RangeHeaders }
     : {
         status: K;
         body: S["responses"][K]["schema"] extends z.ZodType ? z.input<S["responses"][K]["schema"]> : undefined;
@@ -104,6 +104,10 @@ function json(status: number, body: unknown, correlationId: string, extra: Recor
   if (status === 204 || body === undefined) return new Response(null, { status, headers });
   return new Response(JSON.stringify(body), { status, headers: { ...headers, "content-type": "application/json" } });
 }
+
+/** The only headers a binary handler may add (spec 052): what a byte-range answer needs. */
+export type RangeHeaders = Partial<Record<"accept-ranges" | "content-range", string>>;
+const RANGE_HEADERS = new Set(["accept-ranges", "content-range"]);
 
 /** A binary response (spec 041): the bytes as they are, with the handler's content type. */
 function bytesResponse(
@@ -195,7 +199,9 @@ async function run(
   method: string,
   route: string,
   ctx: RouteCtx,
-  inner: (correlationId: string) => Promise<{ status: number; body: unknown; contentType?: string }>,
+  inner: (
+    correlationId: string,
+  ) => Promise<{ status: number; body: unknown; contentType?: string; headers?: Record<string, string> }>,
 ): Promise<Response> {
   const started = performance.now();
   const correlationId = correlationIdFrom(ctx.request.headers.get(CORRELATION_HEADER));
@@ -204,8 +210,10 @@ async function run(
   try {
     const result = await inner(correlationId);
     status = result.status;
-    if (result.contentType !== undefined && result.body instanceof Uint8Array)
-      return bytesResponse(result.status, result.body, result.contentType, correlationId, cors);
+    if (result.contentType !== undefined && result.body instanceof Uint8Array) {
+      const range = Object.fromEntries(Object.entries(result.headers ?? {}).filter(([k]) => RANGE_HEADERS.has(k)));
+      return bytesResponse(result.status, result.body, result.contentType, correlationId, { ...cors, ...range });
+    }
     return json(result.status, result.body, correlationId, cors);
   } catch (e) {
     if (e instanceof ApiError) {
@@ -256,13 +264,14 @@ export function bind<const S extends EndpointSpec & { access: Access }>(
         status: number;
         body: unknown;
         contentType?: unknown;
+        headers?: Record<string, string>;
       };
       const declared = spec.responses[result.status];
       if (!declared) throw new Error(`Undeclared status ${result.status} from ${spec.operationId}`);
       if (declared.binary) {
         if (!(result.body instanceof Uint8Array) || typeof result.contentType !== "string")
           throw new TypeError(`Response of ${spec.operationId} is not bytes with a content type`);
-        return { status: result.status, body: result.body, contentType: result.contentType };
+        return { status: result.status, body: result.body, contentType: result.contentType, headers: result.headers };
       }
       if (!declared.schema) return { status: result.status, body: undefined };
       const out = declared.schema.safeParse(result.body);

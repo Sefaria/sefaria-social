@@ -38,6 +38,7 @@ import { Route as ApiV1ProfilesMeRouteImport } from './routes/api/v1/profiles.me
 import { Route as ApiV1RecordingsRecordingIdRouteImport } from './routes/api/v1/recordings.$recordingId'
 import { Route as ApiV1RepliesReplyIdRouteImport } from './routes/api/v1/replies.$replyId'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
+import { Route as ApiV1AssetsAssetIdManifestRouteImport } from './routes/api/v1/assets.$assetId.manifest'
 import { Route as ApiV1AssetsAssetIdMediaRouteImport } from './routes/api/v1/assets.$assetId.media'
 import { Route as ApiV1AssetsAssetIdStateRouteImport } from './routes/api/v1/assets.$assetId.state'
 import { Route as ApiV1BroadcastsBroadcastIdEndRouteImport } from './routes/api/v1/broadcasts.$broadcastId.end'
@@ -210,6 +211,12 @@ const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
   path: '/$roomId',
   getParentRoute: () => ApiV1RoomsRoute,
 } as any)
+const ApiV1AssetsAssetIdManifestRoute =
+  ApiV1AssetsAssetIdManifestRouteImport.update({
+    id: '/manifest',
+    path: '/manifest',
+    getParentRoute: () => ApiV1AssetsAssetIdRoute,
+  } as any)
 const ApiV1AssetsAssetIdMediaRoute = ApiV1AssetsAssetIdMediaRouteImport.update({
   id: '/media',
   path: '/media',
@@ -372,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
   '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
@@ -426,6 +434,7 @@ export interface FileRoutesByTo {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
   '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
@@ -481,6 +490,7 @@ export interface FileRoutesById {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
   '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
@@ -537,6 +547,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
     | '/api/v1/assets/$assetId/state'
     | '/api/v1/broadcasts/$broadcastId/end'
@@ -591,6 +602,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
     | '/api/v1/assets/$assetId/state'
     | '/api/v1/broadcasts/$broadcastId/end'
@@ -645,6 +657,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
     | '/api/v1/assets/$assetId/state'
     | '/api/v1/broadcasts/$broadcastId/end'
@@ -902,6 +915,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/rooms/$roomId'
       preLoaderRoute: typeof ApiV1RoomsRoomIdRouteImport
       parentRoute: typeof ApiV1RoomsRoute
+    }
+    '/api/v1/assets/$assetId/manifest': {
+      id: '/api/v1/assets/$assetId/manifest'
+      path: '/manifest'
+      fullPath: '/api/v1/assets/$assetId/manifest'
+      preLoaderRoute: typeof ApiV1AssetsAssetIdManifestRouteImport
+      parentRoute: typeof ApiV1AssetsAssetIdRoute
     }
     '/api/v1/assets/$assetId/media': {
       id: '/api/v1/assets/$assetId/media'
@@ -1185,11 +1205,13 @@ const ApiV1RoomsRouteWithChildren = ApiV1RoomsRoute._addFileChildren(
 )
 
 interface ApiV1AssetsAssetIdRouteChildren {
+  ApiV1AssetsAssetIdManifestRoute: typeof ApiV1AssetsAssetIdManifestRoute
   ApiV1AssetsAssetIdMediaRoute: typeof ApiV1AssetsAssetIdMediaRoute
   ApiV1AssetsAssetIdStateRoute: typeof ApiV1AssetsAssetIdStateRoute
 }
 
 const ApiV1AssetsAssetIdRouteChildren: ApiV1AssetsAssetIdRouteChildren = {
+  ApiV1AssetsAssetIdManifestRoute: ApiV1AssetsAssetIdManifestRoute,
   ApiV1AssetsAssetIdMediaRoute: ApiV1AssetsAssetIdMediaRoute,
   ApiV1AssetsAssetIdStateRoute: ApiV1AssetsAssetIdStateRoute,
 }

@@ -61,6 +61,7 @@ describe("spec 007: API contract", () => {
       "DELETE /api/v1/rooms/{roomId} deleteRoom secured",
       "DELETE /api/v1/rooms/{roomId}/members/me leaveRoom secured",
       "GET /api/v1/assets/{assetId} getAsset public",
+      "GET /api/v1/assets/{assetId}/manifest getAssetManifest public",
       "GET /api/v1/assets/{assetId}/media getAssetMedia public",
       "GET /api/v1/assets/{assetId}/state getAssetState public",
       "GET /api/v1/broadcasts/{broadcastId} getBroadcast secured",

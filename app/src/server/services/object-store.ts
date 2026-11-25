@@ -2,7 +2,7 @@
 // server only (`recordings/<uuid>/raw/<seq>`, later `media.webm`, `manifest.json` …); nothing a client sends becomes a key.
 // The filesystem store serves local runs, e2e and the dev server (ASSET_STORE_DIR, default `.data/assets`); a cloud bucket gets
 // its own adapter behind this interface when the owner creates it.
-import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getConfig } from "../config";
 
@@ -14,6 +14,10 @@ export interface ObjectStore {
   list(prefix: string): Promise<string[]>;
   /** Remove every object under `prefix` (which ends in "/"). */
   removePrefix(prefix: string): Promise<void>;
+  /** Spec 052: the object's size in bytes, or null when there is none. */
+  size(key: string): Promise<number | null>;
+  /** Spec 052: bytes `start` to `end` (inclusive) of the object, or null when there is none. */
+  getRange(key: string, start: number, end: number): Promise<Uint8Array | null>;
 }
 
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -69,6 +73,31 @@ export function fileStore(root: string): ObjectStore {
     async removePrefix(prefix) {
       await rm(at(checkKey(prefix, true)), { recursive: true, force: true });
     },
+    async size(key) {
+      try {
+        return (await stat(at(checkKey(key)))).size;
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === "ENOENT") return null;
+        throw e;
+      }
+    },
+    async getRange(key, start, end) {
+      let fh;
+      try {
+        fh = await open(at(checkKey(key)), "r");
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === "ENOENT") return null;
+        throw e;
+      }
+      try {
+        const length = Math.max(0, end - start + 1);
+        const buf = new Uint8Array(length);
+        const { bytesRead } = await fh.read(buf, 0, length, start);
+        return buf.subarray(0, bytesRead);
+      } finally {
+        await fh.close();
+      }
+    },
   };
 }
 
@@ -83,5 +112,7 @@ export function objectStore(): ObjectStore {
 
 /** The prefix of one recording's objects. */
 export const recordingPrefix = (recordingId: string) => `recordings/${recordingId}/`;
+/** A processed file of a recording (spec 052): `media.webm`, `audio.m4a`, `timeline.json`, `manifest.json`. */
+export const assetKey = (recordingId: string, name: string) => `recordings/${recordingId}/${name}`;
 /** A raw media chunk as uploaded (seq zero-padded, so keys sort in order). */
 export const rawChunkKey = (recordingId: string, seq: number) => `recordings/${recordingId}/raw/${String(seq).padStart(6, "0")}`;

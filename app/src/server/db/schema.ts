@@ -154,6 +154,13 @@ export const sessionRecordings = pgTable(
     /** Spec 051: media chunks kept in the object store (`recordings/<id>/raw/<seq>`), and the last one's SHA-256 (a retry). */
     mediaChunks: integer("media_chunks").notNull().default(0),
     lastChunkSha256: text("last_chunk_sha256"),
+    /**
+     * Spec 052: processing after the recording is ready — null while recording, then "queued" | "running" | "done" | "failed".
+     * The row is its own job: `processAfter` is when it may run next (a running job's lease, or a retry's backoff).
+     */
+    processStatus: text("process_status"),
+    processAttempts: integer("process_attempts").notNull().default(0),
+    processAfter: timestamp("process_after", { withTimezone: true }),
     stateMessages: integer("state_messages").notNull().default(0),
     createdAt: createdAt(),
   },
@@ -164,6 +171,13 @@ export const sessionRecordings = pgTable(
       .on(t.roomId)
       .where(sql`${t.status} = 'recording'`),
     check("session_recordings_status_check", sql`${t.status} in ('recording', 'ready', 'failed')`),
+    check(
+      "session_recordings_process_status_check",
+      sql`${t.processStatus} is null or ${t.processStatus} in ('queued', 'running', 'done', 'failed')`,
+    ),
+    index("session_recordings_process_idx")
+      .on(t.processAfter)
+      .where(sql`${t.processStatus} in ('queued', 'running')`),
   ],
 );
 

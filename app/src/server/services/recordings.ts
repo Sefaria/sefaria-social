@@ -13,7 +13,8 @@ import { recordingStateChunks, roomMembers, sessionRecordings, userDisplay } fro
 import { ApiError } from "../http/errors";
 import { setRoomRecording } from "./livekit";
 import { postgresStore, removeObjects, type Executor, type RecordingStore } from "./recording-store";
-import { objectStore } from "./object-store";
+import { assetKey, objectStore } from "./object-store";
+import { ensureAssetWorker, kickAssetWorker } from "../jobs/process-asset";
 import { membership } from "./rooms";
 import { upsertDisplay } from "./users";
 
@@ -154,6 +155,8 @@ export async function finaliseStale(scope: { roomId: string } | { recordingId: s
         status: "ready",
         finishedAt: sql`now()`,
         durationMs: sql`coalesce(${sessionRecordings.durationMs}, ${lastT}, 0)`,
+        processStatus: "queued",
+        processAfter: sql`now()`,
       })
       .where(where)
       .returning({ roomId: sessionRecordings.roomId });
@@ -281,11 +284,20 @@ export async function finishRecording(
     const row = await forUpload(tx, identity, recordingId);
     await tx
       .update(sessionRecordings)
-      .set({ status: "ready", durationMs: Math.round(durationMs), finishedAt: sql`now()` })
+      .set({
+        status: "ready",
+        durationMs: Math.round(durationMs),
+        finishedAt: sql`now()`,
+        // Spec 052: queued for processing; it plays from the raw chunks until that is done.
+        processStatus: "queued",
+        processAfter: sql`now()`,
+      })
       .where(eq(sessionRecordings.id, recordingId));
     return row.roomId;
   });
   await setRoomRecording(roomId, false);
+  ensureAssetWorker();
+  kickAssetWorker();
   return toDto(await visible(db, identity, recordingId), identity);
 }
 
@@ -330,16 +342,16 @@ export async function getRecordingState(
   };
 }
 
-/** The media: every chunk in order, with the recorded content type (AC-004). */
+/** The media (AC-004; spec 052): the processed file, by byte range, once it exists; until then every chunk in order. */
 export async function getRecordingMedia(
   identity: Identity,
   recordingId: string,
+  range: string | null = null,
   db: Db = getDb(),
   store: RecordingStore = postgresStore(db),
-): Promise<{ bytes: Uint8Array; contentType: string }> {
+): Promise<MediaAnswer> {
   const row = await getRecording(identity, recordingId, db);
-  const chunks = await store.mediaChunks(recordingId);
-  return { bytes: Buffer.concat(chunks), contentType: row.mime ?? "application/octet-stream" };
+  return mediaOf(recordingId, row.mime, range, store);
 }
 
 /** Delete a recording and its chunks (AC-005): the recorder or the room's owner. */
@@ -459,10 +471,73 @@ export async function getAssetState(
 
 export async function getAssetMedia(
   assetId: string,
+  range: string | null = null,
   db: Db = getDb(),
   store: RecordingStore = postgresStore(db),
-): Promise<{ bytes: Uint8Array; contentType: string }> {
+): Promise<MediaAnswer> {
   const r = await readyAsset(db, assetId);
-  const chunks = await store.mediaChunks(assetId);
-  return { bytes: Buffer.concat(chunks), contentType: r.mime ?? "application/octet-stream" };
+  return mediaOf(assetId, r.mime, range, store);
+}
+
+/** Spec 052: a ready recording's manifest once processing is done; 404 recording.not_processed until then. */
+export async function getAssetManifest(assetId: string, db: Db = getDb(), objects = objectStore()): Promise<unknown> {
+  await readyAsset(db, assetId);
+  const bytes = await objects.get(assetKey(assetId, "manifest.json"));
+  if (!bytes) throw new ApiError(404, "recording.not_processed");
+  return JSON.parse(new TextDecoder().decode(bytes)) as unknown;
+}
+
+// ── Media by byte range (spec 052 AC-004) ──────────────────────────────────────────────────────────────────────────────
+
+/** The most one range answer carries; a player asks again for the rest. */
+export const MAX_RANGE_BYTES = 8 * 1024 * 1024;
+
+export type MediaAnswer =
+  | { status: 200; bytes: Uint8Array; contentType: string; headers: Record<string, string> }
+  | { status: 206; bytes: Uint8Array; contentType: string; headers: Record<string, string> };
+
+/** One `bytes=` range of a file of `size` bytes: [start, end] inclusive, "unsatisfiable", or null (none, or not one range). */
+export function parseRange(header: string | null, size: number): [number, number] | "unsatisfiable" | null {
+  if (!header) return null;
+  const m = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!m || (m[1] === "" && m[2] === "")) return null;
+  let start: number;
+  let end: number;
+  if (m[1] === "") {
+    const suffix = Number(m[2]);
+    if (suffix === 0) return "unsatisfiable";
+    start = Math.max(0, size - suffix);
+    end = size - 1;
+  } else {
+    start = Number(m[1]);
+    end = m[2] === "" ? size - 1 : Math.min(Number(m[2]), size - 1);
+  }
+  if (!Number.isSafeInteger(start) || start >= size || end < start) return "unsatisfiable";
+  return [start, end];
+}
+
+async function mediaOf(id: string, mime: string | null, range: string | null, store: RecordingStore): Promise<MediaAnswer> {
+  const objects = objectStore();
+  const key = assetKey(id, "media.webm");
+  const size = await objects.size(key);
+  if (size === null) {
+    // Not processed yet: the raw chunks, whole (a MediaRecorder file cannot be seeked anyway).
+    const chunks = await store.mediaChunks(id);
+    return { status: 200, bytes: Buffer.concat(chunks), contentType: mime ?? "application/octet-stream", headers: {} };
+  }
+  const r = parseRange(range, size);
+  if (r === "unsatisfiable") throw new ApiError(416, "request.range_not_satisfiable", { "content-range": `bytes */${size}` });
+  if (r === null) {
+    const bytes = (await objects.getRange(key, 0, size - 1)) ?? new Uint8Array();
+    return { status: 200, bytes, contentType: "video/webm", headers: { "accept-ranges": "bytes" } };
+  }
+  const [start, wanted] = r;
+  const end = Math.min(wanted, start + MAX_RANGE_BYTES - 1);
+  const bytes = (await objects.getRange(key, start, end)) ?? new Uint8Array();
+  return {
+    status: 206,
+    bytes,
+    contentType: "video/webm",
+    headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${start + bytes.byteLength - 1}/${size}` },
+  };
 }

@@ -7,9 +7,9 @@ import * as recordings from "~/server/services/recordings";
 export const Route = createFileRoute("/api/v1/recordings/$recordingId/media")({
   server: {
     handlers: serve({
-      GET: bind(getRecordingMedia, async ({ identity, params }) => {
-        const media = await recordings.getRecordingMedia(identity, params.recordingId);
-        return { status: 200 as const, body: media.bytes, contentType: media.contentType };
+      GET: bind(getRecordingMedia, async ({ identity, params, request }) => {
+        const media = await recordings.getRecordingMedia(identity, params.recordingId, request.headers.get("range"));
+        return { status: media.status, body: media.bytes, contentType: media.contentType, headers: media.headers };
       }),
     }),
   },

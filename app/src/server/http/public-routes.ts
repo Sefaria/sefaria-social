@@ -9,4 +9,6 @@ export const PUBLIC_ENDPOINTS: ReadonlySet<string> = new Set([
   "GET /api/v1/assets/{assetId}",
   "GET /api/v1/assets/{assetId}/state",
   "GET /api/v1/assets/{assetId}/media",
+  // Its manifest once processed (spec 052): files, length, chapters; nothing more than the three above already give.
+  "GET /api/v1/assets/{assetId}/manifest",
 ]);

@@ -252,6 +252,21 @@ export const Asset = z.object({
 });
 
 const AssetParams = z.object({ assetId: z.uuid() });
+
+const ManifestFile = z.object({ key: z.string(), type: z.string(), bytes: z.int().nonnegative(), sha256: z.string() });
+/** A processed recording's manifest (spec 052): its files, length, whether it has video, and its chapters. */
+export const AssetManifest = z.object({
+  v: z.literal(1),
+  id: z.uuid(),
+  title: z.string().nullable(),
+  leader: z.object({ name: z.string().nullable() }),
+  durationMs: z.int().nonnegative(),
+  hasVideo: z.boolean(),
+  files: z.object({ media: ManifestFile, audio: ManifestFile.nullable(), timeline: ManifestFile }),
+  chapters: z.array(z.object({ t: z.int().nonnegative(), ref: z.string(), heRef: z.string().nullable() })),
+  transcript: z.object({ status: z.string() }).loose(),
+  processedAt: z.iso.datetime({ offset: true }),
+});
 const RecordingChunkParams = z.object({ recordingId: z.uuid(), seq: z.string().regex(/^(0|[1-9][0-9]{0,5})$/) });
 
 // ── Broadcasts (spec 043) ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -316,12 +331,29 @@ export const getAssetMedia = defineEndpoint({
   operationId: "getAssetMedia",
   method: "GET",
   path: "/api/v1/assets/{assetId}/media",
-  summary: "A ready recording's media, for anyone with its link (spec 051).",
+  summary:
+    "A ready recording's media, for anyone with its link (spec 051). Once processed (spec 052) it answers byte ranges (206); before, the raw recording whole.",
+  tags: ["assets"],
+  access: "public",
+  params: AssetParams,
+  errors: [404, 416],
+  responses: {
+    200: { description: "The media file.", binary: true },
+    206: { description: "A byte range of the processed media file.", binary: true },
+  },
+});
+
+export const getAssetManifest = defineEndpoint({
+  operationId: "getAssetManifest",
+  method: "GET",
+  path: "/api/v1/assets/{assetId}/manifest",
+  summary:
+    "A ready recording's manifest once it is processed (spec 052): files, length, video or not, chapters. 404 recording.not_processed until then.",
   tags: ["assets"],
   access: "public",
   params: AssetParams,
   errors: [404],
-  responses: { 200: { description: "The media file.", binary: true } },
+  responses: { 200: { description: "The manifest.", schema: AssetManifest } },
 });
 
 export const getHealth = defineEndpoint({
@@ -571,11 +603,15 @@ export const getRecordingMedia = defineEndpoint({
   operationId: "getRecordingMedia",
   method: "GET",
   path: "/api/v1/recordings/{recordingId}/media",
-  summary: "The recording's media: every chunk in order, with the recorded content type. Members of its room only.",
+  summary:
+    "The recording's media, members of its room only: once processed (spec 052) the seekable file by byte range (206); before, every chunk in order.",
   tags: ["recordings"],
   params: RecordingParams,
-  errors: [404],
-  responses: { 200: { description: "The media file.", binary: true } },
+  errors: [404, 416],
+  responses: {
+    200: { description: "The media file.", binary: true },
+    206: { description: "A byte range of the processed media file.", binary: true },
+  },
 });
 
 export const putRecordingMedia = defineEndpoint({
@@ -912,6 +948,7 @@ export const ENDPOINTS = [
   getAsset,
   getAssetState,
   getAssetMedia,
+  getAssetManifest,
   appendRecordingState,
   getRecordingMedia,
   putRecordingMedia,

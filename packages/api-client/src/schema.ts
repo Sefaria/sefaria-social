@@ -17,6 +17,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assets/{assetId}/manifest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A ready recording's manifest once it is processed (spec 052): files, length, video or not, chapters. 404 recording.not_processed until then. */
+        get: operations["getAssetManifest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assets/{assetId}/media": {
         parameters: {
             query?: never;
@@ -24,7 +41,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** A ready recording's media, for anyone with its link (spec 051). */
+        /** A ready recording's media, for anyone with its link (spec 051). Once processed (spec 052) it answers byte ranges (206); before, the raw recording whole. */
         get: operations["getAssetMedia"];
         put?: never;
         post?: never;
@@ -438,7 +455,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The recording's media: every chunk in order, with the recorded content type. Members of its room only. */
+        /** The recording's media, members of its room only: once processed (spec 052) the seekable file by byte range (206); before, every chunk in order. */
         get: operations["getRecordingMedia"];
         put?: never;
         post?: never;
@@ -780,6 +797,89 @@ export interface operations {
             };
         };
     };
+    getAssetManifest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The manifest. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        chapters: {
+                            heRef: string | null;
+                            ref: string;
+                            t: number;
+                        }[];
+                        durationMs: number;
+                        files: {
+                            audio: {
+                                bytes: number;
+                                key: string;
+                                sha256: string;
+                                type: string;
+                            } | null;
+                            media: {
+                                bytes: number;
+                                key: string;
+                                sha256: string;
+                                type: string;
+                            };
+                            timeline: {
+                                bytes: number;
+                                key: string;
+                                sha256: string;
+                                type: string;
+                            };
+                        };
+                        hasVideo: boolean;
+                        /** Format: uuid */
+                        id: string;
+                        leader: {
+                            name: string | null;
+                        };
+                        /** Format: date-time */
+                        processedAt: string;
+                        title: string | null;
+                        transcript: {
+                            status: string;
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        /** @constant */
+                        v: 1;
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getAssetMedia: {
         parameters: {
             query?: never;
@@ -800,6 +900,15 @@ export interface operations {
                     "application/octet-stream": string;
                 };
             };
+            /** @description A byte range of the processed media file. */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
             /** @description The request does not match the schema (request.invalid). */
             400: {
                 headers: {
@@ -811,6 +920,15 @@ export interface operations {
             };
             /** @description Not found, or not visible to this caller (for example room.not_found). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error. */
+            416: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2905,6 +3023,15 @@ export interface operations {
                     "application/octet-stream": string;
                 };
             };
+            /** @description A byte range of the processed media file. */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
             /** @description The request does not match the schema (request.invalid). */
             400: {
                 headers: {
@@ -2925,6 +3052,15 @@ export interface operations {
             };
             /** @description Not found, or not visible to this caller (for example room.not_found). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error. */
+            416: {
                 headers: {
                     [name: string]: unknown;
                 };
