@@ -1900,6 +1900,25 @@
       "changed": []
     },
     {
+      "id": "ROOM-054",
+      "area": "room",
+      "name": "Session kinds and endings, one Record toggle, and Close, Finish and Leave",
+      "description": "",
+      "status": "planned",
+      "spec": "050",
+      "acs": [],
+      "surfaces": [
+        "session",
+        "recording",
+        "rooms",
+        "broadcast"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SESS-001",
       "area": "sess",
       "name": "Social context in the reader's ctx parameter",
@@ -2656,6 +2675,44 @@
       "tests": [
         "app/src/features/av/call-controller.test.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-074",
+      "area": "sess",
+      "name": "Session kinds and endings, one Record toggle, and Close, Finish and Leave",
+      "description": "",
+      "status": "planned",
+      "spec": "050",
+      "acs": [],
+      "surfaces": [
+        "session",
+        "recording",
+        "rooms",
+        "broadcast"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-075",
+      "area": "sess",
+      "name": "Session kinds and endings, one Record toggle, and Close, Finish and Leave",
+      "description": "",
+      "status": "planned",
+      "spec": "050",
+      "acs": [],
+      "surfaces": [
+        "session",
+        "recording",
+        "rooms",
+        "broadcast"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
