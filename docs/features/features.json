@@ -207,7 +207,7 @@
       ],
       "surfaces": [
         "api",
-        "relay"
+        "session"
       ],
       "depends_on": {},
       "tests": [
@@ -708,7 +708,7 @@
       ],
       "surfaces": [
         "api",
-        "feed"
+        "post"
       ],
       "depends_on": {},
       "tests": [
@@ -730,7 +730,7 @@
         "055/AC-005"
       ],
       "surfaces": [
-        "feed"
+        "post"
       ],
       "depends_on": {},
       "tests": [
@@ -752,7 +752,7 @@
         "056/AC-005"
       ],
       "surfaces": [
-        "feed"
+        "post"
       ],
       "depends_on": {},
       "tests": [

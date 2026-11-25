@@ -4,7 +4,7 @@ title: Links in posts become links, and a room, broadcast or recording link beco
 features: [FEED-074, FEED-075]
 status: proposed
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [api, feed]
+surfaces: [api, post, feed]
 risk: high
 contract_impact: api-minor
 ---

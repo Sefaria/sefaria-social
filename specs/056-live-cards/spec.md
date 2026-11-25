@@ -4,7 +4,7 @@ title: A posted room or broadcast card shows, live, the text its leader is on
 features: [API-051, FEED-076]
 status: proposed
 owner: "@Sefaria/sefaria-social-owners"
-surfaces: [api, relay, feed]
+surfaces: [api, session, post]
 risk: high
 contract_impact: api-minor
 ---
