@@ -745,7 +745,7 @@
       "area": "feed",
       "name": "Live cards in posts: the leader's current text, polled only while seen",
       "description": "A posted room or broadcast card shows Live, the leader's ref and that text, or Not live with the last ref; it polls every 15 seconds for the cards on screen, in one request, and never while the tab is hidden.",
-      "status": "planned",
+      "status": "built",
       "spec": "056",
       "acs": [
         "056/AC-004",
@@ -755,7 +755,11 @@
         "feed"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/post/live-status.test.ts",
+        "app/src/features/post/post-embeds.test.tsx",
+        "e2e/live-cards.spec.ts"
+      ],
       "since": null,
       "changed": []
     },

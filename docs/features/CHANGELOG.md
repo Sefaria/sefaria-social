@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-25 — FEED-076 "Live cards in posts: the leader's current text, polled only while seen": built (spec 056).
 - 2026-11-25 — API-051 "Live status of posted sessions: relay reports and the public read": built (spec 056).
 - 2026-11-25 — FEED-075 "Links in post text, and a session card in the composer and in posts": built (spec 055).
 - 2026-11-25 — FEED-074 "A post may embed a room, broadcast or recording, checked by the server": built (spec 055).

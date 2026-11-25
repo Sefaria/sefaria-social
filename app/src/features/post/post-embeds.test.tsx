@@ -9,6 +9,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createFakeHost } from "@sefaria-social/host-contract/fake-host";
 import { SocialApiContext, type SocialApi } from "~/features/api/social-api";
 import { HostContext } from "~/features/host/host-context";
+import { TextSourceContext } from "~/ui/SourceText";
+import type { TextSource } from "~/lib/sefaria-text";
 import type * as ComposerModule from "./Composer";
 import type * as EmbedCardModule from "./EmbedCard";
 import type * as LinkifyModule from "./linkify";
@@ -24,6 +26,14 @@ afterEach(() => {
   while (cleanup.length) cleanup.pop()!();
 });
 
+const texts: TextSource = {
+  get: async (ref) => ({ ref, heRef: null, title: null, blocks: [{ lang: "en", segments: [`text of ${ref}`] }] }) as never,
+  prefetch: () => {},
+  titles: () => null,
+  subscribe: () => () => {},
+  requests: () => ({}),
+};
+
 async function mount(el: ReactElement, api: Partial<SocialApi> = {}) {
   const fake = createFakeHost();
   const box = document.createElement("div");
@@ -34,7 +44,11 @@ async function mount(el: ReactElement, api: Partial<SocialApi> = {}) {
       createElement(
         HostContext.Provider,
         { value: fake.host },
-        createElement(SocialApiContext.Provider, { value: api as SocialApi }, el),
+        createElement(
+          TextSourceContext.Provider,
+          { value: texts },
+          createElement(SocialApiContext.Provider, { value: api as SocialApi }, el),
+        ),
       ),
     ),
   );
@@ -137,5 +151,39 @@ describe("spec 055: links in posts", () => {
       box.querySelector("[data-embed-card]")?.getAttribute("data-embed-unavailable"),
       box.querySelector("[data-embed-action]"),
     ]).toEqual(["", null]);
+  });
+});
+
+describe("spec 056: the live part of a posted card", () => {
+  // @feature FEED-076 Live cards in posts: the leader's current text, polled only while seen
+  // @ac 056/AC-004
+  it("shows Live, how many are there, the leader's ref and its text, or Not live with the last ref", async () => {
+    expect(cardModules["./EmbedCard.tsx"], "EmbedCard exists").toBeDefined();
+    const { EmbedCard } = await cardModules["./EmbedCard.tsx"]!();
+    const answers: Record<string, object> = {
+      [ROOM]: { id: ROOM, kind: "room", live: true, ref: "Genesis 2:1", heRef: "בראשית ב:א", here: 3, updatedAt: null },
+    };
+    const liveStatus = vi.fn(async (ids: string[]) => ids.flatMap((id) => (answers[id] ? [answers[id]] : [])) as never);
+    const embed = { kind: "room" as const, id: ROOM, title: "Daf Yomi together", leader: "Rav Owner" };
+    const { box } = await mount(createElement(EmbedCard, { embed }), { liveStatus });
+    await vi.waitFor(() => expect(box.querySelector("[data-embed-status]")?.getAttribute("data-embed-status")).toBe("live"));
+    expect(liveStatus).toHaveBeenCalledWith([ROOM]);
+    expect([box.querySelector("[data-embed-status]")?.textContent, box.querySelector("[data-embed-ref]")?.textContent]).toEqual([
+      "Live·3 people learning",
+      "Genesis 2:1",
+    ]);
+    await vi.waitFor(() => expect(box.textContent).toContain("text of Genesis 2:1"));
+
+    const other = "1c2d3e4f-5a6b-4c7d-8e9f-001122334466";
+    answers[other] = { id: other, kind: "broadcast", live: false, ref: "Exodus 3:1", heRef: null, here: 0, updatedAt: null };
+    const quiet = await mount(createElement(EmbedCard, { embed: { ...embed, kind: "broadcast", id: other } }), { liveStatus });
+    await vi.waitFor(() =>
+      expect(quiet.box.querySelector("[data-embed-status]")?.getAttribute("data-embed-status")).toBe("not-live"),
+    );
+    expect([
+      quiet.box.querySelector("[data-embed-status]")?.textContent,
+      quiet.box.querySelector("[data-embed-ref]")?.textContent,
+      quiet.box.textContent?.includes("text of Exodus 3:1"),
+    ]).toEqual(["Not live now", "Exodus 3:1", false]);
   });
 });

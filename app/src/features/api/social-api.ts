@@ -12,6 +12,7 @@ import {
   type ProfileWithPosts,
   type Reply,
   type Timeline,
+  type paths,
 } from "@sefaria-social/api-client";
 import { useHost } from "~/features/host/host-context";
 
@@ -63,7 +64,12 @@ export interface SocialApi {
   follow(profileId: string, on: boolean): Promise<{ following: boolean; followers: number }>;
   notifications(): Promise<NotificationList>;
   readNotifications(): Promise<void>;
+  /** The live state of posted rooms, broadcasts and recordings (spec 056); public, sent without a token. */
+  liveStatus(ids: string[]): Promise<LiveStatus[]>;
 }
+
+/** One posted session's live state (spec 056). */
+export type LiveStatus = paths["/api/v1/live"]["get"]["responses"][200]["content"]["application/json"][number];
 
 type Answer<T> = { data?: T; error?: unknown; response: Response };
 
@@ -85,7 +91,12 @@ export function createSocialApi(host: SurfaceHost): SocialApi {
     getToken: async () => (host.viewer.get() ? host.viewer.identityToken().catch(() => null) : null),
     correlationId: () => crypto.randomUUID(),
   });
+  // The live read is public (spec 056): no token, so the browser can keep and revalidate the answer by its ETag.
+  const open = createApiClient({ baseUrl: host.config.apiOrigin, getToken: async () => null });
   return {
+    async liveStatus(ids) {
+      return unwrap(await open.GET("/api/v1/live", { params: { query: { ids: ids.join(",") } } }));
+    },
     async timeline(tab, before) {
       return unwrap(await c.GET("/api/v1/timeline", { params: { query: { tab, ...(before ? { before } : {}) } } }));
     },
