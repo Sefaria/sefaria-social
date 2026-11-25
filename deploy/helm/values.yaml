@@ -103,6 +103,10 @@ configMap:
     # cloud bucket adapter replaces the filesystem object store (spec 051): pod-local disks would split a recording's media
     # across the replicas.
     RECORDINGS_ENABLED: "false"
+    # The filesystem object store's directory (spec 051), the image's default; only used once recordings are on.
+    ASSET_STORE_DIR: /srv/.data/assets
+    # The processing worker (spec 052) runs in every server process; "off" would stop it.
+    ASSET_WORKER: "on"
 
 # Secret values, by name only. The Secret (sefaria-social-secrets) is created by the cluster's secret store.
 secret:
@@ -140,6 +144,10 @@ env:
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: CALLS_ENABLED } }
   - name: RECORDINGS_ENABLED
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: RECORDINGS_ENABLED } }
+  - name: ASSET_STORE_DIR
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_STORE_DIR } }
+  - name: ASSET_WORKER
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_WORKER } }
   - name: LIVEKIT_API_KEY
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: LIVEKIT_API_KEY } }
   - name: LIVEKIT_API_SECRET
