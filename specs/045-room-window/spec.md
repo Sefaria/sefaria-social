@@ -1,7 +1,7 @@
 ---
 id: "045"
 title: You stay in a room while you read around, in a room window that looks and works like part of Sefaria
-status: draft
+status: approved
 features: [SESS-067, SESS-068, ROOM-051]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [session, room-lobby]
