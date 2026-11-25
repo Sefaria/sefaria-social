@@ -15,7 +15,8 @@ The commands are `npm run factory -- <command>`; `npm run factory -- help` lists
    `spec-gate` refuses it.
 5. **Build** (`/build-task NNN/T-xxx`): one task, one session, one PR, test first. The skill writes `.factory/active.json`;
    the `guard-paths` hook then allows edits only inside that task's file globs. Commits carry trailers:
-   `--trailer "Spec: NNN" --trailer "Task: T-xxx"`.
+   `--trailer "Spec: NNN" --trailer "Task: T-xxx"`. Keep them in the message's last paragraph. Git reads only the final
+   trailer block, so a paragraph appended after the trailers hides them from the gate.
 6. **Verify** (`/verify`): commands and real output in the PR body, ending in `VERDICT: PASS`.
 7. **CI**, then a human approves the merge.
 
