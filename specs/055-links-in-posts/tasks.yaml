@@ -6,6 +6,7 @@
     - "app/src/server/db/migrations/**"
     - "app/src/server/api/contracts.ts"
     - "app/src/server/services/posts.ts"
+    - "app/src/server/http/errors.ts"
     - "app/src/api.post-embeds.int.test.ts"
     - "app/src/api.contract.test.ts"
     - "packages/api-client/openapi.json"

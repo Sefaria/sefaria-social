@@ -77,6 +77,18 @@ export const QuotedPost = z.object({
   createdAt: Iso.nullable(),
 });
 
+/** What a post may embed as a card (spec 055): a room, a broadcast or a recording, by id. */
+export const EmbedKind = z.enum(["room", "broadcast", "recording"]);
+export const PostEmbedInput = z.strictObject({ kind: EmbedKind, id: z.uuid() });
+
+/** A post's card (spec 055): the target's title and its leader's name, both null when the target no longer exists. */
+export const PostEmbed = z.object({
+  kind: EmbedKind,
+  id: z.uuid(),
+  title: z.string().nullable(),
+  leader: z.string().nullable(),
+});
+
 export const Post = z.object({
   id: z.uuid(),
   body: z.string(),
@@ -92,6 +104,8 @@ export const Post = z.object({
   reposted: z.boolean(),
   quoted: QuotedPost.nullable(),
   repostedBy: Author.nullable(),
+  /** Present only when the post embeds a room, broadcast or recording (spec 055). */
+  embed: PostEmbed.optional(),
 });
 
 export const Reply = z.object({ id: z.uuid(), body: z.string(), author: Author, createdAt: Iso, canDelete: z.boolean() });
@@ -100,13 +114,18 @@ export const Timeline = z.object({ posts: z.array(Post), nextCursor: z.string().
 
 export const PostWithReplies = z.object({ post: Post, replies: z.array(Reply) });
 
-export const PostInput = z.strictObject({
-  body: z.string().trim().min(1).max(2000),
-  ref: z.string().trim().max(200).optional(),
-  asProfileId: z.uuid().optional(),
-  /** Quote this post (spec 030). */
-  quotedPostId: z.uuid().optional(),
-});
+export const PostInput = z
+  .strictObject({
+    /** May be empty only when the post embeds a card (spec 055). */
+    body: z.string().trim().max(2000),
+    ref: z.string().trim().max(200).optional(),
+    asProfileId: z.uuid().optional(),
+    /** Quote this post (spec 030). */
+    quotedPostId: z.uuid().optional(),
+    /** Show this room, broadcast or recording as a card (spec 055); the server checks that it exists. */
+    embed: PostEmbedInput.optional(),
+  })
+  .refine((p) => p.body.length > 0 || p.embed !== undefined, { message: "A post needs text or a card.", path: ["body"] });
 
 export const ReplyInput = z.strictObject({ body: z.string().trim().min(1).max(1000) });
 

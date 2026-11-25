@@ -1371,6 +1371,12 @@ export interface operations {
                     /** Format: uuid */
                     asProfileId?: string;
                     body: string;
+                    embed?: {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        kind: "room" | "broadcast" | "recording";
+                    };
                     /** Format: uuid */
                     quotedPostId?: string;
                     ref?: string;
@@ -1396,6 +1402,14 @@ export interface operations {
                         canDelete: boolean;
                         /** Format: date-time */
                         createdAt: string;
+                        embed?: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "room" | "broadcast" | "recording";
+                            leader: string | null;
+                            title: string | null;
+                        };
                         /** Format: uuid */
                         id: string;
                         quoteCount: number;
@@ -1515,6 +1529,14 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            embed?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "room" | "broadcast" | "recording";
+                                leader: string | null;
+                                title: string | null;
+                            };
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;
@@ -2091,6 +2113,14 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            embed?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "room" | "broadcast" | "recording";
+                                leader: string | null;
+                                title: string | null;
+                            };
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;
@@ -4280,6 +4310,14 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            embed?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "room" | "broadcast" | "recording";
+                                leader: string | null;
+                                title: string | null;
+                            };
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;

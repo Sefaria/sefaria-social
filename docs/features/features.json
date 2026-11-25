@@ -697,7 +697,7 @@
       "area": "feed",
       "name": "A post may embed a room, broadcast or recording, checked by the server",
       "description": "POST /api/v1/posts takes an optional embed {kind, id}; the server refuses an unknown target with 404 and answers the post with embed {kind, id, title, leader}; posts without one keep their exact shape.",
-      "status": "planned",
+      "status": "built",
       "spec": "055",
       "acs": [
         "055/AC-002",
@@ -708,7 +708,9 @@
         "feed"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.post-embeds.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },

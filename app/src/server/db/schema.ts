@@ -296,6 +296,10 @@ export const posts = pgTable(
     ref: text("ref"),
     /** A quote (spec 030): the post this one quotes. Kept when the quoted post is deleted (it shows as unavailable). */
     quotedPostId: uuid("quoted_post_id").references((): AnyPgColumn => posts.id, { onDelete: "set null" }),
+    /** A room, broadcast or recording the post shows as a card (spec 055): "room" | "broadcast" | "recording". */
+    embedKind: text("embed_kind"),
+    /** The embedded target's id. No foreign key: a target deleted later shows as unavailable. */
+    embedId: uuid("embed_id"),
     createdAt: createdAt(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
@@ -304,6 +308,13 @@ export const posts = pgTable(
     index("posts_created_idx").on(t.createdAt),
     index("posts_created_by_idx").on(t.createdByUserId),
     index("posts_quoted_idx").on(t.quotedPostId),
+    index("posts_embed_idx")
+      .on(t.embedId)
+      .where(sql`${t.embedId} is not null`),
+    check(
+      "posts_embed_check",
+      sql`(${t.embedKind} is null and ${t.embedId} is null) or (${t.embedKind} in ('room', 'broadcast', 'recording') and ${t.embedId} is not null)`,
+    ),
   ],
 );
 

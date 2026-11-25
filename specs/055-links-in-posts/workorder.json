@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:4e3c1cb431b379b864bd1fa3a9decba58428cc7c366733b4da4e1c28e6bede3a",
   "feature_sha": "sha256:980228debfd787756eb05e71845667a07b64e85cb05567efae19c42a8fdd2c3e",
-  "tasks_sha": "sha256:50856f8f5f1aa7b2b7d3cb729ebf4240fcbbcb83c6c1bb528a31dbf641a1f732",
+  "tasks_sha": "sha256:a3d6de7471b2f05c5e879ea4cb1c76437a03b83191738d2e21aa8acf6a143a5e",
   "risk": "high",
   "features": [
     "FEED-074",
@@ -24,6 +24,7 @@
         "app/src/server/db/migrations/**",
         "app/src/server/api/contracts.ts",
         "app/src/server/services/posts.ts",
+        "app/src/server/http/errors.ts",
         "app/src/api.post-embeds.int.test.ts",
         "app/src/api.contract.test.ts",
         "packages/api-client/openapi.json",
