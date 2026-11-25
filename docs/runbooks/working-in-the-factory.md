@@ -35,17 +35,28 @@ A change to an agreed spec is its own PR: edit, human review, re-approve, recomp
 
 Failures and their fixes (the gate prints the same text):
 
-| Gate says                                                                  | Fix                                                                                                                                        |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `no 'Spec:' trailer on any commit in this PR`                              | build from a work order (`/build-task`), or `git commit --amend --trailer 'Spec: NNN' --trailer 'Task: T-001'`; no spec yet: `/shape-spec` |
-| `no 'Task:' trailer`                                                       | add `Task: T-xxx` (or `Task: NNN/T-xxx` when several specs are named)                                                                      |
-| `spec NNN does not exist`                                                  | shape it                                                                                                                                   |
-| `spec NNN has no work order` / `workorder.json is stale`                   | `npm run factory -- compile NNN` (after a spec, feature or tasks change)                                                                   |
-| `spec NNN not approved`                                                    | a human code owner reviews and runs `approve NNN --by <email>`, then `compile NNN`; commit both files                                      |
-| `spec NNN is approved but … is still a draft`                              | `npm run factory -- compile NNN` (without `--draft`)                                                                                       |
-| `N changed file(s) are outside the named task(s)`                          | move them to their own PR, or add them to the task's `files` (a planning change) and recompile                                             |
-| `this PR changes the agreed spec NNN … and product code together`          | split: spec change first, in its own PR                                                                                                    |
-| `task(s) complete AREA-NNN but docs/features/features.json is not updated` | set the entry `built`, list its tagged tests, add a `docs/features/CHANGELOG.md` line                                                      |
+| Gate says                                                                  | Fix                                                                                                                                                                                                                                                                |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `no 'Spec:' trailer on any commit in this PR`                              | build from a work order (`/build-task`), or `git commit --amend --trailer 'Spec: NNN' --trailer 'Task: T-001'`; no spec yet: `/shape-spec`. Git reads only the last paragraph of a message, so keep the trailers there: a paragraph appended after them hides them |
+| `no 'Task:' trailer`                                                       | add `Task: T-xxx` (or `Task: NNN/T-xxx` when several specs are named)                                                                                                                                                                                              |
+| `spec NNN does not exist`                                                  | shape it                                                                                                                                                                                                                                                           |
+| `spec NNN has no work order` / `workorder.json is stale`                   | `npm run factory -- compile NNN` (after a spec, feature or tasks change)                                                                                                                                                                                           |
+| `spec NNN not approved`                                                    | a human code owner reviews and runs `approve NNN --by <email>`, then `compile NNN`; commit both files                                                                                                                                                              |
+| `spec NNN is approved but … is still a draft`                              | `npm run factory -- compile NNN` (without `--draft`)                                                                                                                                                                                                               |
+| `N changed file(s) are outside the named task(s)`                          | move them to their own PR, or add them to the task's `files` (a planning change) and recompile                                                                                                                                                                     |
+| `this PR changes the agreed spec NNN … and product code together`          | split: spec change first, in its own PR                                                                                                                                                                                                                            |
+| `task(s) complete AREA-NNN but docs/features/features.json is not updated` | set the entry `built`, list its tagged tests, add a `docs/features/CHANGELOG.md` line                                                                                                                                                                              |
+
+**Automated commit writers.** A writer that appends its own `Co-authored-by:` paragraph after your text hides the trailers, and no message you hand it can reorder that paragraph. End the message with git's scissors line instead:
+
+```
+Spec: 084
+Task: T-002
+
+# ------------------------ >8 ------------------------
+```
+
+Git reads the trailers above the scissors line and ignores the paragraphs below it (`git interpret-trailers --parse` and `%(trailers:only)` both report `Spec:` and `Task:` only), so the appended co-author paragraph no longer hides them. The leading `#` matters: git recognises a scissors line only with the comment character, and the bare `----- >8 -----` form is read as ordinary text.
 
 A new spec may arrive in the same PR as its first build (the owner reviews spec and code together); the gate then needs
 the approval recorded in that PR. Changing a spec that was already agreed on the base is what must be split.
