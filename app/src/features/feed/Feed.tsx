@@ -65,30 +65,34 @@ export function Feed() {
         <p role="alert">{t.feedError}</p>
       ) : (
         <>
-          {state.feed.live.length + state.feed.scheduled.length + state.feed.recent.length === 0 && (
+          {/* Spec 044: in no room at all, one message (and Start a room under the rail) instead of three empty sections. */}
+          {state.feed.live.length + state.feed.scheduled.length + state.feed.recent.length === 0 ? (
             <section className={kit.empty} data-rooms-empty="">
               <p className={kit.emptyTitle}>{t.noRoomsYet}</p>
               <p className={kit.emptyBody}>{t.noRoomsBody}</p>
             </section>
+          ) : (
+            <>
+              <Section
+                id="live"
+                title={t.feedLive}
+                empty={t.feedLiveEmpty}
+                items={state.feed.live.map((room) => ({ kind: "live", room }))}
+              />
+              <Section
+                id="scheduled"
+                title={t.feedScheduled}
+                empty={t.feedScheduledEmpty}
+                items={state.feed.scheduled.map((shiur) => ({ kind: "scheduled", shiur }))}
+              />
+              <Section
+                id="recent"
+                title={t.feedRecent}
+                empty={t.feedRecentEmpty}
+                items={state.feed.recent.map((room) => ({ kind: "recent", room }))}
+              />
+            </>
           )}
-          <Section
-            id="live"
-            title={t.feedLive}
-            empty={t.feedLiveEmpty}
-            items={state.feed.live.map((room) => ({ kind: "live", room }))}
-          />
-          <Section
-            id="scheduled"
-            title={t.feedScheduled}
-            empty={t.feedScheduledEmpty}
-            items={state.feed.scheduled.map((shiur) => ({ kind: "scheduled", shiur }))}
-          />
-          <Section
-            id="recent"
-            title={t.feedRecent}
-            empty={t.feedRecentEmpty}
-            items={state.feed.recent.map((room) => ({ kind: "recent", room }))}
-          />
         </>
       )}
     </div>
