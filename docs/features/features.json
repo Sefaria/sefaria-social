@@ -1848,6 +1848,44 @@
       "changed": []
     },
     {
+      "id": "ROOM-052",
+      "area": "room",
+      "name": "One press to get in, starting a room lands you in it with the call, and an invitee's Join does everything",
+      "description": "",
+      "status": "planned",
+      "spec": "049",
+      "acs": [],
+      "surfaces": [
+        "rooms",
+        "room-lobby",
+        "call",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "ROOM-053",
+      "area": "room",
+      "name": "One press to get in, starting a room lands you in it with the call, and an invitee's Join does everything",
+      "description": "",
+      "status": "planned",
+      "spec": "049",
+      "acs": [],
+      "surfaces": [
+        "rooms",
+        "room-lobby",
+        "call",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SESS-001",
       "area": "sess",
       "name": "Social context in the reader's ctx parameter",
@@ -2581,6 +2619,25 @@
         "app/src/features/av/Tiles.test.tsx",
         "packages/session/src/client.test.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-073",
+      "area": "sess",
+      "name": "One press to get in, starting a room lands you in it with the call, and an invitee's Join does everything",
+      "description": "",
+      "status": "planned",
+      "spec": "049",
+      "acs": [],
+      "surfaces": [
+        "rooms",
+        "room-lobby",
+        "call",
+        "session"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
