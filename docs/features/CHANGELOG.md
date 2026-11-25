@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-25 — SESS-070 "Sticky following: break away only by a clear move", SESS-071 "The room's owner is its one leader" and SESS-072 "Follow a person by clicking them; the leader takes followers along": built (spec 048; named by `tools/2026-11-25-name-048-entries.mjs`). SESS-014's Lead button and 014/AC-002's any-input break-away are superseded.
 - 2026-11-25 — SESS-069 "The call window looks like a call: tiles, initials, an icon control bar, a real pre-join": built (spec 047).
 - 2026-11-25 — HOST-009 "One call and one room connection for both of the reader's mounts": built (spec 046).
 - 2026-11-25 — ROOM-051 "The lobby says when calls are off": built (spec 045).

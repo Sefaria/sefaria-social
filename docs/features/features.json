@@ -2509,7 +2509,7 @@
       "area": "sess",
       "name": "Sticky following: break away only by a clear move",
       "description": "Input alone never pauses a follower: once the reader is still for 400 ms its place is compared with the followed person's, and only another book or section, or 5 or more segments away, sets them on their own.",
-      "status": "planned",
+      "status": "built",
       "spec": "048",
       "acs": [
         "048/AC-001",
@@ -2523,7 +2523,11 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "packages/session/src/client.test.ts",
+        "app/src/features/session/place.test.ts",
+        "e2e/room-window.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -2532,7 +2536,7 @@
       "area": "sess",
       "name": "The room's owner is its one leader",
       "description": "The server signs a room relay ticket naming the caller as owner or member; the relay makes only an owner ticket a host who may lead, so members cannot take the spotlight, and the room window offers no Lead button.",
-      "status": "planned",
+      "status": "built",
       "spec": "048",
       "acs": [
         "048/AC-004",
@@ -2546,7 +2550,11 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.room-tickets.int.test.ts",
+        "packages/relay/src/relay.test.ts",
+        "app/src/features/session/room-window.test.tsx"
+      ],
       "since": null,
       "changed": []
     },
@@ -2555,7 +2563,7 @@
       "area": "sess",
       "name": "Follow a person by clicking them; the leader takes followers along",
       "description": "Clicking a person in who is here or on their call tile follows them, clicking again returns to the leader, a leader who follows someone gets Lead again, and moves the leader takes from someone they follow reach the leader's followers.",
-      "status": "planned",
+      "status": "built",
       "spec": "048",
       "acs": [
         "048/AC-007",
@@ -2568,7 +2576,11 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/surface/room-following.test.tsx",
+        "app/src/features/av/Tiles.test.tsx",
+        "packages/session/src/client.test.ts"
+      ],
       "since": null,
       "changed": []
     },

@@ -252,6 +252,22 @@
   outline-color: #3fb950;
 }
 
+/* Spec 048: the whole tile follows its person; the name and the owner's menu sit above it. */
+.tilePick {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tilePick:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1976d2);
+  outline-offset: -4px;
+}
+
 .initials {
   display: grid;
   place-items: center;

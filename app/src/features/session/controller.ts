@@ -44,9 +44,14 @@ export interface RoomController {
   leave(roomId: string): void;
   /** Run `cb(roomId)` at the start of every leave, before the room's holds are released (a call ends first, spec 034). */
   onLeave(cb: (roomId: string) => void): () => void;
+  /** Follow a participant; null follows the room's leader again (spec 048). */
   follow(participantId: string | null): void;
+  /**
+   * The viewer clicked a person, in who is here or on their call tile (spec 048 AC-007): follow them; the one already followed,
+   * or the leader, takes the viewer back to the leader. Clicking oneself does nothing.
+   */
+  pick(participantId: string): void;
   followAgain(): void;
-  lead(): void;
   dispose(): void;
 }
 
@@ -291,14 +296,17 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       const roomId = roomOf(view);
       if (roomId) sessions.get(roomId)?.client.follow(participantId);
     },
+    pick(participantId) {
+      const roomId = roomOf(view);
+      const client = roomId ? sessions.get(roomId)?.client : null;
+      if (!client) return;
+      const s = client.getState();
+      if (participantId === s.self.id) return;
+      client.follow(participantId === s.chosen || participantId === s.room.spotlight ? null : participantId);
+    },
     followAgain() {
       const roomId = roomOf(view);
       if (roomId) sessions.get(roomId)?.client.followAgain();
-    },
-    lead() {
-      const roomId = roomOf(view);
-      const session = roomId ? sessions.get(roomId) : null;
-      session?.client.spotlight(session.client.getState().self.id);
     },
 
     dispose() {

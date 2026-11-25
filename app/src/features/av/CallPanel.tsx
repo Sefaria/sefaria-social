@@ -7,7 +7,10 @@ import { Tiles } from "./Tiles";
 import { WindowPrompt } from "./WindowPrompt";
 import { usePaused } from "./use-paused";
 import { useCallController, useCallView, useParticipants } from "./use-call";
+import { useRoomController } from "~/features/session/use-room-session";
 import styles from "./av.module.css";
+
+const NO_ROOMS = { pick: () => undefined };
 
 /**
  * The call, rendered by the persistent mount so it survives every route (spec 034; AV3). Nothing while there is no call.
@@ -20,6 +23,8 @@ export function CallPanel() {
   const view = useCallView(controller);
   const everyone = useParticipants(controller);
   const { paused, resume } = usePaused(controller);
+  // Spec 048: a tile click follows that person in the room (LiveKit identities are `u:<userId>`, room participants `<userId>`).
+  const rooms = useRoomController().controller ?? NO_ROOMS;
   if (!controller || view.kind === "off") return null;
   const media = controller.media();
   // A broadcast's viewer (spec 043) is hidden and publishes nothing: no tile of their own, no microphone.
@@ -57,7 +62,11 @@ export function CallPanel() {
                 {t.hostMutedYou}
               </p>
             )}
-            <Tiles controller={controller} participants={participants} />
+            <Tiles
+              controller={controller}
+              participants={participants}
+              onPick={viewer ? undefined : (id) => rooms.pick(id.replace(/^u:/, ""))}
+            />
             {media?.audioBlocked() && (
               <button
                 type="button"

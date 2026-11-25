@@ -12,8 +12,11 @@ import styles from "./room-window.module.css";
 /**
  * The room window (spec 045), shown in the persistent mount while the reader is in a room's context (specs 013, 014): a card at
  * the bottom inline-start corner — clear of the reader's own controls at the other corner — with the room's title and a live dot,
- * whom the viewer follows or that they are on their own (Follow again) or leading (Lead otherwise), Join call, the room's page,
- * Minimise, and who is here with Follow buttons. It folds into a pill and remembers that for the browser session.
+ * whom the viewer follows or that they are on their own (Follow again) or leading, Join call, the room's page, Minimise, and who
+ * is here with Follow buttons. It folds into a pill and remembers that for the browser session.
+ *
+ * Spec 048: the room's owner is its one leader, so there is no Lead button. Clicking a person follows them; clicking the one you
+ * follow, or the leader, returns you to the leader. A leader who follows someone takes their followers along and gets Lead again.
  */
 export function FollowBar({ roomId }: { roomId: string }) {
   const t = useStrings();
@@ -44,6 +47,7 @@ export function FollowBar({ roomId }: { roomId: string }) {
     );
   const tone = status === "connecting" || status === "reconnecting" ? "waiting" : status === "paused" ? "own" : "live";
   const here = state?.participants.length ?? 0;
+  const holdsSpotlight = !!state && state.room.spotlight === state.self.id;
 
   return (
     <Window
@@ -82,20 +86,20 @@ export function FollowBar({ roomId }: { roomId: string }) {
             {t.followAgain}
           </button>
         )}
-        {state && status !== "leading" && inContext && (
+        {holdsSpotlight && state.chosen !== null && (
           <button
             type="button"
-            className={`${kit.button} ${status === "paused" ? kit.secondary : kit.primary} ${kit.small}`}
-            data-action="lead"
-            onClick={() => controller?.lead()}
+            className={`${kit.button} ${kit.primary} ${kit.small}`}
+            data-action="lead-again"
+            onClick={() => controller?.follow(null)}
           >
-            {t.lead}
+            {t.leadAgain}
           </button>
         )}
         <CallButton roomId={roomId} />
       </div>
       <div className={styles.people}>
-        <PresenceList roomId={roomId} onFollow={(id) => controller?.follow(id)} />
+        <PresenceList roomId={roomId} onFollow={(id) => controller?.pick(id)} />
       </div>
       <footer className={styles.footer}>
         <HostLink to={`/social/r/${roomId}`} className={kit.link}>

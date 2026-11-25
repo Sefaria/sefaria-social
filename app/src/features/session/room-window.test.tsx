@@ -80,6 +80,8 @@ async function windowFor(url: string, node: (m: typeof FollowBarModule) => React
 describe("the room window (spec 045)", () => {
   // @feature SESS-068 The room window in the reader: a card with the room, its status and who is here
   // @ac 045/AC-003
+  // @feature SESS-071 The room's owner is its one leader
+  // @ac 048/AC-006
   it("is a labelled card with the room's title, the status, the fitting action, the room's page, Minimise and who is here", async () => {
     const { view, controller } = await windowFor(`/Genesis.1?${CTX}`, (m) => createElement(m.FollowBar, { roomId: ID }));
     await vi.waitFor(() =>
@@ -91,7 +93,9 @@ describe("the room window (spec 045)", () => {
     expect(card.getAttribute("aria-label")).toBe("Room: Daf Yomi");
     expect(card.style.insetInlineStart).toBe("16px");
     expect(card.querySelector("[data-follow-line]")?.textContent).toBe("Following Leader");
-    expect(card.querySelector("button[data-action=lead]")).not.toBeNull();
+    // Spec 048 AC-006: the room's owner leads; nobody else is offered Lead or a leadership mode.
+    expect(card.querySelector("button[data-action=lead]")).toBeNull();
+    expect(card.querySelector("[data-action=mode], select")).toBeNull();
     expect(card.querySelector(`a[href$="/social/r/${ID}"]`)?.textContent).toBe("Back to the room");
     await vi.waitFor(() => expect(controller.view().kind).toBe("expanded"));
     await vi.waitFor(() => expect(card.querySelector("button[data-action=minimise]")).not.toBeNull());
