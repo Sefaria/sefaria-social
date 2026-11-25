@@ -235,3 +235,7 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       `npm run factory -- compile NNN`, and commit `specs/approvals.json` and the work order. Added by the shiur plan.
 - [ ] **Record once on the dev server** with the camera on for more than a minute, to confirm the upload fix of #33 with a
       signed-in session (only the size cap was probed). Added by the shiur plan.
+- [ ] **Approve specs 051, 052 and 053** (group B, #37). Added by the shiur plan.
+- [ ] **A bucket adapter** before recordings run on more than one server replica (spec 051): today the object store is a
+      directory (`ASSET_STORE_DIR`, `/srv/.data/assets` in the image) on a volume; Helm keeps `RECORDINGS_ENABLED=false`.
+      Added by spec 051.
