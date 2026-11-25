@@ -77,7 +77,9 @@ const CLOSED: SessionPolicy = { isOpen: () => false, canPublish: () => false };
 const TICKET_MARGIN_MS = 60_000;
 
 export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFactory = defaultTransport): RoomSessions {
-  const sessions = new Map<string, RoomSession & { holds: Set<Hold>; counts: Map<Hold, number> }>();
+  /** `next`: the session that replaced this ended one (spec 050); holds taken on this one count on it. */
+  type Entry = RoomSession & { holds: Set<Hold>; counts: Map<Hold, number>; next?: Entry };
+  const sessions = new Map<string, Entry>();
   const listeners = new Set<() => void>();
   let policy = CLOSED;
   const emit = () => [...listeners].forEach((cb) => cb());
@@ -132,9 +134,20 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
   return {
     acquire(roomId, hold, opts) {
       // A session that ended (the room was closed, spec 050) is not joined again: a new connection may start a new session.
-      if (sessions.get(roomId)?.client.getState().status === "ended") sessions.delete(roomId);
-      const s = sessions.get(roomId) ?? open(roomId, opts);
+      // Holds taken on the ended one move to the new one, so a lobby still open keeps it alive.
+      const old = sessions.get(roomId);
+      let s: Entry | null;
+      if (old && old.client.getState().status === "ended") {
+        sessions.delete(roomId);
+        s = open(roomId, opts);
+        if (s) {
+          for (const [h, n] of old.counts) s.counts.set(h, (s.counts.get(h) ?? 0) + n);
+          for (const h of old.holds) s.holds.add(h);
+          old.next = s;
+        }
+      } else s = old ?? open(roomId, opts);
       if (!s) return () => undefined;
+      const taken = s;
       s.counts.set(hold, (s.counts.get(hold) ?? 0) + 1);
       s.holds.add(hold);
       emit();
@@ -142,6 +155,8 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
       return () => {
         if (released) return;
         released = true;
+        let s = taken;
+        while (s.next) s = s.next;
         const n = (s.counts.get(hold) ?? 1) - 1;
         if (n > 0) s.counts.set(hold, n);
         else {

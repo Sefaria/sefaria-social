@@ -81,6 +81,8 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
   let enterTimer: ReturnType<typeof setTimeout> | null = null;
   let restoreAfterLeave: ReaderSnapshot | null = null;
   let closed: string | null = null;
+  /** Spec 050 AC-002: a watch on each live room's session, so a minimised room that closes is left and reported too. */
+  const endWatch = new Map<string, () => void>();
   const prefetched = new Map<string, { release: () => void; timer: ReturnType<typeof setTimeout> }>();
   const dropPrefetch = (roomId: string) => {
     const p = prefetched.get(roomId);
@@ -126,11 +128,9 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       const { status, room } = session.client.getState();
       // The room ended (not this viewer leaving, which ends their client too).
       if (status === "ended" && room.ended) {
-        // Spec 050 AC-002: the room was closed (or its owner was gone too long): out of its context, with a notice.
         offClient?.();
         offClient = null;
-        closed = roomId;
-        controller.leave(roomId);
+        roomEnded(roomId);
         return;
       }
       if (status === "paused" && view.kind === "expanded") step({ type: "detach" });
@@ -141,6 +141,26 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
     };
     offClient = session.client.subscribe(sync);
     sync();
+  }
+
+  /** Spec 050 AC-002: the room was closed (or its owner was gone too long): out of it and its call, with a notice. */
+  function roomEnded(roomId: string) {
+    if (!live.has(roomId) && roomOf(view) !== roomId) return; // already left
+    closed = roomId;
+    controller.leave(roomId);
+  }
+
+  function watchEnd(roomId: string) {
+    if (endWatch.has(roomId)) return;
+    const client = sessions.get(roomId)?.client;
+    if (!client) return;
+    endWatch.set(
+      roomId,
+      client.subscribe(() => {
+        const { status, room } = client.getState();
+        if (status === "ended" && room.ended) roomEnded(roomId);
+      }),
+    );
   }
 
   function entered(roomId: string) {
@@ -260,6 +280,7 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       const location = host.location.get();
       const ownPlace = isReaderPage(location.pathname) ? host.reader.state.getSnapshot() : null;
       if (!live.has(roomId)) live.set(roomId, sessions.acquire(roomId, "live"));
+      watchEnd(roomId);
       dropPrefetch(roomId); // the live hold keeps the prepared session (and its socket) open from here
       emit();
       // R9 (2): the target, validated by the follow gate when it arrived.
@@ -311,6 +332,8 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       if (roomOf(view) === roomId) this.minimise();
       live.get(roomId)?.();
       live.delete(roomId);
+      endWatch.get(roomId)?.();
+      endWatch.delete(roomId);
       emit();
     },
 
@@ -342,6 +365,8 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       dropContext();
       for (const release of live.values()) release();
       live.clear();
+      for (const off of endWatch.values()) off();
+      endWatch.clear();
       for (const roomId of [...prefetched.keys()]) dropPrefetch(roomId);
       if (enterTimer) clearTimeout(enterTimer);
     },

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { SessionState } from "@sefaria-social/session";
 import { CallButton } from "~/features/av/CallButton";
 import { RecordToggle } from "~/features/recording/RecordButton";
@@ -203,7 +203,12 @@ function EndSession({ roomId, label }: { roomId: string; label: "finish" | "end-
 export function ClosedNotice() {
   const t = useStrings();
   const { controller } = useRoomController();
-  const roomId = controller?.closedRoom() ?? null;
+  // Its own subscription: a minimised room can close while the room view stays as it is.
+  const roomId = useSyncExternalStore(
+    (cb) => controller?.subscribe(cb) ?? (() => undefined),
+    () => controller?.closedRoom() ?? null,
+    () => null,
+  );
   if (!roomId) return null;
   return (
     <div role="status" data-room-closed={roomId} className={`${styles.window} ${styles.notice}`}>

@@ -48,6 +48,7 @@
     - "e2e/session-endings.spec.ts"
     - "app/src/features/room/close.ts"
     - "app/src/features/session/sessions.ts"
+    - "app/src/features/session/sessions.test.ts"
   depends_on: [T-002]
   parallel: false
   completes: [SESS-075, ROOM-054]

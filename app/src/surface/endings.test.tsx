@@ -57,6 +57,22 @@ async function inRoom(owner: boolean, kind?: "room" | "broadcast" | "recording")
 
 describe("how a session ends (spec 050)", () => {
   // @feature SESS-075 Close, Finish and Leave, and the closed room
+  it("tells a member who minimised the room that it closed, and takes it off their screen", async () => {
+    const { leader, controller, $ } = await inRoom(false);
+    // Entered with Enter (a live hold), then minimised: the room goes on in the mini view.
+    controller.minimise();
+    await vi.waitFor(() => expect(controller.view().kind).toBe("idle"));
+    await controller.enlarge(ID);
+    await vi.waitFor(() => expect(controller.view().kind).toBe("expanded"));
+    controller.minimise();
+    await vi.waitFor(() => expect($(`[data-mini-room="${ID}"]`)).not.toBeNull());
+    leader!.send({ ch: "control", body: { type: "end" } });
+    await vi.waitFor(() => expect($("[data-room-closed]")?.textContent).toContain("The room was closed."));
+    expect($(`[data-mini-room="${ID}"]`)).toBeNull();
+    expect(controller.liveRooms()).toEqual([]);
+  });
+
+  // @feature SESS-075 Close, Finish and Leave, and the closed room
   // @ac 050/AC-002
   it("Close room ends the session for everyone: the follower is told, and the owner is out of the room with a notice", async () => {
     const { relay, fake, controller, follower, click, $ } = await inRoom(true);
