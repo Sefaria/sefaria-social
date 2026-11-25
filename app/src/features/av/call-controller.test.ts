@@ -43,7 +43,25 @@ function fakeRooms() {
   };
 }
 
-async function setup(opts: { tokenFails?: number } = {}) {
+/** A call token whose metadata names the caller's role, as the server writes it (spec 033); the controller only reads it. */
+const tokenWithRole = (role: string) => `h.${btoa(JSON.stringify({ metadata: JSON.stringify({ role }) })).replace(/=+$/, "")}.s`;
+
+/** localStorage for a test that runs outside a browser. */
+function memoryStorage(): Storage {
+  const m = new Map<string, string>();
+  return {
+    get length() {
+      return m.size;
+    },
+    clear: () => m.clear(),
+    getItem: (k) => m.get(k) ?? null,
+    key: (i) => [...m.keys()][i] ?? null,
+    removeItem: (k) => void m.delete(k),
+    setItem: (k, v) => void m.set(k, String(v)),
+  };
+}
+
+async function setup(opts: { tokenFails?: number; role?: "owner" | "member" } = {}) {
   const controllerMod = await mods.controller["./call-controller.ts"]?.();
   expect(controllerMod, "app/src/features/av/call-controller.ts exists").toBeDefined();
   const { createFakeEngine } = (await mods.media["./test-media.ts"]!())!;
@@ -59,7 +77,8 @@ async function setup(opts: { tokenFails?: number } = {}) {
         tokenFails--;
         throw new TypeError("network down");
       }
-      return { kind: "ok" as const, url: "wss://livekit.test", token: `token-for-${roomId}`, expiresAt: "2026-11-24T00:10:00Z" };
+      const token = opts.role ? tokenWithRole(opts.role) : `token-for-${roomId}`;
+      return { kind: "ok" as const, url: "wss://livekit.test", token, expiresAt: "2026-11-24T00:10:00Z" };
     }),
   };
   const sessions = fakeSessions();
@@ -80,6 +99,29 @@ afterEach(() => {
 describe("call controller", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  });
+
+  // @feature SESS-073 Entering a room joins its call; the owner's choice is remembered
+  // @ac 049/AC-006
+  it("enters a room's call straight through with the choice given, and remembers only an owner's microphone and camera", async () => {
+    vi.stubGlobal("localStorage", memoryStorage());
+    try {
+      const owner = await setup({ role: "owner" });
+      expect(typeof owner.calls.enter, "the controller can enter a call directly").toBe("function");
+      await owner.calls.enter(R, { mic: false, camera: true });
+      expect(owner.calls.view()).toMatchObject({ kind: "in-call", roomId: R, mic: false, camera: true });
+      await owner.calls.setMic(true);
+      await owner.calls.setCamera(false);
+      expect(JSON.parse(localStorage.getItem("social.callDevices") ?? "null")).toEqual({ mic: true, camera: false });
+
+      // A member's choices are theirs for this call only.
+      const member = await setup({ role: "member" });
+      await member.calls.enter(S, { mic: false, camera: false });
+      await member.calls.setCamera(true);
+      expect(JSON.parse(localStorage.getItem("social.callDevices") ?? "null")).toEqual({ mic: true, camera: false });
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   // @feature SESS-057 Call state machine and controller
