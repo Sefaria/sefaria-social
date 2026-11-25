@@ -18,7 +18,7 @@ const ENTRIES = {
       "The owner ends the session for everyone (Close room, End broadcast or Finish and save, with a confirmation), which finishes a recording and ends a broadcast; everyone is taken out and told the room was closed; anyone else Leaves alone. A closed room starts again for its owner, and a session ends 2 minutes after its owner is gone.",
     acs: ["050/AC-002", "050/AC-003", "050/AC-004", "050/AC-005", "050/AC-007"],
     status: "built",
-    tests: ["app/src/features/session/endings.test.tsx", "packages/session/src/room.test.ts", "e2e/session-endings.spec.ts"],
+    tests: ["app/src/surface/endings.test.tsx", "packages/session/src/room.test.ts", "e2e/session-endings.spec.ts"],
   },
   "ROOM-054": {
     name: "Choose at Start what the session is and whether to record it",

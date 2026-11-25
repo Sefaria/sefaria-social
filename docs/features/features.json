@@ -2729,7 +2729,7 @@
       ],
       "depends_on": {},
       "tests": [
-        "app/src/features/session/endings.test.tsx",
+        "app/src/surface/endings.test.tsx",
         "packages/session/src/room.test.ts",
         "e2e/session-endings.spec.ts"
       ],

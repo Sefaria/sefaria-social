@@ -18,9 +18,9 @@
 
 ## Tests
 
-| AC            | Test                                                                                                               | Fails on base because        |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
-| 001           | `recorder.test.ts`: pause/resume with a fake MediaRecorder and clock; duration is the recorded time                | no pause                     |
-| 002, 003, 007 | `endings.test.tsx` with the test relay: Close room ends for the follower, notice shown; Leave leaves alone; labels | no Close, no notice          |
-| 004, 005      | `room.test.ts`: a host's join reopens an ended room; 2 minutes after the last host leaves the room ends            | ended is final; no end timer |
-| 006           | `rooms.test.tsx`: the dialog's kind and Record; Broadcast starts a broadcast and a recording                       | no options                   |
+| AC            | Test                                                                                                                       | Fails on base because        |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| 001           | `recorder.test.ts`: pause/resume with a fake MediaRecorder and clock; duration is the recorded time                        | no pause                     |
+| 002, 003, 007 | `surface/endings.test.tsx` with the test relay: Close room ends for the follower, notice shown; Leave leaves alone; labels | no Close, no notice          |
+| 004, 005      | `room.test.ts`: a host's join reopens an ended room; 2 minutes after the last host leaves the room ends                    | ended is final; no end timer |
+| 006           | `rooms.test.tsx`: the dialog's kind and Record; Broadcast starts a broadcast and a recording                               | no options                   |

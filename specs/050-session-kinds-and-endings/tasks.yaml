@@ -36,7 +36,7 @@
     - "app/src/features/session/FollowBar.tsx"
     - "app/src/features/session/room-window.module.css"
     - "app/src/features/session/session-kind.ts"
-    - "app/src/features/session/endings.test.tsx"
+    - "app/src/surface/endings.test.tsx"
     - "app/src/features/session/test-relay.ts"
     - "app/src/features/rooms/StartRoom.tsx"
     - "app/src/features/rooms/rooms.module.css"

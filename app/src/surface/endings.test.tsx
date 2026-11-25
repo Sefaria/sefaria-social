@@ -5,18 +5,18 @@
 import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createFakeHost } from "@sefaria-social/host-contract/fake-host";
-import type * as ControllerModule from "./controller";
-import type * as RelayModule from "./test-relay";
-import type * as SurfaceModule from "./test-surface";
+import type * as ControllerModule from "~/features/session/controller";
+import type * as RelayModule from "~/features/session/test-relay";
+import type * as SurfaceModule from "~/features/session/test-surface";
 import type * as HostContextModule from "~/features/host/host-context";
-import type * as PersistentModule from "~/surface/persistent";
+import type * as PersistentModule from "./persistent";
 
 const mods = {
-  controller: import.meta.glob<typeof ControllerModule>("./controller.ts"),
-  relay: import.meta.glob<typeof RelayModule>("./test-relay.ts"),
-  surface: import.meta.glob<typeof SurfaceModule>("./test-surface.tsx"),
-  host: import.meta.glob<typeof HostContextModule>("../host/host-context.tsx"),
-  persistent: import.meta.glob<typeof PersistentModule>("../../surface/persistent.tsx"),
+  controller: import.meta.glob<typeof ControllerModule>("../features/session/controller.ts"),
+  relay: import.meta.glob<typeof RelayModule>("../features/session/test-relay.ts"),
+  surface: import.meta.glob<typeof SurfaceModule>("../features/session/test-surface.tsx"),
+  host: import.meta.glob<typeof HostContextModule>("../features/host/host-context.tsx"),
+  persistent: import.meta.glob<typeof PersistentModule>("./persistent.tsx"),
 };
 
 const ID = "6f1c2d3e-4b5a-4c6d-8e7f-0011223344ee";
@@ -29,12 +29,12 @@ afterEach(() => {
 
 /** The viewer in the room's context; `owner` makes them the room's one host (the relay's owner ticket, spec 048). */
 async function inRoom(owner: boolean, kind?: "room" | "broadcast" | "recording") {
-  const controllerMod = await mods.controller["./controller.ts"]?.();
+  const controllerMod = await mods.controller["../features/session/controller.ts"]?.();
   expect(controllerMod, "app/src/features/session/controller.ts exists").toBeDefined();
-  const { installTestRelay } = (await mods.relay["./test-relay.ts"]!())!;
-  const { HostContext } = (await mods.host["../host/host-context.tsx"]!())!;
-  const { PersistentView } = (await mods.persistent["../../surface/persistent.tsx"]!())!;
-  const { render, click } = (await mods.surface["./test-surface.tsx"]!())!;
+  const { installTestRelay } = (await mods.relay["../features/session/test-relay.ts"]!())!;
+  const { HostContext } = (await mods.host["../features/host/host-context.tsx"]!())!;
+  const { PersistentView } = (await mods.persistent["./persistent.tsx"]!())!;
+  const { render, click } = (await mods.surface["../features/session/test-surface.tsx"]!())!;
   if (kind) sessionStorage.setItem("social.sessionKinds", JSON.stringify({ [ID]: kind }));
   const relay = installTestRelay({ owners: [owner ? "4242" : "5151"] });
   teardown.push(() => relay.restore());
