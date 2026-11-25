@@ -91,6 +91,12 @@ describe("spec 055: links in posts", () => {
     await type(area, "Join us ");
     await act(async () => box.querySelector<HTMLButtonElement>("[data-action=remove-embed]")!.click());
     expect([area.value, box.querySelector("[data-composer-embed]")]).toEqual([`Join us ${link}`, null]);
+    await type(area, `Join us ${link} tonight`);
+    expect([area.value, box.querySelector("[data-composer-embed]")], "a removed link stays text").toEqual([
+      `Join us ${link} tonight`,
+      null,
+    ]);
+    await type(area, "");
 
     await type(area, `/social/rec/${ROOM}`);
     expect([area.value, box.querySelector("[data-composer-embed]")?.getAttribute("data-composer-embed")]).toEqual([

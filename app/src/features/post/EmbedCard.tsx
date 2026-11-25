@@ -3,7 +3,7 @@
 // exists says so and has no button. In the composer (AC-001) the same card shows the pasted link with Remove. A room's or
 // broadcast's card is live (spec 056 AC-004): while on screen it shows Live, how many are there, the leader's ref and that
 // text, or Not live with the last ref the relay reported.
-import { useRef, type MouseEvent } from "react";
+import { useId, useRef, type MouseEvent } from "react";
 import { useHost, useInterfaceLang } from "~/features/host/host-context";
 import { langAttrs } from "~/features/shell/strings";
 import { useStrings } from "~/features/shell/use-strings";
@@ -65,6 +65,7 @@ export function EmbedCard({ embed }: { embed: Embed }) {
   const t = useStrings();
   const host = useHost();
   const box = useRef<HTMLElement>(null);
+  const titleId = useId();
   const status = useLiveStatus(embed.kind === "recording" || embed.title === null ? null : embed.id, box);
   const path = embedPath(embed.kind, embed.id);
   const available = embed.title !== null;
@@ -88,7 +89,7 @@ export function EmbedCard({ embed }: { embed: Embed }) {
       </div>
       {available ? (
         <>
-          <p className={styles.title} dir="auto" data-embed-title="">
+          <p id={titleId} className={styles.title} dir="auto" data-embed-title="">
             {embed.title}
           </p>
           {embed.leader ? (
@@ -101,6 +102,7 @@ export function EmbedCard({ embed }: { embed: Embed }) {
             <a
               className={`${kit.button} ${kit.primary} ${kit.small} ${styles.action}`}
               href={host ? host.href(path) : path}
+              aria-describedby={titleId}
               onClick={onClick}
               data-embed-action={embed.kind}
             >
@@ -126,6 +128,7 @@ export function DraftEmbedCard({ kind, text, onRemove }: { kind: EmbedKind; text
           type="button"
           className={`${kit.button} ${kit.ghost} ${kit.small} ${styles.push}`}
           onClick={onRemove}
+          aria-label={t.embedRemoveLabel(t.embedKind[kind])}
           data-action="remove-embed"
         >
           {t.embedRemove}

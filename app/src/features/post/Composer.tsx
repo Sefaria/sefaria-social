@@ -43,13 +43,16 @@ export function Composer({ onPosted }: { onPosted: (post: Post) => void }) {
   const [error, setError] = useState("");
   /** The session link taken out of the text, and where it was. */
   const [draft, setDraft] = useState<EmbedLink | null>(null);
+  /** A link the person took off the card: it stays text from then on. */
+  const [dismissed, setDismissed] = useState<string | null>(null);
   const area = useRef<HTMLTextAreaElement>(null);
   const ids = { body: useId(), ref: useId(), hint: useId(), as: useId() };
   const left = POST_MAX - body.length;
   const ready = (body.trim().length > 0 || draft !== null) && !posting;
 
   const change = (value: string) => {
-    const link = draft ? null : findEmbedLink(value, originOf(host?.href("/social")));
+    const found = draft ? null : findEmbedLink(value, originOf(host?.href("/social")));
+    const link = found && found.text !== dismissed ? found : null;
     if (!link) {
       setBody(value);
       return;
@@ -61,6 +64,7 @@ export function Composer({ onPosted }: { onPosted: (post: Post) => void }) {
     if (!draft) return;
     const at = Math.min(draft.start, body.length);
     setBody(body.slice(0, at) + draft.text + body.slice(at));
+    setDismissed(draft.text);
     setDraft(null);
     area.current?.focus();
   };
@@ -87,6 +91,7 @@ export function Composer({ onPosted }: { onPosted: (post: Post) => void }) {
       onPosted(post);
       setBody("");
       setDraft(null);
+      setDismissed(null);
       setRef(readingRef(host));
     } catch {
       setError(t.postFailed);
