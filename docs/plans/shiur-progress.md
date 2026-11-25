@@ -8,17 +8,17 @@ and facts, not a diary.
 
 States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awaiting approval), `approved`, `merged`.
 
-| Spec | Title                                                           | State       | PR  | Notes |
-| ---- | --------------------------------------------------------------- | ----------- | --- | ----- |
-| 048  | Sticky following, a fixed leader, follow a person by their head | not started |     |       |
-| 049  | One press to get in                                             | not started |     |       |
-| 050  | Session kinds and endings                                       | not started |     |       |
-| 051  | The asset in object storage                                     | not started |     |       |
-| 052  | Processing                                                      | not started |     |       |
-| 053  | The player                                                      | not started |     |       |
-| 054  | Transcript                                                      | not started |     |       |
-| 055  | Links in posts                                                  | not started |     |       |
-| 056  | Live cards                                                      | not started |     |       |
+| Spec | Title                                                           | State       | PR      | Notes                                                                                           |
+| ---- | --------------------------------------------------------------- | ----------- | ------- | ----------------------------------------------------------------------------------------------- |
+| 048  | Sticky following, a fixed leader, follow a person by their head | built       | group A | Awaiting `factory approve 048`. Broadcast viewers still break away on any input (Back to live). |
+| 049  | One press to get in                                             | not started |         |                                                                                                 |
+| 050  | Session kinds and endings                                       | not started |         |                                                                                                 |
+| 051  | The asset in object storage                                     | not started |         |                                                                                                 |
+| 052  | Processing                                                      | not started |         |                                                                                                 |
+| 053  | The player                                                      | not started |         |                                                                                                 |
+| 054  | Transcript                                                      | not started |         |                                                                                                 |
+| 055  | Links in posts                                                  | not started |         |                                                                                                 |
+| 056  | Live cards                                                      | not started |         |                                                                                                 |
 
 ## Waiting on the owner
 
@@ -46,6 +46,9 @@ if the owner decides otherwise.
 
 Newest first. One or two lines per entry: what changed, and anything the next session must know that the code does not say.
 
+- 2026-11-25: Spec 048 built. Room relay tickets (`POST /api/v1/rooms/{id}/ticket`, roles owner/member) make the owner the
+  only leader; decision 0012 supersedes 0008's everyone-may-lead. Relay tests' `connect` offers an owner ticket by default
+  (`owner: false` for a member), so older relay tests keep their meaning. Sticky following applies to rooms only.
 - 2026-11-25: Plan, kickoff prompt and this file added. Upload cap fixed and size budget raised in #33 (merged). Two points
   of section 4.2 were checked in the code and the plan now states the findings: a non-host cannot take the spotlight in
   `presenter` mode, and a change applied with origin `follow` is not published.
