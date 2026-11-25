@@ -11,7 +11,9 @@ const OWNER: Persona = { id: 7101, name: "Recording Owner" };
 const MEMBER: Persona = { id: 7102, name: "Recording Member" };
 
 test.use({
-  launchOptions: { args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream", "--autoplay-policy=no-user-gesture-required"] },
+  launchOptions: {
+    args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream", "--autoplay-policy=no-user-gesture-required"],
+  },
 });
 
 async function learner(browser: Browser, persona: Persona) {
@@ -45,12 +47,17 @@ const move = (page: Page, path: string) =>
 
 test.describe("recording a room's session and playing it back", () => {
   test.beforeEach(({ browserName }, info) => {
-    test.skip(info.project.name !== "desktop" || browserName !== "chromium", "one browser records; the phone strip is covered by unit tests");
+    test.skip(
+      info.project.name !== "desktop" || browserName !== "chromium",
+      "one browser records; the phone strip is covered by unit tests",
+    );
   });
 
   // @feature SESS-064 Record a room's session (state and call media) in the owner's browser
   // @feature SESS-065 Replay a recording in the reader with the video in the floating window
-  test("the owner records the call and the reader; a member plays it back and the reader follows the recording", async ({ browser }) => {
+  test("the owner records the call and the reader; a member plays it back and the reader follows the recording", async ({
+    browser,
+  }) => {
     test.setTimeout(120_000);
     const owner = await learner(browser, OWNER);
     const member = await learner(browser, MEMBER);
@@ -86,7 +93,8 @@ test.describe("recording a room's session and playing it back", () => {
     // keyframe to keyframe (AC-007).
     type Listed = { id: string; status: string; durationMs: number | null; mediaBytes?: number };
     const listed = async () =>
-      ((await (await api(member.token, "GET", `/api/v1/rooms/${room.id}/recordings`)).json()) as { recordings: Listed[] }).recordings;
+      ((await (await api(member.token, "GET", `/api/v1/rooms/${room.id}/recordings`)).json()) as { recordings: Listed[] })
+        .recordings;
     await expect.poll(async () => (await listed())[0]?.status, { timeout: 20_000 }).toBe("ready");
     const recordings = await listed();
     expect(recordings).toHaveLength(1);
@@ -111,14 +119,25 @@ test.describe("recording a room's session and playing it back", () => {
     await member.page.locator(`[data-recording-id="${rec.id}"] a`).first().click();
     await expect(member.page.locator('[data-action="play-recording"]')).toBeVisible();
     await member.page.locator('[data-action="play-recording"]').click();
-    await expect(location(member.page)).toHaveText(new RegExp(`^/Genesis\\.1\\?ctx=social\\.rec\\.${rec.id}`), { timeout: 20_000 });
+    await expect(location(member.page)).toHaveText(new RegExp(`^/Genesis\\.1\\?ctx=social\\.rec\\.${rec.id}`), {
+      timeout: 20_000,
+    });
     await expect
-      .poll(() => member.page.locator('[data-window-owner="replay"] video').evaluate((v: HTMLVideoElement) => v.currentTime).catch(() => 0), {
-        timeout: 20_000,
-      })
+      .poll(
+        () =>
+          member.page
+            .locator('[data-window-owner="replay"] video')
+            .evaluate((v: HTMLVideoElement) => v.currentTime)
+            .catch(() => 0),
+        {
+          timeout: 20_000,
+        },
+      )
       .toBeGreaterThan(0.5);
     // The reader follows the recording past the move at about 3 seconds.
-    await expect(location(member.page)).toHaveText(new RegExp(`^/Genesis\\.2\\?ctx=social\\.rec\\.${rec.id}`), { timeout: 15_000 });
+    await expect(location(member.page)).toHaveText(new RegExp(`^/Genesis\\.2\\?ctx=social\\.rec\\.${rec.id}`), {
+      timeout: 15_000,
+    });
     // Close: the media stops and the context is gone; the reader stays where it is.
     await member.page.locator('[data-action="replay-close"]').click();
     await expect(location(member.page)).toHaveText("/Genesis.2");

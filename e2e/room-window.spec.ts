@@ -50,7 +50,10 @@ test.describe("the room stays with you", () => {
     });
     const room = (await created.json()) as { id: string };
     const ctx = `ctx=social.room.${room.id}`;
-    await fetch(`${API}/api/v1/rooms/${room.id}/members`, { method: "POST", headers: { authorization: `Bearer ${follower.token}` } });
+    await fetch(`${API}/api/v1/rooms/${room.id}/members`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${follower.token}` },
+    });
 
     await leader.page.goto(`/social/r/${room.id}`);
     await leader.page.getByRole("button", { name: "Enter the room" }).click();

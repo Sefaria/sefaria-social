@@ -15,7 +15,9 @@ export const STATE_BATCH_MS = 5_000;
 export const STATE_BATCH_BYTES = 256 * 1024;
 export const MIME_TYPES = ["video/webm;codecs=vp8,opus", "video/webm", "video/mp4"] as const;
 /** The first media type this browser can record (the same choice the recorder makes), or undefined when none is supported. */
-export function pickMimeType(isTypeSupported: (mime: string) => boolean = (m) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(m)): string | undefined {
+export function pickMimeType(
+  isTypeSupported: (mime: string) => boolean = (m) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(m),
+): string | undefined {
   return MIME_TYPES.find((m) => {
     try {
       return isTypeSupported(m);

@@ -85,7 +85,8 @@ describe("spec 043: broadcasts on the server", () => {
     expect(b).toMatchObject({ roomId: room.id, title: "Daf broadcast", hostName: "Avi Host", status: "live" });
     expect(b.link).toBe(`/social/b/${b.id}`);
     expect(code(await start()), "a second while one is live").toBe("409 broadcast.already_live");
-    const roomRead = async () => (await h.call("GET", `/api/v1/rooms/${room.id}`, { token: host })).json as { broadcast?: unknown };
+    const roomRead = async () =>
+      (await h.call("GET", `/api/v1/rooms/${room.id}`, { token: host })).json as { broadcast?: unknown };
     expect((await roomRead()).broadcast, "the room names its live broadcast (a reloaded host finds it)").toEqual({
       id: b.id,
       link: b.link,
