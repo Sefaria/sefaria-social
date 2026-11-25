@@ -1,0 +1,72 @@
+- id: T-001
+  title: Sticky following, break away only when the reader settles clearly away from the followed place
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "packages/session/src/client.ts"
+    - "packages/session/src/client.test.ts"
+    - "packages/session/README.md"
+    - "app/src/features/session/place.ts"
+    - "app/src/features/session/place.test.ts"
+    - "app/src/features/session/sessions.ts"
+    - "app/src/features/session/sessions.test.ts"
+  depends_on: []
+  parallel: false
+  completes: [SESS-070]
+  verify: ["npm test -- packages/session/src/client.test.ts app/src/features/session", "npm run typecheck"]
+- id: T-002
+  title: Room tickets so the room's owner is its one leader
+  acs: [AC-004, AC-005]
+  files:
+    - "app/src/server/broadcast-ticket.ts"
+    - "app/src/server/broadcast-ticket.test.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.ticket.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.rooms.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "packages/relay/src/ticket.ts"
+    - "packages/relay/src/worker.ts"
+    - "packages/relay/src/broadcast.ts"
+    - "packages/relay/src/broadcast.test.ts"
+    - "packages/relay/src/relay.test.ts"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/session/sessions.ts"
+    - "app/src/features/session/sessions.test.ts"
+    - "app/src/features/session/test-relay.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [SESS-071]
+  verify:
+    [
+      "npm test -- app/src/server packages/relay app/src/features/session",
+      "npm run test:integration",
+      "npm run test:contract",
+      "npm run typecheck",
+    ]
+- id: T-003
+  title: No Lead button, follow a person by clicking them, the leader takes followers along
+  acs: [AC-006, AC-007, AC-008]
+  files:
+    - "packages/session/src/client.ts"
+    - "packages/session/src/client.test.ts"
+    - "app/src/features/session/FollowBar.tsx"
+    - "app/src/features/session/controller.ts"
+    - "app/src/features/session/room-window.test.tsx"
+    - "app/src/features/session/room-window.module.css"
+    - "app/src/features/presence/PresenceList.tsx"
+    - "app/src/features/presence/PresenceList.test.tsx"
+    - "app/src/features/av/Tiles.tsx"
+    - "app/src/features/av/Tiles.test.tsx"
+    - "app/src/features/av/av.module.css"
+    - "app/src/features/av/CallPanel.tsx"
+    - "app/src/features/av/CallWindow.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "e2e/room-window.spec.ts"
+  depends_on: [T-002]
+  parallel: false
+  completes: [SESS-072]
+  verify:
+    ["npm test -- packages/session app/src/features/session app/src/features/presence app/src/features/av", "npm run typecheck"]

@@ -2505,6 +2505,74 @@
       "changed": []
     },
     {
+      "id": "SESS-070",
+      "area": "sess",
+      "name": "Sticky following: break away only by a clear move",
+      "description": "Input alone never pauses a follower: once the reader is still for 400 ms its place is compared with the followed person's, and only another book or section, or 5 or more segments away, sets them on their own.",
+      "status": "planned",
+      "spec": "048",
+      "acs": [
+        "048/AC-001",
+        "048/AC-002",
+        "048/AC-003"
+      ],
+      "surfaces": [
+        "session",
+        "presence",
+        "call",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-071",
+      "area": "sess",
+      "name": "The room's owner is its one leader",
+      "description": "The server signs a room relay ticket naming the caller as owner or member; the relay makes only an owner ticket a host who may lead, so members cannot take the spotlight, and the room window offers no Lead button.",
+      "status": "planned",
+      "spec": "048",
+      "acs": [
+        "048/AC-004",
+        "048/AC-005",
+        "048/AC-006"
+      ],
+      "surfaces": [
+        "session",
+        "presence",
+        "call",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SESS-072",
+      "area": "sess",
+      "name": "Follow a person by clicking them; the leader takes followers along",
+      "description": "Clicking a person in who is here or on their call tile follows them, clicking again returns to the leader, a leader who follows someone gets Lead again, and moves the leader takes from someone they follow reach the leader's followers.",
+      "status": "planned",
+      "spec": "048",
+      "acs": [
+        "048/AC-007",
+        "048/AC-008"
+      ],
+      "surfaces": [
+        "session",
+        "presence",
+        "call",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SHIUR-001",
       "area": "shiur",
       "name": "Shiur page at /social/s/$shiurId",
