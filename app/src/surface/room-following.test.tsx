@@ -115,7 +115,7 @@ describe("following", () => {
   });
 
   // @feature SESS-014 Follow, follow again and lead
-  // Spec 048 replaced 014/AC-002's "any input pauses": the viewer now has to move clearly away (048/AC-001..AC-003 prove it).
+  // Spec 048 replaced 014/AC-002's "any input pauses": the viewer now has to move clearly away (proof: @ac 048/AC-001..003).
   it("stops applying when the viewer moves themselves, offers Follow again, and catches up at once when pressed", async () => {
     const { fake, leaderMoves, controller, button, click, view } = await inRoom();
     fake.localInput(); // the person goes to another book in the reader
