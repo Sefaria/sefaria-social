@@ -44,11 +44,13 @@ export function ReplayBar({
   const toggle = () => (view.playing ? player.pause() : void player.play().catch(() => undefined));
   const onKey = (e: KeyboardEvent<HTMLElement>) => {
     const target = e.target as HTMLElement;
-    const native = target.tagName === "INPUT" || (target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter"));
-    if (e.key === " " && !native) {
+    // A button's own Space and Enter press it; everywhere else in the bar, the seek bar included, Space plays or pauses and
+    // the arrows move 5 seconds (the seek bar's own step is 100 ms, for dragging).
+    const pressesButton = target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter");
+    if (e.key === " " && !pressesButton) {
       e.preventDefault();
       toggle();
-    } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && target.tagName !== "INPUT") {
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
       const forward = (e.key === "ArrowRight") !== hebrew; // the arrows follow the reading direction
       player.skip(forward ? ARROW_MS : -ARROW_MS);

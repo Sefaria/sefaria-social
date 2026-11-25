@@ -105,8 +105,9 @@ export function CallWindow({
     : placed;
   // Spec 051 AC-003: a recording keeps where the talking head is (the call's window only; a replay's is not the viewer's).
   useEffect(() => {
-    if (owner === "call") setHeadPlace(box, viewport);
-  }, [owner, box.left, box.top, box.width, box.height, viewport.width, viewport.height]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Folded into the pill, no video shows: there is no talking head to place.
+    if (owner === "call") setHeadPlace(placement.size === "pill" ? null : box, viewport);
+  }, [owner, placement.size, box.left, box.top, box.width, box.height, viewport.width, viewport.height]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => void (owner === "call" && setHeadPlace(null)), [owner]);
   const anchoredRight = box.left + box.width / 2 > (a.left + a.right) / 2;
 

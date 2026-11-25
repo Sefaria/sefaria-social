@@ -142,8 +142,9 @@ describe("a shiur's player (spec 053)", () => {
   // @ac 053/AC-003
   it("puts the talking head where the leader had it, moves it with them, and hides it with the camera or Hide video", async () => {
     const { q, at, press } = await setup();
+    // The window shown (a hidden one stays in the page, so the video keeps playing: a media element taken out pauses).
     const box = () => {
-      const w = q<HTMLElement>("[data-call-window]");
+      const w = q<HTMLElement>('[data-replay-frame="shown"] [data-call-window]');
       return w ? { left: w.style.left, top: w.style.top } : null;
     };
     const px = (f: number, size: number) => `${Math.round(f * size)}px`;
@@ -152,6 +153,7 @@ describe("a shiur's player (spec 053)", () => {
     expect(box()).toEqual({ left: px(0.05, window.innerWidth), top: px(0.1, window.innerHeight) });
     await at(15);
     expect(box(), "the camera was off").toBeNull();
+    expect(q('[data-replay-frame="hidden"] [data-replay-media]'), "the media stays in the page, playing").not.toBeNull();
     await at(2);
     await press("[data-action=replay-hide-video]");
     expect(box(), "hidden").toBeNull();
@@ -164,7 +166,7 @@ describe("a shiur's player (spec 053)", () => {
   it("shows no talking head and no Hide video for an audio-only shiur", async () => {
     const { q } = await setup({ hasVideo: false });
     expect(q("[data-replay-bar]")).not.toBeNull();
-    expect(q("[data-call-window]")).toBeNull();
+    expect(q('[data-replay-frame="shown"] [data-call-window]')).toBeNull();
     expect(q("[data-action=replay-hide-video]")).toBeNull();
   });
 
@@ -212,5 +214,10 @@ describe("a shiur's player (spec 053)", () => {
     expect(media.currentTime).toBe(5);
     await key("[data-replay-bar]", "ArrowLeft");
     expect(media.currentTime).toBe(0);
+    // On the seek bar too: Space plays, the arrows move 5 seconds.
+    await key("[data-action=replay-scrub]", "ArrowRight");
+    expect(media.currentTime).toBe(5);
+    await key("[data-action=replay-scrub]", " ");
+    expect(media.paused).toBe(false);
   });
 });

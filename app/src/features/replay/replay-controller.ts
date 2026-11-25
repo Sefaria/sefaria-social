@@ -143,7 +143,7 @@ export function createReplayController({
     player.dispose();
     media.pause();
     media.src = "";
-    objectUrls.revoke(url);
+    if (url) objectUrls.revoke(url);
   };
 
   const controller: ReplayController = {
@@ -169,17 +169,25 @@ export function createReplayController({
         // Spec 053: chapters and whether there is video, once the recording is processed (spec 052); none before.
         const manifest = api.getManifest ? await api.getManifest(recordingId).catch(() => null) : null;
         if (!live()) return;
-        const raw = await api.getMedia(recordingId, {
-          expectedBytes: meta.mediaBytes ?? undefined,
-          onProgress: (loaded, total) => {
-            if (live()) set({ kind: "loading", recordingId, progress: total ? Math.min(1, loaded / total) : null });
-          },
-        });
-        if (!live()) return;
-        // A processed file already knows its duration (spec 052); a raw MediaRecorder file needs it written in.
-        const blob = manifest ? raw : await fixDuration(raw, meta.durationMs ?? track.duration);
-        if (!live()) return;
-        const url = objectUrls.create(blob);
+        let url: string;
+        let owned = false;
+        if (manifest) {
+          // Processed (spec 052): played from its public address by byte range, never downloaded whole first.
+          url = `${host.config.apiOrigin.replace(/\/+$/, "")}/api/v1/assets/${encodeURIComponent(recordingId)}/media`;
+        } else {
+          const raw = await api.getMedia(recordingId, {
+            expectedBytes: meta.mediaBytes ?? undefined,
+            onProgress: (loaded, total) => {
+              if (live()) set({ kind: "loading", recordingId, progress: total ? Math.min(1, loaded / total) : null });
+            },
+          });
+          if (!live()) return;
+          // A raw MediaRecorder file has no duration: it is written in, so the scrubber can seek.
+          const blob = await fixDuration(raw, meta.durationMs ?? track.duration);
+          if (!live()) return;
+          url = objectUrls.create(blob);
+          owned = true;
+        }
         const media = createMedia();
         media.playsInline = true;
         media.muted = false;
@@ -192,7 +200,7 @@ export function createReplayController({
           hasVideo: manifest?.hasVideo ?? true,
           track,
         };
-        current = { player, media, url, offPlayer, asset };
+        current = { player, media, url: owned ? url : "", offPlayer, asset };
         set({ kind: "ready", recordingId, player: player.view() });
         if (opts.autoplay) await player.play().catch(() => undefined);
       } catch (error) {

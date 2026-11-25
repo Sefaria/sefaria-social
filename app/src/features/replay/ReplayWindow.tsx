@@ -35,6 +35,9 @@ export function ReplayWindow() {
   const controller = useReplayController();
   const view = useReplayView(controller);
   const [videoHidden, setVideoHidden] = useState(false);
+  const openId = view.kind === "closed" ? null : view.recordingId;
+  // Hide video is for the recording it was pressed in.
+  useEffect(() => setVideoHidden(false), [openId]);
   if (!controller || view.kind === "closed") return null;
   const player = controller.player();
   const asset = controller.asset();
@@ -62,70 +65,71 @@ export function ReplayWindow() {
     </button>
   );
 
-  // No window (audio only, or the video hidden): the media element still plays the audio, out of the page.
-  if (!showWindow) return bar;
-
+  // No window to show (audio only, the camera off, the video hidden): the frame stays mounted but hidden, so the media
+  // element stays in the page and keeps playing (a media element taken out of the document pauses).
   return (
     <>
-      <CallFrame
-        owner="replay"
-        pinned={overlay?.head ?? null}
-        label={t.replayWindow}
-        title={t.replayTitle}
-        prompt={<WindowPrompt holder="replay" />}
-        pill={(expand) => (
-          <div className={styles.pill} data-replay-pill="">
-            {view.kind === "ready" && player && (
-              <button
-                type="button"
-                data-action={view.player.playing ? "replay-pause" : "replay-play"}
-                onClick={() => (view.player.playing ? player.pause() : void player.play().catch(() => undefined))}
-              >
-                {view.player.playing ? t.pause : t.play}
-              </button>
-            )}
-            {view.kind === "ready" && <span className={styles.time}>{formatLength(view.player.t)}</span>}
-            <button type="button" data-action="expand-replay" onClick={expand}>
-              {t.expand}
-            </button>
-          </div>
-        )}
-      >
-        <section data-social-replay={view.kind} aria-label={t.replayTitle} className={styles.replay}>
-          {view.kind === "loading" && (
-            <>
-              <progress
-                className={styles.progress}
-                aria-label={t.replayLoading}
-                max={1}
-                {...(view.progress === null ? {} : { value: view.progress })}
-              />
-              {closeButton}
-            </>
-          )}
-          {view.kind === "error" && (
-            <>
-              <p role="alert" className={styles.error} data-replay-error={view.reason}>
-                {t.recordingCouldNotPlay}
-              </p>
-              {closeButton}
-            </>
-          )}
-          {view.kind === "ready" && player && (
-            <>
-              <MediaBox controller={controller} recordingId={view.recordingId} />
-              {!view.player.following && (
-                <div role="status" className={styles.left} data-replay-left="">
-                  <span>{t.leftRecording}</span>
-                  <button type="button" data-action="replay-rejoin" onClick={() => player.rejoin()}>
-                    {t.backToRecording}
-                  </button>
-                </div>
+      <div hidden={!showWindow} data-replay-frame={showWindow ? "shown" : "hidden"}>
+        <CallFrame
+          owner="replay"
+          pinned={overlay?.head ?? null}
+          label={t.replayWindow}
+          title={t.replayTitle}
+          prompt={<WindowPrompt holder="replay" />}
+          pill={(expand) => (
+            <div className={styles.pill} data-replay-pill="">
+              {view.kind === "ready" && player && (
+                <button
+                  type="button"
+                  data-action={view.player.playing ? "replay-pause" : "replay-play"}
+                  onClick={() => (view.player.playing ? player.pause() : void player.play().catch(() => undefined))}
+                >
+                  {view.player.playing ? t.pause : t.play}
+                </button>
               )}
-            </>
+              {view.kind === "ready" && <span className={styles.time}>{formatLength(view.player.t)}</span>}
+              <button type="button" data-action="expand-replay" onClick={expand}>
+                {t.expand}
+              </button>
+            </div>
           )}
-        </section>
-      </CallFrame>
+        >
+          <section data-social-replay={view.kind} aria-label={t.replayTitle} className={styles.replay}>
+            {view.kind === "loading" && (
+              <>
+                <progress
+                  className={styles.progress}
+                  aria-label={t.replayLoading}
+                  max={1}
+                  {...(view.progress === null ? {} : { value: view.progress })}
+                />
+                {closeButton}
+              </>
+            )}
+            {view.kind === "error" && (
+              <>
+                <p role="alert" className={styles.error} data-replay-error={view.reason}>
+                  {t.recordingCouldNotPlay}
+                </p>
+                {closeButton}
+              </>
+            )}
+            {view.kind === "ready" && player && (
+              <>
+                <MediaBox controller={controller} recordingId={view.recordingId} />
+                {!view.player.following && (
+                  <div role="status" className={styles.left} data-replay-left="">
+                    <span>{t.leftRecording}</span>
+                    <button type="button" data-action="replay-rejoin" onClick={() => player.rejoin()}>
+                      {t.backToRecording}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        </CallFrame>
+      </div>
       {bar}
     </>
   );
