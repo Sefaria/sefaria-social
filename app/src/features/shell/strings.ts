@@ -285,6 +285,7 @@ const STRINGS = {
     minutesAgo: (n: number) => `${n} min`,
     hoursAgo: (n: number) => `${n} h`,
     daysAgo: (n: number) => `${n} d`,
+    cameraIsOff: "Your camera is off",
     // The room window (spec 045)
     roomWindow: (title: string) => `Room: ${title}`,
     hideRoomWindow: "Hide the room window",
@@ -604,6 +605,7 @@ const STRINGS = {
     minutesAgo: (n: number) => `${n} דק׳`,
     hoursAgo: (n: number) => `${n} שע׳`,
     daysAgo: (n: number) => `${n} ימים`,
+    cameraIsOff: "המצלמה שלך כבויה",
     // The room window (spec 045)
     roomWindow: (title: string) => `חדר: ${title}`,
     hideRoomWindow: "הסתרת חלון החדר",

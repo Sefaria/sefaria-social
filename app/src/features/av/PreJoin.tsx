@@ -3,6 +3,7 @@ import { useStrings } from "~/features/shell/use-strings";
 import { recordingHere, useRecordingController, useRecordingView, useRoomRecording } from "~/features/recording/use-recording";
 import type { CallController } from "./call-controller";
 import { callRoom, type DeviceChoice } from "./machine";
+import { CameraIcon, MicIcon } from "./icons";
 import styles from "./av.module.css";
 
 /**
@@ -41,18 +42,46 @@ export function PreJoin({ controller, devices }: { controller: CallController; d
           {t.beingRecorded}
         </p>
       )}
-      <div className={styles.toggles}>
-        <button type="button" data-action="toggle-mic" aria-pressed={devices.mic} onClick={() => set({ mic: !devices.mic })}>
-          {t.microphone}
-        </button>
-        <button
-          type="button"
-          data-action="toggle-camera"
-          aria-pressed={devices.camera}
-          onClick={() => set({ camera: !devices.camera })}
-        >
-          {t.camera}
-        </button>
+      <div className={styles.previewBox} data-preview-box="">
+        {devices.camera && preview ? (
+          <video ref={video} data-preview="" className={styles.preview} aria-label={t.yourCamera} autoPlay muted playsInline />
+        ) : (
+          <span className={styles.previewOff}>{t.cameraIsOff}</span>
+        )}
+        <div className={styles.overlay}>
+          <div className={styles.toggles}>
+            <button
+              type="button"
+              data-action="toggle-mic"
+              aria-pressed={devices.mic}
+              className={styles.round}
+              title={t.microphone}
+              onClick={() => set({ mic: !devices.mic })}
+            >
+              <MicIcon off={!devices.mic} />
+              <span className={styles.label}>{t.microphone}</span>
+            </button>
+            <button
+              type="button"
+              data-action="toggle-camera"
+              aria-pressed={devices.camera}
+              className={styles.round}
+              title={t.camera}
+              onClick={() => set({ camera: !devices.camera })}
+            >
+              <CameraIcon off={!devices.camera} />
+              <span className={styles.label}>{t.camera}</span>
+            </button>
+          </div>
+          <div className={styles.actions}>
+            <button type="button" data-action="join-now" className={styles.primary} onClick={() => void controller.join()}>
+              {listenOnly ? t.joinToListen : t.joinNow}
+            </button>
+            <button type="button" data-action="cancel-call" className={styles.ghost} onClick={() => controller.cancel()}>
+              {t.cancel}
+            </button>
+          </div>
+        </div>
       </div>
       {list && (
         <div className={styles.devices}>
@@ -86,22 +115,11 @@ export function PreJoin({ controller, devices }: { controller: CallController; d
           </label>
         </div>
       )}
-      {devices.camera && preview && (
-        <video ref={video} data-preview="" className={styles.preview} aria-label={t.yourCamera} autoPlay muted playsInline />
-      )}
       {denied && (
         <p role="alert" data-permission="denied">
           {t.permissionDenied}
         </p>
       )}
-      <div className={styles.actions}>
-        <button type="button" data-action="join-now" onClick={() => void controller.join()}>
-          {listenOnly ? t.joinToListen : t.joinNow}
-        </button>
-        <button type="button" data-action="cancel-call" onClick={() => controller.cancel()}>
-          {t.cancel}
-        </button>
-      </div>
     </div>
   );
 }

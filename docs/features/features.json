@@ -2483,6 +2483,28 @@
       "changed": []
     },
     {
+      "id": "SESS-069",
+      "area": "sess",
+      "name": "The call window looks like a call: tiles, initials, an icon control bar, a real pre-join",
+      "description": "Dark 16:10 tiles with the camera or the person's initials, a name label with a muted mark and a speaking ring; one row of round icon buttons with names and on/off states and a red Leave call; the pre-join step's preview with its toggles, Join and Cancel on it.",
+      "status": "built",
+      "spec": "047",
+      "acs": [
+        "047/AC-001",
+        "047/AC-002",
+        "047/AC-003"
+      ],
+      "surfaces": [
+        "call"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/surface/call-design.test.tsx"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "SHIUR-001",
       "area": "shiur",
       "name": "Shiur page at /social/s/$shiurId",

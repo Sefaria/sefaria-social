@@ -59,7 +59,12 @@ export function CallPanel() {
             )}
             <Tiles controller={controller} participants={participants} />
             {media?.audioBlocked() && (
-              <button type="button" data-action="start-audio" onClick={() => void media.startAudio()}>
+              <button
+                type="button"
+                data-action="start-audio"
+                className={styles.startAudio}
+                onClick={() => void media.startAudio()}
+              >
                 {t.startAudio}
               </button>
             )}
