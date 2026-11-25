@@ -8,17 +8,17 @@ and facts, not a diary.
 
 States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awaiting approval), `approved`, `merged`.
 
-| Spec | Title                                                           | State       | PR      | Notes                                                                                           |
-| ---- | --------------------------------------------------------------- | ----------- | ------- | ----------------------------------------------------------------------------------------------- |
-| 048  | Sticky following, a fixed leader, follow a person by their head | built       | group A | Awaiting `factory approve 048`. Broadcast viewers still break away on any input (Back to live). |
-| 049  | One press to get in                                             | not started |         |                                                                                                 |
-| 050  | Session kinds and endings                                       | not started |         |                                                                                                 |
-| 051  | The asset in object storage                                     | not started |         |                                                                                                 |
-| 052  | Processing                                                      | not started |         |                                                                                                 |
-| 053  | The player                                                      | not started |         |                                                                                                 |
-| 054  | Transcript                                                      | not started |         |                                                                                                 |
-| 055  | Links in posts                                                  | not started |         |                                                                                                 |
-| 056  | Live cards                                                      | not started |         |                                                                                                 |
+| Spec | Title                                                           | State       | PR      | Notes                                                                                                    |
+| ---- | --------------------------------------------------------------- | ----------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| 048  | Sticky following, a fixed leader, follow a person by their head | built       | group A | Awaiting `factory approve 048`. Broadcast viewers still break away on any input (Back to live).          |
+| 049  | One press to get in                                             | built       | group A | Awaiting `factory approve 049`. The lobby's Join call keeps its device step (for coming back to a call). |
+| 050  | Session kinds and endings                                       | not started |         |                                                                                                          |
+| 051  | The asset in object storage                                     | not started |         |                                                                                                          |
+| 052  | Processing                                                      | not started |         |                                                                                                          |
+| 053  | The player                                                      | not started |         |                                                                                                          |
+| 054  | Transcript                                                      | not started |         |                                                                                                          |
+| 055  | Links in posts                                                  | not started |         |                                                                                                          |
+| 056  | Live cards                                                      | not started |         |                                                                                                          |
 
 ## Waiting on the owner
 
@@ -34,7 +34,10 @@ States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awa
 List here each open point of section 8 that code now depends on, with the spec and the file, so it can be found and changed
 if the owner decides otherwise.
 
-- (none yet)
+- 049: a first-time starter enters with the microphone on and the camera off (`app/src/features/av/device-memory.ts`,
+  `FIRST_TIME`).
+- 049: the lobby's "Join call" (for someone who left the call) keeps its device-choice step; Start, Join and Enter skip it.
+  The plan said the pre-join step is removed; D6 only requires that entering joins the call.
 
 ## QA passes
 
@@ -46,6 +49,8 @@ if the owner decides otherwise.
 
 Newest first. One or two lines per entry: what changed, and anything the next session must know that the code does not say.
 
+- 2026-11-25: Spec 049 built. A Join pressed while signed out rides in the lobby's address (`?join=1`), because reader-next
+  sends sign-in to `/login?next=<page>` and the lobby mounts again on return; nothing is stored.
 - 2026-11-25: Spec 048 built. Room relay tickets (`POST /api/v1/rooms/{id}/ticket`, roles owner/member) make the owner the
   only leader; decision 0012 supersedes 0008's everyone-may-lead. Relay tests' `connect` offers an owner ticket by default
   (`owner: false` for a member), so older relay tests keep their meaning. Sticky following applies to rooms only.
