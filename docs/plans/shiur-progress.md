@@ -17,8 +17,8 @@ States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awa
 | 052  | Processing                                                      | not started |         |                                                                                                                               |
 | 053  | The player                                                      | not started |         |                                                                                                                               |
 | 054  | Transcript                                                      | not started |         |                                                                                                                               |
-| 055  | Links in posts                                                  | not started |         |                                                                                                                               |
-| 056  | Live cards                                                      | not started |         |                                                                                                                               |
+| 055  | Links in posts                                                  | built       | #36     | Draft work order; awaiting `factory approve 055`                                                                              |
+| 056  | Live cards                                                      | built       | #36     | Draft work order; awaiting `factory approve 056`; relay needs `SOCIAL_SERVER_URL`                                             |
 
 ## Waiting on the owner
 
@@ -43,6 +43,11 @@ if the owner decides otherwise.
   so an emptied closed room may be forgotten; remembering it belongs with the asset (spec 051).
 - 050: the session's kind is kept per room for the tab (`features/session/session-kind.ts`); after a reload the owner sees
   Close room, or End broadcast while a broadcast is live.
+- One card per post (055): `app/src/features/post/Composer.tsx` takes only the first session link out of the text.
+- Live status mechanics of 4.7 (056): the relay's reports (`packages/relay/src/live-report.ts`, `worker.ts`), the
+  `live_status` table, the 5-second cache, 15-second polling (`app/src/features/post/live-status.ts`); details and the
+  fallback to the relay's status read in `docs/decisions/0012-links-and-live-cards.md`.
+- The public `GET /api/v1/live` answers only ids some post embeds (`app/src/server/services/live.ts`; decision 0012).
 
 ## QA passes
 
@@ -54,6 +59,11 @@ if the owner decides otherwise.
 
 Newest first. One or two lines per entry: what changed, and anything the next session must know that the code does not say.
 
+- 2026-11-25: Group D (055, 056) built on `m/shiur-group-d`, draft PR #36. Migrations `0007_post_embeds`, `0008_live_status`.
+  The relay needs a new variable, `SOCIAL_SERVER_URL` (setup checklist); until then the server reads the relay's status.
+  The card's poller watches only cards on screen: in the harness the reader pane pushes the timeline below the fold, so
+  e2e tests scroll a card into view. Built independently of group A; once 048 lands, only the owner holds the spotlight,
+  so `e2e/live-cards.spec.ts` already has the room's owner publish.
 - 2026-11-25: Group A review fixes. Known limits left: an owner's second tab displaces the first in the relay (older
   rule), so the 2-minute end can start while the first tab is open; a room ticket fetch that fails on the network makes the
   owner a member until the socket reconnects. The broadcast relay test's join order was a race: the relay test helper now
