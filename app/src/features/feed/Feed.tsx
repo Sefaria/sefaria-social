@@ -67,13 +67,6 @@ export function Feed() {
         <p role="alert">{t.feedError}</p>
       ) : (
         <>
-          {/* Spec 044 AC-007: the ways into rooms — start one, or see them all. */}
-          <div className={styles.roomsBar} data-rooms-bar="">
-            <StartRoom variant="secondary" />
-            <HostLink to="/social/rooms" className={kit.link}>
-              {t.allRooms}
-            </HostLink>
-          </div>
           {state.feed.live.length + state.feed.scheduled.length + state.feed.recent.length === 0 && (
             <section className={kit.empty} data-rooms-empty="">
               <p className={kit.emptyTitle}>{t.noRoomsYet}</p>
@@ -98,6 +91,13 @@ export function Feed() {
             empty={t.feedRecentEmpty}
             items={state.feed.recent.map((room) => ({ kind: "recent", room }))}
           />
+          {/* Spec 044 AC-007: the ways into rooms, after the sections so the cards keep their place — start one, or see them all. */}
+          <div className={styles.roomsBar} data-rooms-bar="">
+            <StartRoom variant="secondary" />
+            <HostLink to="/social/rooms" className={kit.link}>
+              {t.allRooms}
+            </HostLink>
+          </div>
         </>
       )}
     </div>
