@@ -27,8 +27,8 @@ broadcast is ended, a room is closed by its leader and left by a follower.
   closed." with a link to the room's page
 - AC-003 WHEN a participant who is not the owner presses Leave in the room window THE SYSTEM SHALL take only them out of the room
   and its call; the session goes on for everyone else
-- AC-004 WHEN the owner of a closed room enters it again THE SYSTEM SHALL start a new session in it; a member who enters a closed
-  room before the owner is told the room was closed
+- AC-004 WHEN the owner of a closed room enters it again THE SYSTEM SHALL start a new session in it; while the relay still holds
+  the closed session, a member who enters before the owner is told the room was closed
 - AC-005 WHEN the room's owner has been gone from a live session for 2 minutes THE SYSTEM SHALL end it as AC-002 says; the owner
   coming back within the 2 minutes keeps it going
 - AC-006 WHEN a person starts a room THE SYSTEM SHALL let them choose what it is — a room (people can join and talk), a broadcast
@@ -52,3 +52,5 @@ broadcast is ended, a room is closed by its leader and left by a follower.
 - The kind chosen at Start is kept for the tab per room (the label of AC-007); after a reload the owner sees Close room, and
   End broadcast while the room has a live broadcast.
 - _Proposed (not decided by the owner):_ the 2-minute grace (AC-005), and that a closed room can host a new session (AC-004).
+- The relay keeps a room in memory only; once everyone has left a closed room it may be unloaded and forgotten, and the next
+  person to enter finds an empty room rather than a closed one. Remembering closed sessions belongs with the asset (spec 051).

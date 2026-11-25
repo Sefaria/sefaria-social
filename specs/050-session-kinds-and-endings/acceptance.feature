@@ -22,7 +22,7 @@ Feature: Session kinds and endings, one Record toggle, and Close, Finish and Lea
 
   @AC-004
   Scenario: AC-004 a closed room starts again
-    Given room R was closed
+    Given room R was closed and the relay still holds it
     When a member enters R before the owner
     Then they are told the room was closed
     When the owner enters R

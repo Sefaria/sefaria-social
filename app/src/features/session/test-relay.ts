@@ -22,8 +22,8 @@ export interface TestRelay {
   opened: { url: string; protocols: string[] }[];
   /** Sockets currently open, by room id. */
   open(roomId: string): number;
-  /** Another participant, driven by the test from inside the relay. */
-  peer(roomId: string, userId: string, name: string): TestPeer;
+  /** Another participant, driven by the test from inside the relay. `isHost: false` joins as a member (spec 048). */
+  peer(roomId: string, userId: string, name: string, opts?: { isHost?: boolean }): TestPeer;
   /** Drop every surface socket of a room (a network blip). With `refuse`, reconnects are refused until `allow()`. */
   drop(roomId: string, opts?: { refuse?: boolean }): void;
   allow(): void;
@@ -45,7 +45,11 @@ function claims(token: string): { sub: string; name: string } | null {
   }
 }
 
-export function installTestRelay(): TestRelay {
+/**
+ * `owners`: the user ids the real relay would make hosts from their owner tickets (spec 048 AC-005); every other surface join
+ * is a member. Without it, a surface join keeps the flags it claims (as tests written before spec 048 expect).
+ */
+export function installTestRelay(opts: { owners?: string[] } = {}): TestRelay {
   const rooms = new Map<string, Room>();
   const conns = new Map<string, Conn>();
   let next = 1;
@@ -72,6 +76,16 @@ export function installTestRelay(): TestRelay {
     const v = JSON.parse(text) as { ch?: string; body?: { type?: string; participant?: object } };
     if (v.ch === "control" && v.body?.type === "join" && v.body.participant)
       v.body.participant = { ...v.body.participant, id: who.sub, name: who.name };
+    return JSON.stringify(v);
+  };
+  /** A surface join, with the flags an owner ticket gives (when `owners` is set). */
+  const surfaceJoin = (text: string, who: { sub: string; name: string }) => {
+    const rewritten = rewriteJoin(text, who);
+    if (!opts.owners) return rewritten;
+    const v = JSON.parse(rewritten) as { ch?: string; body?: { type?: string; participant?: object } };
+    if (v.ch !== "control" || v.body?.type !== "join" || !v.body.participant) return rewritten;
+    const isHost = opts.owners.includes(who.sub);
+    v.body.participant = { ...v.body.participant, isHost, canLead: isHost };
     return JSON.stringify(v);
   };
 
@@ -117,7 +131,7 @@ export function installTestRelay(): TestRelay {
       const conn = this.conn;
       const who = this.who;
       if (!conn || !who) return;
-      later(() => deliverAll(conn.room, roomOf(conn.room).handle(conn.id, rewriteJoin(text, who))));
+      later(() => deliverAll(conn.room, roomOf(conn.room).handle(conn.id, surfaceJoin(text, who))));
     }
     close() {
       this.conn?.close();
@@ -130,7 +144,7 @@ export function installTestRelay(): TestRelay {
   return {
     opened,
     open: (roomId) => [...conns.values()].filter((c) => c.room === roomId && !c.id.startsWith("peer")).length,
-    peer(roomId, userId, name) {
+    peer(roomId, userId, name, opts) {
       const id = `peer-${next++}`;
       const received: unknown[] = [];
       conns.set(id, { id, room: roomId, deliver: (t) => received.push(JSON.parse(t)), close: () => undefined });
@@ -139,7 +153,8 @@ export function installTestRelay(): TestRelay {
         const text = rewriteJoin(JSON.stringify(envelope), { sub: userId, name });
         deliverAll(roomId, roomOf(roomId).handle(id, text));
       };
-      send({ ch: "control", body: { type: "join", participant: { id: userId, name, isHost: true, canLead: true } } });
+      const isHost = opts?.isHost ?? true;
+      send({ ch: "control", body: { type: "join", participant: { id: userId, name, isHost, canLead: isHost } } });
       return {
         received,
         send,

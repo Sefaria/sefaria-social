@@ -103,6 +103,37 @@ const click = async (el: Element | null) => {
   await act(async () => (el as HTMLElement).click());
 };
 
+describe("what a session is, chosen at Start (spec 050)", () => {
+  // @feature ROOM-054 Choose at Start what the session is and whether to record it
+  // @ac 050/AC-006
+  it("offers a room, a broadcast or just me, records by default for the last two, and starts the session that way", async () => {
+    const api = fakeApi();
+    const m = await load();
+    const { el, fake } = await mount(createElement(m.start.StartRoom), api);
+    await click(el.querySelector("[data-action=start-room]"));
+    const kind = (k: string) => el.querySelector<HTMLInputElement>(`[data-session-kind=${k}]`);
+    const record = () => el.querySelector<HTMLInputElement>("[data-record-session]");
+    expect(kind("broadcast"), "the dialog offers the session's kind").not.toBeNull();
+    expect([kind("room")!.checked, record()!.checked]).toEqual([true, false]);
+    await click(kind("broadcast"));
+    expect(record()!.checked).toBe(true);
+    await click(kind("room"));
+    expect(record()!.checked).toBe(false);
+    await click(kind("recording"));
+    expect(record()!.checked).toBe(true);
+
+    const { recordingControllerFor } = await import("~/features/recording/recording-controller");
+    const start = vi.fn(async () => undefined);
+    Object.assign(recordingControllerFor(fake.host), { start });
+    await type(el.querySelector<HTMLInputElement>("[data-room-name]")!, "Shiur on Bereshit");
+    await click(el.querySelector("[data-action=confirm-start-room]"));
+    await vi.waitFor(() => expect(start.mock.calls).toEqual([["6f1c2d3e-4b5a-4c6d-8e7f-0000000000cc"]]), { timeout: 4000 });
+    expect(JSON.parse(sessionStorage.getItem("social.sessionKinds") ?? "{}")).toEqual({
+      "6f1c2d3e-4b5a-4c6d-8e7f-0000000000cc": "recording",
+    });
+  });
+});
+
 describe("the rail's ways into rooms (spec 044)", () => {
   // @feature ROOM-046 Start a room from Social and land in its lobby
   // @ac 044/AC-007

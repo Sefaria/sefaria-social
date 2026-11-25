@@ -229,3 +229,17 @@
       0 12px 32px rgb(0 0 0 / 45%);
   }
 }
+
+/* Spec 050: the owner's confirmation before ending the session for everyone. */
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+/* Spec 050 AC-002: "The room was closed.", where the room window was. */
+.notice {
+  inset-block-end: 16px;
+  inset-inline-start: 16px;
+}

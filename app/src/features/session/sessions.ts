@@ -131,6 +131,8 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
 
   return {
     acquire(roomId, hold, opts) {
+      // A session that ended (the room was closed, spec 050) is not joined again: a new connection may start a new session.
+      if (sessions.get(roomId)?.client.getState().status === "ended") sessions.delete(roomId);
       const s = sessions.get(roomId) ?? open(roomId, opts);
       if (!s) return () => undefined;
       s.counts.set(hold, (s.counts.get(hold) ?? 0) + 1);

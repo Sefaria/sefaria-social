@@ -44,6 +44,14 @@ export interface RoomController {
   leave(roomId: string): void;
   /** Run `cb(roomId)` at the start of every leave, before the room's holds are released (a call ends first, spec 034). */
   onLeave(cb: (roomId: string) => void): () => void;
+  /** Spec 050 AC-002: the room whose session was closed while the viewer was in it (for the notice); null when none. */
+  closedRoom(): string | null;
+  dismissClosed(): void;
+  /**
+   * Spec 050 AC-002: the owner ends the session for everyone (the relay's `end`). The caller finishes a recording and ends a
+   * broadcast first (features/room/close.ts); this leaves the room and its call here.
+   */
+  close(roomId: string): void;
   /** Follow a participant; null follows the room's leader again (spec 048). */
   follow(participantId: string | null): void;
   /**
@@ -72,6 +80,7 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
   let offClient: (() => void) | null = null;
   let enterTimer: ReturnType<typeof setTimeout> | null = null;
   let restoreAfterLeave: ReaderSnapshot | null = null;
+  let closed: string | null = null;
   const prefetched = new Map<string, { release: () => void; timer: ReturnType<typeof setTimeout> }>();
   const dropPrefetch = (roomId: string) => {
     const p = prefetched.get(roomId);
@@ -114,7 +123,16 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
     const session = sessions.get(roomId);
     if (!session) return;
     const sync = () => {
-      const status = session.client.getState().status;
+      const { status, room } = session.client.getState();
+      // The room ended (not this viewer leaving, which ends their client too).
+      if (status === "ended" && room.ended) {
+        // Spec 050 AC-002: the room was closed (or its owner was gone too long): out of its context, with a notice.
+        offClient?.();
+        offClient = null;
+        closed = roomId;
+        controller.leave(roomId);
+        return;
+      }
       if (status === "paused" && view.kind === "expanded") step({ type: "detach" });
       else if (status !== "paused" && view.kind === "detached") step({ type: "rejoin" });
       const following = status !== "leading";
@@ -214,8 +232,17 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
     return session.reader.held();
   }
 
-  return {
+  const controller: RoomController = {
     view: () => view,
+    closedRoom: () => closed,
+    dismissClosed() {
+      if (closed === null) return;
+      closed = null;
+      emit();
+    },
+    close(roomId) {
+      sessions.get(roomId)?.client.end();
+    },
     subscribe(cb) {
       listeners.add(cb);
       return () => listeners.delete(cb);
@@ -319,6 +346,7 @@ export function createRoomController(host: SurfaceHost, sessions: RoomSessions =
       if (enterTimer) clearTimeout(enterTimer);
     },
   };
+  return controller;
 }
 
 const perHost = new WeakMap<SurfaceHost, RoomController>();

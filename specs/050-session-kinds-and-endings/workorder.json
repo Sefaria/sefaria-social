@@ -3,9 +3,9 @@
   "spec": "050",
   "title": "Session kinds and endings, one Record toggle, and Close, Finish and Leave",
   "approved": false,
-  "spec_sha": "sha256:288b780c886771cb86ef4f1e4cf72633045d712f5c0b013b0d1ec28417d8f710",
-  "feature_sha": "sha256:4972c02ca2b97f25238e2663b6e184059f1ca0c45c16169bef030071eef12e87",
-  "tasks_sha": "sha256:fea84701116b653a88ed457e4d01a81cceceda8a5e3b2a4c6f20e20e8c61fc77",
+  "spec_sha": "sha256:e69b0d2ee4f5121dee70e77b6b332ab3df2f9c479a76341d330fea394d22d285",
+  "feature_sha": "sha256:b50cc2ed7524961f7125c0b9ab6dd4a2b7ffeaf8d9fb555401fae8d8ad2a26bd",
+  "tasks_sha": "sha256:f586831bea8723d9ab73c3ef70ae8dbd8d42d8dae8f3de557a371c8d8ceae4bf",
   "risk": "normal",
   "features": [
     "SESS-074",
@@ -49,7 +49,8 @@
         "app/src/features/recording/recording.module.css",
         "app/src/features/session/FollowBar.tsx",
         "app/src/features/session/room-window.module.css",
-        "app/src/features/shell/strings.ts"
+        "app/src/features/shell/strings.ts",
+        "e2e/session-endings.spec.ts"
       ],
       "depends_on": [
         "T-001"
@@ -85,7 +86,10 @@
         "app/src/features/room/enter.ts",
         "app/src/features/shell/strings.ts",
         "app/src/surface/persistent.tsx",
-        "e2e/room-flows.spec.ts"
+        "e2e/room-flows.spec.ts",
+        "e2e/session-endings.spec.ts",
+        "app/src/features/room/close.ts",
+        "app/src/features/session/sessions.ts"
       ],
       "depends_on": [
         "T-002"
@@ -131,7 +135,7 @@
     },
     {
       "ac": "AC-004",
-      "text": "WHEN the owner of a closed room enters it again THE SYSTEM SHALL start a new session in it; a member who enters a closed room before the owner is told the room was closed",
+      "text": "WHEN the owner of a closed room enters it again THE SYSTEM SHALL start a new session in it; while the relay still holds the closed session, a member who enters before the owner is told the room was closed",
       "scenarios": [
         "AC-004 a closed room starts again"
       ],

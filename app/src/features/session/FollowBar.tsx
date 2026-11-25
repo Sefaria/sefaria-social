@@ -2,6 +2,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { SessionState } from "@sefaria-social/session";
 import { CallButton } from "~/features/av/CallButton";
 import { RecordToggle } from "~/features/recording/RecordButton";
+import { useBroadcastController, useHostView } from "~/features/broadcast/use-broadcast";
+import { useHost } from "~/features/host/host-context";
+import { closeSession } from "~/features/room/close";
+import { sessionKindOf } from "./session-kind";
 import { useChromeInsets } from "~/features/av/insets";
 import { useRoomsApi } from "~/features/api/rooms-api";
 import { HostLink } from "~/features/host/HostLink";
@@ -50,6 +54,8 @@ export function FollowBar({ roomId }: { roomId: string }) {
   const tone = status === "connecting" || status === "reconnecting" ? "waiting" : status === "paused" ? "own" : "live";
   const here = state?.participants.length ?? 0;
   const holdsSpotlight = !!state && state.room.spotlight === state.self.id;
+  const owner = !!state && isOwner(state);
+  const ending = useEnding(roomId);
 
   return (
     <Window
@@ -109,6 +115,18 @@ export function FollowBar({ roomId }: { roomId: string }) {
         <HostLink to={`/social/r/${roomId}`} className={kit.link}>
           {t.backToRoom}
         </HostLink>
+        {/* Spec 050 AC-002, AC-003, AC-007: the owner ends the session for everyone; anyone else leaves it. */}
+        {state && inContext && owner && <EndSession roomId={roomId} label={ending} />}
+        {state && inContext && !owner && (
+          <button
+            type="button"
+            className={`${kit.button} ${kit.ghost} ${kit.small}`}
+            data-action="leave-session"
+            onClick={() => controller?.leave(roomId)}
+          >
+            {t.leave}
+          </button>
+        )}
         {inContext && (
           <button
             type="button"
@@ -121,6 +139,89 @@ export function FollowBar({ roomId }: { roomId: string }) {
         )}
       </footer>
     </Window>
+  );
+}
+
+/** The owner's word for ending (spec 050 AC-007): by the kind chosen at Start, or End broadcast while one is live here. */
+function useEnding(roomId: string): "finish" | "end-broadcast" | "close" {
+  const live = useHostView(useBroadcastController());
+  const kind = sessionKindOf(roomId);
+  if (kind === "recording") return "finish";
+  if (kind === "broadcast" || (live.kind === "live" && live.roomId === roomId)) return "end-broadcast";
+  return "close";
+}
+
+/** Close room, End broadcast or Finish and save, with a confirmation that says it ends the session for everyone. */
+function EndSession({ roomId, label }: { roomId: string; label: "finish" | "end-broadcast" | "close" }) {
+  const t = useStrings();
+  const host = useHost();
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const word = label === "finish" ? t.finishAndSave : label === "end-broadcast" ? t.endBroadcast : t.closeRoom;
+  if (!asking)
+    return (
+      <button
+        type="button"
+        className={`${kit.button} ${kit.secondary} ${kit.small}`}
+        data-action="end-session"
+        data-ending={label}
+        onClick={() => setAsking(true)}
+      >
+        {word}
+      </button>
+    );
+  return (
+    <div role="group" aria-label={word} data-end-confirm="" className={styles.confirm}>
+      <p className={styles.line}>{label === "finish" ? t.finishConfirm : t.closeConfirm}</p>
+      <button
+        type="button"
+        className={`${kit.button} ${kit.primary} ${kit.small}`}
+        data-action="confirm-end-session"
+        disabled={busy || !host}
+        onClick={() => {
+          if (!host) return;
+          setBusy(true);
+          void closeSession(host, roomId).finally(() => setBusy(false));
+        }}
+      >
+        {word}
+      </button>
+      <button
+        type="button"
+        className={`${kit.button} ${kit.ghost} ${kit.small}`}
+        data-action="cancel-end-session"
+        disabled={busy}
+        onClick={() => setAsking(false)}
+      >
+        {t.cancel}
+      </button>
+    </div>
+  );
+}
+
+/** Spec 050 AC-002: the room the viewer was in was closed; a notice with the room's page, until dismissed. */
+export function ClosedNotice() {
+  const t = useStrings();
+  const { controller } = useRoomController();
+  const roomId = controller?.closedRoom() ?? null;
+  if (!roomId) return null;
+  return (
+    <div role="status" data-room-closed={roomId} className={`${styles.window} ${styles.notice}`}>
+      <p className={styles.line}>{t.roomClosed}</p>
+      <div className={styles.actions}>
+        <HostLink to={`/social/r/${roomId}`} className={kit.link}>
+          {t.backToRoom}
+        </HostLink>
+        <button
+          type="button"
+          className={`${kit.button} ${kit.ghost} ${kit.small}`}
+          data-action="dismiss-closed"
+          onClick={() => controller?.dismissClosed()}
+        >
+          {t.dismissNotice}
+        </button>
+      </div>
+    </div>
   );
 }
 
