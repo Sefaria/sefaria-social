@@ -36,6 +36,15 @@ const Env = z.object({
   ASSET_STORE_DIR: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
   /** Spec 052: "off" keeps the asset processing worker from starting in this process (tests); anything else leaves it on. */
   ASSET_WORKER: z.preprocess(emptyIsUnset, z.string().optional()),
+  /** Spec 054: the Sofer.ai API key (secret; never logged or sent to a browser). Unset: transcripts are unavailable. */
+  SOFER_API_KEY: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
+  /** Spec 054: Sofer.ai's API base (tests point it at a fake). */
+  SOFER_API_URL: z.preprocess(emptyIsUnset, z.url().default("https://api.sofer.ai")),
+  /**
+   * Spec 054: this server's public origin (https://social.sefaria.org). With it, Sofer.ai fetches a shiur's audio from the
+   * public asset URL; without it the audio is sent in the request (base64).
+   */
+  SOCIAL_PUBLIC_ORIGIN: z.preprocess(emptyIsUnset, z.url().optional()),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 

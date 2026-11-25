@@ -161,6 +161,17 @@ export const sessionRecordings = pgTable(
     processStatus: text("process_status"),
     processAttempts: integer("process_attempts").notNull().default(0),
     processAfter: timestamp("process_after", { withTimezone: true }),
+    /**
+     * Spec 054: the transcript — null until processing is done, then "queued" | "submitted" | "ready" | "failed" |
+     * "unavailable" (no Sofer.ai key). Its own job on the same row (decision 0013): attempts, when it may run next, the
+     * provider's id, and the language the leader chose (D10).
+     */
+    transcriptStatus: text("transcript_status"),
+    transcriptLanguage: text("transcript_language").notNull().default("en"),
+    transcriptAttempts: integer("transcript_attempts").notNull().default(0),
+    transcriptAfter: timestamp("transcript_after", { withTimezone: true }),
+    transcriptJobId: text("transcript_job_id"),
+    transcriptSubmittedAt: timestamp("transcript_submitted_at", { withTimezone: true }),
     stateMessages: integer("state_messages").notNull().default(0),
     createdAt: createdAt(),
   },
@@ -175,6 +186,14 @@ export const sessionRecordings = pgTable(
       "session_recordings_process_status_check",
       sql`${t.processStatus} is null or ${t.processStatus} in ('queued', 'running', 'done', 'failed')`,
     ),
+    check(
+      "session_recordings_transcript_status_check",
+      sql`${t.transcriptStatus} is null or ${t.transcriptStatus} in ('queued', 'submitted', 'ready', 'failed', 'unavailable')`,
+    ),
+    check("session_recordings_transcript_language_check", sql`${t.transcriptLanguage} in ('en', 'he', 'yi', 'fr')`),
+    index("session_recordings_transcript_idx")
+      .on(t.transcriptAfter)
+      .where(sql`${t.transcriptStatus} in ('queued', 'submitted')`),
     index("session_recordings_process_idx")
       .on(t.processAfter)
       .where(sql`${t.processStatus} in ('queued', 'running')`),

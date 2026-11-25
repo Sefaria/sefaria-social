@@ -11,4 +11,7 @@ export const PUBLIC_ENDPOINTS: ReadonlySet<string> = new Set([
   "GET /api/v1/assets/{assetId}/media",
   // Its manifest once processed (spec 052): files, length, chapters; nothing more than the three above already give.
   "GET /api/v1/assets/{assetId}/manifest",
+  // Its transcript and its audio (spec 054): the same shiur in other forms; Sofer.ai fetches the audio from here.
+  "GET /api/v1/assets/{assetId}/transcript",
+  "GET /api/v1/assets/{assetId}/audio",
 ]);

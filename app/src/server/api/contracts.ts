@@ -205,7 +205,11 @@ const RecordingMime = z
   .max(100)
   .regex(/^(video|audio)\/[a-z0-9.+-]+(;[ a-z0-9=,.+"-]*)?$/i);
 
-export const RecordingStartInput = z.strictObject({ mime: RecordingMime.optional() });
+export const RecordingStartInput = z.strictObject({
+  mime: RecordingMime.optional(),
+  /** Spec 054 (D10): the transcript's language, chosen by the leader; English (Hebrew words in Hebrew letters) by default. */
+  transcriptLanguage: z.enum(["en", "he", "yi", "fr"]).optional(),
+});
 
 /** One message of the reader's state stream (packages/session StreamMessage); the server checks it with the session schema. */
 const StreamMessageOut = z.looseObject({
@@ -340,6 +344,43 @@ export const getAssetMedia = defineEndpoint({
   responses: {
     200: { description: "The media file.", binary: true },
     206: { description: "A byte range of the processed media file.", binary: true },
+  },
+});
+
+/** A shiur's transcript (spec 054): its words with their times in ms. */
+export const AssetTranscript = z.object({
+  v: z.literal(1),
+  language: z.enum(["en", "he", "yi", "fr"]),
+  text: z.string(),
+  words: z.array(z.object({ w: z.string(), s: z.int().nonnegative(), e: z.int().nonnegative() })),
+});
+
+export const getAssetTranscript = defineEndpoint({
+  operationId: "getAssetTranscript",
+  method: "GET",
+  path: "/api/v1/assets/{assetId}/transcript",
+  summary:
+    "A ready recording's transcript with word times, for anyone with its link (spec 054). 404 recording.no_transcript until it is ready.",
+  tags: ["assets"],
+  access: "public",
+  params: AssetParams,
+  errors: [404],
+  responses: { 200: { description: "The transcript.", schema: AssetTranscript } },
+});
+
+export const getAssetAudio = defineEndpoint({
+  operationId: "getAssetAudio",
+  method: "GET",
+  path: "/api/v1/assets/{assetId}/audio",
+  summary:
+    "A processed recording's audio (AAC in MP4), for anyone with its link: what a transcript is made from (spec 054). Byte ranges answer 206.",
+  tags: ["assets"],
+  access: "public",
+  params: AssetParams,
+  errors: [404, 416],
+  responses: {
+    200: { description: "The audio file.", binary: true },
+    206: { description: "A byte range of the audio file.", binary: true },
   },
 });
 
@@ -949,6 +990,8 @@ export const ENDPOINTS = [
   getAssetState,
   getAssetMedia,
   getAssetManifest,
+  getAssetTranscript,
+  getAssetAudio,
   appendRecordingState,
   getRecordingMedia,
   putRecordingMedia,

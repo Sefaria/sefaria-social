@@ -20,6 +20,10 @@ export const LOG_EVENTS = [
   "asset.process_failed",
   "asset.worker_failed",
   "asset.sweep_failed",
+  "transcript.ready",
+  "transcript.failed",
+  "transcript.submit_failed",
+  "transcript.poll_failed",
 ] as const;
 export type LogEvent = (typeof LOG_EVENTS)[number];
 export type LogLevel = "debug" | "info" | "warn" | "error";

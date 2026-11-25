@@ -172,7 +172,7 @@ export async function finaliseStale(scope: { roomId: string } | { recordingId: s
 export async function startRecording(
   identity: Identity,
   roomId: string,
-  input: { mime?: string | undefined },
+  input: { mime?: string | undefined; transcriptLanguage?: "en" | "he" | "yi" | "fr" | undefined },
   db: Db = getDb(),
 ): Promise<RecordingDto> {
   const m = await membership(db, identity, roomId);
@@ -190,7 +190,13 @@ export async function startRecording(
       if (running) throw new ApiError(409, "recording.already_running");
       const [row] = await tx
         .insert(sessionRecordings)
-        .values({ roomId, ownerUserId: identity.userId, title: m.title, mime: input.mime ?? null })
+        .values({
+          roomId,
+          ownerUserId: identity.userId,
+          title: m.title,
+          mime: input.mime ?? null,
+          transcriptLanguage: input.transcriptLanguage ?? "en",
+        })
         .returning({ id: sessionRecordings.id });
       return row!.id;
     })
@@ -585,5 +591,36 @@ async function byRange(
     bytes: body,
     contentType,
     headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${size}` },
+  };
+}
+
+/** Spec 054: a ready recording's transcript, once Sofer.ai has made it; 404 recording.no_transcript until then. */
+export async function getAssetTranscript(assetId: string, db: Db = getDb(), objects = objectStore()): Promise<unknown> {
+  await readyAsset(db, assetId);
+  const bytes = await objects.get(assetKey(assetId, "transcript.json"));
+  if (!bytes) throw new ApiError(404, "recording.no_transcript");
+  return JSON.parse(new TextDecoder().decode(bytes)) as unknown;
+}
+
+/** Spec 054: a processed recording's audio, by byte range; 404 recording.not_processed before processing made it. */
+export async function getAssetAudio(assetId: string, range: string | null = null, db: Db = getDb()): Promise<MediaAnswer> {
+  await readyAsset(db, assetId);
+  const objects = objectStore();
+  const key = assetKey(assetId, "audio.m4a");
+  const size = await objects.size(key);
+  if (size === null) throw new ApiError(404, "recording.not_processed");
+  const r = parseRange(range, size);
+  if (r === "unsatisfiable") throw new ApiError(416, "request.range_not_satisfiable", { "content-range": `bytes */${size}` });
+  if (r === null) {
+    const bytes = (await objects.getRange(key, 0, size - 1)) ?? new Uint8Array();
+    return { status: 200, bytes, contentType: "audio/mp4", headers: { "accept-ranges": "bytes" } };
+  }
+  const [start, wanted] = r;
+  const bytes = (await objects.getRange(key, start, Math.min(wanted, start + MAX_RANGE_BYTES - 1))) ?? new Uint8Array();
+  return {
+    status: 206,
+    bytes,
+    contentType: "audio/mp4",
+    headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${start + bytes.byteLength - 1}/${size}` },
   };
 }
