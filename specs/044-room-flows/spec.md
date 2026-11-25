@@ -1,7 +1,7 @@
 ---
 id: "044"
 title: People start, find, invite to, rename, delete and leave rooms from the interface
-status: draft
+status: approved
 features: [ROOM-046, ROOM-047, ROOM-048, ROOM-049, ROOM-050]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, rooms, room-lobby, recording]
