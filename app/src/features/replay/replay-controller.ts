@@ -171,7 +171,11 @@ export function createReplayController({
         // Spec 053: chapters and whether there is video, once the recording is processed (spec 052); none before.
         const manifest = api.getManifest ? await api.getManifest(recordingId).catch(() => null) : null;
         if (!live()) return;
-        const transcript = api.getTranscript ? await api.getTranscript(recordingId).catch(() => null) : null;
+        // Spec 054: asked for only when the manifest says it is ready (never a request bound to answer 404).
+        const transcript =
+          manifest?.transcript?.status === "ready" && api.getTranscript
+            ? await api.getTranscript(recordingId).catch(() => null)
+            : null;
         if (!live()) return;
         let url: string;
         let owned = false;

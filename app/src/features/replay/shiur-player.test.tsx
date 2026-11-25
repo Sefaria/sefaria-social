@@ -85,7 +85,12 @@ async function setup(opts: { hasVideo?: boolean; lang?: "english" | "hebrew"; tr
     deleteRecording: vi.fn(async () => undefined),
     getRecording: vi.fn(async () => ({ id: REC, durationMs: 20_000 })),
     getState: vi.fn(async () => track()),
-    getManifest: vi.fn(async () => ({ durationMs: 20_000, hasVideo: opts.hasVideo ?? true, chapters })),
+    getManifest: vi.fn(async () => ({
+      durationMs: 20_000,
+      hasVideo: opts.hasVideo ?? true,
+      chapters,
+      ...(opts.transcript ? { transcript: { status: "ready" } } : {}),
+    })),
     getMedia: vi.fn(async () => new Blob([new Uint8Array(10)])),
     getTranscript: vi.fn(async () => (opts.transcript ? { words } : null)),
   } as ApiModule.ReplayApi;

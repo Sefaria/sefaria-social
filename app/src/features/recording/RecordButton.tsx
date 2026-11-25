@@ -68,7 +68,9 @@ export function RecordToggle({ roomId }: { roomId: string }) {
   const view = useRecordingView(controller);
   const [, tick] = useState(0);
   // Spec 054 (D10): the transcript's language, chosen before recording starts; remembered for next time.
-  const [language, setLanguage] = useState<TranscriptLanguage>(rememberedLanguage);
+  // English first, the remembered choice after mounting: the same first render on the server and in the browser.
+  const [language, setLanguage] = useState<TranscriptLanguage>("en");
+  useEffect(() => setLanguage(rememberedLanguage()), []);
   const running = view.kind === "recording" && !view.paused;
   useEffect(() => {
     if (!running) return;

@@ -90,7 +90,6 @@ describe("replay controller", () => {
       `${API}/api/v1/recordings/${REC}`,
       `${API}/api/v1/recordings/${REC}/state`,
       `${API}/api/v1/assets/${REC}/manifest`, // spec 053: its chapters, once processed (here: none, 404)
-      `${API}/api/v1/assets/${REC}/transcript`, // spec 054: its transcript, once made (here: none, 404)
       `${API}/api/v1/recordings/${REC}/media`,
     ]);
     expect(requests.every((r) => /^Bearer [\w-]+\.[\w-]+\.[\w-]+$/.test(r.auth ?? ""))).toBe(true);

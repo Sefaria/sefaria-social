@@ -31,6 +31,8 @@ const manifestSchema = z.object({
   chapters: z
     .array(z.object({ t: z.number().finite().nonnegative(), ref: z.string(), heRef: z.string().nullable().optional() }))
     .optional(),
+  /** Spec 054: the transcript's state; the transcript is asked for only once it is ready. */
+  transcript: z.object({ status: z.string() }).loose().optional(),
 });
 export type AssetManifest = z.infer<typeof manifestSchema>;
 

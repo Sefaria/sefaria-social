@@ -26,10 +26,16 @@ export function transcriptLines(words: readonly Word[]): Word[][] {
 
 /** The line being spoken at `t`: the last one that starts at or before it, while it has not long ended. */
 export function lineAt(lines: readonly Word[][], t: number): Word[] | null {
+  // The last line that starts at or before t (binary search: a long shiur has thousands of lines, asked every frame).
+  let lo = 0;
+  let hi = lines.length - 1;
   let found: Word[] | null = null;
-  for (const l of lines) {
-    if (l[0]!.s <= t) found = l;
-    else break;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (lines[mid]![0]!.s <= t) {
+      found = lines[mid]!;
+      lo = mid + 1;
+    } else hi = mid - 1;
   }
   return found && t <= found.at(-1)!.e + 2_000 ? found : null;
 }
@@ -195,7 +201,11 @@ export function ReplayBar({
       {showTranscript && lines.length > 0 && (
         <p className={styles.transcriptLine} data-transcript-line="" dir="auto">
           {spoken?.map((w, i) => (
-            <span key={`${w.s}:${i}`} data-spoken={(w.s <= view.t && view.t < w.e) || undefined}>
+            <span
+              key={`${w.s}:${i}`}
+              data-spoken={(w.s <= view.t && view.t < w.e) || undefined}
+              aria-current={w.s <= view.t && view.t < w.e ? "true" : undefined}
+            >
               {w.w}{" "}
             </span>
           ))}
