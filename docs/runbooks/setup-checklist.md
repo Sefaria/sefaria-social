@@ -219,3 +219,19 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       page's rail, and the linux PNGs were regenerated in the official Playwright 1.65.1 Ubuntu 24.04 container (CI renders on
       ubuntu-latest with `playwright install --with-deps chromium`). If CI's fonts differ, regenerate them from CI's own run.
       Added by spec 023.
+
+## Added by the shiur plan (`docs/plans/shiur.md`, specs 048–056)
+
+- [ ] **Confirm or change the open points** in `docs/plans/shiur.md` section 8 (the 2-minute grace, a new session in a closed
+      room, one card per post, signed-out viewing of a live session, retention and size limits, editing an asset). Until then
+      the specs build them as proposed and list them in `docs/plans/shiur-progress.md`. Added by the shiur plan.
+- [ ] **Sofer.ai API key**: request one from their support (`https://docs.sofer.ai`), and set it as the secret
+      `SOFER_API_KEY` for each environment that should produce transcripts. Without it transcripts are `unavailable` and
+      everything else works. Ask them about WebM or M4A input and the maximum file size and length. Needed by spec 054.
+- [ ] **Object storage bucket** for assets, one per environment (or name an existing one), with the social server given
+      read and write access through workload identity where the platform allows, otherwise a secret. Say which bucket the
+      Coolify dev server and previews use. Needed by specs 051 and 052.
+- [ ] **Approve specs 048–056** as each draft is ready: `npm run factory -- approve NNN --by YOUR_EMAIL`, then
+      `npm run factory -- compile NNN`, and commit `specs/approvals.json` and the work order. Added by the shiur plan.
+- [ ] **Record once on the dev server** with the camera on for more than a minute, to confirm the upload fix of #33 with a
+      signed-in session (only the size cap was probed). Added by the shiur plan.
