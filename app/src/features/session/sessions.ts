@@ -11,6 +11,7 @@ import {
 } from "@sefaria-social/session";
 import type { SurfaceHost } from "@sefaria-social/host-contract";
 import { pageTextSource } from "~/lib/sefaria-text";
+import { drifted } from "./place";
 import { roomReader, type RoomReader } from "./room-reader";
 import { documentHostFor } from "~/features/host/document-host";
 
@@ -101,6 +102,8 @@ export function createRoomSessions(host: SurfaceHost, makeTransport: TransportFa
       self,
       clientName: "sefaria-social",
       canPublish: opts.canPublish ?? (() => policy.canPublish(roomId)),
+      // Spec 048: a follower breaks away only by a clear move, never by a click (features/session/place.ts).
+      drifted,
     });
     const s = { roomId, client, reader, holds: new Set<Hold>(), counts: new Map<Hold, number>() };
     sessions.set(roomId, s);

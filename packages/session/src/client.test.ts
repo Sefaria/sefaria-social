@@ -18,7 +18,7 @@ import type {
   TransportStatus,
 } from "./core/types";
 import type { AnyEnvelope, LeadershipMode, Participant, ParticipantId } from "./protocol";
-import { createSessionClient, type StreamFactories } from "./client";
+import { createSessionClient, type SessionClientOptions, type StreamFactories } from "./client";
 
 // The core's stream module is another task's; these tests inject their own streams, so only the import has to resolve.
 vi.mock("./core/stream", () => ({
@@ -203,11 +203,18 @@ const change = (from: ParticipantId, url: string, seq: number, term?: number): A
   body: { type: "change", seq, t: 0, change: { url } },
 });
 
-function setup(initial: TransportStatus = "open") {
+function setup(initial: TransportStatus = "open", extra: Partial<SessionClientOptions> = {}) {
   const a = fakeApi();
   const s = fakeStreams();
   const t = controllableTransport(initial);
-  const client = createSessionClient({ api: a.api, transport: t.transport, self: me, streams: s.factories, clientName: "test" });
+  const client = createSessionClient({
+    api: a.api,
+    transport: t.transport,
+    self: me,
+    streams: s.factories,
+    clientName: "test",
+    ...extra,
+  });
   const resyncs = () =>
     t.sent.filter((e) => e.ch === "state" && e.body.type === "resync").map((e) => (e.body as { of: string }).of);
   const presence = () => t.sent.filter((e) => e.ch === "presence").map((e) => e.body);
@@ -540,5 +547,97 @@ describe("createSessionClient", () => {
     expect(client.getState().status).toBe("live");
     expect(a.urls()).toEqual(["/Exodus.3"]);
     client.stop();
+  });
+
+  describe("spec 048: sticky following, and the leader takes followers along", () => {
+    /** A test comparator over `/Book.chapter.segment` urls: another book or chapter, or 5 or more segments apart, is away. */
+    const drifted = (mine: ReaderSnapshot, theirs: ReaderSnapshot) => {
+      const place = (url: string) => {
+        const [book = "", chapter = "", segment = "0"] = url.replace(/^\//, "").split(".");
+        return { section: `${book}.${chapter}`, segment: Number(segment) };
+      };
+      const m = place(mine.url);
+      const t = place(theirs.url);
+      return m.section !== t.section || Math.abs(m.segment - t.segment) >= 5;
+    };
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    async function following(url = "/Genesis.1.3") {
+      const ctx = setup("open", { drifted, settleMs: 10 });
+      ctx.t.deliver(people(me, reader1));
+      ctx.t.deliver(roomMsg("reader1", 1));
+      ctx.t.deliver(keyframe("reader1", url, 0, 1));
+      await flush();
+      return ctx;
+    }
+
+    // @ac 048/AC-001
+    // @feature SESS-070 Sticky following: break away only by a clear move
+    it("keeps a follower following through clicks that do not move the reader", async () => {
+      const { a, client } = await following();
+      a.input();
+      a.input();
+      expect(client.getState().status).toBe("live");
+      await wait(30);
+      expect(client.getState().status).toBe("live");
+    });
+
+    // @ac 048/AC-002
+    // @feature SESS-070 Sticky following: break away only by a clear move
+    it("keeps following after a move of fewer than 5 segments, and the next move brings the follower along", async () => {
+      const { a, t, client } = await following();
+      a.input();
+      a.localChange("/Genesis.1.6");
+      expect(client.getState().status).toBe("live");
+      await wait(30);
+      expect(client.getState().status).toBe("live");
+      t.deliver(change("reader1", "/Genesis.1.10", 1, 1));
+      await flush();
+      expect(a.urls().at(-1)).toBe("/Genesis.1.10");
+    });
+
+    // @ac 048/AC-003
+    // @feature SESS-070 Sticky following: break away only by a clear move
+    it("breaks away once the reader settles 5 or more segments away, or in another section", async () => {
+      // A scroll: the reader moved without a new address; the comparison waits until it is still.
+      const far = await following();
+      far.a.localChange("/Genesis.1.8");
+      far.a.input();
+      expect(far.client.getState().status).toBe("live");
+      await wait(30);
+      expect(far.client.getState().status).toBe("paused");
+
+      // A link to another section: a finished move, compared as soon as the address changes.
+      const other = await following();
+      other.a.input();
+      expect(other.client.getState().status).toBe("live");
+      other.a.localChange("/Genesis.2.3");
+      expect(other.client.getState().status).toBe("paused");
+    });
+
+    // @ac 048/AC-008
+    // @feature SESS-072 Follow a person by clicking them; the leader takes followers along
+    it("passes on a move the leader took from someone they follow, once per move", async () => {
+      const { t, s, client } = setup();
+      t.deliver(people(me, reader1, reader2));
+      t.deliver(roomMsg("me", 1));
+      expect(client.getState().status).toBe("leading");
+      const keyframesSent = () =>
+        t.sent
+          .filter((e) => e.ch === "state" && e.body.type === "keyframe")
+          .map((e) => (e.body as { snapshot: ReaderSnapshot }).snapshot.url);
+      const before = keyframesSent().length;
+
+      client.follow("reader2");
+      t.deliver(keyframe("reader2", "/Exodus.3", 0));
+      await wait(200);
+      expect(keyframesSent().slice(before)).toEqual(["/Exodus.3"]);
+      expect(s.writers[0]!.stopped).toBe(false);
+
+      // The same place again (reader2 answering with what it got from us) is not sent back.
+      t.deliver(keyframe("reader2", "/Exodus.3", 1));
+      await wait(200);
+      expect(keyframesSent().slice(before)).toEqual(["/Exodus.3"]);
+    });
   });
 });
