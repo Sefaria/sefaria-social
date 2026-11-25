@@ -11,6 +11,7 @@ import type * as HostContextModule from "~/features/host/host-context";
 import type * as StartModule from "./StartRoom";
 import type * as PageModule from "./RoomsPage";
 import type * as NoticeModule from "./notice";
+import type * as BarModule from "./RoomsBar";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const mods = {
@@ -19,6 +20,7 @@ const mods = {
   start: import.meta.glob<typeof StartModule>("./StartRoom.tsx"),
   page: import.meta.glob<typeof PageModule>("./RoomsPage.tsx"),
   notice: import.meta.glob<typeof NoticeModule>("./notice.ts"),
+  bar: import.meta.glob<typeof BarModule>("./RoomsBar.tsx"),
 };
 
 const room = (id: string, title: string, role: "owner" | "member") => ({
@@ -100,6 +102,18 @@ const click = async (el: Element | null) => {
   expect(el).not.toBeNull();
   await act(async () => (el as HTMLElement).click());
 };
+
+describe("the rail's ways into rooms (spec 044)", () => {
+  // @feature ROOM-046 Start a room from Social and land in its lobby
+  // @ac 044/AC-007
+  it("offers Start a room and a link to all the viewer's rooms", async () => {
+    const bar = await mods.bar["./RoomsBar.tsx"]?.();
+    expect(bar, "app/src/features/rooms/RoomsBar.tsx exists").toBeDefined();
+    const { el } = await mount(createElement(bar!.RoomsBar), fakeApi());
+    expect(el.querySelector("[data-rooms-bar] [data-action=start-room]")?.textContent).toBe("Start a room");
+    expect(el.querySelector("[data-rooms-bar] a")?.getAttribute("href")).toContain("/social/rooms");
+  });
+});
 
 describe("start a room (spec 044)", () => {
   // @feature ROOM-046 Start a room from Social and land in its lobby

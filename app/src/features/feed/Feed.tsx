@@ -1,4 +1,4 @@
-// The feed (spec 015), with Start a room and All rooms above it (spec 044): the viewer's live rooms, upcoming shiurim and other rooms, as light cards (spec 016). One request to
+// The feed (spec 015), saying when the viewer is in no room yet (spec 044): the viewer's live rooms, upcoming shiurim and other rooms, as light cards (spec 016). One request to
 // the social API, read again every 30 seconds while the page is open; no socket (plan 4.5). Signed out, it asks the reader
 // to sign the person in (R17) and requests nothing.
 import { useCallback, useEffect, useState, type ReactNode } from "react";
@@ -6,8 +6,6 @@ import { useHost, useInterfaceLang } from "~/features/host/host-context";
 import { useViewer } from "~/features/host/use-viewer";
 import { langAttrs } from "~/features/shell/strings";
 import { useStrings } from "~/features/shell/use-strings";
-import { HostLink } from "~/features/host/HostLink";
-import { StartRoom } from "~/features/rooms/StartRoom";
 import kit from "~/ui/kit.module.css";
 import { FeedCard, type CardItem } from "./FeedCard";
 import { HomePage } from "./HomePage";
@@ -91,13 +89,6 @@ export function Feed() {
             empty={t.feedRecentEmpty}
             items={state.feed.recent.map((room) => ({ kind: "recent", room }))}
           />
-          {/* Spec 044 AC-007: the ways into rooms, after the sections so the cards keep their place — start one, or see them all. */}
-          <div className={styles.roomsBar} data-rooms-bar="">
-            <StartRoom variant="secondary" />
-            <HostLink to="/social/rooms" className={kit.link}>
-              {t.allRooms}
-            </HostLink>
-          </div>
         </>
       )}
     </div>

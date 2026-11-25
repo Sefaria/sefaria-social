@@ -37,12 +37,3 @@
   justify-items: start;
   gap: var(--sefaria-space-3, 0.75rem);
 }
-
-/* Spec 044: Start a room and All rooms above the rail's sections. */
-.roomsBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sefaria-space-3, 12px);
-}
