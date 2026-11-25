@@ -31,7 +31,7 @@ alone. Design: `docs/design/room-flows.md`.
   and show the new title; Save SHALL be disabled for a blank name and a failure SHALL say "The name could not be saved."
 - AC-005 WHEN the owner presses Delete room THE SYSTEM SHALL ask "Delete “Title”? Its recordings will be deleted too, and no one
   will be able to open it." and, on Delete, close any session of that room in this browser, delete it with `DELETE
-  /api/v1/rooms/:id`, and open `/social/rooms` saying "“Title” was deleted."
+/api/v1/rooms/:id`, and open `/social/rooms` saying "“Title” was deleted."
 - AC-006 WHEN a member who is not the owner presses Leave room THE SYSTEM SHALL ask "Leave “Title”? You can come back with its
   link." and, on Leave, close any session of that room in this browser, leave with `DELETE /api/v1/rooms/:id/members/me`, and open
   `/social/rooms` saying "You left “Title”."; the owner SHALL not be offered Leave

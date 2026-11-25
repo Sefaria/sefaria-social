@@ -5,14 +5,14 @@ Design: `docs/design/session-recording-and-broadcast.md` §4.
 ## T-001 Recordings on the server (AC-001 – AC-006 server side)
 
 - **Binary bodies.** `server/http/endpoint.ts`: an endpoint may declare `binaryBody: { maxBytes }` (the handler gets `bytes:
-  Uint8Array`, 413 `request.too_large` over the cap, read after access is checked) and a response with `binary: true` (the handler
+Uint8Array`, 413 `request.too_large` over the cap, read after access is checked) and a response with `binary: true` (the handler
   returns `{ status, body: Uint8Array, contentType }` and the wrapper writes it as is). The OpenAPI generator describes both.
 - **Tables.** Migration `0005_session_recordings.sql` (expand only): `session_recordings (id uuid pk default gen_random_uuid(),
-  room_id → rooms on delete cascade, owner_user_id bigint not null, title text, status text check in (recording, ready, failed),
-  mime text, started_at, finished_at, last_upload_at, duration_ms int, media_bytes bigint default 0, state_messages int default
-  0, created_at)`, a partial unique index on `room_id where status = 'recording'`, `recording_media_chunks (recording_id →
-  cascade, seq int, bytes bytea, pk(recording_id, seq))`, `recording_state_chunks (recording_id → cascade, first_seq int, last_seq
-  int, messages jsonb, pk(recording_id, first_seq))`.
+room_id → rooms on delete cascade, owner_user_id bigint not null, title text, status text check in (recording, ready, failed),
+mime text, started_at, finished_at, last_upload_at, duration_ms int, media_bytes bigint default 0, state_messages int default
+0, created_at)`, a partial unique index on `room_id where status = 'recording'`, `recording_media_chunks (recording_id →
+cascade, seq int, bytes bytea, pk(recording_id, seq))`, `recording_state_chunks (recording_id → cascade, first_seq int, last_seq
+int, messages jsonb, pk(recording_id, first_seq))`.
 - **Store.** `services/recording-store.ts`: `RecordingStore { putMedia, mediaChunks, putState, stateMessages, remove }` and
   `postgresStore`.
 - **Service.** `services/recordings.ts`: `startRecording` (owner, enabled, none running), `putMedia` (recorder, `recording`, next

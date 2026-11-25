@@ -62,16 +62,16 @@ the whole life of a room can be used, and tested, from the interface alone.
 
 ## 4. States and copy
 
-| Place | Empty / signed out / error |
-|---|---|
-| Home rail, no rooms | "You are not in any room yet." + Start a room |
-| Rooms page, none | same, with Start a room |
-| Rooms page, signed out | "Sign in to see your rooms." + Sign in |
-| Start dialog | Start disabled until a name is typed; a failed create keeps the dialog open with "The room could not be created." |
-| Rename | Save disabled for an empty name; failure: "The name could not be saved." |
-| Delete | "Delete “Title”? Its recordings will be deleted too, and no one will be able to open it." Delete / Cancel |
-| Leave | "Leave “Title”? You can come back with its link." Leave / Cancel |
-| After delete / leave | Rooms page: "“Title” was deleted." / "You left “Title”." |
+| Place                  | Empty / signed out / error                                                                                        |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Home rail, no rooms    | "You are not in any room yet." + Start a room                                                                     |
+| Rooms page, none       | same, with Start a room                                                                                           |
+| Rooms page, signed out | "Sign in to see your rooms." + Sign in                                                                            |
+| Start dialog           | Start disabled until a name is typed; a failed create keeps the dialog open with "The room could not be created." |
+| Rename                 | Save disabled for an empty name; failure: "The name could not be saved."                                          |
+| Delete                 | "Delete “Title”? Its recordings will be deleted too, and no one will be able to open it." Delete / Cancel         |
+| Leave                  | "Leave “Title”? You can come back with its link." Leave / Cancel                                                  |
+| After delete / leave   | Rooms page: "“Title” was deleted." / "You left “Title”."                                                          |
 
 ## 5. QA surfaces
 

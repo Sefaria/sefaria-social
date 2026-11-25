@@ -21,7 +21,7 @@ Hiding controls in the interface is not enough; the servers must refuse what a v
 
 - AC-001 WHEN a room's owner posts `POST /api/v1/rooms/:roomId/broadcasts` THE SYSTEM SHALL start a broadcast and answer 201 with
   its id and link `/social/b/:id`; others SHALL get 403 (member) or 404; a second while one is live SHALL get 409; `POST
-  /api/v1/broadcasts/:id/end` by its host SHALL end it
+/api/v1/broadcasts/:id/end` by its host SHALL end it
 - AC-002 WHEN a signed-in user asks for a broadcast's ticket THE SYSTEM SHALL answer with a ticket signed with the relay secret
   naming the broadcast, the user, the role (`host` for its host, `viewer` for anyone else) and an expiry 10 minutes ahead; for an
   ended or unknown broadcast it SHALL answer 404

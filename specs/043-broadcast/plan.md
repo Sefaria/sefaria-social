@@ -5,13 +5,13 @@ Design: `docs/design/session-recording-and-broadcast.md` §6.
 ## T-001 Broadcasts, tickets and call grants on the server (AC-001, AC-002, AC-005)
 
 - Migration `0006_broadcasts.sql` (expand only): `broadcasts (id uuid pk, room_id → rooms cascade, host_user_id bigint, title,
-  status live|ended, started_at, ended_at)`, partial unique index on `room_id where status = 'live'`.
+status live|ended, started_at, ended_at)`, partial unique index on `room_id where status = 'live'`.
 - `server/broadcast-ticket.ts`: `signTicket({ b, sub, role, exp }, secret)` / `verifyTicket(ticket, secret, now)`; payload and
   signature base64url, HMAC-SHA256 with Web Crypto (the relay uses the same code shape).
 - `services/broadcasts.ts`: `startBroadcast` (room owner, one live), `endBroadcast` (host), `getBroadcast` (signed-in; title,
   host name, status, viewers from the relay status), `broadcastTicket` (role by user; 404 when ended; 503 without a relay secret),
   `broadcastCallToken` (`services/livekit.ts` `mintBroadcastToken`: host publishes, viewer `canPublish: false, canPublishData:
-  false, canSubscribe: true, hidden: true`; room `bcast_<id>`).
+false, canSubscribe: true, hidden: true`; room `bcast_<id>`).
 - Routes: `rooms.$roomId.broadcasts.ts` (POST), `broadcasts.$broadcastId.ts` (GET), `broadcasts.$broadcastId.end.ts`,
   `broadcasts.$broadcastId.ticket.ts`, `broadcasts.$broadcastId.call.token.ts`. Contracts, OpenAPI, client. Deletion and the
   schema walk cover `host_user_id`.

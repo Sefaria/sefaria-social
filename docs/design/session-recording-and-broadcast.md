@@ -79,9 +79,10 @@ fold the changes after it).
 ### 4.2 The clock
 
 `t0` is the moment the `MediaRecorder` starts. The state writer is created at the same moment with `now = () => performance.now()
-- t0`, so a state message's `t` and the media's `currentTime * 1000` are the same timeline. The media track always spans the whole
-recording: when there is no call, or the recorder is not in it, the compositor draws a card (room title, "No call") and the mixer
-is silent, so the clock never runs out early.
+
+- t0`, so a state message's `t`and the media's`currentTime * 1000` are the same timeline. The media track always spans the whole
+  recording: when there is no call, or the recorder is not in it, the compositor draws a card (room title, "No call") and the mixer
+  is silent, so the clock never runs out early.
 
 ### 4.3 State track
 
@@ -136,7 +137,7 @@ recording_state_chunks  recording_id → session_recordings (cascade) · seq int
   URL. The state track is fetched once and parsed with the session schema.
 - **Driving the reader:** on every `timeupdate`/`seeked` and on a 250 ms timer while playing, the player computes `snapshotAt(t)`
   and, when it differs from the last applied one, calls `host.reader.state.applySnapshot(snapshot, { origin: "playback", persist:
-  false })`, one at a time (newer requests collapse). Personal settings are never in the track (moment scope), so a replay never
+false })`, one at a time (newer requests collapse). Personal settings are never in the track (moment scope), so a replay never
   changes the viewer's language or layout preferences.
 - **Leaving the recording:** local input in the reader (`onLocalInput`) detaches the reader: the media keeps playing, the bar
   says "You left the recording" with **Back to the recording**, which applies the current point. Pause pauses both. Close stops
@@ -148,7 +149,7 @@ recording_state_chunks  recording_id → session_recordings (cascade) · seq int
 
 - A **broadcast** belongs to a room and is started by its owner: `POST /api/v1/rooms/:roomId/broadcasts` → `{ id, link }`;
   `POST /api/v1/broadcasts/:id/end`. Table `broadcasts`: `id, room_id, host_user_id, title, status live|ended, started_at,
-  ended_at`. One live broadcast per room.
+ended_at`. One live broadcast per room.
 - **Who may watch:** anyone signed in who has the link `/social/b/:id` (not only room members: that is the point of a broadcast).
   Signed-out visitors are asked to sign in.
 - **What a viewer gets:** the host's reader, followed (break away and come back, as when following in a room), the host's audio
@@ -162,7 +163,7 @@ recording_state_chunks  recording_id → session_recordings (cascade) · seq int
 - **Relay:** a room id starting `b_` is a broadcast room. The Worker requires a ticket in `Sec-WebSocket-Protocol`
   (`ticket.<ticket>`) besides the identity token, checks the signature, expiry, room and that `sub` is the token's user, and
   passes the role to the room object with the identity. In the room object, a viewer's `join` is rewritten to `{ isHost: false,
-  canLead: false }` and a host's to `{ isHost: true, canLead: true }`; a viewer's messages other than `control.join`,
+canLead: false }` and a host's to `{ isHost: true, canLead: true }`; a viewer's messages other than `control.join`,
   `control.leave`, `state.hello` and `state.resync` are dropped before the room sees them; and the participants list a viewer
   receives lists the host only (viewers do not see each other). Ordinary rooms are unchanged.
 - **LiveKit:** room `bcast_<id>`. `POST /api/v1/broadcasts/:id/call/token`: host → publish grant (as a call owner); viewer →
@@ -211,8 +212,8 @@ writes MP4, which the player plays but which is untested); recordings longer tha
 
 ## 10. Work items
 
-| Spec | What                                                                                       | Risk |
-| ---- | ------------------------------------------------------------------------------------------ | ---- |
-| 041  | Record a room's session: tables, upload API, recorder (state + media), consent badges       | high (migration) |
-| 042  | Replay a recording in the reader: recording page, lobby list, player in the floating window | normal |
+| Spec | What                                                                                        | Risk              |
+| ---- | ------------------------------------------------------------------------------------------- | ----------------- |
+| 041  | Record a room's session: tables, upload API, recorder (state + media), consent badges       | high (migration)  |
+| 042  | Replay a recording in the reader: recording page, lobby list, player in the floating window | normal            |
 | 043  | Broadcast to view-only viewers: tickets, relay viewer role, LiveKit viewer grants, Watch    | high (relay auth) |
