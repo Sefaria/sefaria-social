@@ -22,6 +22,8 @@ export interface ReplayAsset {
   /** False for an audio-only recording (the leader's camera was never on, D13); true when not known. */
   hasVideo: boolean;
   track: Recording;
+  /** Spec 054: the transcript's words with their times (ms), or null when there is none. */
+  transcript: { w: string; s: number; e: number }[] | null;
 }
 
 export type ReplayView =
@@ -169,6 +171,8 @@ export function createReplayController({
         // Spec 053: chapters and whether there is video, once the recording is processed (spec 052); none before.
         const manifest = api.getManifest ? await api.getManifest(recordingId).catch(() => null) : null;
         if (!live()) return;
+        const transcript = api.getTranscript ? await api.getTranscript(recordingId).catch(() => null) : null;
+        if (!live()) return;
         let url: string;
         let owned = false;
         if (manifest) {
@@ -199,6 +203,7 @@ export function createReplayController({
           chapters: (manifest?.chapters ?? []).map((c) => ({ t: c.t, ref: c.ref, heRef: c.heRef ?? null })),
           hasVideo: manifest?.hasVideo ?? true,
           track,
+          transcript: transcript?.words ?? null,
         };
         current = { player, media, url: owned ? url : "", offPlayer, asset };
         set({ kind: "ready", recordingId, player: player.view() });

@@ -33,6 +33,12 @@ const manifestSchema = z.object({
     .optional(),
 });
 export type AssetManifest = z.infer<typeof manifestSchema>;
+
+/** A shiur's transcript (spec 054): its words with their times in ms. */
+const transcriptSchema = z.object({
+  words: z.array(z.object({ w: z.string(), s: z.number().finite().nonnegative(), e: z.number().finite().nonnegative() })),
+});
+export type AssetTranscript = z.infer<typeof transcriptSchema>;
 export type RecordingMeta = z.infer<typeof recordingMetaSchema>;
 const recordingListSchema = z.object({ recordings: z.array(recordingMetaSchema) });
 
@@ -54,6 +60,8 @@ export interface ReplayApi {
   getState(recordingId: string): Promise<unknown>;
   /** Spec 053: the processed recording's manifest (chapters, video or not), or null before it is processed. Optional for fakes. */
   getManifest?(recordingId: string): Promise<AssetManifest | null>;
+  /** Spec 054: the shiur's transcript, or null when it has none (yet). Optional for fakes. */
+  getTranscript?(recordingId: string): Promise<AssetTranscript | null>;
   /** The media as one Blob. `onProgress` hears bytes received and the total when known. */
   getMedia(
     recordingId: string,
@@ -120,6 +128,16 @@ export function createReplayApi(host: SurfaceHost, fetchImpl: typeof fetch = (..
       try {
         const response = await request(asset(recordingId, "/manifest"));
         const parsed = manifestSchema.safeParse(await response.json().catch(() => null));
+        return parsed.success ? parsed.data : null;
+      } catch (e) {
+        if (e instanceof ReplayApiError && e.status === 404) return null;
+        throw e;
+      }
+    },
+    async getTranscript(recordingId) {
+      try {
+        const response = await request(asset(recordingId, "/transcript"));
+        const parsed = transcriptSchema.safeParse(await response.json().catch(() => null));
         return parsed.success ? parsed.data : null;
       } catch (e) {
         if (e instanceof ReplayApiError && e.status === 404) return null;

@@ -38,3 +38,11 @@
   padding-block: var(--sefaria-space-1);
   color: var(--sefaria-color-text-muted);
 }
+
+/* Spec 054: the transcript's language, beside Record. */
+.language {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sefaria-space-1, 4px);
+  font-size: 0.8125rem;
+}
