@@ -62,8 +62,8 @@ Newest first. One or two lines per entry: what changed, and anything the next se
 - 2026-11-25: Group D (055, 056) built on `m/shiur-group-d`, draft PR #36. Migrations `0007_post_embeds`, `0008_live_status`.
   The relay needs a new variable, `SOCIAL_SERVER_URL` (setup checklist); until then the server reads the relay's status.
   The card's poller watches only cards on screen: in the harness the reader pane pushes the timeline below the fold, so
-  e2e tests scroll a card into view. Built independently of group A; once 048 lands, only the owner holds the spotlight,
-  so `e2e/live-cards.spec.ts` already has the room's owner publish.
+  e2e tests scroll a card into view. Rebased onto main after group A merged (#35): the live-card journey's publisher owns
+  its room and offers its owner ticket, since only the owner holds the spotlight (048).
 - 2026-11-25: Group A review fixes. Known limits left: an owner's second tab displaces the first in the relay (older
   rule), so the 2-minute end can start while the first tab is open; a room ticket fetch that fails on the network makes the
   owner a member until the socket reconnects. The broadcast relay test's join order was a race: the relay test helper now
