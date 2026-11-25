@@ -3,7 +3,7 @@
 // card's source inside the same document (no reload); Back returns to the feed. Desktop only: several browser contexts.
 import { expect, test, type Page } from "@playwright/test";
 import { STACK } from "./stack/config";
-import { createRoom, feedOf, publish, type LiveRoom } from "./stack/publisher";
+import { createRoom, feedOf, joinRoom, publish, type LiveRoom } from "./stack/publisher";
 import { tokenFor, type Persona } from "./stack/tokens";
 
 const VIEWER: Persona = { id: 7301, name: "Feed Viewer" };
@@ -23,7 +23,10 @@ test.describe("the feed", () => {
   }) => {
     const token = await tokenFor(VIEWER);
     const titles = ["Bereshit together", "Shemot study", "Tehillim"];
-    const rooms = await Promise.all(titles.map((t) => createRoom(token, t)));
+    // The publisher owns the rooms (only the owner leads, spec 048); the viewer is a member of each.
+    const publisherToken = await tokenFor(PUBLISHER);
+    const rooms = await Promise.all(titles.map((t) => createRoom(publisherToken, t)));
+    await Promise.all(rooms.map((r) => joinRoom(token, r.id)));
     const live: LiveRoom[] = [
       { roomId: rooms[0]!.id, url: "/Genesis.1", summary: { ref: "Genesis 1", heRef: "בראשית א׳", title: "Genesis" } },
       { roomId: rooms[1]!.id, url: "/Exodus.3", summary: { ref: "Exodus 3", heRef: "שמות ג׳", title: "Exodus" } },

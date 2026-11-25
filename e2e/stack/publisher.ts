@@ -1,7 +1,8 @@
 // Makes rooms live for the feed journeys (specs 016 and 018): a separate page on the harness origin (the relay checks the
 // page's Origin) opens one raw WebSocket per room to the local relay, joins first (so it holds the spotlight) and publishes
 // a keyframe at `url` with the summary slice, as a publisher's client would. Its sockets are its own page's, so a test that
-// counts the viewer's sockets does not see them.
+// counts the viewer's sockets does not see them. It offers the room's relay ticket (spec 048): only the owner's makes it a
+// leader, so the publisher must own the rooms it publishes (createRoom with its token).
 import type { Browser, BrowserContext } from "@playwright/test";
 import { STACK } from "./config";
 import { tokenFor, type Persona } from "./tokens";
@@ -17,11 +18,24 @@ export async function publish(browser: Browser, persona: Persona, rooms: LiveRoo
   const page = await context.newPage();
   await page.goto("/social/settings"); // any harness page: only its origin matters
   const token = await tokenFor(persona);
+  const tickets: Record<string, string> = {};
+  for (const room of rooms) {
+    const res = await fetch(`http://127.0.0.1:${STACK.apiPort}/api/v1/rooms/${room.roomId}/ticket`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    if (res.status !== 200) throw new Error(`no relay ticket for ${room.roomId}: ${res.status}`);
+    tickets[room.roomId] = ((await res.json()) as { ticket: string }).ticket;
+  }
   await page.evaluate(
-    async ({ relay, token, rooms, id }) => {
+    async ({ relay, token, rooms, id, tickets }) => {
       const open = (room: (typeof rooms)[number]) =>
         new Promise<void>((resolve, reject) => {
-          const ws = new WebSocket(`${relay}/r/${room.roomId}`, ["sefaria-social.v1", `bearer.${token}`]);
+          const ws = new WebSocket(`${relay}/r/${room.roomId}`, [
+            "sefaria-social.v1",
+            `bearer.${token}`,
+            `ticket.${tickets[room.roomId]}`,
+          ]);
           ws.onerror = () => reject(new Error(`relay refused ${room.roomId}`));
           ws.onopen = () => {
             ws.send(
@@ -44,7 +58,7 @@ export async function publish(browser: Browser, persona: Persona, rooms: LiveRoo
         });
       await Promise.all(rooms.map(open));
     },
-    { relay: `ws://127.0.0.1:${STACK.relayPort}`, token, rooms, id: String(persona.id) },
+    { relay: `ws://127.0.0.1:${STACK.relayPort}`, token, rooms, id: String(persona.id), tickets },
   );
   return context;
 }
@@ -64,4 +78,13 @@ export async function createRoom(token: string, title: string): Promise<{ id: st
   });
   if (res.status !== 201) throw new Error(`room not created: ${res.status}`);
   return res.json() as Promise<{ id: string }>;
+}
+
+/** Join a room as a member with the token's user (the room's link is the invitation, spec 011). */
+export async function joinRoom(token: string, roomId: string): Promise<void> {
+  const res = await fetch(`http://127.0.0.1:${STACK.apiPort}/api/v1/rooms/${roomId}/members`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (res.status >= 300) throw new Error(`could not join ${roomId}: ${res.status}`);
 }

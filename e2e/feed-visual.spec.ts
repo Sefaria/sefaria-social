@@ -4,7 +4,7 @@
 import { expect, test } from "@playwright/test";
 import pg from "pg";
 import { STACK } from "./stack/config";
-import { createRoom, feedOf, publish } from "./stack/publisher";
+import { createRoom, feedOf, joinRoom, publish } from "./stack/publisher";
 import { tokenFor, type Persona } from "./stack/tokens";
 
 const VIEWER: Persona = { id: 7401, name: "Visual Viewer" };
@@ -21,7 +21,9 @@ test.describe("feed visual checks", () => {
   // @ac 016/AC-005
   test("the feed in English, Hebrew and dark matches its baselines", async ({ browser }) => {
     const token = await tokenFor(VIEWER);
-    const live = await createRoom(token, "Bereshit together");
+    // The publisher owns the live room (only the owner leads, spec 048); the viewer is a member.
+    const live = await createRoom(await tokenFor(PUBLISHER), "Bereshit together");
+    await joinRoom(token, live.id);
     const quiet = await createRoom(token, "Mishnah circle");
     const db = new pg.Client({ connectionString: STACK.databaseUrl });
     await db.connect();

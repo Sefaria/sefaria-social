@@ -40,6 +40,9 @@
     - "app/src/server/http/errors.ts"
     - "app/src/api.room-tickets.int.test.ts"
     - "packages/relay/test-support/relay.ts"
+    - "e2e/stack/publisher.ts"
+    - "e2e/feed.spec.ts"
+    - "e2e/feed-visual.spec.ts"
   depends_on: [T-001]
   parallel: false
   completes: [SESS-071]
