@@ -15,6 +15,7 @@ import {
   reactions,
   replies,
   reposts,
+  roomMembers,
   rooms,
   sessionRecordings,
   userDisplay,
@@ -178,6 +179,25 @@ async function embedTargets(
   return new Map(rows.map((r) => [r.id, { title: r.title, leader: r.leader ?? null }]));
 }
 
+/**
+ * Whether this user may post a card for the target (spec 055 AC-002): it exists and they are in its room (owner or member).
+ * A room is members-only; posting it makes its title and live text public (decision 0011 D9), so only its people may.
+ */
+async function mayEmbed(db: Tx, userId: number, kind: EmbedKind, id: string): Promise<boolean> {
+  const roomOf =
+    kind === "room"
+      ? sql`${id}::uuid`
+      : kind === "broadcast"
+        ? sql`(select ${broadcasts.roomId} from ${broadcasts} where ${broadcasts.id} = ${id}::uuid)`
+        : sql`(select ${sessionRecordings.roomId} from ${sessionRecordings} where ${sessionRecordings.id} = ${id}::uuid)`;
+  const [row] = await db
+    .select({ ok: sql<number>`1` })
+    .from(roomMembers)
+    .where(and(eq(roomMembers.userId, userId), sql`${roomMembers.roomId} = ${roomOf}`))
+    .limit(1);
+  return row !== undefined;
+}
+
 /** Fill in each embed's title and leader (one query per kind present). */
 async function withEmbeds(db: Db, list: PostDto[]): Promise<PostDto[]> {
   const kinds: EmbedKind[] = ["room", "broadcast", "recording"];
@@ -312,7 +332,11 @@ export async function createPost(
     if (authorProfileId !== own.id && !(await canActAs(tx, identity.userId, authorProfileId)))
       throw new ApiError(403, "post.forbidden");
     if (input.quotedPostId) await livePost(tx, input.quotedPostId);
-    if (input.embed && !(await embedTargets(tx, input.embed.kind, [input.embed.id])).size)
+    if (
+      input.embed &&
+      (!(await embedTargets(tx, input.embed.kind, [input.embed.id])).size ||
+        !(await mayEmbed(tx, identity.userId, input.embed.kind, input.embed.id)))
+    )
       throw new ApiError(404, "embed.not_found");
     const [row] = await tx
       .insert(posts)

@@ -22,8 +22,8 @@ shows what is being studied (decision 0011, D9). Plan: `docs/plans/shiur.md` 4.7
   first such link out of the text and show it as a card under the text with a remove button; removing the card SHALL put the
   link back into the text where it was; a second such link SHALL stay plain text (one card per post)
 - AC-002 WHEN a post is written with `embed: {kind, id}` (`room`, `broadcast` or `recording`) THE SYSTEM SHALL check that the
-  target exists and answer 201 with the post carrying `embed: {kind, id, title, leader}`; an unknown target SHALL be refused
-  with 404 and no post created; a post with an embed may have empty text
+  target exists and that the author is in its room (its owner or a member) and answer 201 with the post carrying `embed: {kind, id, title, leader}`; an unknown target, or one in a room the
+  author is not in, SHALL be refused with 404 and no post created; a post with an embed may have empty text
 - AC-003 WHEN a post has no embed THE SYSTEM SHALL answer it in every API response exactly as before, with no `embed` field
 - AC-004 WHEN a post's text contains an http or https URL THE SYSTEM SHALL render it as a link with
   `rel="noopener nofollow"` opening in a new tab; any other scheme (for example `javascript:`) SHALL stay text

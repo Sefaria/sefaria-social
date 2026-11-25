@@ -47,6 +47,14 @@ describe("spec 055: posts embed a room, broadcast or recording", () => {
     const s = await session(h);
     const reader = await h.token(5151, { name: "Reader" });
     const write = (body: Record<string, unknown>) => h.call("POST", "/api/v1/posts", { token: reader, body });
+    // Only someone in the room may post it: an outsider gets the same 404 as for a room that does not exist.
+    for (const embed of [
+      { kind: "room", id: s.room },
+      { kind: "broadcast", id: s.broadcast },
+      { kind: "recording", id: s.recording },
+    ])
+      expect((await write({ body: "Not mine", embed })).status, `outsider posts ${embed.kind}`).toBe(404);
+    expect((await h.call("POST", `/api/v1/rooms/${s.room}/members`, { token: reader })).status).toBe(200);
 
     const room = await write({ body: "Join us", embed: { kind: "room", id: s.room } });
     expect([room.status, (room.json as Post).embed]).toEqual([

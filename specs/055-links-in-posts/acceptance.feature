@@ -12,8 +12,10 @@ Feature: Links in posts become links, and a room, broadcast or recording link be
   @AC-002
   Scenario: AC-002 the server checks the embedded target
     Given room R owned by O, broadcast B and recording C
-    When a user posts with embed room R, with embed broadcast B with empty text, and with embed recording C
+    When a member of R posts with embed room R, with embed broadcast B with empty text, and with embed recording C
     Then each answers 201 with embed kind, id, title and the leader's name
+    When a user who is not in R posts with an embed of R, B or C
+    Then each answers 404
     When a user posts with an embed whose id is unknown
     Then it answers 404 and no post was created
     And a post with empty text and no embed is refused with 400
