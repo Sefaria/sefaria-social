@@ -24,6 +24,7 @@
     - "packages/api-client/src/schema.ts"
     - "docs/runbooks/server.md"
     - "docker-compose.yaml"
+    - "deploy/helm/values.yaml"
   depends_on: []
   parallel: false
   completes: []
