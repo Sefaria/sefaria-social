@@ -1807,17 +1807,20 @@
     {
       "id": "ROOM-051",
       "area": "room",
-      "name": "You stay in a room while you read around, in a room window that looks and works like part of Sefaria",
-      "description": "",
-      "status": "planned",
+      "name": "The lobby says when calls are off",
+      "description": "Where Join call would be, the lobby says video calls are not turned on when the server does not offer them.",
+      "status": "built",
       "spec": "045",
-      "acs": [],
+      "acs": [
+        "045/AC-006"
+      ],
       "surfaces": [
-        "session",
         "room-lobby"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/room/room-settings.test.tsx"
+      ],
       "since": null,
       "changed": []
     },
@@ -2414,34 +2417,45 @@
     {
       "id": "SESS-067",
       "area": "sess",
-      "name": "You stay in a room while you read around, in a room window that looks and works like part of Sefaria",
-      "description": "",
-      "status": "planned",
+      "name": "Stay in the room while reading around the reader",
+      "description": "A reader page reached without ctx while in a room (a link, a search) gets the room's ctx back with a replace, so the viewer stays in the room; Back to where they entered from, a Social page or another room still leaves.",
+      "status": "built",
       "spec": "045",
-      "acs": [],
+      "acs": [
+        "045/AC-001",
+        "045/AC-002"
+      ],
       "surfaces": [
-        "session",
-        "room-lobby"
+        "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/session/stay-in-room.test.ts",
+        "e2e/room-window.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "SESS-068",
       "area": "sess",
-      "name": "You stay in a room while you read around, in a room window that looks and works like part of Sefaria",
-      "description": "",
-      "status": "planned",
+      "name": "The room window in the reader: a card with the room, its status and who is here",
+      "description": "The follow bar and mini view as one card at the bottom inline-start corner: title and live dot, status, Follow again or Lead, Join call, who is here with Follow, the room's page, Minimise; folds into a pill for the session.",
+      "status": "built",
       "spec": "045",
-      "acs": [],
+      "acs": [
+        "045/AC-003",
+        "045/AC-004",
+        "045/AC-005"
+      ],
       "surfaces": [
-        "session",
-        "room-lobby"
+        "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/session/room-window.test.tsx",
+        "e2e/room-window.spec.ts"
+      ],
       "since": null,
       "changed": []
     },

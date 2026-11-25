@@ -3,6 +3,9 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-25 — ROOM-051 "The lobby says when calls are off": built (spec 045).
+- 2026-11-25 — SESS-068 "The room window in the reader: a card with the room, its status and who is here": built (spec 045).
+- 2026-11-25 — SESS-067 "Stay in the room while reading around the reader": built (spec 045).
 - 2026-11-25 — ROOM-050 "Leave a room you joined": built (spec 044).
 - 2026-11-25 — ROOM-049 "Rename or delete a room you own": built (spec 044).
 - 2026-11-25 — ROOM-048 "Invite people from a room's lobby: its link with Copy and Share": built (spec 044).
