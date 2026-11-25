@@ -37,6 +37,8 @@ export interface LiveStatusDto {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+const cache = new Map<string, { at: number; value: LiveStatusDto | null }>();
+
 /** The room a relay room belongs to: the room itself, or a broadcast's room; null when neither exists. */
 async function roomOf(db: Db, relayRoom: string): Promise<string | null> {
   const broadcastId = relayRoom.startsWith("b_") ? relayRoom.slice(2) : null;
@@ -55,6 +57,7 @@ export async function receiveReport(input: LiveReportInput, db: Db = getDb(), no
   if (Math.abs(now - input.at) > REPORT_MAX_AGE_MS) throw new ApiError(401, "webhook.bad_signature");
   const roomId = await roomOf(db, input.room);
   if (!roomId) return;
+  cache.delete(input.room.startsWith("b_") ? input.room.slice(2) : input.room); // this server answers the new state at once
   const row = {
     relayRoom: input.room,
     roomId,
@@ -75,8 +78,6 @@ export async function receiveReport(input: LiveReportInput, db: Db = getDb(), no
 }
 
 // ── The public read ───────────────────────────────────────────────────────────────────────────────────────────────────────
-const cache = new Map<string, { at: number; value: LiveStatusDto | null }>();
-
 /** Forget cached answers (tests; a report does not clear it: the cache is only 5 seconds). */
 export function clearLiveCache(): void {
   cache.clear();
