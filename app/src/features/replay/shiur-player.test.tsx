@@ -186,7 +186,8 @@ describe("a shiur's player (spec 053)", () => {
       return new Response("{}", { status: 404 });
     });
     const api = createReplayApi(fake.host, fetchImpl as unknown as typeof fetch);
-    expect((await api.getRecording(REC)).leader?.name).toBe("Rav");
+    const meta = await api.getRecording(REC).catch(() => null);
+    expect(meta?.leader?.name, "the public read answered").toBe("Rav");
     await api.getState(REC);
     expect((await api.getManifest!(REC))?.chapters).toHaveLength(2);
     await api.getMedia(REC);
@@ -201,7 +202,8 @@ describe("a shiur's player (spec 053)", () => {
   // @feature SHIUR-006 The shiur player: a bar with chapters, the talking head in place, open to anyone
   // @ac 053/AC-005
   it("plays and pauses with Space and moves 5 seconds with the arrows, in the reading direction", async () => {
-    const { key, media } = await setup();
+    const { q, key, media } = await setup();
+    expect(q("[data-replay-bar]"), "the player bar").not.toBeNull();
     await key("[data-replay-bar]", " ");
     expect(media.paused).toBe(false);
     await key("[data-replay-bar]", " ");
