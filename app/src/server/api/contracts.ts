@@ -236,6 +236,22 @@ export const RecordingFinishInput = z.strictObject({
 });
 
 const RecordingParams = z.object({ recordingId: z.uuid() });
+
+/**
+ * A ready recording as anyone with its link sees it (spec 051 AC-004; docs/plans/shiur.md D2): no room, no user ids, nothing only
+ * a member sees.
+ */
+export const Asset = z.object({
+  id: z.uuid(),
+  title: z.string().nullable(),
+  status: z.literal("ready"),
+  mime: z.string().nullable(),
+  startedAt: z.iso.datetime({ offset: true }),
+  durationMs: z.int().nonnegative().nullable(),
+  leader: z.object({ name: z.string().nullable() }),
+});
+
+const AssetParams = z.object({ assetId: z.uuid() });
 const RecordingChunkParams = z.object({ recordingId: z.uuid(), seq: z.string().regex(/^(0|[1-9][0-9]{0,5})$/) });
 
 // ── Broadcasts (spec 043) ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -270,6 +286,43 @@ export const UserDeletedEvent = z.looseObject({
 export const WebhookAck = z.object({ status: z.enum(["processed", "duplicate", "ignored"]) });
 
 export const ErrorBody = z.object({ error: z.object({ code: z.string(), message: z.string() }) });
+
+export const getAsset = defineEndpoint({
+  operationId: "getAsset",
+  method: "GET",
+  path: "/api/v1/assets/{assetId}",
+  summary:
+    "A ready recording, for anyone who has its link, signed in or not (spec 051): title, the leader's name, length. 404 while it records, when it failed, or for an unknown id.",
+  tags: ["assets"],
+  access: "public",
+  params: AssetParams,
+  errors: [404],
+  responses: { 200: { description: "The asset.", schema: Asset } },
+});
+
+export const getAssetState = defineEndpoint({
+  operationId: "getAssetState",
+  method: "GET",
+  path: "/api/v1/assets/{assetId}/state",
+  summary: "A ready recording's reader timeline as a Recording v1 document, for anyone with its link (spec 051).",
+  tags: ["assets"],
+  access: "public",
+  params: AssetParams,
+  errors: [404],
+  responses: { 200: { description: "The reader timeline.", schema: RecordingState } },
+});
+
+export const getAssetMedia = defineEndpoint({
+  operationId: "getAssetMedia",
+  method: "GET",
+  path: "/api/v1/assets/{assetId}/media",
+  summary: "A ready recording's media, for anyone with its link (spec 051).",
+  tags: ["assets"],
+  access: "public",
+  params: AssetParams,
+  errors: [404],
+  responses: { 200: { description: "The media file.", binary: true } },
+});
 
 export const getHealth = defineEndpoint({
   operationId: "getHealth",
@@ -856,6 +909,9 @@ export const ENDPOINTS = [
   deleteRecording,
   finishRecording,
   getRecordingState,
+  getAsset,
+  getAssetState,
+  getAssetMedia,
   appendRecordingState,
   getRecordingMedia,
   putRecordingMedia,

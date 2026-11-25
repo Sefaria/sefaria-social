@@ -28,6 +28,7 @@ import { Route as SocialRRoomIdRouteImport } from './routes/social.r.$roomId'
 import { Route as SocialRecRecordingIdRouteImport } from './routes/social.rec.$recordingId'
 import { Route as SocialSShiurIdRouteImport } from './routes/social.s.$shiurId'
 import { Route as SocialUProfileIdRouteImport } from './routes/social.u.$profileId'
+import { Route as ApiV1AssetsAssetIdRouteImport } from './routes/api/v1/assets.$assetId'
 import { Route as ApiV1BroadcastsBroadcastIdRouteImport } from './routes/api/v1/broadcasts.$broadcastId'
 import { Route as ApiV1InternalUserDeletedRouteImport } from './routes/api/v1/internal.user-deleted'
 import { Route as ApiV1NotificationsReadRouteImport } from './routes/api/v1/notifications.read'
@@ -37,6 +38,8 @@ import { Route as ApiV1ProfilesMeRouteImport } from './routes/api/v1/profiles.me
 import { Route as ApiV1RecordingsRecordingIdRouteImport } from './routes/api/v1/recordings.$recordingId'
 import { Route as ApiV1RepliesReplyIdRouteImport } from './routes/api/v1/replies.$replyId'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
+import { Route as ApiV1AssetsAssetIdMediaRouteImport } from './routes/api/v1/assets.$assetId.media'
+import { Route as ApiV1AssetsAssetIdStateRouteImport } from './routes/api/v1/assets.$assetId.state'
 import { Route as ApiV1BroadcastsBroadcastIdEndRouteImport } from './routes/api/v1/broadcasts.$broadcastId.end'
 import { Route as ApiV1BroadcastsBroadcastIdTicketRouteImport } from './routes/api/v1/broadcasts.$broadcastId.ticket'
 import { Route as ApiV1InternalLivekitWebhookRouteImport } from './routes/api/v1/internal.livekit.webhook'
@@ -154,6 +157,11 @@ const SocialUProfileIdRoute = SocialUProfileIdRouteImport.update({
   path: '/social/u/$profileId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1AssetsAssetIdRoute = ApiV1AssetsAssetIdRouteImport.update({
+  id: '/api/v1/assets/$assetId',
+  path: '/api/v1/assets/$assetId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1BroadcastsBroadcastIdRoute =
   ApiV1BroadcastsBroadcastIdRouteImport.update({
     id: '/api/v1/broadcasts/$broadcastId',
@@ -201,6 +209,16 @@ const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
   id: '/$roomId',
   path: '/$roomId',
   getParentRoute: () => ApiV1RoomsRoute,
+} as any)
+const ApiV1AssetsAssetIdMediaRoute = ApiV1AssetsAssetIdMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => ApiV1AssetsAssetIdRoute,
+} as any)
+const ApiV1AssetsAssetIdStateRoute = ApiV1AssetsAssetIdStateRouteImport.update({
+  id: '/state',
+  path: '/state',
+  getParentRoute: () => ApiV1AssetsAssetIdRoute,
 } as any)
 const ApiV1BroadcastsBroadcastIdEndRoute =
   ApiV1BroadcastsBroadcastIdEndRouteImport.update({
@@ -344,6 +362,7 @@ export interface FileRoutesByFullPath {
   '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/social/u/$profileId': typeof SocialUProfileIdRoute
+  '/api/v1/assets/$assetId': typeof ApiV1AssetsAssetIdRouteWithChildren
   '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
@@ -353,6 +372,8 @@ export interface FileRoutesByFullPath {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
+  '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
@@ -395,6 +416,7 @@ export interface FileRoutesByTo {
   '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/social/u/$profileId': typeof SocialUProfileIdRoute
+  '/api/v1/assets/$assetId': typeof ApiV1AssetsAssetIdRouteWithChildren
   '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
@@ -404,6 +426,8 @@ export interface FileRoutesByTo {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
+  '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
@@ -447,6 +471,7 @@ export interface FileRoutesById {
   '/social/rec/$recordingId': typeof SocialRecRecordingIdRoute
   '/social/s/$shiurId': typeof SocialSShiurIdRoute
   '/social/u/$profileId': typeof SocialUProfileIdRoute
+  '/api/v1/assets/$assetId': typeof ApiV1AssetsAssetIdRouteWithChildren
   '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
@@ -456,6 +481,8 @@ export interface FileRoutesById {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
+  '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
@@ -500,6 +527,7 @@ export interface FileRouteTypes {
     | '/social/rec/$recordingId'
     | '/social/s/$shiurId'
     | '/social/u/$profileId'
+    | '/api/v1/assets/$assetId'
     | '/api/v1/broadcasts/$broadcastId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
@@ -509,6 +537,8 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/media'
+    | '/api/v1/assets/$assetId/state'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
@@ -551,6 +581,7 @@ export interface FileRouteTypes {
     | '/social/rec/$recordingId'
     | '/social/s/$shiurId'
     | '/social/u/$profileId'
+    | '/api/v1/assets/$assetId'
     | '/api/v1/broadcasts/$broadcastId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
@@ -560,6 +591,8 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/media'
+    | '/api/v1/assets/$assetId/state'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
@@ -602,6 +635,7 @@ export interface FileRouteTypes {
     | '/social/rec/$recordingId'
     | '/social/s/$shiurId'
     | '/social/u/$profileId'
+    | '/api/v1/assets/$assetId'
     | '/api/v1/broadcasts/$broadcastId'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
@@ -611,6 +645,8 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/media'
+    | '/api/v1/assets/$assetId/state'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
@@ -654,6 +690,7 @@ export interface RootRouteChildren {
   SocialRecRecordingIdRoute: typeof SocialRecRecordingIdRoute
   SocialSShiurIdRoute: typeof SocialSShiurIdRoute
   SocialUProfileIdRoute: typeof SocialUProfileIdRoute
+  ApiV1AssetsAssetIdRoute: typeof ApiV1AssetsAssetIdRouteWithChildren
   ApiV1BroadcastsBroadcastIdRoute: typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
   ApiV1InternalUserDeletedRoute: typeof ApiV1InternalUserDeletedRoute
   ApiV1RecordingsRecordingIdRoute: typeof ApiV1RecordingsRecordingIdRouteWithChildren
@@ -796,6 +833,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SocialUProfileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/assets/$assetId': {
+      id: '/api/v1/assets/$assetId'
+      path: '/api/v1/assets/$assetId'
+      fullPath: '/api/v1/assets/$assetId'
+      preLoaderRoute: typeof ApiV1AssetsAssetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/broadcasts/$broadcastId': {
       id: '/api/v1/broadcasts/$broadcastId'
       path: '/api/v1/broadcasts/$broadcastId'
@@ -858,6 +902,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/rooms/$roomId'
       preLoaderRoute: typeof ApiV1RoomsRoomIdRouteImport
       parentRoute: typeof ApiV1RoomsRoute
+    }
+    '/api/v1/assets/$assetId/media': {
+      id: '/api/v1/assets/$assetId/media'
+      path: '/media'
+      fullPath: '/api/v1/assets/$assetId/media'
+      preLoaderRoute: typeof ApiV1AssetsAssetIdMediaRouteImport
+      parentRoute: typeof ApiV1AssetsAssetIdRoute
+    }
+    '/api/v1/assets/$assetId/state': {
+      id: '/api/v1/assets/$assetId/state'
+      path: '/state'
+      fullPath: '/api/v1/assets/$assetId/state'
+      preLoaderRoute: typeof ApiV1AssetsAssetIdStateRouteImport
+      parentRoute: typeof ApiV1AssetsAssetIdRoute
     }
     '/api/v1/broadcasts/$broadcastId/end': {
       id: '/api/v1/broadcasts/$broadcastId/end'
@@ -1126,6 +1184,19 @@ const ApiV1RoomsRouteWithChildren = ApiV1RoomsRoute._addFileChildren(
   ApiV1RoomsRouteChildren,
 )
 
+interface ApiV1AssetsAssetIdRouteChildren {
+  ApiV1AssetsAssetIdMediaRoute: typeof ApiV1AssetsAssetIdMediaRoute
+  ApiV1AssetsAssetIdStateRoute: typeof ApiV1AssetsAssetIdStateRoute
+}
+
+const ApiV1AssetsAssetIdRouteChildren: ApiV1AssetsAssetIdRouteChildren = {
+  ApiV1AssetsAssetIdMediaRoute: ApiV1AssetsAssetIdMediaRoute,
+  ApiV1AssetsAssetIdStateRoute: ApiV1AssetsAssetIdStateRoute,
+}
+
+const ApiV1AssetsAssetIdRouteWithChildren =
+  ApiV1AssetsAssetIdRoute._addFileChildren(ApiV1AssetsAssetIdRouteChildren)
+
 interface ApiV1BroadcastsBroadcastIdRouteChildren {
   ApiV1BroadcastsBroadcastIdEndRoute: typeof ApiV1BroadcastsBroadcastIdEndRoute
   ApiV1BroadcastsBroadcastIdTicketRoute: typeof ApiV1BroadcastsBroadcastIdTicketRoute
@@ -1201,6 +1272,7 @@ const rootRouteChildren: RootRouteChildren = {
   SocialRecRecordingIdRoute: SocialRecRecordingIdRoute,
   SocialSShiurIdRoute: SocialSShiurIdRoute,
   SocialUProfileIdRoute: SocialUProfileIdRoute,
+  ApiV1AssetsAssetIdRoute: ApiV1AssetsAssetIdRouteWithChildren,
   ApiV1BroadcastsBroadcastIdRoute: ApiV1BroadcastsBroadcastIdRouteWithChildren,
   ApiV1InternalUserDeletedRoute: ApiV1InternalUserDeletedRoute,
   ApiV1RecordingsRecordingIdRoute: ApiV1RecordingsRecordingIdRouteWithChildren,

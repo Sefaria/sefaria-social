@@ -13,6 +13,7 @@ import { dropUserFromRelay } from "../services/relay";
 import { liveCallRoomIds } from "../services/calls";
 import { removeFromLiveCalls } from "../services/livekit";
 import { deleteUserData, roomIdsOf } from "../services/users";
+import { sweepOrphanObjects } from "../services/recordings";
 
 export interface WebhookEvent {
   event: string;
@@ -54,5 +55,6 @@ export async function receiveUserDeleted(
   if (typeof outcome === "string") return outcome;
   await dropUserFromRelay(outcome.userId, outcome.rooms);
   await removeFromLiveCalls(outcome.userId, outcome.calls); // spec 038: out of every live call too
+  await sweepOrphanObjects(); // spec 051: the media of the user's recordings, whose rows just went
   return outcome.kind;
 }

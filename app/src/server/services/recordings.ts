@@ -8,10 +8,12 @@ import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import { getConfig } from "../config";
 import { getDb, type Db } from "../db/client";
-import { recordingMediaChunks, recordingStateChunks, roomMembers, sessionRecordings, userDisplay } from "../db/schema";
+import { createHash } from "node:crypto";
+import { recordingStateChunks, roomMembers, sessionRecordings, userDisplay } from "../db/schema";
 import { ApiError } from "../http/errors";
 import { setRoomRecording } from "./livekit";
-import { postgresStore, type Executor, type RecordingStore } from "./recording-store";
+import { postgresStore, removeObjects, type Executor, type RecordingStore } from "./recording-store";
+import { objectStore } from "./object-store";
 import { membership } from "./rooms";
 import { upsertDisplay } from "./users";
 
@@ -209,30 +211,30 @@ export async function putMedia(
 ): Promise<void> {
   if (bytes.byteLength === 0) throw new ApiError(400, "request.invalid");
   if (bytes.byteLength > MAX_MEDIA_CHUNK_BYTES) throw new ApiError(413, "request.too_large");
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
   await db.transaction(async (tx) => {
     const row = await forUpload(tx, identity, recordingId);
-    const [last] = await tx
-      .select({ seq: sql<number | null>`max(${recordingMediaChunks.seq})` })
-      .from(recordingMediaChunks)
-      .where(eq(recordingMediaChunks.recordingId, recordingId));
-    const next = last?.seq === null || last?.seq === undefined ? 0 : Number(last.seq) + 1;
-    if (seq === next - 1 && (await sameChunk(tx, recordingId, seq, bytes))) return; // a retry whose first try landed
+    // The row is locked: the count and the last chunk's hash cannot move under us (spec 051 AC-005).
+    const [counts] = await tx
+      .select({ chunks: sessionRecordings.mediaChunks, last: sessionRecordings.lastChunkSha256 })
+      .from(sessionRecordings)
+      .where(eq(sessionRecordings.id, recordingId));
+    const next = counts?.chunks ?? 0;
+    if (seq === next - 1 && counts?.last === sha256) return; // a retry whose first try landed
     if (seq !== next) throw new ApiError(409, "recording.out_of_order");
     if (row.mediaBytes + bytes.byteLength > MAX_MEDIA_BYTES) throw new ApiError(413, "recording.too_large");
+    // Written before the row: a failed write leaves the count, so the recorder retries the same seq (the same key).
     await store(tx).putMedia(recordingId, seq, bytes);
     await tx
       .update(sessionRecordings)
-      .set({ mediaBytes: sql`${sessionRecordings.mediaBytes} + ${bytes.byteLength}`, lastUploadAt: sql`now()` })
+      .set({
+        mediaBytes: sql`${sessionRecordings.mediaBytes} + ${bytes.byteLength}`,
+        mediaChunks: sql`${sessionRecordings.mediaChunks} + 1`,
+        lastChunkSha256: sha256,
+        lastUploadAt: sql`now()`,
+      })
       .where(eq(sessionRecordings.id, recordingId));
   });
-}
-
-async function sameChunk(tx: Executor, recordingId: string, seq: number, bytes: Uint8Array): Promise<boolean> {
-  const [kept] = await tx
-    .select({ bytes: recordingMediaChunks.bytes })
-    .from(recordingMediaChunks)
-    .where(and(eq(recordingMediaChunks.recordingId, recordingId), eq(recordingMediaChunks.seq, seq)));
-  return !!kept && Buffer.from(kept.bytes).equals(Buffer.from(bytes));
 }
 
 /**
@@ -353,6 +355,7 @@ export async function deleteRecording(
     await store(tx).remove(recordingId);
     return r;
   });
+  await removeObjects([recordingId]); // spec 051 AC-005: its media goes with it
   if (row.status === "recording") await setRoomRecording(row.roomId, false);
 }
 
@@ -370,4 +373,96 @@ export async function recordingOf(roomIds: readonly string[], db: Db = getDb()):
       ),
     );
   return new Set(rows.map((r) => r.roomId));
+}
+
+/**
+ * Remove the objects of recordings whose rows are gone (spec 051 AC-005): a deleted room or user takes its recordings' rows with
+ * it by cascade, and this takes their media. Run after such a deletion commits. Returns how many recordings' objects went.
+ */
+export async function sweepOrphanObjects(db: Db = getDb(), objects = objectStore()): Promise<number> {
+  const keys = await objects.list("recordings/");
+  const ids = [...new Set(keys.map((k) => k.split("/")[1]).filter((id): id is string => !!id && UUID.test(id)))];
+  if (ids.length === 0) return 0;
+  const kept = await db.select({ id: sessionRecordings.id }).from(sessionRecordings).where(inArray(sessionRecordings.id, ids));
+  const live = new Set(kept.map((r) => r.id));
+  const gone = ids.filter((id) => !live.has(id));
+  await removeObjects(gone, objects);
+  return gone.length;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+// ── Public reads (spec 051 AC-004; docs/plans/shiur.md D2) ─────────────────────────────────────────────────────────────
+
+/** What anyone with a ready recording's link may know: no room, no user ids, nothing a member alone sees. */
+export interface AssetDto {
+  id: string;
+  title: string | null;
+  status: "ready";
+  mime: string | null;
+  startedAt: string;
+  durationMs: number | null;
+  leader: { name: string | null };
+}
+
+/** A ready recording by id, for anyone; 404 for one that is still recording, failed, or unknown. */
+async function readyAsset(db: Db, assetId: string) {
+  await finaliseStale({ recordingId: assetId }, db);
+  const [row] = await db
+    .select({
+      id: sessionRecordings.id,
+      title: sessionRecordings.title,
+      status: sessionRecordings.status,
+      mime: sessionRecordings.mime,
+      startedAt: sessionRecordings.startedAt,
+      durationMs: sessionRecordings.durationMs,
+      name: userDisplay.name,
+    })
+    .from(sessionRecordings)
+    .leftJoin(userDisplay, eq(userDisplay.userId, sessionRecordings.ownerUserId))
+    .where(and(eq(sessionRecordings.id, assetId), eq(sessionRecordings.status, "ready")))
+    .limit(1);
+  if (!row) throw new ApiError(404, "recording.not_found");
+  return row;
+}
+
+export async function getAsset(assetId: string, db: Db = getDb()): Promise<AssetDto> {
+  const r = await readyAsset(db, assetId);
+  return {
+    id: r.id,
+    title: r.title,
+    status: "ready",
+    mime: r.mime,
+    startedAt: r.startedAt.toISOString(),
+    durationMs: r.durationMs,
+    leader: { name: r.name },
+  };
+}
+
+export async function getAssetState(
+  assetId: string,
+  db: Db = getDb(),
+  store: RecordingStore = postgresStore(db),
+): Promise<RecordingStateDto> {
+  const r = await readyAsset(db, assetId);
+  const messages = (await store.stateMessages(assetId))
+    .map((m) => parseStreamMessage(m))
+    .filter((m): m is StreamMessage => m !== null);
+  return {
+    v: 1,
+    startedAt: r.startedAt.toISOString(),
+    duration: r.durationMs ?? Math.round(messages.at(-1)?.t ?? 0),
+    client: RECORDING_CLIENT,
+    messages,
+  };
+}
+
+export async function getAssetMedia(
+  assetId: string,
+  db: Db = getDb(),
+  store: RecordingStore = postgresStore(db),
+): Promise<{ bytes: Uint8Array; contentType: string }> {
+  const r = await readyAsset(db, assetId);
+  const chunks = await store.mediaChunks(assetId);
+  return { bytes: Buffer.concat(chunks), contentType: r.mime ?? "application/octet-stream" };
 }

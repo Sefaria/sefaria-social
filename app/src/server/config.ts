@@ -32,6 +32,8 @@ const Env = z.object({
   CALLS_ENABLED: z.preprocess(emptyIsUnset, z.string().optional()),
   /** Session recordings (spec 041): "false" switches them off; anything else, or unset, leaves them on. */
   RECORDINGS_ENABLED: z.preprocess(emptyIsUnset, z.string().optional()),
+  /** Spec 051: the filesystem object store's root for shiur assets (default `.data/assets` under the working directory). */
+  ASSET_STORE_DIR: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 

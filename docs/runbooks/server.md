@@ -42,23 +42,24 @@ for any route that answers without credentials and is not on that list.
 
 ## Environment variables
 
-| Variable                      | Required              | Meaning                                                                                                                                        |
-| ----------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                | yes (has a default)   | Postgres URL. Default `postgres://localhost:5432/sefaria_social`                                                                               |
-| `SOCIAL_JWKS_URL`             | yes                   | Django's keys: `https://<sefaria origin>/.well-known/sefaria-social-jwks.json`. Unset: every token call is 503                                 |
-| `SOCIAL_TOKEN_ISSUER`         | yes                   | Must equal Django's `SOCIAL_TOKEN_ISSUER` (default there: the English library origin, e.g. `https://www.sefaria.org`)                          |
-| `SOCIAL_TOKEN_AUDIENCE`       | no                    | Default `sefaria-social` (Django's fixed `aud`)                                                                                                |
-| `USER_DELETED_WEBHOOK_SECRET` | yes                   | Same value as Django's `USER_DELETED_WEBHOOK_SECRET`. Unset: the webhook answers 503 (Django retries)                                          |
-| `RELAY_INTERNAL_URL`          | no                    | The relay's base URL for its internal routes (status, drop-user). Unset: status is always offline and deletions are not sent to the relay (P3) |
-| `RELAY_INTERNAL_SECRET`       | with the above        | Same value as the relay's `RELAY_INTERNAL_SECRET` (P3)                                                                                         |
-| `SOCIAL_ALLOWED_ORIGINS`      | yes (for the surface) | Comma-separated browser origins allowed by CORS: the reader's origins, e.g. `https://www.sefaria.org,https://www.sefaria.org.il` (P3)          |
-| `LIVEKIT_URL`                 | for calls             | The LiveKit server browsers connect to, `wss://…` (spec 033). Locally, with the dev server: `ws://localhost:7880`                              |
-| `LIVEKIT_API_KEY`             | for calls             | LiveKit API key; signs call tokens                                                                                                             |
-| `LIVEKIT_API_SECRET`          | for calls             | LiveKit API secret. Secret: never sent to a browser or logged                                                                                  |
-| `CALLS_ENABLED`               | for calls             | Calls are offered only when this is `true` and the three LiveKit variables are set. Keep `false` in production until owner decision D-AV4      |
-| `RECORDINGS_ENABLED`          | no                    | Session recordings (spec 041). `false` switches them off (503 `recording.unavailable`); unset or anything else leaves them on                  |
-| `LOG_LEVEL`                   | no                    | `debug` / `info` (default) / `warn` / `error`                                                                                                  |
-| `TEST_DATABASE_URL`           | tests only            | Default `postgres://localhost:5432/sefaria_social_test`; the name must contain `test` (it is reset)                                            |
+| Variable                      | Required              | Meaning                                                                                                                                                                                  |
+| ----------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                | yes (has a default)   | Postgres URL. Default `postgres://localhost:5432/sefaria_social`                                                                                                                         |
+| `SOCIAL_JWKS_URL`             | yes                   | Django's keys: `https://<sefaria origin>/.well-known/sefaria-social-jwks.json`. Unset: every token call is 503                                                                           |
+| `SOCIAL_TOKEN_ISSUER`         | yes                   | Must equal Django's `SOCIAL_TOKEN_ISSUER` (default there: the English library origin, e.g. `https://www.sefaria.org`)                                                                    |
+| `SOCIAL_TOKEN_AUDIENCE`       | no                    | Default `sefaria-social` (Django's fixed `aud`)                                                                                                                                          |
+| `USER_DELETED_WEBHOOK_SECRET` | yes                   | Same value as Django's `USER_DELETED_WEBHOOK_SECRET`. Unset: the webhook answers 503 (Django retries)                                                                                    |
+| `RELAY_INTERNAL_URL`          | no                    | The relay's base URL for its internal routes (status, drop-user). Unset: status is always offline and deletions are not sent to the relay (P3)                                           |
+| `RELAY_INTERNAL_SECRET`       | with the above        | Same value as the relay's `RELAY_INTERNAL_SECRET` (P3)                                                                                                                                   |
+| `SOCIAL_ALLOWED_ORIGINS`      | yes (for the surface) | Comma-separated browser origins allowed by CORS: the reader's origins, e.g. `https://www.sefaria.org,https://www.sefaria.org.il` (P3)                                                    |
+| `LIVEKIT_URL`                 | for calls             | The LiveKit server browsers connect to, `wss://…` (spec 033). Locally, with the dev server: `ws://localhost:7880`                                                                        |
+| `LIVEKIT_API_KEY`             | for calls             | LiveKit API key; signs call tokens                                                                                                                                                       |
+| `LIVEKIT_API_SECRET`          | for calls             | LiveKit API secret. Secret: never sent to a browser or logged                                                                                                                            |
+| `CALLS_ENABLED`               | for calls             | Calls are offered only when this is `true` and the three LiveKit variables are set. Keep `false` in production until owner decision D-AV4                                                |
+| `RECORDINGS_ENABLED`          | no                    | Session recordings (spec 041). `false` switches them off (503 `recording.unavailable`); unset or anything else leaves them on                                                            |
+| `ASSET_STORE_DIR`             | no                    | Spec 051: the directory of the filesystem object store for recordings (default `.data/assets` under the working directory). Needs a volume on a server; a cloud bucket replaces it later |
+| `LOG_LEVEL`                   | no                    | `debug` / `info` (default) / `warn` / `error`                                                                                                                                            |
+| `TEST_DATABASE_URL`           | tests only            | Default `postgres://localhost:5432/sefaria_social_test`; the name must contain `test` (it is reset)                                                                                      |
 
 Django side (Sefaria-Project PR #4121): set `SOCIAL_TOKEN_PRIVATE_KEYS`, `SOCIAL_TOKEN_ISSUER`, `USER_DELETED_WEBHOOK_URLS`
 (`<social origin>/api/v1/internal/user-deleted`) and `USER_DELETED_WEBHOOK_SECRET`.

@@ -7,7 +7,6 @@ import {
   bigint,
   boolean,
   check,
-  customType,
   index,
   integer,
   jsonb,
@@ -127,9 +126,6 @@ export const callRemovals = pgTable(
   (t) => [primaryKey({ columns: [t.roomId, t.userId] }), index("call_removals_user_id_idx").on(t.userId)],
 );
 
-/** Raw bytes (Postgres bytea); node-postgres reads them as a Buffer. */
-const bytea = customType<{ data: Uint8Array; driverData: Uint8Array }>({ dataType: () => "bytea" });
-
 /**
  * A room's session recorded in its owner's browser (spec 041): the reader's state track and the call's mixed media, uploaded in
  * chunks while it runs. Personal data: deleted with its owner's account (owner_user_id) and with its room. At most one per room
@@ -155,6 +151,9 @@ export const sessionRecordings = pgTable(
     lastUploadAt: timestamp("last_upload_at", { withTimezone: true }).notNull().defaultNow(),
     durationMs: integer("duration_ms"),
     mediaBytes: bigint("media_bytes", { mode: "number" }).notNull().default(0),
+    /** Spec 051: media chunks kept in the object store (`recordings/<id>/raw/<seq>`), and the last one's SHA-256 (a retry). */
+    mediaChunks: integer("media_chunks").notNull().default(0),
+    lastChunkSha256: text("last_chunk_sha256"),
     stateMessages: integer("state_messages").notNull().default(0),
     createdAt: createdAt(),
   },
@@ -166,19 +165,6 @@ export const sessionRecordings = pgTable(
       .where(sql`${t.status} = 'recording'`),
     check("session_recordings_status_check", sql`${t.status} in ('recording', 'ready', 'failed')`),
   ],
-);
-
-/** One media chunk (the MediaRecorder's timeslice), in upload order. */
-export const recordingMediaChunks = pgTable(
-  "recording_media_chunks",
-  {
-    recordingId: uuid("recording_id")
-      .notNull()
-      .references(() => sessionRecordings.id, { onDelete: "cascade" }),
-    seq: integer("seq").notNull(),
-    bytes: bytea("bytes").notNull(),
-  },
-  (t) => [primaryKey({ columns: [t.recordingId, t.seq] })],
 );
 
 /** One batch of state-stream messages (the session's StreamMessage), keyed by its first message's seq. */

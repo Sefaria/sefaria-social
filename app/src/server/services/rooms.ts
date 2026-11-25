@@ -154,6 +154,9 @@ export async function deleteRoom(identity: Identity, roomId: string, db: Db = ge
     if (m.role !== "owner") throw new ApiError(403, "room.forbidden");
     await tx.delete(rooms).where(eq(rooms.id, roomId)); // memberships go with it (on delete cascade)
   });
+  // Its recordings' rows went by cascade; their media goes now (spec 051). Imported here so rooms.ts loads without it.
+  const { sweepOrphanObjects } = await import("./recordings");
+  await sweepOrphanObjects(db);
 }
 
 /**

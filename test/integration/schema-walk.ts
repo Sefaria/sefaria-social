@@ -68,7 +68,6 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       "insert into session_recordings (room_id, owner_user_id, title, status) values ($1, $2, 'Seed session (other)', 'ready')",
       [room!.id, other],
     );
-    await sql("insert into recording_media_chunks (recording_id, seq, bytes) values ($1, 0, '\\x010203')", [own!.id]);
     await sql(
       `insert into recording_state_chunks (recording_id, first_seq, last_seq, messages) values ($1, 0, 0, '[{"type":"keyframe","seq":0,"t":0,"snapshot":{"v":1,"url":"/Genesis.1","slices":{}}}]')`,
       [own!.id],
@@ -96,7 +95,6 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       "reposts",
       "notifications",
       "session_recordings",
-      "recording_media_chunks",
       "recording_state_chunks",
       "broadcasts",
     ])

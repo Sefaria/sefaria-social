@@ -50,6 +50,13 @@
       "when": 1795558006249,
       "tag": "0006_broadcasts",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795643310166,
+      "tag": "0007_shiur_asset_media",
+      "breakpoints": true
     }
   ]
 }

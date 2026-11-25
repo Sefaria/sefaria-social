@@ -8,6 +8,8 @@ test-results/
 playwright-report/
 .factory/
 *.log
+# Spec 051: the local object store (ASSET_STORE_DIR's default)
+/.data/
 .env
 .env.*
 !.env.example
