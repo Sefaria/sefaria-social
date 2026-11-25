@@ -117,11 +117,24 @@ describe("the rail's ways into rooms (spec 044)", () => {
 
 describe("start a room (spec 044)", () => {
   // @feature ROOM-046 Start a room from Social and land in its lobby
-  // @ac 044/AC-001
-  it("asks for a name, keeps Start disabled while it is blank, creates the room and opens its lobby", async () => {
-    const api = fakeApi();
+  // @ac 049/AC-001
+  // @feature ROOM-052 Start a room and land in it, in its call
+  it("asks for a name, keeps Start disabled while it is blank, creates the room and takes the starter into it and its call", async () => {
+    const api = fakeApi({
+      create: vi.fn(async (title: string) => ({
+        ...A,
+        id: "6f1c2d3e-4b5a-4c6d-8e7f-0000000000cc",
+        title,
+        calls: { available: true },
+      })),
+    });
     const m = await load();
     const { el, fake } = await mount(createElement(m.start.StartRoom), api);
+    // The call is the call controller's business (spec 049 T-001); here only that Start asks for it, with the first-time choice.
+    const { callControllerFor } = await import("~/features/av/call-controller");
+    const enter = vi.fn(async () => undefined);
+    Object.assign(callControllerFor(fake.host), { enter });
+    localStorage.removeItem("social.callDevices");
     await click(el.querySelector("[data-action=start-room]"));
     const dialog = el.querySelector("[data-start-room-dialog]");
     expect(dialog?.getAttribute("role")).toBe("dialog");
@@ -136,7 +149,12 @@ describe("start a room (spec 044)", () => {
     expect(confirm().disabled).toBe(false);
     await click(confirm());
     await vi.waitFor(() => expect(api.create).toHaveBeenCalledWith("Daf Yomi chavruta"));
-    await vi.waitFor(() => expect(fake.calls.navigate.at(-1)?.to).toBe("/social/r/6f1c2d3e-4b5a-4c6d-8e7f-0000000000cc"));
+    // Straight into the room's context (the library, from a Social page), not its lobby (044/AC-001's lobby, replaced).
+    await vi.waitFor(
+      () => expect(fake.calls.navigate.at(-1)?.to).toBe("/texts?ctx=social.room.6f1c2d3e-4b5a-4c6d-8e7f-0000000000cc"),
+      { timeout: 4000 },
+    );
+    expect(enter.mock.calls).toEqual([["6f1c2d3e-4b5a-4c6d-8e7f-0000000000cc", { mic: true, camera: false }]]);
     expect(el.querySelector("[data-start-room-dialog]")).toBeNull();
   });
 

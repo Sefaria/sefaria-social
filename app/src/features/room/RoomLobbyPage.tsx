@@ -10,6 +10,8 @@ import { RecordButton } from "~/features/recording/RecordButton";
 import { RecordingsList } from "~/features/recording/RecordingsList";
 import { isRecordingFlag, recordingHere, useRecordingController, useRecordingView } from "~/features/recording/use-recording";
 import { useRoomController, useRoomHold } from "~/features/session/use-room-session";
+import { useCallController } from "~/features/av/use-call";
+import { enterRoom, hasPendingJoin, lobbyPath } from "./enter";
 import kit from "~/ui/kit.module.css";
 import { InvitePanel } from "./InvitePanel";
 import { RoomSettings } from "./RoomSettings";
@@ -38,6 +40,19 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
   const [statusRecording, setStatusRecording] = useState(false);
   const recordingView = useRecordingView(useRecordingController());
   const { controller } = useRoomController();
+  const call = useCallController();
+  /** Spec 049: into the room's context and its call, in one press. */
+  const enter = useCallback(
+    (room: Room) =>
+      enterRoom({
+        roomId,
+        owner: room.role === "owner",
+        calls: room.calls?.available ?? false,
+        rooms: controller,
+        call,
+      }),
+    [call, controller, roomId],
+  );
   // A member's lobby holds the room's connection open (spec 012): who is here, live.
   useRoomHold(roomId, "lobby", state.kind === "member");
 
@@ -76,19 +91,28 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
 
   const join = useCallback(async () => {
     if (!viewer || !api) {
+      // Spec 049 AC-003: sign-in returns to this address, which now says a Join is waiting.
+      host?.navigate(lobbyPath(roomId, true), { replace: true });
       host?.viewer.requestSignIn();
       return;
     }
+    if (host && hasPendingJoin(host.location.get().search)) host.navigate(lobbyPath(roomId), { replace: true });
     setJoining(true);
     try {
       const r = await api.join(roomId);
       setState(r.kind === "joined" ? { kind: "member", room: r.room } : { kind: "not-found" });
+      if (r.kind === "joined") await enter(r.room); // spec 049 AC-002: the one press goes all the way in
     } catch {
       setState({ kind: "error" });
     } finally {
       setJoining(false);
     }
-  }, [api, host, roomId, viewer]);
+  }, [api, enter, host, roomId, viewer]);
+
+  // Spec 049 AC-003: a Join pressed while signed out continues once the viewer is back, signed in, on this room's page.
+  useEffect(() => {
+    if (viewer && api && host && state.kind === "outsider" && hasPendingJoin(host.location.get().search)) void join();
+  }, [api, host, join, state.kind, viewer]);
 
   // While the room is being recorded everyone in it is told (spec 041 AC-006): from the room read, its status, or this browser.
   const recording =
@@ -135,7 +159,7 @@ export function RoomLobbyPage({ roomId }: { roomId: string }) {
               type="button"
               data-action="enter"
               className={`${kit.button} ${kit.primary}`}
-              onClick={() => void controller?.enlarge(roomId)}
+              onClick={() => void enter(state.room)}
             >
               {t.enter}
             </button>

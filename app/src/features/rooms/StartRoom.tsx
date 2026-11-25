@@ -1,10 +1,14 @@
-// Start a room (spec 044 AC-001): a button that opens a small dialog asking for the room's name, creates it and opens its lobby.
+// Start a room (spec 044 AC-001): a button that opens a small dialog asking for the room's name and creates it. Spec 049 AC-001:
+// Start then takes the starter straight into the room (its reader context) and its call, with no lobby, Enter or pre-join step.
 // The name is required (Start stays disabled while it is blank) and at most 120 characters, as the API requires. Escape and
 // Cancel close the dialog and return focus to the button; a failed create keeps it open with the reason.
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useHost } from "~/features/host/host-context";
 import { useViewer } from "~/features/host/use-viewer";
 import { useRoomsApi } from "~/features/api/rooms-api";
+import { useCallController } from "~/features/av/use-call";
+import { enterRoom } from "~/features/room/enter";
+import { useRoomController } from "~/features/session/use-room-session";
 import { useStrings } from "~/features/shell/use-strings";
 import kit from "~/ui/kit.module.css";
 import styles from "./rooms.module.css";
@@ -16,6 +20,8 @@ export function StartRoom({ variant = "primary" }: { variant?: "primary" | "seco
   const host = useHost();
   const api = useRoomsApi();
   const viewer = useViewer();
+  const { controller: rooms } = useRoomController();
+  const call = useCallController();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -54,7 +60,8 @@ export function StartRoom({ variant = "primary" }: { variant?: "primary" | "seco
       const room = await api.create(title);
       setOpen(false);
       setName("");
-      host?.navigate(`/social/r/${room.id}`);
+      if (rooms) await enterRoom({ roomId: room.id, owner: true, calls: room.calls?.available ?? false, rooms, call });
+      else host?.navigate(`/social/r/${room.id}`); // no room controller (a test page without one): the lobby
     } catch {
       setFailed(true);
     } finally {

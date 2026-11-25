@@ -21,6 +21,7 @@
     - "app/src/features/shell/strings.ts"
     - "e2e/room-flows.spec.ts"
     - "e2e/calls.spec.ts"
+    - "e2e/rooms.spec.ts"
   depends_on: [T-001]
   parallel: false
   completes: [ROOM-052, ROOM-053]

@@ -67,6 +67,96 @@ async function setup(viewer: { id: number; name: string } | null, joinAnswer: "j
   return { fake, api, el, joinButton };
 }
 
+describe("room lobby: one press into the room and its call (spec 049)", () => {
+  const CTX_URL = `/texts?ctx=social.room.${ROOM_ID}`;
+
+  /** The lobby with a fake rooms API; the call controller's `enter` is replaced, so only what the lobby asks for is tested. */
+  async function lobby(opts: { viewer: { id: number; name: string } | null; member: boolean; calls: boolean }) {
+    const mod = await apiModules["../api/rooms-api.ts"]?.();
+    expect(mod, "app/src/features/api/rooms-api.ts exists").toBeDefined();
+    const { HostContext } = (await hostModules["../host/host-context.tsx"]!())!;
+    const { RoomLobbyPage } = (await lobbyModules["./RoomLobbyPage.tsx"]!())!;
+    const theRoom = { ...room, calls: { available: opts.calls } };
+    const fake = createFakeHost({ url: `/social/r/${ROOM_ID}`, viewer: opts.viewer });
+    const { callControllerFor } = await import("~/features/av/call-controller");
+    const enter = vi.fn(async () => undefined);
+    Object.assign(callControllerFor(fake.host), { enter });
+    let member = opts.member;
+    const api: RoomsApiModule.RoomsApi = {
+      getRoom: vi.fn(async () => (member ? { kind: "member" as const, room: theRoom } : { kind: "missing" as const })),
+      join: vi.fn(async () => {
+        member = true;
+        return { kind: "joined" as const, room: theRoom };
+      }),
+    };
+    const el = await render(
+      createElement(
+        HostContext.Provider,
+        { value: fake.host },
+        createElement(mod!.RoomsApiContext.Provider, { value: api }, createElement(RoomLobbyPage, { roomId: ROOM_ID })),
+      ),
+    );
+    return {
+      el,
+      fake,
+      api,
+      enter,
+      button: (action: string) => el.querySelector<HTMLButtonElement>(`button[data-action=${action}]`),
+    };
+  }
+  const intoRoom = (fake: ReturnType<typeof createFakeHost>) =>
+    vi.waitFor(() => expect(fake.calls.navigate.at(-1)?.to).toBe(CTX_URL), { timeout: 4000 });
+
+  // @feature ROOM-053 One Join takes an invitee into the room and its call
+  // @ac 049/AC-002
+  it("an invitee's one Join makes them a member, takes them into the room and into its call with both off", async () => {
+    const { el, fake, api, enter, button } = await lobby({ viewer: { id: 4242, name: "Invitee" }, member: false, calls: true });
+    await vi.waitFor(() => expect(el.querySelector("main")?.dataset.roomState).toBe("outsider"));
+    await act(async () => button("join")!.click());
+    await intoRoom(fake);
+    expect(vi.mocked(api.join).mock.calls).toEqual([[ROOM_ID]]);
+    expect(enter.mock.calls).toEqual([[ROOM_ID, { mic: false, camera: false }]]);
+  });
+
+  // @feature ROOM-053 One Join takes an invitee into the room and its call
+  // @ac 049/AC-003
+  it("carries on by itself after a signed-out Join once the viewer is signed in on the room's page", async () => {
+    const { el, fake, api, enter, button } = await lobby({ viewer: null, member: false, calls: true });
+    await act(async () => button("join")!.click());
+    expect(fake.calls.signIn).toBe(1);
+    // The reader's sign-in returns to the address it came from, which says a Join is waiting.
+    const back = `/social/r/${ROOM_ID}?join=1`;
+    expect(fake.url()).toBe(`/login?next=${encodeURIComponent(back)}`);
+    expect(vi.mocked(api.join).mock.calls).toEqual([]);
+    fake.host.navigate(back);
+    await act(async () => fake.setViewer({ id: 4242, name: "Invitee" }));
+    await intoRoom(fake);
+    expect(vi.mocked(api.join).mock.calls).toEqual([[ROOM_ID]]);
+    expect(enter.mock.calls).toEqual([[ROOM_ID, { mic: false, camera: false }]]);
+    expect(el.querySelector("main")?.dataset.roomState).toBe("member");
+  });
+
+  // @feature ROOM-053 One Join takes an invitee into the room and its call
+  // @ac 049/AC-004
+  it("Enter the room also joins its call", async () => {
+    const { el, fake, enter, button } = await lobby({ viewer: { id: 4242, name: "Member" }, member: true, calls: true });
+    await vi.waitFor(() => expect(el.querySelector("main")?.dataset.roomState).toBe("member"));
+    await act(async () => button("enter")!.click());
+    await intoRoom(fake);
+    expect(enter.mock.calls).toEqual([[ROOM_ID, { mic: false, camera: false }]]);
+  });
+
+  // @feature ROOM-053 One Join takes an invitee into the room and its call
+  // @ac 049/AC-005
+  it("without calls, Join still takes the invitee into the room, and no call starts", async () => {
+    const { el, fake, enter, button } = await lobby({ viewer: { id: 4242, name: "Invitee" }, member: false, calls: false });
+    await vi.waitFor(() => expect(el.querySelector("main")?.dataset.roomState).toBe("outsider"));
+    await act(async () => button("join")!.click());
+    await intoRoom(fake);
+    expect(enter.mock.calls).toEqual([]);
+  });
+});
+
 describe("room lobby: the room's recordings (spec 042)", () => {
   const REC = (n: number) => `9b1c2d3e-4b5a-4c6d-8e7f-00112233445${n}`;
   const rec = (n: number, patch: Record<string, unknown>) => ({

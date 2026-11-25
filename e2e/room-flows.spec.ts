@@ -33,6 +33,8 @@ test.describe("starting, sharing and managing a room", () => {
   });
 
   // @feature ROOM-046 Start a room from Social and land in its lobby
+  // @feature ROOM-052 Start a room and land in it, in its call
+  // @feature ROOM-053 One Join takes an invitee into the room and its call
   // @feature ROOM-047 Your rooms at /social/rooms and Rooms in Social's navigation
   // @feature ROOM-048 Invite people from a room's lobby: its link with Copy and Share
   // @feature ROOM-049 Rename or delete a room you own
@@ -48,17 +50,31 @@ test.describe("starting, sharing and managing a room", () => {
     await expect(owner.page.locator("[data-action=confirm-start-room]")).toBeDisabled();
     await owner.page.locator("[data-room-name]").fill("Daf Yomi chavruta");
     await owner.page.locator("[data-action=confirm-start-room]").click();
+    // Spec 049 AC-001: Start lands the owner in the room (the library, from a Social page), leading, and in its call.
+    const location = (p: typeof owner.page) => p.locator("[data-harness=location]");
+    await expect(location(owner.page)).toHaveText(/^\/texts\?ctx=social\.room\.[0-9a-f-]{36}$/, { timeout: 15_000 });
+    await expect(owner.page.locator("[data-follow-line]")).toHaveText("You are leading", { timeout: 15_000 });
+    await expect(owner.page.locator("[data-social-call]")).toHaveAttribute("data-social-call", /connecting|in-call/, {
+      timeout: 15_000,
+    });
+    const roomId = /social\.room\.([0-9a-f-]{36})/.exec((await location(owner.page).textContent()) ?? "")![1]!;
+
+    // The lobby is still the room's page (AC-001's lobby, spec 044), with the invitation (AC-003).
+    await owner.page.goto(`/social/r/${roomId}`);
     await expect(owner.page.locator('[data-social-page="room"] h1')).toHaveText("Daf Yomi chavruta", { timeout: 15_000 });
     await expect(owner.page.locator("[data-room-role]")).toHaveText("You own this room");
-
-    // The invitation (AC-003).
     const link = await owner.page.locator("[data-room-link]").inputValue();
     const lobbyPath = new URL(link).pathname;
     expect(lobbyPath).toMatch(/^\/social\/r\/[0-9a-f-]{36}$/);
 
-    // The guest opens the link and joins.
+    // The guest opens the link and joins: one press into the room and its call, microphone and camera off (spec 049 AC-002).
     await guest.page.goto(lobbyPath);
     await guest.page.locator("[data-action=join]").click();
+    await expect(location(guest.page)).toHaveText(new RegExp(`ctx=social\\.room\\.${roomId}$`), { timeout: 15_000 });
+    await expect(guest.page.locator("[data-social-call]")).toHaveAttribute("data-social-call", /connecting|in-call/, {
+      timeout: 15_000,
+    });
+    await guest.page.goto(lobbyPath);
     await expect(guest.page.locator("[data-room-role]")).toHaveText("You are a member of this room");
 
     // The owner renames it (AC-004); the guest sees the new name.

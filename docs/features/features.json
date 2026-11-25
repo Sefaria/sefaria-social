@@ -1850,11 +1850,13 @@
     {
       "id": "ROOM-052",
       "area": "room",
-      "name": "One press to get in, starting a room lands you in it with the call, and an invitee's Join does everything",
-      "description": "",
-      "status": "planned",
+      "name": "Start a room and land in it, in its call",
+      "description": "Naming a room and pressing Start takes the starter straight into the room's reader context (the library from a Social page) and its call with their last microphone and camera choice; no lobby, Enter or pre-join step.",
+      "status": "built",
       "spec": "049",
-      "acs": [],
+      "acs": [
+        "049/AC-001"
+      ],
       "surfaces": [
         "rooms",
         "room-lobby",
@@ -1862,18 +1864,26 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/rooms/rooms.test.tsx",
+        "e2e/room-flows.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
     {
       "id": "ROOM-053",
       "area": "room",
-      "name": "One press to get in, starting a room lands you in it with the call, and an invitee's Join does everything",
-      "description": "",
-      "status": "planned",
+      "name": "One Join takes an invitee into the room and its call",
+      "description": "An invitee's one Join makes them a member, takes them to the leader's place and into the call with microphone and camera off; signed out, it carries on after sign-in; Enter the room also joins the call; without calls nothing else changes.",
+      "status": "built",
       "spec": "049",
-      "acs": [],
+      "acs": [
+        "049/AC-002",
+        "049/AC-003",
+        "049/AC-004",
+        "049/AC-005"
+      ],
       "surfaces": [
         "rooms",
         "room-lobby",
@@ -1881,7 +1891,11 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/room/RoomLobbyPage.test.tsx",
+        "e2e/room-flows.spec.ts",
+        "e2e/rooms.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -2625,11 +2639,13 @@
     {
       "id": "SESS-073",
       "area": "sess",
-      "name": "One press to get in, starting a room lands you in it with the call, and an invitee's Join does everything",
-      "description": "",
-      "status": "planned",
+      "name": "Entering a room joins its call; the owner's choice is remembered",
+      "description": "The call controller enters a room's call straight through the pre-join step; the room owner's microphone and camera choices are kept in this browser for the next room (first time: microphone on, camera off); invitees start with both off.",
+      "status": "built",
       "spec": "049",
-      "acs": [],
+      "acs": [
+        "049/AC-006"
+      ],
       "surfaces": [
         "rooms",
         "room-lobby",
@@ -2637,7 +2653,9 @@
         "session"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/av/call-controller.test.ts"
+      ],
       "since": null,
       "changed": []
     },
