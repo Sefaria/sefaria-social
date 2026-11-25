@@ -47,6 +47,17 @@ Failures and their fixes (the gate prints the same text):
 | `this PR changes the agreed spec NNN … and product code together`          | split: spec change first, in its own PR                                                                                                                                                                                                                            |
 | `task(s) complete AREA-NNN but docs/features/features.json is not updated` | set the entry `built`, list its tagged tests, add a `docs/features/CHANGELOG.md` line                                                                                                                                                                              |
 
+**Automated commit writers.** A writer that appends its own `Co-authored-by:` paragraph after your text hides the trailers, and no message you hand it can reorder that paragraph. End the message with git's scissors line instead:
+
+```
+Spec: 084
+Task: T-002
+
+# ------------------------ >8 ------------------------
+```
+
+Git reads the trailers above the scissors line and ignores the paragraphs below it (`git interpret-trailers --parse` and `%(trailers:only)` both report `Spec:` and `Task:` only), so the appended co-author paragraph no longer hides them. The leading `#` matters: git recognises a scissors line only with the comment character, and the bare `----- >8 -----` form is read as ordinary text.
+
 A new spec may arrive in the same PR as its first build (the owner reviews spec and code together); the gate then needs
 the approval recorded in that PR. Changing a spec that was already agreed on the base is what must be split.
 
