@@ -194,6 +194,27 @@
       "changed": []
     },
     {
+      "id": "API-051",
+      "area": "api",
+      "name": "Live status of posted sessions: relay reports and the public read",
+      "description": "The relay reports each room's leader ref and headcount to the server, signed, at most once per 5 seconds; GET /api/v1/live answers 1-50 ids that posts embed with live, ref, heRef, here and updatedAt, with an ETag.",
+      "status": "planned",
+      "spec": "056",
+      "acs": [
+        "056/AC-001",
+        "056/AC-002",
+        "056/AC-003"
+      ],
+      "surfaces": [
+        "api",
+        "relay"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "FEED-015",
       "area": "feed",
       "name": "Feed API: live, scheduled and recent for the viewer",
@@ -668,6 +689,65 @@
       "tests": [
         "app/src/api.repost.int.test.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-074",
+      "area": "feed",
+      "name": "A post may embed a room, broadcast or recording, checked by the server",
+      "description": "POST /api/v1/posts takes an optional embed {kind, id}; the server refuses an unknown target with 404 and answers the post with embed {kind, id, title, leader}; posts without one keep their exact shape.",
+      "status": "planned",
+      "spec": "055",
+      "acs": [
+        "055/AC-002",
+        "055/AC-003"
+      ],
+      "surfaces": [
+        "api",
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-075",
+      "area": "feed",
+      "name": "Links in post text, and a session card in the composer and in posts",
+      "description": "http(s) URLs in a post are links (noopener nofollow, new tab); a pasted room, broadcast or recording link becomes a card under the composer's text with Remove; a post shows the card with title, leader and Join, Watch or Play.",
+      "status": "planned",
+      "spec": "055",
+      "acs": [
+        "055/AC-001",
+        "055/AC-004",
+        "055/AC-005"
+      ],
+      "surfaces": [
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-076",
+      "area": "feed",
+      "name": "Live cards in posts: the leader's current text, polled only while seen",
+      "description": "A posted room or broadcast card shows Live, the leader's ref and that text, or Not live with the last ref; it polls every 15 seconds for the cards on screen, in one request, and never while the tab is hidden.",
+      "status": "planned",
+      "spec": "056",
+      "acs": [
+        "056/AC-004",
+        "056/AC-005"
+      ],
+      "surfaces": [
+        "feed"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
