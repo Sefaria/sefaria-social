@@ -42,7 +42,14 @@ export class SocialApiError extends Error {
 
 export interface SocialApi {
   timeline(tab: TimelineTab, before?: string): Promise<Timeline>;
-  createPost(input: { body: string; ref?: string; asProfileId?: string; quotedPostId?: string }): Promise<Post>;
+  createPost(input: {
+    body: string;
+    ref?: string;
+    asProfileId?: string;
+    quotedPostId?: string;
+    /** A room, broadcast or recording shown as a card (spec 055). */
+    embed?: { kind: "room" | "broadcast" | "recording"; id: string };
+  }): Promise<Post>;
   getPost(postId: string): Promise<PostWithReplies>;
   deletePost(postId: string): Promise<void>;
   reply(postId: string, body: string): Promise<Reply>;

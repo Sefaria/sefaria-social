@@ -719,7 +719,7 @@
       "area": "feed",
       "name": "Links in post text, and a session card in the composer and in posts",
       "description": "http(s) URLs in a post are links (noopener nofollow, new tab); a pasted room, broadcast or recording link becomes a card under the composer's text with Remove; a post shows the card with title, leader and Join, Watch or Play.",
-      "status": "planned",
+      "status": "built",
       "spec": "055",
       "acs": [
         "055/AC-001",
@@ -730,7 +730,10 @@
         "feed"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/post/post-embeds.test.tsx",
+        "app/src/features/post/embed-link.test.ts"
+      ],
       "since": null,
       "changed": []
     },

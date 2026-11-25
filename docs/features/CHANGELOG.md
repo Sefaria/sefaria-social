@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-25 — FEED-075 "Links in post text, and a session card in the composer and in posts": built (spec 055).
 - 2026-11-25 — FEED-074 "A post may embed a room, broadcast or recording, checked by the server": built (spec 055).
 - 2026-11-25 — SESS-074 "Record on and off during a session, on one clock", SESS-075 "Close, Finish and Leave, and the closed room" and ROOM-054 "Choose at Start what the session is and whether to record it": built (spec 050; named by `tools/2026-11-25-name-050-entries.mjs`).
 - 2026-11-25 — ROOM-052 "Start a room and land in it, in its call", ROOM-053 "One Join takes an invitee into the room and its call" and SESS-073 "Entering a room joins its call; the owner's choice is remembered": built (spec 049; named by `tools/2026-11-25-name-049-entries.mjs`). ROOM-046's landing in the lobby after Start is superseded.
