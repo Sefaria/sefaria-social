@@ -1,6 +1,6 @@
 # Plan: 055 links in posts
 
-Plan: `docs/plans/shiur.md` 4.7. Decision: `docs/decisions/0012-links-and-live-cards.md`.
+Plan: `docs/plans/shiur.md` 4.7. Decision: `docs/decisions/0013-links-and-live-cards.md`.
 
 ## T-001 The embed on the API (AC-002, AC-003)
 

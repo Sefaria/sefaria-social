@@ -46,8 +46,8 @@ if the owner decides otherwise.
 - One card per post (055): `app/src/features/post/Composer.tsx` takes only the first session link out of the text.
 - Live status mechanics of 4.7 (056): the relay's reports (`packages/relay/src/live-report.ts`, `worker.ts`), the
   `live_status` table, the 5-second cache, 15-second polling (`app/src/features/post/live-status.ts`); details and the
-  fallback to the relay's status read in `docs/decisions/0012-links-and-live-cards.md`.
-- The public `GET /api/v1/live` answers only ids some post embeds (`app/src/server/services/live.ts`; decision 0012).
+  fallback to the relay's status read in `docs/decisions/0013-links-and-live-cards.md`.
+- The public `GET /api/v1/live` answers only ids some post embeds (`app/src/server/services/live.ts`; decision 0013).
 
 ## QA passes
 

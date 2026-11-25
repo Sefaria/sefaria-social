@@ -1,6 +1,6 @@
 # Plan: 056 live cards
 
-Plan: `docs/plans/shiur.md` 4.7 (proposed mechanics). Decision: `docs/decisions/0012-links-and-live-cards.md`.
+Plan: `docs/plans/shiur.md` 4.7 (proposed mechanics). Decision: `docs/decisions/0013-links-and-live-cards.md`.
 
 ## T-001 The relay reports each room's live state to the server (AC-001)
 

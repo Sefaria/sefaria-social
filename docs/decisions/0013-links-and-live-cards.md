@@ -1,4 +1,4 @@
-# 0012. Links in posts and live cards: the choices the plan left open
+# 0013. Links in posts and live cards: the choices the plan left open
 
 - Status: accepted
 - Date: 2026-11-25
