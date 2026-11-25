@@ -24,7 +24,7 @@ test.describe("live cards in posts", () => {
       summary: { ref: `Genesis ${n}`, heRef: null, title: "Genesis" },
     });
     const publisher = await publish(browser, LEADER, [at(1)]);
-    await postWithEmbed(viewerToken, "Come learn with us", { kind: "room", id: room.id });
+    expect(await postWithEmbed(viewerToken, "Come learn with us", { kind: "room", id: room.id })).toBe(201);
 
     const context = await browser.newContext();
     await context.addInitScript((config) => Object.assign(window, { __HARNESS_CONFIG__: config }), {

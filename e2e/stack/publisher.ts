@@ -110,13 +110,13 @@ export async function move(context: BrowserContext, index: number, room: LiveRoo
   );
 }
 
-/** Post as the token's user, with a card for a room, broadcast or recording (spec 055). */
-export async function postWithEmbed(token: string, body: string, embed: { kind: string; id: string }): Promise<{ id: string }> {
+/** Post as the token's user, with a card for a room, broadcast or recording (spec 055); returns the HTTP status. */
+export async function postWithEmbed(token: string, body: string, embed: { kind: string; id: string }): Promise<number> {
   const res = await fetch(`http://127.0.0.1:${STACK.apiPort}/api/v1/posts`, {
     method: "POST",
     headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
     body: JSON.stringify({ body, embed }),
   });
-  if (res.status !== 201) throw new Error(`post not created: ${res.status}`);
-  return res.json() as Promise<{ id: string }>;
+  await res.arrayBuffer();
+  return res.status;
 }
