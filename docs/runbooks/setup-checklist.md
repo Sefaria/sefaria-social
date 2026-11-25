@@ -227,7 +227,8 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       the specs build them as proposed and list them in `docs/plans/shiur-progress.md`. Added by the shiur plan.
 - [ ] **Sofer.ai API key**: request one from their support (`https://docs.sofer.ai`), and set it as the secret
       `SOFER_API_KEY` for each environment that should produce transcripts. Without it transcripts are `unavailable` and
-      everything else works. Ask them about WebM or M4A input and the maximum file size and length. Needed by spec 054.
+      everything else works. Ask them about WebM or M4A input and the maximum file size and length. Needed by spec 054. In Helm the key is read from
+      `sefaria-social-secrets` as optional; for shiurim longer than about 80 minutes also set `SOCIAL_PUBLIC_ORIGIN`.
 - [ ] **Object storage bucket** for assets, one per environment (or name an existing one), with the social server given
       read and write access through workload identity where the platform allows, otherwise a secret. Say which bucket the
       Coolify dev server and previews use. Needed by specs 051 and 052.

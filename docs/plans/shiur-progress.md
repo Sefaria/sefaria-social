@@ -16,7 +16,7 @@ States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awa
 | 051  | The asset in object storage                                     | built       | group B (#37) | Awaiting approval. Filesystem store until a bucket adapter.                                                                   |
 | 052  | Processing                                                      | built       | group B (#37) | Awaiting approval. Queue on the row (decision 0013), not pg-boss.                                                             |
 | 053  | The player                                                      | built       | group B (#37) | Awaiting approval.                                                                                                            |
-| 054  | Transcript                                                      | not started |               |                                                                                                                               |
+| 054  | Transcript                                                      | built       | group C (#38) | Awaiting approval. Tested against a fake Sofer.ai only; needs the key.                                                        |
 | 055  | Links in posts                                                  | not started |               |                                                                                                                               |
 | 056  | Live cards                                                      | not started |               |                                                                                                                               |
 
@@ -56,6 +56,11 @@ if the owner decides otherwise.
 
 Newest first. One or two lines per entry: what changed, and anything the next session must know that the code does not say.
 
+- 2026-11-26: Group C (054) built on #38, stacked on #37. Tested only against a fake Sofer.ai built from their documented
+  API; watch the first real run (`transcript.*` log events). Audio goes inline (base64, up to 40 MB, about 80 minutes) unless
+  `SOCIAL_PUBLIC_ORIGIN` is set. A fresh-agent review found 10 problems (rate limit, the 6-hour limit while polls error,
+  `/audio` in memory, silent recordings queued, and others); all fixed with tests. Group B's Helm values lacked
+  `ASSET_STORE_DIR` and `ASSET_WORKER` (a factory test caught it in CI); fixed on #37.
 - 2026-11-26: Group B (051–053) built on #37 overnight. A fresh-agent review found 8 problems (whole files in memory on public
   reads, a crash loop on out-of-memory, the replay pausing when the video hid, the filesystem store unwritable in the image,
   lease overlap, leftover media after deletion, a bad address failing processing, keyboard on the seek bar); all fixed with
