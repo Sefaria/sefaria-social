@@ -11,5 +11,6 @@ Source: `LINKED_PANELS_AND_ASSETS_PLAN.md` 7.1 and the "Token" default in sectio
   a marked identity (403 `auth.mcp_not_allowed`) unless the endpoint accepts it. `errors.ts` gains the code.
 - `contracts.ts`: the two save endpoints say `mcp: true`.
 - Relay `auth.ts`: a `via` claim makes the token invalid.
-- Tests: `app/src/api.mcp-tokens.int.test.ts` (walks every route with a marked token), `server/auth/identity.test.ts`,
-  `server/http/endpoint.test.ts`, relay test in `packages/relay/src/relay.test.ts`.
+- Tests: `app/src/api.mcp-tokens.int.test.ts` (walks every endpoint that needs a user with a marked token, and the `via`
+  values), `server/http/endpoint.test.ts` (AC-005), the relay test in `packages/relay/src/relay.test.ts` with a `via` claim in
+  `packages/relay/test-support/relay.ts`'s token.

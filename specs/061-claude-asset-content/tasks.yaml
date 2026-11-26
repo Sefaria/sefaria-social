@@ -12,12 +12,13 @@
     - "app/src/server/api/contracts.ts"
     - "app/src/routes/api/v1/claude-assets.content.$versionId.ts"
     - "app/src/routes/api/v1/claude-assets.content.$versionId.shiur.$grant.ts"
-    - "app/src/routeTree.gen.ts"
     - "app/src/api.claude-asset-content.int.test.ts"
-    - "app/src/api.claude-assets.int.test.ts"
+    - "docs/runbooks/server.md"
     - "packages/api-client/openapi.json"
     - "packages/api-client/src/schema.ts"
-    - "docs/runbooks/server.md"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/api.contract.test.ts"
   depends_on: []
   parallel: false
   completes: [SHIUR-010]

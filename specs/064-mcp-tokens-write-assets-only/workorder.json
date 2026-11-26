@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:6602731396d6b34c8983d01ac76a55906b5b9d9476855077d315704746d5a532",
   "feature_sha": "sha256:bc3d00501a97e6f08b5ff5d591c023a06d1eaf10801a6b87454b994670e4b801",
-  "tasks_sha": "sha256:a5b8070b9b09cdd0971da57b433c9da434882b84859e8cbbeee55d5a9b7d01ad",
+  "tasks_sha": "sha256:bfbde584bb8961dfb9e1ad95456a7a126b8778ed5ed92128c271383e4385a68d",
   "risk": "high",
   "features": [
     "IDENT-107"
@@ -23,18 +23,15 @@
       ],
       "files": [
         "app/src/server/auth/identity.ts",
-        "app/src/server/auth/identity.test.ts",
         "app/src/server/http/mcp-routes.ts",
         "app/src/server/http/endpoint.ts",
         "app/src/server/http/endpoint.test.ts",
         "app/src/server/http/errors.ts",
         "app/src/server/api/contracts.ts",
-        "app/src/server/api/openapi.ts",
         "app/src/api.mcp-tokens.int.test.ts",
         "packages/relay/src/auth.ts",
         "packages/relay/src/relay.test.ts",
-        "packages/api-client/openapi.json",
-        "packages/api-client/src/schema.ts"
+        "packages/relay/test-support/relay.ts"
       ],
       "depends_on": [],
       "parallel": false,

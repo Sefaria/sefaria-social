@@ -15,19 +15,21 @@
     - "app/src/server/config.ts"
     - "app/src/server/http/errors.ts"
     - "app/src/server/http/public-routes.ts"
+    - "app/src/server/log/logger.ts"
     - "app/src/server/api/contracts.ts"
     - "app/src/routes/api/v1/claude-assets.ts"
     - "app/src/routes/api/v1/claude-assets.$assetId.ts"
-    - "app/src/routeTree.gen.ts"
     - "app/src/api.claude-assets.int.test.ts"
     - "app/src/db.int.test.ts"
     - "app/src/api.user-deleted.int.test.ts"
     - "test/integration/schema-walk.ts"
     - "test/integration/fake-sefaria.ts"
+    - "docs/runbooks/server.md"
     - "packages/api-client/openapi.json"
     - "packages/api-client/src/schema.ts"
-    - "packages/api-client/src/index.ts"
-    - "docs/runbooks/server.md"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/api.contract.test.ts"
   depends_on: []
   parallel: false
   completes: [SHIUR-008]
@@ -39,12 +41,15 @@
     - "app/src/server/services/asset-import.ts"
     - "app/src/server/services/asset-import.test.ts"
     - "app/src/server/services/claude-assets.ts"
+    - "app/src/server/log/logger.ts"
     - "app/src/server/api/contracts.ts"
     - "app/src/routes/api/v1/claude-assets.import.ts"
-    - "app/src/routeTree.gen.ts"
     - "app/src/api.claude-assets-import.int.test.ts"
     - "packages/api-client/openapi.json"
     - "packages/api-client/src/schema.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/api.contract.test.ts"
   depends_on: [T-001]
   parallel: false
   completes: [SHIUR-009]

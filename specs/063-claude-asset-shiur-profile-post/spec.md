@@ -63,3 +63,5 @@ exists but nothing writes it, and the shiur page is a placeholder.
   `features/shiur/ShiurPage.tsx` and `features/post/EmbedCard.tsx`; strings in English and Hebrew; Open links are real
   `<a href target="_blank" rel="noopener noreferrer">` to the content origin, never an iframe in the page (the reader page
   loads no third-party code; `docs/runbooks/security.md`). Mockup: `mockup.html`.
+- The shiur page keeps spec 002's placeholder (its id and a link into the reader) while it loads and for an id that is not
+  an unlisted or public shiur, so spec 002's tests of that page hold; it adds a line saying the shiur is private or unknown.

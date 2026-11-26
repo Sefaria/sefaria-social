@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:44e0416346421ebb42728e1198c20e79760740b65b814b1025add9e8ec856a4c",
   "feature_sha": "sha256:3704d4837fbd2216f62f86e3492a6e9700fce0edba0a5b660287218980624d45",
-  "tasks_sha": "sha256:d52ddc340aa5ebe206ede8218ceac632e8f5dd290255281e541de247af6da0f6",
+  "tasks_sha": "sha256:2bcbff55b91716a02b4b125234ae655801f48256367542142e3c32931d817d68",
   "risk": "high",
   "features": [
     "IDENT-106",
@@ -36,7 +36,10 @@
         "app/src/db.int.test.ts",
         "test/integration/schema-walk.ts",
         "packages/api-client/openapi.json",
-        "packages/api-client/src/schema.ts"
+        "packages/api-client/src/schema.ts",
+        "app/src/routeTree.gen.ts",
+        "app/src/api.routes.int.test.ts",
+        "app/src/api.contract.test.ts"
       ],
       "depends_on": [],
       "parallel": false,
@@ -65,10 +68,12 @@
         "app/src/routes/api/v1/claude-assets.$assetId.publish.ts",
         "app/src/routes/api/v1/claude-assets.$assetId.unpublish.ts",
         "app/src/routes/api/v1/claude-assets.ref.$ref.ts",
-        "app/src/routeTree.gen.ts",
         "app/src/api.claude-asset-publish.int.test.ts",
         "packages/api-client/openapi.json",
-        "packages/api-client/src/schema.ts"
+        "packages/api-client/src/schema.ts",
+        "app/src/routeTree.gen.ts",
+        "app/src/api.routes.int.test.ts",
+        "app/src/api.contract.test.ts"
       ],
       "depends_on": [
         "T-001"

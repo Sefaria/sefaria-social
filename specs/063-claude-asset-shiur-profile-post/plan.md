@@ -27,4 +27,5 @@ Source: `LINKED_PANELS_AND_ASSETS_PLAN.md` 6.1, 6.3, D5, D8, D9, P2. Decision: `
 - `features/profile/ClaudeAssets.tsx` (`AssetList`, `OwnAssets` with the file input and Publish/Unpublish),
   `claude-assets.module.css`; `ProfilePage.tsx` shows them; `features/shiur/ShiurPage.tsx` lists the shiur's assets;
   `features/post/EmbedCard.tsx` renders the asset card. Strings in `features/shell/strings.ts` (English and Hebrew).
-- Tests: `features/profile/claude-assets.test.tsx`, `features/shiur/shiur-page.test.tsx`, `features/post/post-embeds.test.tsx`.
+- Tests: `features/profile/claude-assets.test.tsx` (the profile lists and the post's asset card),
+  `features/shiur/shiur-page.test.tsx`. The shiur page keeps spec 002's placeholder until a shiur loads.

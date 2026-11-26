@@ -3,9 +3,9 @@
   "spec": "063",
   "title": "A shiur holds recordings and pinned Claude assets; assets on profiles and as post cards",
   "approved": false,
-  "spec_sha": "sha256:804770d3ebeb6b77f0b1bb094c89b6dbcdc3dbd9ceada44de6e853d4f3982cfb",
+  "spec_sha": "sha256:60b1af2f9d348cdb2756b3415b7bb8041ccd67b92be7a93846f214d7f2b7fb5c",
   "feature_sha": "sha256:32c7dc188663519502002a9eb7ba4f57b91d6f475be362ad67c7729f920e7a01",
-  "tasks_sha": "sha256:686d524ad7d04b1b6a9f54463295aaa6963e6f0fceba195fad4e24d5d8758fcb",
+  "tasks_sha": "sha256:cde76d21121b4090d93172984b131ee26a7b64d97fb41b745c09edae43e26429",
   "risk": "high",
   "features": [
     "SHIUR-012",
@@ -29,7 +29,6 @@
         "app/src/server/db/migrations/meta/_journal.json",
         "app/src/server/services/shiurim.ts",
         "app/src/server/services/claude-assets.ts",
-        "app/src/server/services/users.ts",
         "app/src/server/http/errors.ts",
         "app/src/server/http/public-routes.ts",
         "app/src/server/api/contracts.ts",
@@ -37,14 +36,15 @@
         "app/src/routes/api/v1/shiurim.$shiurId.ts",
         "app/src/routes/api/v1/shiurim.$shiurId.assets.ts",
         "app/src/routes/api/v1/shiurim.$shiurId.assets.$assetId.ts",
-        "app/src/routeTree.gen.ts",
         "app/src/api.shiurim.int.test.ts",
         "app/src/api.claude-asset-content.int.test.ts",
         "app/src/db.int.test.ts",
         "test/integration/schema-walk.ts",
         "packages/api-client/openapi.json",
         "packages/api-client/src/schema.ts",
-        "packages/api-client/src/index.ts"
+        "app/src/routeTree.gen.ts",
+        "app/src/api.routes.int.test.ts",
+        "app/src/api.contract.test.ts"
       ],
       "depends_on": [],
       "parallel": false,
@@ -68,14 +68,14 @@
         "app/src/server/services/posts.ts",
         "app/src/server/services/live.ts",
         "app/src/server/http/public-routes.ts",
-        "app/src/server/http/errors.ts",
         "app/src/server/api/contracts.ts",
         "app/src/routes/api/v1/profiles.$profileId.claude-assets.ts",
-        "app/src/routeTree.gen.ts",
         "app/src/api.claude-asset-listing.int.test.ts",
         "packages/api-client/openapi.json",
         "packages/api-client/src/schema.ts",
-        "packages/api-client/src/index.ts"
+        "app/src/routeTree.gen.ts",
+        "app/src/api.routes.int.test.ts",
+        "app/src/api.contract.test.ts"
       ],
       "depends_on": [
         "T-001"
@@ -101,12 +101,8 @@
         "app/src/features/profile/ProfilePage.tsx",
         "app/src/features/shiur/ShiurPage.tsx",
         "app/src/features/shiur/shiur-page.test.tsx",
-        "app/src/features/shiur/shiur.module.css",
         "app/src/features/post/EmbedCard.tsx",
-        "app/src/features/post/post-embeds.test.tsx",
-        "app/src/features/post/embed-card.module.css",
-        "app/src/features/shell/strings.ts",
-        "app/src/routes/social.s.$shiurId.tsx"
+        "app/src/features/shell/strings.ts"
       ],
       "depends_on": [
         "T-002"
