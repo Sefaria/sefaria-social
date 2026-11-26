@@ -119,6 +119,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/internal/relay/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The relay's report of a room's live state (spec 056): the leader's ref and how many are connected. Signed by the relay over the raw body; refused when older than 5 minutes. */
+        post: operations["relayLiveReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/internal/user-deleted": {
         parameters: {
             query?: never;
@@ -130,6 +147,23 @@ export interface paths {
         put?: never;
         /** Django's account-deletion webhook. Authenticated by X-Sefaria-Signature (HMAC-SHA256 of the raw body). */
         post: operations["userDeletedWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The live state of up to 50 rooms, broadcasts or recordings, answered only for those a post embeds (others are left out). Public. Carries an ETag; If-None-Match with it answers 304. */
+        get: operations["getLiveStatus"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1148,6 +1182,71 @@ export interface operations {
             };
         };
     };
+    relayLiveReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    at: number;
+                    heRef: string | null;
+                    participants: number;
+                    ref: string | null;
+                    room: string;
+                    title: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Kept, or ignored (an older report, or a room that does not exist). */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The request body is larger than 64 KiB (request.too_large). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     userDeletedWebhook: {
         parameters: {
             query?: never;
@@ -1209,6 +1308,54 @@ export interface operations {
             };
             /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getLiveStatus: {
+        parameters: {
+            query: {
+                ids: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One entry per posted id asked for. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        here: number;
+                        heRef: string | null;
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        kind: "room" | "broadcast" | "recording";
+                        live: boolean;
+                        ref: string | null;
+                        updatedAt: string | null;
+                    }[];
+                };
+            };
+            /** @description Unchanged since the ETag given in If-None-Match. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1371,6 +1518,12 @@ export interface operations {
                     /** Format: uuid */
                     asProfileId?: string;
                     body: string;
+                    embed?: {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        kind: "room" | "broadcast" | "recording";
+                    };
                     /** Format: uuid */
                     quotedPostId?: string;
                     ref?: string;
@@ -1396,6 +1549,14 @@ export interface operations {
                         canDelete: boolean;
                         /** Format: date-time */
                         createdAt: string;
+                        embed?: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "room" | "broadcast" | "recording";
+                            leader: string | null;
+                            title: string | null;
+                        };
                         /** Format: uuid */
                         id: string;
                         quoteCount: number;
@@ -1515,6 +1676,14 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            embed?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "room" | "broadcast" | "recording";
+                                leader: string | null;
+                                title: string | null;
+                            };
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;
@@ -2091,6 +2260,14 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            embed?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "room" | "broadcast" | "recording";
+                                leader: string | null;
+                                title: string | null;
+                            };
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;
@@ -4280,6 +4457,14 @@ export interface operations {
                             canDelete: boolean;
                             /** Format: date-time */
                             createdAt: string;
+                            embed?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "room" | "broadcast" | "recording";
+                                leader: string | null;
+                                title: string | null;
+                            };
                             /** Format: uuid */
                             id: string;
                             quoteCount: number;

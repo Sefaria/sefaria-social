@@ -88,3 +88,35 @@ export async function joinRoom(token: string, roomId: string): Promise<void> {
   });
   if (res.status >= 300) throw new Error(`could not join ${roomId}: ${res.status}`);
 }
+
+/**
+ * Move a publisher's room to another place (spec 056): a new keyframe on the socket `publish` opened for `index`, as the
+ * leader's client does when they go to another text.
+ */
+export async function move(context: BrowserContext, index: number, room: LiveRoom, seq: number): Promise<void> {
+  const page = context.pages()[0]!;
+  await page.evaluate(
+    ({ index, room, seq }) => {
+      const ws = (window as unknown as { __publisherSockets: WebSocket[] }).__publisherSockets[index]!;
+      const slices = { "social.summary": { v: 1, value: room.summary } };
+      ws.send(
+        JSON.stringify({
+          ch: "state",
+          body: { type: "keyframe", seq, t: seq, snapshot: { v: 1, url: room.url, nav: null, slices } },
+        }),
+      );
+    },
+    { index, room, seq },
+  );
+}
+
+/** Post as the token's user, with a card for a room, broadcast or recording (spec 055); returns the HTTP status. */
+export async function postWithEmbed(token: string, body: string, embed: { kind: string; id: string }): Promise<number> {
+  const res = await fetch(`http://127.0.0.1:${STACK.apiPort}/api/v1/posts`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ body, embed }),
+  });
+  await res.arrayBuffer();
+  return res.status;
+}

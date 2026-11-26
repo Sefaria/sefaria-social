@@ -28,7 +28,7 @@ describe("spec 006: protect by default", () => {
     expect(report.calls).toContain("DELETE /api/v1/rooms/$roomId -> 401");
     expect(report.calls).toContain("POST /api/v1/internal/user-deleted -> 401");
     expect(report.calls).toContain("PUT /api/v1/rooms -> 401");
-    expect([...PUBLIC_ENDPOINTS]).toEqual(["GET /api/v1/health"]);
+    expect([...PUBLIC_ENDPOINTS]).toEqual(["GET /api/v1/health", "GET /api/v1/live"]);
   });
 
   it("every served handler is bound to a declared endpoint, and every endpoint is served", async () => {

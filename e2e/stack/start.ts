@@ -94,6 +94,9 @@ const relay = spawn(
     `TOKEN_ISSUER:${STACK.issuer}`,
     "--var",
     `RELAY_INTERNAL_SECRET:${STACK.relaySecret}`,
+    // Live reports to the API (spec 056); it listens below, after the relay is up, and the relay retries on the next change.
+    "--var",
+    `SOCIAL_SERVER_URL:http://127.0.0.1:${STACK.apiPort}`,
   ],
   {
     cwd: path.join(root, "packages", "relay"),

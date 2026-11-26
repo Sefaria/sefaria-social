@@ -114,6 +114,27 @@ export const callStatus = pgTable("call_status", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * What the relay last reported about a room's or broadcast's session (spec 056): the leader's ref and how many are connected,
+ * for posted live cards. One row per relay room (a room's id, or `b_<broadcast id>`), deleted with its room. Holds no user ids.
+ */
+export const liveStatus = pgTable(
+  "live_status",
+  {
+    relayRoom: text("relay_room").primaryKey(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    ref: text("ref"),
+    heRef: text("he_ref"),
+    title: text("title"),
+    participants: integer("participants").notNull().default(0),
+    /** When the relay made the report (its clock, checked to be within 5 minutes of ours). */
+    reportedAt: timestamp("reported_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [index("live_status_room_idx").on(t.roomId)],
+);
+
 /** A participant the room's owner removed from its call (spec 039): their call tokens are refused until `until`. */
 export const callRemovals = pgTable(
   "call_removals",
@@ -296,6 +317,10 @@ export const posts = pgTable(
     ref: text("ref"),
     /** A quote (spec 030): the post this one quotes. Kept when the quoted post is deleted (it shows as unavailable). */
     quotedPostId: uuid("quoted_post_id").references((): AnyPgColumn => posts.id, { onDelete: "set null" }),
+    /** A room, broadcast or recording the post shows as a card (spec 055): "room" | "broadcast" | "recording". */
+    embedKind: text("embed_kind"),
+    /** The embedded target's id. No foreign key: a target deleted later shows as unavailable. */
+    embedId: uuid("embed_id"),
     createdAt: createdAt(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
@@ -304,6 +329,13 @@ export const posts = pgTable(
     index("posts_created_idx").on(t.createdAt),
     index("posts_created_by_idx").on(t.createdByUserId),
     index("posts_quoted_idx").on(t.quotedPostId),
+    index("posts_embed_idx")
+      .on(t.embedId)
+      .where(sql`${t.embedId} is not null`),
+    check(
+      "posts_embed_check",
+      sql`(${t.embedKind} is null and ${t.embedId} is null) or (${t.embedKind} in ('room', 'broadcast', 'recording') and ${t.embedId} is not null)`,
+    ),
   ],
 );
 

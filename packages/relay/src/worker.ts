@@ -18,6 +18,7 @@ import {
 import { SUBPROTOCOL, identityFrom, identityHeaders, tokenFromProtocols, verifyToken, type Identity } from "./auth";
 import { ROLE_HEADER, admitFromViewer, forViewer, isBroadcastRoom, withRole } from "./broadcast";
 import { ticketFromProtocols, verifyTicket, type TicketRole } from "./ticket";
+import { LiveReporter, REPORT_PATH, SIGNATURE_HEADER, signReport, type LiveReportBody } from "./live-report";
 
 export interface Env {
   ROOMS: DurableObjectNamespace<Room>;
@@ -31,7 +32,12 @@ export interface Env {
   JWKS_URL?: string;
   /** Must equal the `iss` Django puts in its tokens. Unset: every upgrade is refused. */
   TOKEN_ISSUER?: string;
+  /** The social server's base URL, for live reports (spec 056). Unset: the relay reports nothing. */
+  SOCIAL_SERVER_URL?: string;
 }
+
+/** How long a live report may take before the relay gives up on it (the next change or the minute's report repeats it). */
+const REPORT_TIMEOUT_MS = 2_000;
 
 /** Room ids: routing rule R6's grammar, the same as the reader relay's path rule. */
 export const ROOM_PATH = /^\/r\/([A-Za-z0-9_-]{8,128})$/;
@@ -139,19 +145,23 @@ export class Room extends DurableObject<Env> {
   private users = new Map<string, Identity>();
   /** Each connection's role (from the verified ticket, or `member` in an ordinary room without an owner ticket). */
   private roles = new Map<string, TicketRole>();
+  /** This object's room id, from the first upgrade's path (an object does not know the name it was made from). */
+  private roomId: string | null = null;
+  private reporter = new LiveReporter();
 
   override async fetch(req: Request): Promise<Response> {
     const identity = identityFrom(req.headers);
     if (!identity) return new Response("unauthorized", { status: 401 }); // only the Worker reaches this object, and it always sets one
     const { 0: client, 1: server } = new WebSocketPair();
     server.accept(); // the standard API, not acceptWebSocket(): no hibernation, which would discard the in-memory room
+    this.roomId ??= ROOM_PATH.exec(new URL(req.url).pathname)?.[1] ?? null;
     const conn = `ws-${this.nextConn++}`;
     this.sockets.set(conn, server);
     this.users.set(conn, identity);
     const role = roleFrom(req.headers.get(ROLE_HEADER));
     this.roles.set(conn, role);
     this.room.connect(conn);
-    this.ticker ??= setInterval(() => this.deliver(this.room.tick()), 1000);
+    this.ticker ??= setInterval(() => this.onTick(), 1000);
 
     server.addEventListener("message", (e) => {
       if (typeof e.data !== "string") return; // the protocol is JSON text; the room checks size and shape
@@ -169,9 +179,7 @@ export class Room extends DurableObject<Env> {
 
   /** The status cards read (plan 4.5): the spotlight stream's summary slice and how many are joined. */
   async status(): Promise<RoomStatus> {
-    const snap = this.room.snapshot();
-    const lead = snap.spotlight ? snap.streams[snap.spotlight]?.snapshot : null;
-    return { ...summaryOf(lead?.slices), participants: snap.participants.length };
+    return this.liveState();
   }
 
   /** Close every socket of a deleted user (plan 6.3). Returns how many were closed. */
@@ -195,13 +203,57 @@ export class Room extends DurableObject<Env> {
     this.users.delete(conn);
     this.deliver(this.room.disconnect(conn));
     this.roles.delete(conn);
-    if (this.sockets.size === 0 && this.ticker) {
-      clearInterval(this.ticker); // nothing keeps the object now: it shuts down and the room goes with it
-      this.ticker = null;
-    }
+    this.stopWhenIdle();
+  }
+
+  private onTick() {
+    this.deliver(this.room.tick());
+    this.stopWhenIdle();
+  }
+
+  /** With nobody left and no report waiting, nothing keeps the object: it shuts down and the room goes with it. */
+  private stopWhenIdle() {
+    if (this.sockets.size > 0 || !this.ticker) return;
+    if (this.env.SOCIAL_SERVER_URL && this.reporter.pending(this.liveState())) return; // the empty report still has to go
+    clearInterval(this.ticker);
+    this.ticker = null;
+  }
+
+  private liveState() {
+    const snap = this.room.snapshot();
+    const lead = snap.spotlight ? snap.streams[snap.spotlight]?.snapshot : null;
+    return { ...summaryOf(lead?.slices), participants: snap.participants.length };
+  }
+
+  /** Tell the social server what this room is on, when the reporter says so (spec 056 AC-001). Never throws. */
+  private report() {
+    const base = this.env.SOCIAL_SERVER_URL;
+    const secret = this.env.RELAY_INTERNAL_SECRET;
+    if (!base || !secret || !this.roomId) return;
+    const state = this.reporter.observe(this.liveState(), Date.now());
+    if (!state) return;
+    const body: LiveReportBody = { room: this.roomId, at: Date.now(), ...state };
+    const raw = JSON.stringify(body);
+    const url = new URL(REPORT_PATH, base.endsWith("/") ? base : `${base}/`);
+    void signReport(secret, raw)
+      .then((signature) =>
+        fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json", [SIGNATURE_HEADER]: signature },
+          body: raw,
+          signal: AbortSignal.timeout(REPORT_TIMEOUT_MS),
+        }),
+      )
+      .then((res) => res.body?.cancel())
+      .catch(() => undefined); // the server is down or slow: the next change or the minute's report tries again
   }
 
   private deliver(out: Outgoing[]) {
+    this.deliverEach(out);
+    this.report();
+  }
+
+  private deliverEach(out: Outgoing[]) {
     for (const { to, envelope } of out) {
       const text = JSON.stringify(envelope);
       let viewerText: string | undefined; // a viewer's participants list names the host only (spec 043 AC-004)

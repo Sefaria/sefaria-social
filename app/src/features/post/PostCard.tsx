@@ -1,6 +1,7 @@
 // A post (spec 023 AC-005, spec 024): who wrote it and when, what they wrote in the text face, the source it is anchored to with
 // the source's opening words, and its actions — replies, Yasher koach, Share, and Delete for its author. One <article>; no card
-// inside a card: the source is a quotation set off by a rule, not a box.
+// inside a card: the source is a quotation set off by a rule, not a box. URLs in the text are links, and a room, broadcast or
+// recording the post embeds is its one boxed card (spec 055).
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { Post } from "~/features/api/social-api";
@@ -15,6 +16,8 @@ import { Icon } from "~/ui/Icon";
 import kit from "~/ui/kit.module.css";
 import { RelativeTime } from "~/ui/RelativeTime";
 import { SourceText } from "~/ui/SourceText";
+import { EmbedCard } from "./EmbedCard";
+import { Linkified } from "./linkify";
 import { QuoteComposer } from "./QuoteComposer";
 import { QuotedPost } from "./QuotedPost";
 import { ReactionButton } from "./ReactionButton";
@@ -102,9 +105,12 @@ export function PostCard({
             </Link>
           )}
         </header>
-        <p className={styles.body} dir="auto" data-post-body="">
-          {post.body}
-        </p>
+        {post.body ? (
+          <p className={styles.body} dir="auto" data-post-body="">
+            <Linkified text={post.body} />
+          </p>
+        ) : null}
+        {post.embed ? <EmbedCard embed={post.embed} /> : null}
         {post.quoted ? <QuotedPost quoted={post.quoted} /> : null}
         {post.ref ? (
           <figure className={styles.source} data-post-source={post.ref}>

@@ -4,4 +4,7 @@
 export const PUBLIC_ENDPOINTS: ReadonlySet<string> = new Set([
   // Load balancers and uptime checks; reports the database only.
   "GET /api/v1/health",
+  // Posted live cards (spec 056): the live state of a room, broadcast or recording, only for ids that a post embeds. Decision
+  // 0011 D9 makes a posted session an open invitation; a session nobody posted is left out, so ids cannot be probed.
+  "GET /api/v1/live",
 ]);

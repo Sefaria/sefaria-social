@@ -1,6 +1,7 @@
 // The composer (spec 023 AC-004, spec 025 AC-006): an invitation to share a Torah thought, optionally anchored to a source —
 // pre-filled with what the reader has open — and "Post as" for the institutions the viewer runs. One primary button, disabled
-// until there is something to say; the count appears near the limit.
+// until there is something to say; the count appears near the limit. A room, broadcast or recording link typed or pasted into
+// the text becomes a card under it (spec 055 AC-001); Remove puts the link back where it was. One card per post.
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import type { Post } from "~/features/api/social-api";
 import { useSocialApi } from "~/features/api/social-api";
@@ -9,6 +10,8 @@ import { useMe } from "~/features/profile/use-me";
 import { summaryOf } from "~/features/session/room-reader";
 import { useStrings } from "~/features/shell/use-strings";
 import { Avatar } from "~/ui/Avatar";
+import { DraftEmbedCard } from "./EmbedCard";
+import { findEmbedLink, originOf, type EmbedLink } from "./embed-link";
 import { Icon } from "~/ui/Icon";
 import kit from "~/ui/kit.module.css";
 import styles from "./composer.module.css";
@@ -38,10 +41,33 @@ export function Composer({ onPosted }: { onPosted: (post: Post) => void }) {
   const [asProfile, setAsProfile] = useState("");
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
+  /** The session link taken out of the text, and where it was. */
+  const [draft, setDraft] = useState<EmbedLink | null>(null);
+  /** A link the person took off the card: it stays text from then on. */
+  const [dismissed, setDismissed] = useState<string | null>(null);
   const area = useRef<HTMLTextAreaElement>(null);
   const ids = { body: useId(), ref: useId(), hint: useId(), as: useId() };
   const left = POST_MAX - body.length;
-  const ready = body.trim().length > 0 && !posting;
+  const ready = (body.trim().length > 0 || draft !== null) && !posting;
+
+  const change = (value: string) => {
+    const found = draft ? null : findEmbedLink(value, originOf(host?.href("/social")));
+    const link = found && found.text !== dismissed ? found : null;
+    if (!link) {
+      setBody(value);
+      return;
+    }
+    setDraft(link);
+    setBody(value.slice(0, link.start) + value.slice(link.end));
+  };
+  const removeDraft = () => {
+    if (!draft) return;
+    const at = Math.min(draft.start, body.length);
+    setBody(body.slice(0, at) + draft.text + body.slice(at));
+    setDismissed(draft.text);
+    setDraft(null);
+    area.current?.focus();
+  };
 
   useEffect(() => {
     const el = area.current;
@@ -60,9 +86,12 @@ export function Composer({ onPosted }: { onPosted: (post: Post) => void }) {
         body: body.trim(),
         ...(ref.trim() ? { ref: ref.trim() } : {}),
         ...(asProfile ? { asProfileId: asProfile } : {}),
+        ...(draft ? { embed: { kind: draft.kind, id: draft.id } } : {}),
       });
       onPosted(post);
       setBody("");
+      setDraft(null);
+      setDismissed(null);
       setRef(readingRef(host));
     } catch {
       setError(t.postFailed);
@@ -92,12 +121,13 @@ export function Composer({ onPosted }: { onPosted: (post: Post) => void }) {
           maxLength={POST_MAX}
           rows={2}
           dir="auto"
-          onChange={(e) => setBody(e.target.value)}
+          onChange={(e) => change(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void submit(e);
           }}
           data-composer-body=""
         />
+        {draft ? <DraftEmbedCard kind={draft.kind} text={draft.text} onRemove={removeDraft} /> : null}
         <div className={styles.source}>
           <Icon name="book" size={16} />
           <label htmlFor={ids.ref} className={kit.visuallyHidden}>

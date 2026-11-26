@@ -13,6 +13,7 @@ const TABLES = [
   "call_status",
   "deleted_users",
   "follows",
+  "live_status",
   "notifications",
   "posts",
   "profile_admins",
@@ -62,7 +63,7 @@ describe("spec 005: database", () => {
       order by 1`);
     expect(unindexed).toEqual([]);
     const fks = await h.sql("select conname from pg_constraint where contype = 'f'");
-    expect(fks.length).toBe(20);
+    expect(fks.length).toBe(21);
   });
 
   // @ac 005/AC-002
