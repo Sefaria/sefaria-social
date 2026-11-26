@@ -261,8 +261,8 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       `SOCIAL_ALLOWED_ORIGINS` to the reader's origins: it is also the content's `frame-ancestors` list.
 - [ ] **`ASSET_CONTENT_SECRET`** (spec 061): one random secret per environment (for example `openssl rand -base64 32`). Without
       it a shiur gives no open-network URL for its assets; public URLs work.
-- [ ] **The trusted CDN list** (spec 061): confirm or change `ASSET_TRUSTED_CDNS` (default `cdnjs.cloudflare.com,
-    cdn.jsdelivr.net, unpkg.com, fonts.googleapis.com, fonts.gstatic.com`) and decide whether to set
+- [ ] **The trusted CDN list** (spec 061): confirm or change `ASSET_TRUSTED_CDNS` (the default lists cdnjs.cloudflare.com,
+      cdn.jsdelivr.net, unpkg.com, fonts.googleapis.com and fonts.gstatic.com) and decide whether to set
       `ASSET_TRUSTED_CDNS_ENABLED=true`; it is off by default.
 - [ ] **Sefaria's ref expansion** (spec 060): deploy the Sefaria-Project change that adds `POST /api/refs/expand`, and set
       `SEFARIA_API_ORIGIN` if Social should call another host than `https://www.sefaria.org`. Until it is deployed every save
