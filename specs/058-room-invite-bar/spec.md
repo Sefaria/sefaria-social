@@ -1,7 +1,7 @@
 ---
 id: "058"
 title: Invite people to a room by @handle from a bar in the room, with suggestions, and they are told in Social
-status: proposed
+status: approved
 features: [ROOM-055, API-052]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [room-lobby, notifications, api]

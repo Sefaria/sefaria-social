@@ -1,7 +1,7 @@
 ---
 id: "057"
 title: Every profile has an @handle, unique and editable in settings, shown wherever the person shows themselves
-status: proposed
+status: approved
 features: [IDENT-104, IDENT-105]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [profile, settings, feed, api]

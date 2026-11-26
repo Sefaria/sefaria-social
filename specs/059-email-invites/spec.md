@@ -1,7 +1,7 @@
 ---
 id: "059"
 title: Invite by email from the same bar; a Sefaria user is told in Social, anyone else gets an email with the room's link
-status: proposed
+status: approved
 features: [ROOM-056]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [room-lobby, api]
