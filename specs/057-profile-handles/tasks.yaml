@@ -1,0 +1,43 @@
+- id: T-001
+  title: Handles in the database, assignment, validation and the API
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/0012_profile_handles.sql"
+    - "app/src/server/db/migrations/meta/_journal.json"
+    - "app/src/server/db/migrations/meta/0012_snapshot.json"
+    - "app/src/server/services/handles.ts"
+    - "app/src/server/services/handles.test.ts"
+    - "app/src/server/services/person-profile.ts"
+    - "app/src/server/services/profiles.ts"
+    - "app/src/server/services/posts.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/routes/api/v1/profiles.by-handle.$handle.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.handles.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+  depends_on: []
+  parallel: false
+  completes: [IDENT-104]
+  verify: ["npm run test:integration", "npm run test:contract", "npm run typecheck"]
+- id: T-002
+  title: The Handle field in settings and @handle beside the name
+  acs: [AC-004, AC-005]
+  files:
+    - "app/src/features/profile/ProfileForm.tsx"
+    - "app/src/features/profile/ProfilePage.tsx"
+    - "app/src/features/profile/profile.module.css"
+    - "app/src/features/profile/profile-handle.test.tsx"
+    - "app/src/features/profile/use-me.ts"
+    - "app/src/features/post/**"
+    - "app/src/features/feed/**"
+    - "app/src/features/shell/strings.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [IDENT-105]
+  verify: ["npm test -- app/src/features/profile app/src/features/post", "npm run typecheck"]

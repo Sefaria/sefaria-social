@@ -1,0 +1,25 @@
+- id: T-001
+  title: Email invitations through the Sefaria lookup and the email provider
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "app/src/server/services/sefaria-lookup.ts"
+    - "app/src/server/services/mailer.ts"
+    - "app/src/server/services/invites.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/log/logger.ts"
+    - "app/src/api.email-invites.int.test.ts"
+    - "app/src/features/room/InviteBar.tsx"
+    - "app/src/features/room/invite-bar.test.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "deploy/helm/values.yaml"
+    - "docker-compose.yaml"
+    - "docs/runbooks/server.md"
+    - "docs/runbooks/setup-checklist.md"
+  depends_on: []
+  parallel: false
+  completes: [ROOM-056]
+  verify: ["npm run test:integration", "npm run test:contract", "npm run typecheck"]
