@@ -64,6 +64,7 @@ describe("spec 064: MCP tokens", () => {
     const { ENDPOINTS } = await import("./server/api/contracts");
     const plain = await h.token(U, { name: "Plain" });
     expect((await h.call("GET", "/api/v1/profiles/me", { token: plain })).status).toBe(200);
+    expect(code(await h.call("GET", "/api/v1/profiles/me", { token: mcp }))).toBe("403 auth.mcp_not_allowed");
     const before = await h.sql("select count(*)::int as n from posts");
     const named = [
       code(await h.call("GET", "/api/v1/profiles/me", { token: mcp })),
@@ -87,9 +88,9 @@ describe("spec 064: MCP tokens", () => {
   it("refuses a token whose via is anything else as invalid", async () => {
     const { h } = await load();
     const other = await h.token(U, { name: "Other", via: "other" });
-    expect([
-      code(await h.call("GET", "/api/v1/profiles/me", { token: other })),
-      code(await h.call("POST", SAVE, { token: other, body: { html: assetHtml(["Genesis 1:1"]) } })),
-    ]).toEqual(["401 auth.invalid_token", "401 auth.invalid_token"]);
+    expect(code(await h.call("GET", "/api/v1/profiles/me", { token: other }))).toBe("401 auth.invalid_token");
+    expect(code(await h.call("POST", SAVE, { token: other, body: { html: assetHtml(["Genesis 1:1"]) } }))).toBe(
+      "401 auth.invalid_token",
+    );
   });
 });
