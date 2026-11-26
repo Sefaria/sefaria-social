@@ -1,7 +1,7 @@
 ---
 id: "054"
 title: A shiur's transcript from Sofer.ai, in the leader's language, shown line by line in the player
-status: proposed
+status: approved
 features: [SHIUR-007]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [recording, api]
