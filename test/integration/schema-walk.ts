@@ -85,10 +85,11 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       [room!.id],
     );
     // spec 058: invitations to the user's room, the user inviting the other and the other inviting the user, and one by email
-    await sql(
-      "insert into room_invites (room_id, inviter_user_id, invitee_user_id) values ($1, $2, $3), ($1, $3, $2)",
-      [room!.id, user, other],
-    );
+    await sql("insert into room_invites (room_id, inviter_user_id, invitee_user_id) values ($1, $2, $3), ($1, $3, $2)", [
+      room!.id,
+      user,
+      other,
+    ]);
     await sql("insert into room_invites (room_id, inviter_user_id, email_sha256) values ($1, $2, 'seed-sha')", [room!.id, user]);
     for (const t of [
       "room_invites",
