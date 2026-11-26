@@ -99,3 +99,48 @@ test.describe("two learners in one room", () => {
     await follower.context.close();
   });
 });
+
+test.describe("inviting by handle", () => {
+  // @feature ROOM-055 The invite bar in a room, and invitations in activity
+  // @ac 058/AC-005
+  // @ac 058/AC-002
+  test("a member picks someone from the bar's suggestions; they see the invitation in Activity and Join opens the room", async ({
+    browser,
+  }) => {
+    const host: Persona = { id: 6611, name: "Inviting Learner" };
+    const guest: Persona = { id: 6622, name: "Invited Guest" };
+    const hostSide = await learner(browser, host, { v: 1, value: {} });
+    const guestSide = await learner(browser, guest, { v: 1, value: {} });
+    const handle = `guest_${Date.now().toString(36)}`;
+    const patch = await fetch(`${API}/api/v1/profiles/me`, {
+      method: "PATCH",
+      headers: { authorization: `Bearer ${guestSide.token}`, "content-type": "application/json" },
+      body: JSON.stringify({ handle }),
+    });
+    expect(patch.status).toBe(200);
+    const created = await fetch(`${API}/api/v1/rooms`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${hostSide.token}`, "content-type": "application/json" },
+      body: JSON.stringify({ title: "Invited shiur" }),
+    });
+    const room = (await created.json()) as { id: string };
+
+    await hostSide.page.goto(`/social/r/${room.id}`);
+    const bar = hostSide.page.locator("[data-invite-bar]");
+    await bar.getByLabel("Invite by @handle or email").fill(handle.slice(0, 8));
+    await bar.locator(`[data-suggestion-handle="${handle}"]`).click();
+    await expect(bar.locator(`[data-invite-chip="@${handle}"]`)).toBeVisible();
+    await bar.locator("[data-action=send-invites]").click();
+    await expect(bar.locator(`[data-invite-chip="@${handle}"]`)).toHaveAttribute("data-status", "invited");
+
+    await guestSide.page.goto("/social/notifications");
+    const item = guestSide.page.locator("[data-notification=room_invite]").first();
+    await expect(item).toContainText("Inviting Learner invited you to Invited shiur");
+    await item.locator("[data-action=join-invited-room]").click();
+    await expect(guestSide.page).toHaveURL(new RegExp(`/social/r/${room.id}$`));
+    // The lobby a non-member sees: Join (rooms stay link-open; the invitation only told them).
+    await expect(guestSide.page.getByRole("button", { name: "Join" })).toBeVisible();
+    await hostSide.context.close();
+    await guestSide.context.close();
+  });
+});

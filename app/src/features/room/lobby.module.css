@@ -142,3 +142,128 @@
   margin: 0;
   padding-inline-start: var(--sefaria-space-5, 20px);
 }
+
+/* Spec 058: the invite bar, under the room's link. Logical properties, so Hebrew mirrors. */
+.inviteBar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sefaria-space-1, 4px);
+  margin-block-start: var(--sefaria-space-3, 12px);
+}
+
+.inviteField {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.comboRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.comboRow input {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sefaria-space-1, 4px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding-block: 2px;
+  padding-inline: 10px 4px;
+  border: 1px solid var(--sefaria-color-border, #ccc);
+  border-radius: 999px;
+  background: var(--sefaria-color-surface, #fff);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.chipDone {
+  border-color: var(--sefaria-color-brand, #18345d);
+}
+
+.chipProblem {
+  border-color: var(--sefaria-color-danger, #c03522);
+}
+
+.chipStatus {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 13px;
+}
+
+.chipProblem .chipStatus {
+  color: var(--sefaria-color-danger, #c03522);
+}
+
+.chipRemove {
+  min-width: 24px;
+  min-height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chipRemove:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1f6feb);
+}
+
+.suggestions {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline: 0;
+  z-index: 5;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  border: 1px solid var(--sefaria-color-border, #ccc);
+  border-radius: 6px;
+  background: var(--sefaria-color-surface, #fff);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+}
+
+.suggestions[hidden] {
+  display: none;
+}
+
+.suggestion {
+  padding-block: 6px;
+  padding-inline: 12px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.suggestionActive {
+  background: var(--sefaria-color-highlight-soft, #eef3fb);
+}
+
+.suggestionHandle {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.linkButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sefaria-color-link, #18345d);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}

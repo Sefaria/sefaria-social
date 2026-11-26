@@ -70,3 +70,11 @@
   border-radius: 50%;
   background: var(--sefaria-color-brand, #18345d);
 }
+
+/* Spec 058: an invitation's sentence with its Join button. */
+.inviteLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
