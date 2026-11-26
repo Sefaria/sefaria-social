@@ -1,7 +1,7 @@
 ---
 id: "053"
 title: The shiur player, a bar at the bottom with chapters, the talking head where the leader had it, open to anyone
-status: proposed
+status: approved
 features: [SHIUR-006]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [recording]

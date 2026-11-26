@@ -1,7 +1,7 @@
 ---
 id: "052"
 title: Processing a recording into its asset, a seekable file, its audio, a manifest and chapters
-status: proposed
+status: approved
 features: [SHIUR-005]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [recording, api]

@@ -1,7 +1,7 @@
 ---
 id: "051"
 title: The shiur asset, only the leader recorded, the talking head kept, open by link, media in an object store
-status: proposed
+status: approved
 features: [SHIUR-002, SHIUR-003, SHIUR-004]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [recording, api]
