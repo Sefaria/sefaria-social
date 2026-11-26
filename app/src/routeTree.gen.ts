@@ -16,6 +16,7 @@ import { Route as SocialRoomsRouteImport } from './routes/social.rooms'
 import { Route as SocialSettingsRouteImport } from './routes/social.settings'
 import { Route as ApiV1FeedRouteImport } from './routes/api/v1/feed'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
+import { Route as ApiV1LiveRouteImport } from './routes/api/v1/live'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiV1NotificationsRouteImport } from './routes/api/v1/notifications'
 import { Route as ApiV1PostsRouteImport } from './routes/api/v1/posts'
@@ -44,6 +45,7 @@ import { Route as ApiV1AssetsAssetIdStateRouteImport } from './routes/api/v1/ass
 import { Route as ApiV1BroadcastsBroadcastIdEndRouteImport } from './routes/api/v1/broadcasts.$broadcastId.end'
 import { Route as ApiV1BroadcastsBroadcastIdTicketRouteImport } from './routes/api/v1/broadcasts.$broadcastId.ticket'
 import { Route as ApiV1InternalLivekitWebhookRouteImport } from './routes/api/v1/internal.livekit.webhook'
+import { Route as ApiV1InternalRelayLiveRouteImport } from './routes/api/v1/internal.relay.live'
 import { Route as ApiV1PostsPostIdReactionRouteImport } from './routes/api/v1/posts.$postId.reaction'
 import { Route as ApiV1PostsPostIdRepliesRouteImport } from './routes/api/v1/posts.$postId.replies'
 import { Route as ApiV1PostsPostIdRepostRouteImport } from './routes/api/v1/posts.$postId.repost'
@@ -96,6 +98,11 @@ const ApiV1FeedRoute = ApiV1FeedRouteImport.update({
 const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
   id: '/api/v1/health',
   path: '/api/v1/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1LiveRoute = ApiV1LiveRouteImport.update({
+  id: '/api/v1/live',
+  path: '/api/v1/live',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1MeRoute = ApiV1MeRouteImport.update({
@@ -245,6 +252,11 @@ const ApiV1InternalLivekitWebhookRoute =
     path: '/api/v1/internal/livekit/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiV1InternalRelayLiveRoute = ApiV1InternalRelayLiveRouteImport.update({
+  id: '/api/v1/internal/relay/live',
+  path: '/api/v1/internal/relay/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1PostsPostIdReactionRoute =
   ApiV1PostsPostIdReactionRouteImport.update({
     id: '/reaction',
@@ -357,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/social/': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/live': typeof ApiV1LiveRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
@@ -385,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
+  '/api/v1/internal/relay/live': typeof ApiV1InternalRelayLiveRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
@@ -412,6 +426,7 @@ export interface FileRoutesByTo {
   '/social': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/live': typeof ApiV1LiveRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
@@ -440,6 +455,7 @@ export interface FileRoutesByTo {
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
+  '/api/v1/internal/relay/live': typeof ApiV1InternalRelayLiveRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
@@ -468,6 +484,7 @@ export interface FileRoutesById {
   '/social/': typeof SocialIndexRoute
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/live': typeof ApiV1LiveRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
@@ -496,6 +513,7 @@ export interface FileRoutesById {
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
+  '/api/v1/internal/relay/live': typeof ApiV1InternalRelayLiveRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
@@ -525,6 +543,7 @@ export interface FileRouteTypes {
     | '/social/'
     | '/api/v1/feed'
     | '/api/v1/health'
+    | '/api/v1/live'
     | '/api/v1/me'
     | '/api/v1/notifications'
     | '/api/v1/posts'
@@ -553,6 +572,7 @@ export interface FileRouteTypes {
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
+    | '/api/v1/internal/relay/live'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
@@ -580,6 +600,7 @@ export interface FileRouteTypes {
     | '/social'
     | '/api/v1/feed'
     | '/api/v1/health'
+    | '/api/v1/live'
     | '/api/v1/me'
     | '/api/v1/notifications'
     | '/api/v1/posts'
@@ -608,6 +629,7 @@ export interface FileRouteTypes {
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
+    | '/api/v1/internal/relay/live'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
@@ -635,6 +657,7 @@ export interface FileRouteTypes {
     | '/social/'
     | '/api/v1/feed'
     | '/api/v1/health'
+    | '/api/v1/live'
     | '/api/v1/me'
     | '/api/v1/notifications'
     | '/api/v1/posts'
@@ -663,6 +686,7 @@ export interface FileRouteTypes {
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
+    | '/api/v1/internal/relay/live'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
@@ -691,6 +715,7 @@ export interface RootRouteChildren {
   SocialIndexRoute: typeof SocialIndexRoute
   ApiV1FeedRoute: typeof ApiV1FeedRoute
   ApiV1HealthRoute: typeof ApiV1HealthRoute
+  ApiV1LiveRoute: typeof ApiV1LiveRoute
   ApiV1MeRoute: typeof ApiV1MeRoute
   ApiV1NotificationsRoute: typeof ApiV1NotificationsRouteWithChildren
   ApiV1PostsRoute: typeof ApiV1PostsRouteWithChildren
@@ -709,6 +734,7 @@ export interface RootRouteChildren {
   ApiV1RecordingsRecordingIdRoute: typeof ApiV1RecordingsRecordingIdRouteWithChildren
   ApiV1RepliesReplyIdRoute: typeof ApiV1RepliesReplyIdRoute
   ApiV1InternalLivekitWebhookRoute: typeof ApiV1InternalLivekitWebhookRoute
+  ApiV1InternalRelayLiveRoute: typeof ApiV1InternalRelayLiveRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -760,6 +786,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/health'
       fullPath: '/api/v1/health'
       preLoaderRoute: typeof ApiV1HealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/live': {
+      id: '/api/v1/live'
+      path: '/api/v1/live'
+      fullPath: '/api/v1/live'
+      preLoaderRoute: typeof ApiV1LiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/me': {
@@ -956,6 +989,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/internal/livekit/webhook'
       fullPath: '/api/v1/internal/livekit/webhook'
       preLoaderRoute: typeof ApiV1InternalLivekitWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/internal/relay/live': {
+      id: '/api/v1/internal/relay/live'
+      path: '/api/v1/internal/relay/live'
+      fullPath: '/api/v1/internal/relay/live'
+      preLoaderRoute: typeof ApiV1InternalRelayLiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/posts/$postId/reaction': {
@@ -1282,6 +1322,7 @@ const rootRouteChildren: RootRouteChildren = {
   SocialIndexRoute: SocialIndexRoute,
   ApiV1FeedRoute: ApiV1FeedRoute,
   ApiV1HealthRoute: ApiV1HealthRoute,
+  ApiV1LiveRoute: ApiV1LiveRoute,
   ApiV1MeRoute: ApiV1MeRoute,
   ApiV1NotificationsRoute: ApiV1NotificationsRouteWithChildren,
   ApiV1PostsRoute: ApiV1PostsRouteWithChildren,
@@ -1300,6 +1341,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1RecordingsRecordingIdRoute: ApiV1RecordingsRecordingIdRouteWithChildren,
   ApiV1RepliesReplyIdRoute: ApiV1RepliesReplyIdRoute,
   ApiV1InternalLivekitWebhookRoute: ApiV1InternalLivekitWebhookRoute,
+  ApiV1InternalRelayLiveRoute: ApiV1InternalRelayLiveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -11,4 +11,7 @@ export const PUBLIC_ENDPOINTS: ReadonlySet<string> = new Set([
   "GET /api/v1/assets/{assetId}/media",
   // Its manifest once processed (spec 052): files, length, chapters; nothing more than the three above already give.
   "GET /api/v1/assets/{assetId}/manifest",
+  // Posted live cards (spec 056): the live state of a room, broadcast or recording, only for ids that a post embeds. Decision
+  // 0011 D9 makes a posted session an open invitation; a session nobody posted is left out, so ids cannot be probed.
+  "GET /api/v1/live",
 ]);

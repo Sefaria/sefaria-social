@@ -235,7 +235,12 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       `npm run factory -- compile NNN`, and commit `specs/approvals.json` and the work order. Added by the shiur plan.
 - [ ] **Record once on the dev server** with the camera on for more than a minute, to confirm the upload fix of #33 with a
       signed-in session (only the size cap was probed). Added by the shiur plan.
-- [ ] **Approve specs 051, 052 and 053** (group B, #37). Added by the shiur plan.
+- [x] **Approve specs 051, 052 and 053** (group B, #37). Added by the shiur plan.
 - [ ] **A bucket adapter** before recordings run on more than one server replica (spec 051): today the object store is a
       directory (`ASSET_STORE_DIR`, `/srv/.data/assets` in the image) on a volume; Helm keeps `RECORDINGS_ENABLED=false`.
       Added by spec 051.
+- [ ] **The relay's `SOCIAL_SERVER_URL`** (spec 056): the social server's base URL as the relay can reach it (for example
+      `https://app-social.coolifydev.sefaria.org`), set per environment with `wrangler deploy --var` or the platform's
+      variables, next to `RELAY_INTERNAL_SECRET` (same value as the server's). With it the relay reports each room's live
+      text to the server; without it live cards fall back to the server reading the relay's status (decision 0013). Added by
+      spec 056.

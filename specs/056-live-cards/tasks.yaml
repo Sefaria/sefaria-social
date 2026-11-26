@@ -1,0 +1,56 @@
+- id: T-001
+  title: The relay reports each room's leader ref and headcount to the server, at most once per 5 seconds
+  acs: [AC-001]
+  files:
+    - "packages/relay/src/live-report.ts"
+    - "packages/relay/src/live-report.test.ts"
+    - "packages/relay/src/worker.ts"
+    - "packages/relay/src/relay.test.ts"
+    - "packages/relay/test-support/relay.ts"
+    - "e2e/stack/start.ts"
+  depends_on: []
+  parallel: false
+  verify: ["npm run test:relay", "npm run typecheck"]
+- id: T-002
+  title: The server keeps the reports and answers the public live status of embedded sessions
+  acs: [AC-002, AC-003]
+  files:
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/server/http/endpoint.ts"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/api/openapi.ts"
+    - "app/src/server/services/live.ts"
+    - "app/src/routes/api/v1/live.ts"
+    - "app/src/routes/api/v1/internal.relay.live.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.live.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "test/integration/schema-walk.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [API-051]
+  verify: ["npm run test:integration -- api.live api.routes", "npm run typecheck", "npm run test:contract"]
+- id: T-003
+  title: Live cards in posts poll for what is on screen and show the leader's text
+  acs: [AC-004, AC-005]
+  files:
+    - "app/src/features/post/live-status.ts"
+    - "app/src/features/post/live-status.test.ts"
+    - "app/src/features/post/EmbedCard.tsx"
+    - "app/src/features/post/embed-card.module.css"
+    - "app/src/features/post/post-embeds.test.tsx"
+    - "app/src/features/api/social-api.ts"
+    - "app/src/features/shell/strings.ts"
+    - "e2e/live-cards.spec.ts"
+    - "playwright.config.ts"
+    - "e2e/stack/publisher.ts"
+  depends_on: [T-002]
+  parallel: false
+  completes: [FEED-076]
+  verify: ["npm test -- features/post", "npm run typecheck", "npm run lint"]

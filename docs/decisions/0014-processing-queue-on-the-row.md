@@ -1,4 +1,7 @@
-# 0013. Asset processing is queued on the recording's own row
+# 0014. Asset processing is queued on the recording's own row
+
+Numbered 0013 when it was written; renumbered at merge, since 0013 went to links and live cards (spec 055). Spec 052, as
+approved, still cites it as decision 0013.
 
 - Status: proposed
 - Date: 2026-11-26

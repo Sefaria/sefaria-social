@@ -1,6 +1,6 @@
 {
-  "id": "71c16643-3ff2-45ed-8937-2bbd6ca919a4",
-  "prevId": "e33abed7-bb59-4e5c-b31f-6db90dd8395e",
+  "id": "b0e4f838-73f4-420b-b93e-9b0cf0780cff",
+  "prevId": "dfbb8640-c8e6-4ffe-a429-2de228371039",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -343,6 +343,88 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.live_status": {
+      "name": "live_status",
+      "schema": "",
+      "columns": {
+        "relay_room": {
+          "name": "relay_room",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "room_id": {
+          "name": "room_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ref": {
+          "name": "ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "he_ref": {
+          "name": "he_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "participants": {
+          "name": "participants",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "reported_at": {
+          "name": "reported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "live_status_room_idx": {
+          "name": "live_status_room_idx",
+          "columns": [
+            {
+              "expression": "room_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "live_status_room_id_rooms_id_fk": {
+          "name": "live_status_room_id_rooms_id_fk",
+          "tableFrom": "live_status",
+          "tableTo": "rooms",
+          "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.notifications": {
       "name": "notifications",
       "schema": "",
@@ -512,6 +594,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "embed_kind": {
+          "name": "embed_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "embed_id": {
+          "name": "embed_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -592,6 +686,22 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "posts_embed_idx": {
+          "name": "posts_embed_idx",
+          "columns": [
+            {
+              "expression": "embed_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"posts\".\"embed_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -617,7 +727,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "posts_embed_check": {
+          "name": "posts_embed_check",
+          "value": "(\"posts\".\"embed_kind\" is null and \"posts\".\"embed_id\" is null) or (\"posts\".\"embed_kind\" in ('room', 'broadcast', 'recording') and \"posts\".\"embed_id\" is not null)"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.profile_admins": {
@@ -813,6 +928,52 @@
         "reactions_post_id_user_id_pk": {
           "name": "reactions_post_id_user_id_pk",
           "columns": ["post_id", "user_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.recording_media_chunks": {
+      "name": "recording_media_chunks",
+      "schema": "",
+      "columns": {
+        "recording_id": {
+          "name": "recording_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "seq": {
+          "name": "seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bytes": {
+          "name": "bytes",
+          "type": "bytea",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "recording_media_chunks_recording_id_session_recordings_id_fk": {
+          "name": "recording_media_chunks_recording_id_session_recordings_id_fk",
+          "tableFrom": "recording_media_chunks",
+          "tableTo": "session_recordings",
+          "columnsFrom": ["recording_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "recording_media_chunks_recording_id_seq_pk": {
+          "name": "recording_media_chunks_recording_id_seq_pk",
+          "columns": ["recording_id", "seq"]
         }
       },
       "uniqueConstraints": {},
@@ -1299,38 +1460,6 @@
           "notNull": true,
           "default": 0
         },
-        "media_chunks": {
-          "name": "media_chunks",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "last_chunk_sha256": {
-          "name": "last_chunk_sha256",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "process_status": {
-          "name": "process_status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "process_attempts": {
-          "name": "process_attempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "process_after": {
-          "name": "process_after",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "state_messages": {
           "name": "state_messages",
           "type": "integer",
@@ -1398,22 +1527,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "session_recordings_process_idx": {
-          "name": "session_recordings_process_idx",
-          "columns": [
-            {
-              "expression": "process_after",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "where": "\"session_recordings\".\"process_status\" in ('queued', 'running')",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -1434,10 +1547,6 @@
         "session_recordings_status_check": {
           "name": "session_recordings_status_check",
           "value": "\"session_recordings\".\"status\" in ('recording', 'ready', 'failed')"
-        },
-        "session_recordings_process_status_check": {
-          "name": "session_recordings_process_status_check",
-          "value": "\"session_recordings\".\"process_status\" is null or \"session_recordings\".\"process_status\" in ('queued', 'running', 'done', 'failed')"
         }
       },
       "isRLSEnabled": false

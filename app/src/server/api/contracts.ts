@@ -77,6 +77,18 @@ export const QuotedPost = z.object({
   createdAt: Iso.nullable(),
 });
 
+/** What a post may embed as a card (spec 055): a room, a broadcast or a recording, by id. */
+export const EmbedKind = z.enum(["room", "broadcast", "recording"]);
+export const PostEmbedInput = z.strictObject({ kind: EmbedKind, id: z.uuid() });
+
+/** A post's card (spec 055): the target's title and its leader's name, both null when the target no longer exists. */
+export const PostEmbed = z.object({
+  kind: EmbedKind,
+  id: z.uuid(),
+  title: z.string().nullable(),
+  leader: z.string().nullable(),
+});
+
 export const Post = z.object({
   id: z.uuid(),
   body: z.string(),
@@ -92,6 +104,8 @@ export const Post = z.object({
   reposted: z.boolean(),
   quoted: QuotedPost.nullable(),
   repostedBy: Author.nullable(),
+  /** Present only when the post embeds a room, broadcast or recording (spec 055). */
+  embed: PostEmbed.optional(),
 });
 
 export const Reply = z.object({ id: z.uuid(), body: z.string(), author: Author, createdAt: Iso, canDelete: z.boolean() });
@@ -100,13 +114,18 @@ export const Timeline = z.object({ posts: z.array(Post), nextCursor: z.string().
 
 export const PostWithReplies = z.object({ post: Post, replies: z.array(Reply) });
 
-export const PostInput = z.strictObject({
-  body: z.string().trim().min(1).max(2000),
-  ref: z.string().trim().max(200).optional(),
-  asProfileId: z.uuid().optional(),
-  /** Quote this post (spec 030). */
-  quotedPostId: z.uuid().optional(),
-});
+export const PostInput = z
+  .strictObject({
+    /** May be empty only when the post embeds a card (spec 055). */
+    body: z.string().trim().max(2000),
+    ref: z.string().trim().max(200).optional(),
+    asProfileId: z.uuid().optional(),
+    /** Quote this post (spec 030). */
+    quotedPostId: z.uuid().optional(),
+    /** Show this room, broadcast or recording as a card (spec 055); the server checks that it exists. */
+    embed: PostEmbedInput.optional(),
+  })
+  .refine((p) => p.body.length > 0 || p.embed !== undefined, { message: "A post needs text or a card.", path: ["body"] });
 
 export const ReplyInput = z.strictObject({ body: z.string().trim().min(1).max(1000) });
 
@@ -924,6 +943,66 @@ export const livekitWebhook = defineEndpoint({
 });
 
 /** Every endpoint, in document order. The route-enumeration test checks this list against the served route tree. */
+// ── Live cards (spec 056) ─────────────────────────────────────────────────────────────────────────────────────────────────
+/** The relay's report of one relay room (a room's id, or `b_<broadcast id>`): the leader's ref and how many are connected. */
+export const LiveReport = z.strictObject({
+  room: z.string().regex(/^[A-Za-z0-9_-]{8,128}$/),
+  at: z.int().positive(),
+  ref: z.string().max(300).nullable(),
+  heRef: z.string().max(300).nullable(),
+  title: z.string().max(300).nullable(),
+  participants: z.int().nonnegative().max(100_000),
+});
+
+export const LiveStatus = z.object({
+  id: z.uuid(),
+  kind: z.enum(["room", "broadcast", "recording"]),
+  /** True only for a report under 3 minutes old with people connected (and, for a broadcast, while it is live). */
+  live: z.boolean(),
+  ref: z.string().nullable(),
+  heRef: z.string().nullable(),
+  /** How many were connected at the last report (0 when not live). */
+  here: z.int().nonnegative(),
+  /** When the relay last reported; null when it never has. */
+  updatedAt: Iso.nullable(),
+});
+
+export const MAX_LIVE_IDS = 50;
+const LiveQuery = z.strictObject({
+  ids: z
+    .string()
+    .max(MAX_LIVE_IDS * 37)
+    .transform((v) => v.split(","))
+    .pipe(z.array(z.uuid()).min(1).max(MAX_LIVE_IDS)),
+});
+
+export const relayLiveReport = defineEndpoint({
+  operationId: "relayLiveReport",
+  method: "POST",
+  path: "/api/v1/internal/relay/live",
+  summary:
+    "The relay's report of a room's live state (spec 056): the leader's ref and how many are connected. Signed by the relay over the raw body; refused when older than 5 minutes.",
+  tags: ["internal"],
+  access: "relay-report",
+  body: LiveReport,
+  responses: { 204: { description: "Kept, or ignored (an older report, or a room that does not exist)." } },
+});
+
+export const getLiveStatus = defineEndpoint({
+  operationId: "getLiveStatus",
+  method: "GET",
+  path: "/api/v1/live",
+  summary:
+    "The live state of up to 50 rooms, broadcasts or recordings, answered only for those a post embeds (others are left out). Public. Carries an ETag; If-None-Match with it answers 304.",
+  tags: ["posts"],
+  access: "public",
+  query: LiveQuery,
+  responses: {
+    200: { description: "One entry per posted id asked for.", schema: z.array(LiveStatus) },
+    304: { description: "Unchanged since the ETag given in If-None-Match." },
+  },
+});
+
 export const ENDPOINTS = [
   getHealth,
   getMe,
@@ -978,4 +1057,6 @@ export const ENDPOINTS = [
   readNotifications,
   userDeleted,
   livekitWebhook,
+  relayLiveReport,
+  getLiveStatus,
 ] as const;

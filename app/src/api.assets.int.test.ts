@@ -147,7 +147,7 @@ describe("spec 051: the shiur asset on the server", () => {
     );
     const { fileURLToPath } = await import("node:url");
     const sql = await readFile(
-      fileURLToPath(new URL("./server/db/migrations/0007_shiur_asset_media.sql", import.meta.url)),
+      fileURLToPath(new URL("./server/db/migrations/0009_shiur_asset_media.sql", import.meta.url)),
       "utf8",
     );
     expect(sql.indexOf('DELETE FROM "session_recordings"')).toBeGreaterThan(-1);
