@@ -1,0 +1,59 @@
+/* Claude assets on a profile and a shiur page (spec 063): the reader's tokens only, logical properties so Hebrew mirrors. */
+.section {
+  display: grid;
+  gap: var(--sefaria-space-3, 12px);
+  margin-block-start: var(--sefaria-space-6, 24px);
+}
+
+.heading {
+  margin: 0;
+  font-size: 18px;
+}
+
+.list {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  gap: var(--sefaria-space-2, 8px);
+  padding: var(--sefaria-space-3, 12px) var(--sefaria-space-4, 16px);
+  border: 1px solid var(--sefaria-color-border, #e6e6e6);
+  border-radius: var(--sefaria-radius-lg, 8px);
+  background: var(--sefaria-color-surface, transparent);
+  color: var(--sefaria-color-text, inherit);
+}
+
+.title {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.note,
+.description,
+.muted {
+  margin: 0;
+  color: var(--sefaria-color-text-secondary, #666);
+  font-weight: 400;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.problem {
+  color: var(--sefaria-color-danger, #a00);
+}
+
+.problem p,
+.problem ul {
+  margin: 0;
+}

@@ -14,10 +14,12 @@ import { useLiveStatus, type LiveStatus } from "./live-status";
 import styles from "./embed-card.module.css";
 
 export interface Embed {
-  kind: EmbedKind;
+  kind: EmbedKind | "asset";
   id: string;
   title: string | null;
   leader: string | null;
+  /** Spec 063: an asset embed's file on the content origin. */
+  contentUrl?: string;
 }
 
 const modified = (e: MouseEvent) => e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
@@ -61,7 +63,60 @@ function LiveLine({ status }: { status: LiveStatus }) {
   );
 }
 
+/**
+ * A Claude asset's card (spec 063 AC-007): its title, "by" its author and Open, a plain link to its sandboxed file on the
+ * content origin in a new tab. The file never loads in this page (docs/runbooks/security.md).
+ */
+function AssetEmbedCard({ embed }: { embed: Embed }) {
+  const t = useStrings();
+  const titleId = useId();
+  const available = embed.title !== null && embed.contentUrl !== undefined;
+  return (
+    <section
+      className={styles.card}
+      aria-label={available ? `${t.assetKind}: ${embed.title}` : t.assetUnavailable}
+      data-embed-card="asset"
+      data-embed-id={embed.id}
+      data-embed-unavailable={available ? undefined : ""}
+    >
+      <div className={styles.head}>
+        <span className={styles.kind}>{t.assetKind}</span>
+      </div>
+      {available ? (
+        <>
+          <p id={titleId} className={styles.title} dir="auto" data-embed-title="">
+            {embed.title}
+          </p>
+          {embed.leader ? (
+            <p className={styles.leader} dir="auto" data-embed-leader="">
+              {t.assetBy(embed.leader)}
+            </p>
+          ) : null}
+          <div className={styles.actions}>
+            <a
+              className={`${kit.button} ${kit.primary} ${kit.small} ${styles.action}`}
+              href={embed.contentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-describedby={titleId}
+              data-embed-action="asset"
+            >
+              {t.assetOpen}
+            </a>
+          </div>
+        </>
+      ) : (
+        <p className={styles.muted}>{t.assetUnavailable}</p>
+      )}
+    </section>
+  );
+}
+
 export function EmbedCard({ embed }: { embed: Embed }) {
+  return embed.kind === "asset" ? <AssetEmbedCard embed={embed} /> : <SessionEmbedCard embed={{ ...embed, kind: embed.kind }} />;
+}
+
+function SessionEmbedCard({ embed }: { embed: Embed & { kind: EmbedKind } }) {
   const t = useStrings();
   const host = useHost();
   const box = useRef<HTMLElement>(null);
