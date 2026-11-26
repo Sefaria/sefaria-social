@@ -55,12 +55,20 @@ const track = () => ({
     },
   ],
 });
+/** Spec 054: what the leader said, with times (ms): a first line at 0–3 s, a second from 8 s. */
+const words = [
+  { w: "Bereshit", s: 0, e: 800 },
+  { w: "bara", s: 900, e: 1500 },
+  { w: "Elokim", s: 1600, e: 2400 },
+  { w: "Vayomer", s: 8000, e: 8600 },
+  { w: "Hashem", s: 8700, e: 9300 },
+];
 const chapters = [
   { t: 0, ref: "Genesis 1", heRef: "בראשית א׳" },
   { t: 8_000, ref: "Exodus 3", heRef: "שמות ג׳" },
 ];
 
-async function setup(opts: { hasVideo?: boolean; lang?: "english" | "hebrew" } = {}) {
+async function setup(opts: { hasVideo?: boolean; lang?: "english" | "hebrew"; transcript?: boolean } = {}) {
   const windowMod = await mods.window["./ReplayWindow.tsx"]?.();
   expect(windowMod, "app/src/features/replay/ReplayWindow.tsx exists").toBeDefined();
   const { replayControllerFor } = (await mods.controller["./replay-controller.ts"]!())!;
@@ -77,8 +85,14 @@ async function setup(opts: { hasVideo?: boolean; lang?: "english" | "hebrew" } =
     deleteRecording: vi.fn(async () => undefined),
     getRecording: vi.fn(async () => ({ id: REC, durationMs: 20_000 })),
     getState: vi.fn(async () => track()),
-    getManifest: vi.fn(async () => ({ durationMs: 20_000, hasVideo: opts.hasVideo ?? true, chapters })),
+    getManifest: vi.fn(async () => ({
+      durationMs: 20_000,
+      hasVideo: opts.hasVideo ?? true,
+      chapters,
+      ...(opts.transcript ? { transcript: { status: "ready" } } : {}),
+    })),
     getMedia: vi.fn(async () => new Blob([new Uint8Array(10)])),
+    getTranscript: vi.fn(async () => (opts.transcript ? { words } : null)),
   } as ApiModule.ReplayApi;
   const media = createFakeMedia();
   const replay = replayControllerFor(fake.host, {
@@ -108,6 +122,30 @@ async function setup(opts: { hasVideo?: boolean; lang?: "english" | "hebrew" } =
   };
   return { replay, media, q, press, at, key };
 }
+
+describe("the transcript in the player (spec 054)", () => {
+  // @feature SHIUR-007 A shiur's transcript from Sofer.ai, in the leader's language, line by line in the player
+  // @ac 054/AC-006
+  it("shows the line being said under the bar, the word being said marked, and hides it on Transcript", async () => {
+    const { q, at, press } = await setup({ transcript: true });
+    const line = () => q("[data-transcript-line]")?.textContent?.trim() ?? null;
+    expect(line(), "the transcript line").toBe("Bereshit bara Elokim");
+    await at(1);
+    expect(q("[data-transcript-line] [data-spoken]")?.textContent?.trim()).toBe("bara");
+    await at(8.8);
+    expect(line()).toBe("Vayomer Hashem");
+    expect(q("[data-action=replay-transcript]")?.getAttribute("aria-pressed")).toBe("true");
+    await press("[data-action=replay-transcript]");
+    expect(q("[data-transcript-line]")).toBeNull();
+  });
+
+  // @feature SHIUR-007 A shiur's transcript from Sofer.ai, in the leader's language, line by line in the player
+  it("offers no Transcript when the shiur has none", async () => {
+    const { q } = await setup();
+    expect(q("[data-replay-bar]")).not.toBeNull();
+    expect(q("[data-action=replay-transcript]")).toBeNull();
+  });
+});
 
 describe("a shiur's player (spec 053)", () => {
   // @feature SHIUR-006 The shiur player: a bar with chapters, the talking head in place, open to anyone

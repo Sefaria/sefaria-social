@@ -78,6 +78,13 @@
       "when": 1795677248336,
       "tag": "0010_asset_processing",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795678128416,
+      "tag": "0011_transcripts",
+      "breakpoints": true
     }
   ]
 }

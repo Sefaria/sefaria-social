@@ -6,11 +6,35 @@ import type { SurfaceHost } from "@sefaria-social/host-contract";
 import type { StreamMessage } from "@sefaria-social/session";
 import { documentHostFor } from "~/features/host/document-host";
 
+/** Spec 054: the transcript languages Sofer.ai offers. */
+export const TRANSCRIPT_LANGUAGES = ["en", "he", "yi", "fr"] as const;
+export type TranscriptLanguage = (typeof TRANSCRIPT_LANGUAGES)[number];
+const LANGUAGE_KEY = "social.transcriptLanguage";
+
+/** The leader's last choice in this browser; English (Hebrew words in Hebrew letters) the first time (D10). */
+export function rememberedLanguage(): TranscriptLanguage {
+  try {
+    const v = localStorage.getItem(LANGUAGE_KEY);
+    return (TRANSCRIPT_LANGUAGES as readonly string[]).includes(v ?? "") ? (v as TranscriptLanguage) : "en";
+  } catch {
+    return "en";
+  }
+}
+
+export function rememberLanguage(language: TranscriptLanguage): void {
+  try {
+    localStorage.setItem(LANGUAGE_KEY, language);
+  } catch {
+    // the choice lasts for this page
+  }
+}
+
 export type StartResult =
   { kind: "ok"; id: string } | { kind: "already-recording" } | { kind: "forbidden" } | { kind: "unavailable" };
 
 export interface RecordingApi {
-  start(roomId: string, mime?: string): Promise<StartResult>;
+  /** Spec 054: `transcriptLanguage` is the language the leader chose for the transcript (D10). */
+  start(roomId: string, mime?: string, transcriptLanguage?: TranscriptLanguage): Promise<StartResult>;
   /** Throws on anything but success, so the uploader retries. */
   putMedia(recordingId: string, seq: number, blob: Blob): Promise<void>;
   putState(recordingId: string, messages: StreamMessage[]): Promise<void>;
@@ -53,9 +77,11 @@ export function createRecordingApi({ apiOrigin, getToken, fetch: f = (...a) => f
   };
   const id = encodeURIComponent;
   return {
-    async start(roomId, mime) {
+    async start(roomId, mime, transcriptLanguage) {
       // the server keeps the media type with the recording (chunks arrive as octet-stream)
-      const r = await call("POST", `/api/v1/rooms/${id(roomId)}/recordings`, { json: mime ? { mime } : {} });
+      const r = await call("POST", `/api/v1/rooms/${id(roomId)}/recordings`, {
+        json: { ...(mime ? { mime } : {}), ...(transcriptLanguage ? { transcriptLanguage } : {}) },
+      });
       if (r.status === 201 || r.status === 200) {
         const parsed = Started.safeParse(await r.json().catch(() => null));
         if (parsed.success) return { kind: "ok", id: parsed.data.id };

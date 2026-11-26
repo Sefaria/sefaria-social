@@ -25,6 +25,7 @@ import { assetKey, objectStore, recordingPrefix, type ObjectStore } from "../ser
 import { postgresStore } from "../services/recording-store";
 import { chaptersOf, type Chapter } from "./chapters";
 import { ffmpeg, probe } from "./ffmpeg";
+import { runTranscripts } from "./transcript";
 
 /** Tries before a recording's processing is given up (its raw chunks stay, and it still plays from them). */
 export const PROCESS_TRIES = 3;
@@ -185,11 +186,21 @@ export async function processRecording(
       await rm(dir, { recursive: true, force: true });
     }
   }
+  // Already processed (a second run) or just now: the audio file is there exactly when the recording has sound.
+  const hasAudio = (await objects.size(assetKey(id, "audio.m4a"))) !== null;
   const marked = await db
     .update(sessionRecordings)
     .set({
       processStatus: "done",
       processAfter: null,
+      // Spec 054: its transcript is next (unavailable without a Sofer.ai key, decided when the job runs).
+      // A recording with no sound has nothing to transcribe: no transcript is queued for it.
+      transcriptStatus: hasAudio
+        ? sql`coalesce(${sessionRecordings.transcriptStatus}, 'queued')`
+        : sessionRecordings.transcriptStatus,
+      transcriptAfter: hasAudio
+        ? sql`case when ${sessionRecordings.transcriptStatus} is null then now() else ${sessionRecordings.transcriptAfter} end`
+        : sessionRecordings.transcriptAfter,
     })
     .where(
       and(
@@ -267,6 +278,7 @@ const workerOn = () => getConfig().ASSET_WORKER !== "off";
 export function kickAssetWorker(): void {
   if (!workerOn() || running) return;
   running = runPending()
+    .then(() => runTranscripts())
     .catch((err: unknown) => log.error("asset.worker_failed", { error: err instanceof Error ? err.message : "error" }))
     .finally(() => {
       running = null;

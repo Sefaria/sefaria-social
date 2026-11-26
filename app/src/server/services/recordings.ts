@@ -172,7 +172,7 @@ export async function finaliseStale(scope: { roomId: string } | { recordingId: s
 export async function startRecording(
   identity: Identity,
   roomId: string,
-  input: { mime?: string | undefined },
+  input: { mime?: string | undefined; transcriptLanguage?: "en" | "he" | "yi" | "fr" | undefined },
   db: Db = getDb(),
 ): Promise<RecordingDto> {
   const m = await membership(db, identity, roomId);
@@ -190,7 +190,13 @@ export async function startRecording(
       if (running) throw new ApiError(409, "recording.already_running");
       const [row] = await tx
         .insert(sessionRecordings)
-        .values({ roomId, ownerUserId: identity.userId, title: m.title, mime: input.mime ?? null })
+        .values({
+          roomId,
+          ownerUserId: identity.userId,
+          title: m.title,
+          mime: input.mime ?? null,
+          transcriptLanguage: input.transcriptLanguage ?? "en",
+        })
         .returning({ id: sessionRecordings.id });
       return row!.id;
     })
@@ -586,4 +592,23 @@ async function byRange(
     contentType,
     headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${size}` },
   };
+}
+
+/** Spec 054: a ready recording's transcript, once Sofer.ai has made it; 404 recording.no_transcript until then. */
+export async function getAssetTranscript(assetId: string, db: Db = getDb(), objects = objectStore()): Promise<unknown> {
+  await readyAsset(db, assetId);
+  const bytes = await objects.get(assetKey(assetId, "transcript.json"));
+  if (!bytes) throw new ApiError(404, "recording.no_transcript");
+  return JSON.parse(new TextDecoder().decode(bytes)) as unknown;
+}
+
+/** Spec 054: a processed recording's audio, by byte range; 404 recording.not_processed before processing made it. */
+export async function getAssetAudio(assetId: string, range: string | null = null, db: Db = getDb()): Promise<MediaAnswer> {
+  await readyAsset(db, assetId);
+  const objects = objectStore();
+  const key = assetKey(assetId, "audio.m4a");
+  const size = await objects.size(key);
+  if (size === null) throw new ApiError(404, "recording.not_processed");
+  // Streamed, never read whole: this is a public read, and what Sofer.ai fetches (spec 054).
+  return byRange(objects, key, size, range, "audio/mp4");
 }

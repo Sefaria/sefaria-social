@@ -107,6 +107,10 @@ configMap:
     ASSET_STORE_DIR: /srv/.data/assets
     # The processing worker (spec 052) runs in every server process; "off" would stop it.
     ASSET_WORKER: "on"
+    # Transcripts (spec 054): the Sofer.ai API; the public origin lets Sofer.ai fetch a shiur's audio by URL (longer than
+    # about 80 minutes it cannot go inline). Empty means unset.
+    SOFER_API_URL: https://api.sofer.ai
+    SOCIAL_PUBLIC_ORIGIN: ""
 
 # Secret values, by name only. The Secret (sefaria-social-secrets) is created by the cluster's secret store.
 secret:
@@ -148,6 +152,13 @@ env:
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_STORE_DIR } }
   - name: ASSET_WORKER
     valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_WORKER } }
+  - name: SOFER_API_URL
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SOFER_API_URL } }
+  - name: SOCIAL_PUBLIC_ORIGIN
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SOCIAL_PUBLIC_ORIGIN } }
+  # Optional until the owner adds the Sofer.ai key to the Secret (setup checklist); without it transcripts are "unavailable".
+  - name: SOFER_API_KEY
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: SOFER_API_KEY, optional: true } }
   - name: LIVEKIT_API_KEY
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: LIVEKIT_API_KEY } }
   - name: LIVEKIT_API_SECRET

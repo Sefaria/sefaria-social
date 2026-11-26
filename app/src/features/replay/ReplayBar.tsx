@@ -1,4 +1,4 @@
-import { useId, type KeyboardEvent } from "react";
+import { useId, useMemo, useState, type KeyboardEvent } from "react";
 import { useChromeInsets } from "~/features/av/insets";
 import { useInterfaceLang } from "~/features/host/host-context";
 import { useStrings } from "~/features/shell/use-strings";
@@ -6,6 +6,39 @@ import { RATES, type ReplayPlayer, type ReplayPlayerView } from "./player";
 import { chapterAt, type Chapter } from "./state-track";
 import { formatLength } from "./use-replay";
 import styles from "./replay.module.css";
+
+type Word = { w: string; s: number; e: number };
+
+/** Spec 054: the transcript as lines of at most 8 words or 5 seconds, the way its WebVTT cues are cut. */
+export function transcriptLines(words: readonly Word[]): Word[][] {
+  const lines: Word[][] = [];
+  let line: Word[] = [];
+  for (const w of words) {
+    if (line.length && (line.length >= 8 || w.e - line[0]!.s > 5_000)) {
+      lines.push(line);
+      line = [];
+    }
+    line.push(w);
+  }
+  if (line.length) lines.push(line);
+  return lines;
+}
+
+/** The line being spoken at `t`: the last one that starts at or before it, while it has not long ended. */
+export function lineAt(lines: readonly Word[][], t: number): Word[] | null {
+  // The last line that starts at or before t (binary search: a long shiur has thousands of lines, asked every frame).
+  let lo = 0;
+  let hi = lines.length - 1;
+  let found: Word[] | null = null;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (lines[mid]![0]!.s <= t) {
+      found = lines[mid]!;
+      lo = mid + 1;
+    } else hi = mid - 1;
+  }
+  return found && t <= found.at(-1)!.e + 2_000 ? found : null;
+}
 
 /** How far the back and forward buttons and the arrow keys move (ms). */
 export const SKIP_MS = 10_000;
@@ -25,6 +58,7 @@ export function ReplayBar({
   videoHidden,
   onToggleVideo,
   onClose,
+  transcript = null,
 }: {
   player: ReplayPlayer;
   view: ReplayPlayerView;
@@ -33,11 +67,16 @@ export function ReplayBar({
   videoHidden: boolean;
   onToggleVideo: () => void;
   onClose: () => void;
+  /** Spec 054: the transcript's words, or null when the shiur has none. */
+  transcript?: readonly Word[] | null;
 }) {
   const t = useStrings();
   const hebrew = useInterfaceLang() === "hebrew";
   const insets = useChromeInsets();
   const ticks = useId();
+  const [showTranscript, setShowTranscript] = useState(true);
+  const lines = useMemo(() => (transcript ? transcriptLines(transcript) : []), [transcript]);
+  const spoken = lineAt(lines, view.t);
   const refOf = (c: Chapter) => (hebrew && c.heRef ? c.heRef : c.ref);
   const playing = chapterAt(chapters, view.t);
   const duration = Math.max(1, view.duration);
@@ -134,6 +173,16 @@ export function ReplayBar({
               {rate}×
             </button>
           ))}
+          {lines.length > 0 && (
+            <button
+              type="button"
+              data-action="replay-transcript"
+              aria-pressed={showTranscript}
+              onClick={() => setShowTranscript((v) => !v)}
+            >
+              {t.transcript}
+            </button>
+          )}
           {hasVideo && (
             <button
               type="button"
@@ -149,6 +198,19 @@ export function ReplayBar({
           </button>
         </span>
       </div>
+      {showTranscript && lines.length > 0 && (
+        <p className={styles.transcriptLine} data-transcript-line="" dir="auto">
+          {spoken?.map((w, i) => (
+            <span
+              key={`${w.s}:${i}`}
+              data-spoken={(w.s <= view.t && view.t < w.e) || undefined}
+              aria-current={w.s <= view.t && view.t < w.e ? "true" : undefined}
+            >
+              {w.w}{" "}
+            </span>
+          ))}
+        </p>
+      )}
     </section>
   );
 }

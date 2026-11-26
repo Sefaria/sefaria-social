@@ -235,3 +235,17 @@
     box-shadow: 0 -6px 18px rgb(0 0 0 / 40%);
   }
 }
+
+/* Spec 054: the line being spoken, under the bar's controls. */
+.transcriptLine {
+  min-block-size: 1.5em;
+  margin: 0;
+  color: var(--sefaria-color-text, #121212);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.transcriptLine [data-spoken] {
+  border-radius: 3px;
+  background: var(--sefaria-color-highlight, #fff3c4);
+}

@@ -10,6 +10,7 @@ export type ErrorCode =
   | "request.too_large"
   | "request.range_not_satisfiable"
   | "recording.not_processed"
+  | "recording.no_transcript"
   | "request.rate_limited"
   | "method.not_allowed"
   | "room.not_found"
@@ -50,6 +51,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   "request.too_large": "The request body is too large.",
   "request.range_not_satisfiable": "The requested range is outside the file.",
   "recording.not_processed": "The recording is still being processed.",
+  "recording.no_transcript": "The recording has no transcript yet.",
   "request.rate_limited": "Too many requests; try again shortly.",
   "method.not_allowed": "This method is not allowed on this route.",
   "room.not_found": "Room not found.",

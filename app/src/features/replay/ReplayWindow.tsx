@@ -55,6 +55,7 @@ export function ReplayWindow() {
         hasVideo={hasVideo}
         videoHidden={videoHidden}
         onToggleVideo={() => setVideoHidden((h) => !h)}
+        transcript={asset?.transcript ?? null}
         onClose={() => controller.close()}
       />
     ) : null;

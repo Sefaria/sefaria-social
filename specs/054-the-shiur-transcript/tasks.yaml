@@ -1,0 +1,53 @@
+- id: T-001
+  title: The transcript job, its columns, the public reads and the config
+  acs: [AC-001, AC-002, AC-004, AC-005]
+  files:
+    - "app/src/api.transcripts.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/routes/api/v1/assets.$assetId.audio.ts"
+    - "app/src/routes/api/v1/assets.$assetId.transcript.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/db/migrations/0011_transcripts.sql"
+    - "app/src/server/db/migrations/meta/0011_snapshot.json"
+    - "app/src/server/db/migrations/meta/_journal.json"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/jobs/process-asset.ts"
+    - "app/src/server/jobs/transcript.ts"
+    - "app/src/server/log/logger.ts"
+    - "app/src/server/services/recordings.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "docs/runbooks/server.md"
+    - "docker-compose.yaml"
+    - "deploy/helm/values.yaml"
+  depends_on: []
+  parallel: false
+  completes: []
+  verify: ["npm run test:integration", "npm run test:contract", "npm run typecheck"]
+- id: T-002
+  title: The language beside Record and the transcript line in the player
+  acs: [AC-003, AC-006]
+  files:
+    - "app/src/features/recording/RecordButton.tsx"
+    - "app/src/features/recording/recorder.test.ts"
+    - "app/src/features/recording/recording-api.ts"
+    - "app/src/features/recording/recording-controller.ts"
+    - "app/src/features/recording/recording.module.css"
+    - "app/src/features/recording/transcript-language.test.tsx"
+    - "app/src/features/replay/ReplayBar.tsx"
+    - "app/src/features/replay/ReplayWindow.tsx"
+    - "app/src/features/replay/replay-api.ts"
+    - "app/src/features/replay/replay-controller.test.ts"
+    - "app/src/features/replay/replay-controller.ts"
+    - "app/src/features/replay/replay.module.css"
+    - "app/src/features/replay/shiur-player.test.tsx"
+    - "app/src/features/shell/strings.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [SHIUR-007]
+  verify: ["npm test -- app/src/features/replay app/src/features/recording", "npm run typecheck"]

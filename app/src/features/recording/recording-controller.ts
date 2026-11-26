@@ -21,7 +21,7 @@ import { pageTextSource } from "~/lib/sefaria-text";
 import { createCompositor, type Compositor, type CompositorOptions } from "./compositor";
 import { createMixer, type Mixer } from "./mixer";
 import { createSessionRecorder, pickMimeType, type SessionRecorder, type SessionRecorderOptions } from "./recorder";
-import { recordingApiFor, type RecordingApi } from "./recording-api";
+import { recordingApiFor, rememberedLanguage, type RecordingApi, type TranscriptLanguage } from "./recording-api";
 import { documentHostFor } from "~/features/host/document-host";
 
 export type RecordingFailure = "upload" | "unavailable" | "already-recording" | "forbidden" | "error";
@@ -36,7 +36,8 @@ export type RecordingView =
 export interface RecordingController {
   view(): RecordingView;
   subscribe(cb: () => void): () => void;
-  start(roomId: string): Promise<void>;
+  /** Spec 054: `transcriptLanguage` for the transcript; the leader's remembered choice by default. */
+  start(roomId: string, opts?: { transcriptLanguage?: TranscriptLanguage }): Promise<void>;
   stop(): Promise<void>;
   /** Spec 050 AC-001: pause the recording (the paused time is cut); resume goes on in the same recording. */
   pause(): void;
@@ -214,7 +215,7 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
       return () => void listeners.delete(cb);
     },
 
-    async start(roomId) {
+    async start(roomId, opts = {}) {
       if (view.kind === "starting" || view.kind === "recording" || view.kind === "stopping") return;
       const gen = ++generation;
       set({ kind: "starting", roomId });
@@ -225,7 +226,7 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
       );
       let id: string;
       try {
-        const r = await api.start(roomId, pickMimeType());
+        const r = await api.start(roomId, pickMimeType(), opts.transcriptLanguage ?? rememberedLanguage());
         if (gen !== generation) return;
         if (r.kind !== "ok") {
           set({ kind: "failed", roomId, reason: r.kind });

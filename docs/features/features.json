@@ -2968,6 +2968,34 @@
       ],
       "since": null,
       "changed": []
+    },
+    {
+      "id": "SHIUR-007",
+      "area": "shiur",
+      "name": "A shiur's transcript from Sofer.ai, in the leader's language, line by line in the player",
+      "description": "A processed shiur's audio goes to Sofer.ai in the language the leader chose beside Record (English with Hebrew words in Hebrew letters by default); the job polls until done and keeps the words with their times; the transcript and audio are public reads; without a key it is unavailable, a Sofer.ai failure is failed, and the shiur plays either way; the player shows the line being said under the bar.",
+      "status": "built",
+      "spec": "054",
+      "acs": [
+        "054/AC-001",
+        "054/AC-002",
+        "054/AC-003",
+        "054/AC-004",
+        "054/AC-005",
+        "054/AC-006"
+      ],
+      "surfaces": [
+        "recording",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.transcripts.int.test.ts",
+        "app/src/features/recording/transcript-language.test.tsx",
+        "app/src/features/replay/shiur-player.test.tsx"
+      ],
+      "since": null,
+      "changed": []
     }
   ]
 }

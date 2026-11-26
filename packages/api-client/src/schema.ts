@@ -17,6 +17,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assets/{assetId}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A processed recording's audio (AAC in MP4), for anyone with its link: what a transcript is made from (spec 054). Byte ranges answer 206. */
+        get: operations["getAssetAudio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assets/{assetId}/manifest": {
         parameters: {
             query?: never;
@@ -60,6 +77,23 @@ export interface paths {
         };
         /** A ready recording's reader timeline as a Recording v1 document, for anyone with its link (spec 051). */
         get: operations["getAssetState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{assetId}/transcript": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A ready recording's transcript with word times, for anyone with its link (spec 054). 404 recording.no_transcript until it is ready. */
+        get: operations["getAssetTranscript"];
         put?: never;
         post?: never;
         delete?: never;
@@ -831,6 +865,64 @@ export interface operations {
             };
         };
     };
+    getAssetAudio: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The audio file. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description A byte range of the audio file. */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error. */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getAssetManifest: {
         parameters: {
             query?: never;
@@ -1003,6 +1095,57 @@ export interface operations {
                         startedAt: string;
                         /** @constant */
                         v: 1;
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getAssetTranscript: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The transcript. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        language: "en" | "he" | "yi" | "fr";
+                        text: string;
+                        /** @constant */
+                        v: 1;
+                        words: {
+                            e: number;
+                            s: number;
+                            w: string;
+                        }[];
                     };
                 };
             };
@@ -4525,6 +4668,8 @@ export interface operations {
             content: {
                 "application/json": {
                     mime?: string;
+                    /** @enum {string} */
+                    transcriptLanguage?: "en" | "he" | "yi" | "fr";
                 };
             };
         };

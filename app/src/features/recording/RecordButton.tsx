@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useStrings } from "~/features/shell/use-strings";
 import { useRecordingController, useRecordingView } from "./use-recording";
+import { rememberLanguage, rememberedLanguage, TRANSCRIPT_LANGUAGES, type TranscriptLanguage } from "./recording-api";
 import styles from "./recording.module.css";
 
 const clock = (ms: number) => {
@@ -66,6 +67,10 @@ export function RecordToggle({ roomId }: { roomId: string }) {
   const controller = useRecordingController();
   const view = useRecordingView(controller);
   const [, tick] = useState(0);
+  // Spec 054 (D10): the transcript's language, chosen before recording starts; remembered for next time.
+  // English first, the remembered choice after mounting: the same first render on the server and in the browser.
+  const [language, setLanguage] = useState<TranscriptLanguage>("en");
+  useEffect(() => setLanguage(rememberedLanguage()), []);
   const running = view.kind === "recording" && !view.paused;
   useEffect(() => {
     if (!running) return;
@@ -78,7 +83,7 @@ export function RecordToggle({ roomId }: { roomId: string }) {
   const state = view.kind === "recording" ? (view.paused ? "paused" : "recording") : view.kind;
   const press = () => {
     if (view.kind === "recording") return view.paused ? controller.resume() : controller.pause();
-    if (view.kind === "idle" || view.kind === "failed") void controller.start(roomId);
+    if (view.kind === "idle" || view.kind === "failed") void controller.start(roomId, { transcriptLanguage: language });
   };
   const label =
     view.kind === "recording"
@@ -102,6 +107,26 @@ export function RecordToggle({ roomId }: { roomId: string }) {
         {label}
       </button>
       {view.kind === "recording" && <span data-recording-elapsed="">{t.recordingElapsed(clock(controller.elapsed()))}</span>}
+      {(view.kind === "idle" || view.kind === "failed") && (
+        <label className={styles.language}>
+          <span>{t.transcriptLanguage}</span>
+          <select
+            data-transcript-language=""
+            value={language}
+            onChange={(e) => {
+              const next = e.currentTarget.value as TranscriptLanguage;
+              setLanguage(next);
+              rememberLanguage(next);
+            }}
+          >
+            {TRANSCRIPT_LANGUAGES.map((l) => (
+              <option key={l} value={l}>
+                {t.languageNames[l]}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {view.kind === "failed" && view.roomId === roomId && (
         <p role="alert" data-recording-error={view.reason} className={styles.error}>
           {view.reason === "upload" ? t.recordingUploadFailed : t.recordingUnavailable}

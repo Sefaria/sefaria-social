@@ -8,17 +8,17 @@ and facts, not a diary.
 
 States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awaiting approval), `approved`, `merged`.
 
-| Spec | Title                                                           | State       | PR  | Notes                                                                                         |
-| ---- | --------------------------------------------------------------- | ----------- | --- | --------------------------------------------------------------------------------------------- |
-| 048  | Sticky following, a fixed leader, follow a person by their head | merged      | #35 | Broadcast viewers still break away on any input (Back to live).                               |
-| 049  | One press to get in                                             | merged      | #35 | The lobby's Join call keeps its device step (for coming back to a call).                      |
-| 050  | Session kinds and endings                                       | merged      | #35 | A broadcast started from the dialog does not join the host to the broadcast's call by itself. |
-| 051  | The asset in object storage                                     | built       | #37 | Approved. Filesystem store until a bucket adapter.                                            |
-| 052  | Processing                                                      | built       | #37 | Approved. Queue on the row (decision 0014), not pg-boss.                                      |
-| 053  | The player                                                      | built       | #37 | Approved.                                                                                     |
-| 054  | Transcript                                                      | not started |     |                                                                                               |
-| 055  | Links in posts                                                  | merged      | #36 | Approved                                                                                      |
-| 056  | Live cards                                                      | merged      | #36 | Approved; relay needs `SOCIAL_SERVER_URL`                                                     |
+| Spec | Title                                                           | State  | PR  | Notes                                                                                         |
+| ---- | --------------------------------------------------------------- | ------ | --- | --------------------------------------------------------------------------------------------- |
+| 048  | Sticky following, a fixed leader, follow a person by their head | merged | #35 | Broadcast viewers still break away on any input (Back to live).                               |
+| 049  | One press to get in                                             | merged | #35 | The lobby's Join call keeps its device step (for coming back to a call).                      |
+| 050  | Session kinds and endings                                       | merged | #35 | A broadcast started from the dialog does not join the host to the broadcast's call by itself. |
+| 051  | The asset in object storage                                     | built  | #37 | Approved. Filesystem store until a bucket adapter.                                            |
+| 052  | Processing                                                      | built  | #37 | Approved. Queue on the row (decision 0014), not pg-boss.                                      |
+| 053  | The player                                                      | built  | #37 | Approved.                                                                                     |
+| 054  | Transcript                                                      | built  | #38 | Approved. Tested against a fake Sofer.ai only; needs the key.                                 |
+| 055  | Links in posts                                                  | merged | #36 | Approved                                                                                      |
+| 056  | Live cards                                                      | merged | #36 | Approved; relay needs `SOCIAL_SERVER_URL`                                                     |
 
 ## Waiting on the owner
 
@@ -61,6 +61,11 @@ if the owner decides otherwise.
 
 Newest first. One or two lines per entry: what changed, and anything the next session must know that the code does not say.
 
+- 2026-11-26: Group C (054) built on #38, stacked on #37. Tested only against a fake Sofer.ai built from their documented
+  API; watch the first real run (`transcript.*` log events). Audio goes inline (base64, up to 40 MB, about 80 minutes) unless
+  `SOCIAL_PUBLIC_ORIGIN` is set. A fresh-agent review found 10 problems (rate limit, the 6-hour limit while polls error,
+  `/audio` in memory, silent recordings queued, and others); all fixed with tests. Group B's Helm values lacked
+  `ASSET_STORE_DIR` and `ASSET_WORKER` (a factory test caught it in CI); fixed on #37.
 - 2026-11-26: Group B (051–053) built on #37 overnight. A fresh-agent review found 8 problems (whole files in memory on public
   reads, a crash loop on out-of-memory, the replay pausing when the video hid, the filesystem store unwritable in the image,
   lease overlap, leftover media after deletion, a bad address failing processing, keyboard on the seek bar); all fixed with

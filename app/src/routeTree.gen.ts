@@ -39,9 +39,11 @@ import { Route as ApiV1ProfilesMeRouteImport } from './routes/api/v1/profiles.me
 import { Route as ApiV1RecordingsRecordingIdRouteImport } from './routes/api/v1/recordings.$recordingId'
 import { Route as ApiV1RepliesReplyIdRouteImport } from './routes/api/v1/replies.$replyId'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
+import { Route as ApiV1AssetsAssetIdAudioRouteImport } from './routes/api/v1/assets.$assetId.audio'
 import { Route as ApiV1AssetsAssetIdManifestRouteImport } from './routes/api/v1/assets.$assetId.manifest'
 import { Route as ApiV1AssetsAssetIdMediaRouteImport } from './routes/api/v1/assets.$assetId.media'
 import { Route as ApiV1AssetsAssetIdStateRouteImport } from './routes/api/v1/assets.$assetId.state'
+import { Route as ApiV1AssetsAssetIdTranscriptRouteImport } from './routes/api/v1/assets.$assetId.transcript'
 import { Route as ApiV1BroadcastsBroadcastIdEndRouteImport } from './routes/api/v1/broadcasts.$broadcastId.end'
 import { Route as ApiV1BroadcastsBroadcastIdTicketRouteImport } from './routes/api/v1/broadcasts.$broadcastId.ticket'
 import { Route as ApiV1InternalLivekitWebhookRouteImport } from './routes/api/v1/internal.livekit.webhook'
@@ -218,6 +220,11 @@ const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
   path: '/$roomId',
   getParentRoute: () => ApiV1RoomsRoute,
 } as any)
+const ApiV1AssetsAssetIdAudioRoute = ApiV1AssetsAssetIdAudioRouteImport.update({
+  id: '/audio',
+  path: '/audio',
+  getParentRoute: () => ApiV1AssetsAssetIdRoute,
+} as any)
 const ApiV1AssetsAssetIdManifestRoute =
   ApiV1AssetsAssetIdManifestRouteImport.update({
     id: '/manifest',
@@ -234,6 +241,12 @@ const ApiV1AssetsAssetIdStateRoute = ApiV1AssetsAssetIdStateRouteImport.update({
   path: '/state',
   getParentRoute: () => ApiV1AssetsAssetIdRoute,
 } as any)
+const ApiV1AssetsAssetIdTranscriptRoute =
+  ApiV1AssetsAssetIdTranscriptRouteImport.update({
+    id: '/transcript',
+    path: '/transcript',
+    getParentRoute: () => ApiV1AssetsAssetIdRoute,
+  } as any)
 const ApiV1BroadcastsBroadcastIdEndRoute =
   ApiV1BroadcastsBroadcastIdEndRouteImport.update({
     id: '/end',
@@ -392,9 +405,11 @@ export interface FileRoutesByFullPath {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/audio': typeof ApiV1AssetsAssetIdAudioRoute
   '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
   '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
+  '/api/v1/assets/$assetId/transcript': typeof ApiV1AssetsAssetIdTranscriptRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
@@ -449,9 +464,11 @@ export interface FileRoutesByTo {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/audio': typeof ApiV1AssetsAssetIdAudioRoute
   '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
   '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
+  '/api/v1/assets/$assetId/transcript': typeof ApiV1AssetsAssetIdTranscriptRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
@@ -507,9 +524,11 @@ export interface FileRoutesById {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/assets/$assetId/audio': typeof ApiV1AssetsAssetIdAudioRoute
   '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
   '/api/v1/assets/$assetId/state': typeof ApiV1AssetsAssetIdStateRoute
+  '/api/v1/assets/$assetId/transcript': typeof ApiV1AssetsAssetIdTranscriptRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
@@ -566,9 +585,11 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/audio'
     | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
     | '/api/v1/assets/$assetId/state'
+    | '/api/v1/assets/$assetId/transcript'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
@@ -623,9 +644,11 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/audio'
     | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
     | '/api/v1/assets/$assetId/state'
+    | '/api/v1/assets/$assetId/transcript'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
@@ -680,9 +703,11 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/assets/$assetId/audio'
     | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
     | '/api/v1/assets/$assetId/state'
+    | '/api/v1/assets/$assetId/transcript'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
     | '/api/v1/internal/livekit/webhook'
@@ -949,6 +974,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdRouteImport
       parentRoute: typeof ApiV1RoomsRoute
     }
+    '/api/v1/assets/$assetId/audio': {
+      id: '/api/v1/assets/$assetId/audio'
+      path: '/audio'
+      fullPath: '/api/v1/assets/$assetId/audio'
+      preLoaderRoute: typeof ApiV1AssetsAssetIdAudioRouteImport
+      parentRoute: typeof ApiV1AssetsAssetIdRoute
+    }
     '/api/v1/assets/$assetId/manifest': {
       id: '/api/v1/assets/$assetId/manifest'
       path: '/manifest'
@@ -968,6 +1000,13 @@ declare module '@tanstack/react-router' {
       path: '/state'
       fullPath: '/api/v1/assets/$assetId/state'
       preLoaderRoute: typeof ApiV1AssetsAssetIdStateRouteImport
+      parentRoute: typeof ApiV1AssetsAssetIdRoute
+    }
+    '/api/v1/assets/$assetId/transcript': {
+      id: '/api/v1/assets/$assetId/transcript'
+      path: '/transcript'
+      fullPath: '/api/v1/assets/$assetId/transcript'
+      preLoaderRoute: typeof ApiV1AssetsAssetIdTranscriptRouteImport
       parentRoute: typeof ApiV1AssetsAssetIdRoute
     }
     '/api/v1/broadcasts/$broadcastId/end': {
@@ -1245,15 +1284,19 @@ const ApiV1RoomsRouteWithChildren = ApiV1RoomsRoute._addFileChildren(
 )
 
 interface ApiV1AssetsAssetIdRouteChildren {
+  ApiV1AssetsAssetIdAudioRoute: typeof ApiV1AssetsAssetIdAudioRoute
   ApiV1AssetsAssetIdManifestRoute: typeof ApiV1AssetsAssetIdManifestRoute
   ApiV1AssetsAssetIdMediaRoute: typeof ApiV1AssetsAssetIdMediaRoute
   ApiV1AssetsAssetIdStateRoute: typeof ApiV1AssetsAssetIdStateRoute
+  ApiV1AssetsAssetIdTranscriptRoute: typeof ApiV1AssetsAssetIdTranscriptRoute
 }
 
 const ApiV1AssetsAssetIdRouteChildren: ApiV1AssetsAssetIdRouteChildren = {
+  ApiV1AssetsAssetIdAudioRoute: ApiV1AssetsAssetIdAudioRoute,
   ApiV1AssetsAssetIdManifestRoute: ApiV1AssetsAssetIdManifestRoute,
   ApiV1AssetsAssetIdMediaRoute: ApiV1AssetsAssetIdMediaRoute,
   ApiV1AssetsAssetIdStateRoute: ApiV1AssetsAssetIdStateRoute,
+  ApiV1AssetsAssetIdTranscriptRoute: ApiV1AssetsAssetIdTranscriptRoute,
 }
 
 const ApiV1AssetsAssetIdRouteWithChildren =
