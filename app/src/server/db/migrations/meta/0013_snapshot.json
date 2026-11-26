@@ -1,5 +1,5 @@
 {
-  "id": "7b7a8af9-bb60-4f97-b521-68004cdd7e37",
+  "id": "fa602d33-bbfa-4247-b855-d32a2f065d40",
   "prevId": "156bdc5d-a489-41bb-b8a3-fc7e8d0be6a6",
   "version": "7",
   "dialect": "postgresql",
@@ -906,6 +906,7 @@
             }
           ],
           "isUnique": true,
+          "where": "\"profiles\".\"handle\" <> ''",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -1356,17 +1357,26 @@
           "name": "room_invites_email_idx",
           "columns": [
             {
-              "expression": "room_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
               "expression": "email_sha256",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "room_invites_created_idx": {
+          "name": "room_invites_created_idx",
+          "columns": [
             {
               "expression": "created_at",
               "isExpression": false,

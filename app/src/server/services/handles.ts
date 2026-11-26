@@ -30,6 +30,7 @@ export const RESERVED_HANDLES: ReadonlySet<string> = new Set([
   "support",
   "system",
   "undefined",
+  "official",
 ]);
 
 /** The canonical form of what someone typed: NFKC, trimmed, lower case, without a leading "@". */
@@ -37,12 +38,15 @@ export function canonicalHandle(input: string): string {
   return input.slice(0, READ_MAX).normalize("NFKC").trim().toLowerCase().replace(/^@/, "");
 }
 
+/** Words a person's handle may not start with, so no one passes as Sefaria or its staff (sefaria_team, admin2, staff_x). */
+export const RESERVED_PREFIXES = ["sefaria", "admin", "staff", "support", "system", "root", "official"] as const;
+
 export type HandleProblem = "invalid" | "reserved";
 
 /** Why a canonical handle cannot be used, or null when it can. */
 export function handleProblem(handle: string): HandleProblem | null {
   if (!PATTERN.test(handle)) return "invalid";
-  if (RESERVED_HANDLES.has(handle)) return "reserved";
+  if (RESERVED_HANDLES.has(handle) || RESERVED_PREFIXES.some((w) => handle.startsWith(w))) return "reserved";
   return null;
 }
 

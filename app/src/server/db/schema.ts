@@ -296,7 +296,14 @@ export const profiles = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("profiles_kind_idx").on(t.kind), uniqueIndex("profiles_handle_idx").on(sql`lower(${t.handle})`)],
+  (t) => [
+    index("profiles_kind_idx").on(t.kind),
+    // Partial: '' is "not yet given" (the column's default, which the trigger replaces), so the index can exist before the
+    // backfill and serve its lookups (migration 0012).
+    uniqueIndex("profiles_handle_idx")
+      .on(sql`lower(${t.handle})`)
+      .where(sql`${t.handle} <> ''`),
+  ],
 );
 
 /** Who may post as, and is notified for, an institution profile. */
@@ -442,7 +449,8 @@ export const notifications = pgTable(
 
 /**
  * Spec 058: one row per invitation to a room, for the once-a-day rule and the hourly limit (in Postgres, so every server
- * replica counts the same). An invitation by email (spec 059) keeps only the address's SHA-256, never the address.
+ * replica counts the same). An invitation by email (spec 059) keeps only a keyed hash of the address, never the address, and
+ * rows go after two days.
  */
 export const roomInvites = pgTable(
   "room_invites",
@@ -461,7 +469,10 @@ export const roomInvites = pgTable(
   (t) => [
     index("room_invites_inviter_idx").on(t.inviterUserId, t.createdAt),
     index("room_invites_invitee_idx").on(t.roomId, t.inviteeUserId, t.createdAt),
-    index("room_invites_email_idx").on(t.roomId, t.emailSha256, t.createdAt),
+    // Spec 059: an address is emailed at most once a day, whatever the room.
+    index("room_invites_email_idx").on(t.emailSha256, t.createdAt),
+    // Rows older than the rules' windows are removed.
+    index("room_invites_created_idx").on(t.createdAt),
     index("room_invites_invitee_user_idx").on(t.inviteeUserId),
     check(
       "room_invites_target_check",

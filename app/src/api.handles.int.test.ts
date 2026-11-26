@@ -40,8 +40,9 @@ describe("spec 057: profile handles", () => {
     expect(second.handle).toBe(`rachel_${word}2`);
     const hebrew = await me(h, await h.token(user(), { name: "רחל כהן" }));
     expect(hebrew.handle).toMatch(/^learner\d*$/);
-    const reserved = await me(h, await h.token(user(), { name: "Admin" }));
-    expect(reserved.handle).toMatch(/^admin_\d*$/);
+    // A person cannot be given a handle that passes as staff; a profile staff make can.
+    const admin = await me(h, await h.token(user(), { name: "Sefaria Team" }));
+    expect(admin.handle).toMatch(/^learner\d*$/);
     // An institution made outside Social (staff SQL) gets one too.
     const [shul] = await h.sql<{ handle: string }>(
       "insert into profiles (kind, name) values ('institution', $1) returning handle",
@@ -97,5 +98,27 @@ describe("spec 057: profile handles", () => {
       "404 profile.not_found",
     );
     expect((await h.call("GET", `/api/v1/profiles/by-handle/ben_${word}`)).status).toBe(401);
+  });
+
+  it("makes handles from awkward names: digits, underscores, very long, and many alike, in a few lookups", async () => {
+    const h = await load();
+    const free = async (name: string, kind = "person") =>
+      (await h.sql<{ h: string }>("select social_free_handle($1, $2) as h", [name, kind]))[0]!.h;
+    expect(await free("12345")).toMatch(/^learner/);
+    expect(await free("___")).toMatch(/^learner/);
+    expect(await free("9 Rachel")).toMatch(/^rachel/);
+    const long = await free(`${"abcdefghij".repeat(5)} smith`);
+    expect(long.length).toBeLessThanOrEqual(30);
+    expect(long).toMatch(/^[a-z][a-z0-9_]{2,29}$/);
+    expect(await free("Sefaria Team", "institution")).toMatch(/^sefaria_team/);
+    // Many profiles with one base: after 2–4, a random number, so each new one costs a few lookups.
+    const w = fresh();
+    for (let i = 0; i < 8; i++) await h.sql("insert into profiles (kind, name) values ('person', $1)", [`Same ${w}`]);
+    const handles = (
+      await h.sql<{ handle: string }>("select handle from profiles where name = $1 order by created_at", [`Same ${w}`])
+    ).map((r) => r.handle);
+    expect(new Set(handles).size).toBe(8);
+    expect(handles.slice(0, 4)).toEqual([`same_${w}`, `same_${w}2`, `same_${w}3`, `same_${w}4`]);
+    for (const x of handles.slice(4)) expect(x).toMatch(new RegExp(`^same_${w}\\d{6}$`));
   });
 });

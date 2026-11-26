@@ -18,5 +18,8 @@ describe("handles", () => {
       expect(handleProblem(bad), bad).toBe("invalid");
     expect(handleProblem("admin")).toBe("reserved");
     expect(handleProblem("sefaria")).toBe("reserved");
+    for (const lookalike of ["sefaria_team", "sefaria1", "admin_", "staff_x", "official_rav"])
+      expect(handleProblem(lookalike), lookalike).toBe("reserved");
+    expect(handleProblem("rachel_admin")).toBeNull();
   });
 });

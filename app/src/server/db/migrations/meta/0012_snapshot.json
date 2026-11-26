@@ -876,6 +876,7 @@
             }
           ],
           "isUnique": true,
+          "where": "\"profiles\".\"handle\" <> ''",
           "concurrently": false,
           "method": "btree",
           "with": {}
