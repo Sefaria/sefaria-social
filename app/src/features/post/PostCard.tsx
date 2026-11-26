@@ -114,6 +114,7 @@ export function PostCard({
           </p>
         ) : null}
         {post.embed ? <EmbedCard embed={post.embed} /> : null}
+        {post.assetEmbed ? <EmbedCard embed={{ kind: "asset", ...post.assetEmbed }} /> : null}
         {post.quoted ? <QuotedPost quoted={post.quoted} /> : null}
         {post.ref ? (
           <figure className={styles.source} data-post-source={post.ref}>

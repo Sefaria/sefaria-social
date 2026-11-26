@@ -54,6 +54,8 @@ export async function verifyToken(token: string, env: AuthEnv): Promise<Identity
       requiredClaims: ["sub", "exp", "iat"],
     });
     if (typeof payload.sub !== "string" || !/^[1-9][0-9]{0,18}$/.test(payload.sub)) return null;
+    // Spec 064: a token issued through the MCP connector (`via`) may only save Claude assets on the server, never join a room.
+    if ("via" in payload) return null;
     const name = typeof payload.name === "string" ? payload.name.slice(0, 200) : "";
     return { userId: payload.sub, name };
   } catch {

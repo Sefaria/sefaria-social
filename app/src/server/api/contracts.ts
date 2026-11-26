@@ -85,7 +85,8 @@ export const QuotedPost = z.object({
 
 /** What a post may embed as a card (spec 055): a room, a broadcast or a recording, by id. */
 export const EmbedKind = z.enum(["room", "broadcast", "recording"]);
-export const PostEmbedInput = z.strictObject({ kind: EmbedKind, id: z.uuid() });
+/** A post may also embed a Claude asset (spec 063); it is answered as `assetEmbed`, so `embed.kind` keeps its values. */
+export const PostEmbedInput = z.strictObject({ kind: z.enum(["room", "broadcast", "recording", "asset"]), id: z.uuid() });
 
 /** A post's card (spec 055): the target's title and its leader's name, both null when the target no longer exists. */
 export const PostEmbed = z.object({
@@ -93,6 +94,18 @@ export const PostEmbed = z.object({
   id: z.uuid(),
   title: z.string().nullable(),
   leader: z.string().nullable(),
+});
+
+/**
+ * A post's Claude asset card (spec 063): title and author (`leader`) null when the asset is gone or hidden; `contentUrl` its
+ * published file (or, while its author's own asset is unpublished, its current one), absent when gone. A field of its own so
+ * older surfaces, which know three embed kinds, show the post without a card.
+ */
+export const PostAssetEmbed = z.object({
+  id: z.uuid(),
+  title: z.string().nullable(),
+  leader: z.string().nullable(),
+  contentUrl: z.url().optional(),
 });
 
 export const Post = z.object({
@@ -112,6 +125,8 @@ export const Post = z.object({
   repostedBy: Author.nullable(),
   /** Present only when the post embeds a room, broadcast or recording (spec 055). */
   embed: PostEmbed.optional(),
+  /** Present only when the post embeds a Claude asset (spec 063). */
+  assetEmbed: PostAssetEmbed.optional(),
 });
 
 export const Reply = z.object({ id: z.uuid(), body: z.string(), author: Author, createdAt: Iso, canDelete: z.boolean() });
@@ -160,6 +175,8 @@ export const Profile = z.object({
   viewerFollows: z.boolean(),
   isOwn: z.boolean(),
   canManage: z.boolean(),
+  /** Spec 062: present, and true, only for a verified profile (the blue check); absent otherwise. */
+  verified: z.literal(true).optional(),
 });
 
 export const MyProfile = Profile.extend({ administers: z.array(z.object({ id: z.uuid(), name: z.string() })) });
@@ -1118,6 +1135,379 @@ export const searchPeople = defineEndpoint({
   responses: { 200: { description: "Matching people, public fields only.", schema: z.object({ people: z.array(Person) }) } },
 });
 
+// ── Claude assets (specs 060–063; Sefaria-Project LINKED_PANELS_AND_ASSETS_PLAN.md 5, 6) ────────────────────────────────────
+const Sha256 = z.string().regex(/^[0-9a-f]{64}$/);
+
+/** One declared ref as stored: Sefaria's normal form, Hebrew form and expansion, the label, and the ref as declared. */
+export const ClaudeAssetRef = z.object({
+  ref: z.string(),
+  heRef: z.string(),
+  label: z.string().nullable(),
+  sourceRef: z.string(),
+  sectionRefs: z.array(z.string()),
+  segmentRefs: z.array(z.string()),
+});
+
+export const ClaudeAssetManifest = z.object({
+  v: z.literal(1),
+  title: z.string(),
+  description: z.string(),
+  lang: z.string().nullable(),
+  refs: z.array(ClaudeAssetRef),
+});
+
+/** An immutable version; `contentUrl` is its public, sandboxed file on the content origin (spec 061). */
+export const ClaudeAssetVersion = z.object({
+  id: z.uuid(),
+  n: z.int().positive(),
+  sha256: Sha256,
+  bytes: z.int().nonnegative(),
+  createdAt: Iso,
+  contentUrl: z.url(),
+});
+
+/** The author as the public sees them: a profile, never a Sefaria user id. */
+export const ClaudeAssetAuthor = z.object({ name: z.string(), profileId: z.uuid().nullable(), verified: z.boolean() });
+
+export const ClaudeAsset = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  description: z.string(),
+  lang: z.string().nullable(),
+  sourceUrl: z.string().nullable(),
+  author: ClaudeAssetAuthor,
+  currentVersionId: z.uuid().nullable(),
+  publishedVersionId: z.uuid().nullable(),
+  publishedAt: Iso.nullable(),
+  versions: z.array(ClaudeAssetVersion),
+  manifest: ClaudeAssetManifest.nullable(),
+  createdAt: Iso,
+  updatedAt: Iso,
+});
+
+export const MyClaudeAssets = z.object({ assets: z.array(ClaudeAsset.extend({ hidden: z.boolean() })) });
+
+/** Why a file was not saved (spec 060 AC-003): a stable code, a message saying what to change, and the ref when there is one. */
+export const ClaudeAssetProblem = z.object({ code: z.string(), message: z.string(), ref: z.string().optional() });
+export const ClaudeAssetRefused = z.object({
+  error: z.object({ code: z.literal("asset.invalid"), message: z.string() }),
+  problems: z.array(ClaudeAssetProblem).min(1),
+});
+
+export const SavedClaudeAsset = z.object({
+  asset: ClaudeAsset,
+  version: ClaudeAssetVersion,
+  /** A new asset (true) or a new version of an existing one (false). */
+  created: z.boolean(),
+  /** The same bytes as a current version: nothing new was stored. */
+  unchanged: z.boolean(),
+  /** The first declared ref, in normal form: where a reader opens it. */
+  firstRef: z.string(),
+});
+
+export const ClaudeAssetDryRun = z.object({
+  dryRun: z.literal(true),
+  manifest: ClaudeAssetManifest,
+  bytes: z.int().nonnegative(),
+  sha256: Sha256,
+  firstRef: z.string(),
+});
+
+/** The save route's JSON body limit: a 5 MB file grows when escaped into JSON. */
+export const CLAUDE_ASSET_BODY_BYTES = 12 * 1024 * 1024;
+
+export const ClaudeAssetInput = z.strictObject({
+  /** The whole file, manifest included. Its size limit (ASSET_MAX_BYTES) is checked on its UTF-8 bytes. */
+  html: z.string().min(1).max(CLAUDE_ASSET_BODY_BYTES),
+  /** Save as the next version of this asset (one of the caller's own). */
+  assetId: z.uuid().optional(),
+  /** Where it was made, shown only (never fetched, never embedded). */
+  sourceUrl: z
+    .url({ protocol: /^https?$/ })
+    .max(2000)
+    .optional(),
+  /** Check everything and store nothing. */
+  dryRun: z.boolean().optional(),
+});
+
+export const ClaudeAssetImportInput = z.strictObject({
+  /** A public https URL of a raw HTML file. Checked on the server (422 with a problem), not by the schema. */
+  url: z.string().min(1).max(2000),
+  assetId: z.uuid().optional(),
+  dryRun: z.boolean().optional(),
+});
+
+export const PublishInput = z.strictObject({ versionId: z.uuid().optional() });
+
+/** One asset on a ref, for the reader's sidebar (spec 062 AC-004), modelled on the findings read API. */
+export const RefClaudeAsset = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  description: z.string(),
+  author: z.object({ name: z.string(), profileId: z.uuid(), verified: z.literal(true) }),
+  /** The covered segments inside the asked ref, in text order. */
+  anchorRefs: z.array(z.string()),
+  /** The declared refs, in normal form. */
+  refs: z.array(z.string()),
+  versionId: z.uuid(),
+  contentUrl: z.url(),
+});
+export const RefClaudeAssets = z.object({ ref: z.string(), assets: z.array(RefClaudeAsset) });
+
+export const PublicClaudeAsset = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  description: z.string(),
+  refs: z.array(z.string()),
+  versionId: z.uuid(),
+  contentUrl: z.url(),
+  publishedAt: Iso,
+});
+export const ProfileClaudeAssets = z.object({ assets: z.array(PublicClaudeAsset) });
+
+const ClaudeAssetParams = z.object({ assetId: z.uuid() });
+const ContentParams = z.object({ versionId: z.uuid() });
+const GrantParams = z.object({ versionId: z.uuid(), grant: z.string().min(1).max(200) });
+const RefParams = z.object({ ref: z.string().trim().min(1).max(300) });
+
+const saveResponses = {
+  201: { description: "Saved: a new asset, or a new version of one.", schema: SavedClaudeAsset },
+  200: {
+    description: "A dry run's check, or the same bytes as a current version (nothing new stored).",
+    schema: z.union([SavedClaudeAsset, ClaudeAssetDryRun]),
+  },
+  422: { description: "Not saved: the problems, each with a code and what to change.", schema: ClaudeAssetRefused },
+} as const;
+
+export const listMyClaudeAssets = defineEndpoint({
+  operationId: "listMyClaudeAssets",
+  method: "GET",
+  path: "/api/v1/claude-assets",
+  summary: "The caller's own Claude assets, newest first, hidden ones marked (spec 060).",
+  tags: ["claude-assets"],
+  responses: { 200: { description: "The caller's assets.", schema: MyClaudeAssets } },
+});
+
+export const saveClaudeAsset = defineEndpoint({
+  operationId: "saveClaudeAsset",
+  method: "POST",
+  path: "/api/v1/claude-assets",
+  summary:
+    "Save an HTML file as a Claude asset or a new version (spec 060). The manifest in the file is the source of its title and refs; Sefaria checks every ref. dryRun checks without storing.",
+  tags: ["claude-assets"],
+  mcp: true,
+  body: ClaudeAssetInput,
+  maxBodyBytes: CLAUDE_ASSET_BODY_BYTES,
+  errors: [404, 429, 503],
+  responses: saveResponses,
+});
+
+export const importClaudeAsset = defineEndpoint({
+  operationId: "importClaudeAsset",
+  method: "POST",
+  path: "/api/v1/claude-assets/import",
+  summary:
+    "Fetch a raw HTML file once from a public https URL and save it like an upload (spec 060 AC-007). Claude links are refused with the two working routes named.",
+  tags: ["claude-assets"],
+  mcp: true,
+  body: ClaudeAssetImportInput,
+  errors: [404, 429, 503],
+  responses: saveResponses,
+});
+
+export const getClaudeAsset = defineEndpoint({
+  operationId: "getClaudeAsset",
+  method: "GET",
+  path: "/api/v1/claude-assets/{assetId}",
+  summary: "A Claude asset for anyone with its id (spec 060): metadata, versions, the current manifest. Hidden or unknown: 404.",
+  tags: ["claude-assets"],
+  access: "public",
+  params: ClaudeAssetParams,
+  errors: [404],
+  responses: { 200: { description: "The asset.", schema: ClaudeAsset } },
+});
+
+export const deleteClaudeAsset = defineEndpoint({
+  operationId: "deleteClaudeAsset",
+  method: "DELETE",
+  path: "/api/v1/claude-assets/{assetId}",
+  summary: "Delete one of the caller's assets with its versions and files (spec 060).",
+  tags: ["claude-assets"],
+  params: ClaudeAssetParams,
+  errors: [404],
+  responses: { 204: { description: "Deleted." } },
+});
+
+export const getClaudeAssetContent = defineEndpoint({
+  operationId: "getClaudeAssetContent",
+  method: "GET",
+  path: "/api/v1/claude-assets/content/{versionId}",
+  summary:
+    "A version's file, sandboxed, with the closed network policy (spec 061). Served on ASSET_CONTENT_ORIGIN only; hidden, deleted or unknown: 404.",
+  tags: ["claude-assets"],
+  access: "public",
+  params: ContentParams,
+  errors: [404],
+  responses: { 200: { description: "The HTML file.", binary: true } },
+});
+
+export const getClaudeAssetShiurContent = defineEndpoint({
+  operationId: "getClaudeAssetShiurContent",
+  method: "GET",
+  path: "/api/v1/claude-assets/content/{versionId}/shiur/{grant}",
+  summary:
+    "A version's file, sandboxed, with the open network policy of a shiur (spec 061): the grant is signed, expires, and holds only while the shiur pins the version.",
+  tags: ["claude-assets"],
+  access: "public",
+  params: GrantParams,
+  errors: [404],
+  responses: { 200: { description: "The HTML file.", binary: true } },
+});
+
+export const publishClaudeAsset = defineEndpoint({
+  operationId: "publishClaudeAsset",
+  method: "POST",
+  path: "/api/v1/claude-assets/{assetId}/publish",
+  summary: "Publish a version (the current one by default) to the segments it covers; needs a verified profile (spec 062).",
+  tags: ["claude-assets"],
+  params: ClaudeAssetParams,
+  body: PublishInput,
+  errors: [403, 404],
+  responses: { 200: { description: "The asset, with its published version.", schema: ClaudeAsset } },
+});
+
+export const unpublishClaudeAsset = defineEndpoint({
+  operationId: "unpublishClaudeAsset",
+  method: "POST",
+  path: "/api/v1/claude-assets/{assetId}/unpublish",
+  summary: "Take an asset off the segments it covers (spec 062).",
+  tags: ["claude-assets"],
+  params: ClaudeAssetParams,
+  errors: [404],
+  responses: { 200: { description: "The asset, with no published version.", schema: ClaudeAsset } },
+});
+
+export const getClaudeAssetsForRef = defineEndpoint({
+  operationId: "getClaudeAssetsForRef",
+  method: "GET",
+  path: "/api/v1/claude-assets/ref/{ref}",
+  summary:
+    "Published, not hidden Claude assets of verified authors on a section or segment (Sefaria's normal form), for the reader's sidebar (spec 062). Public; cacheable for 60 seconds.",
+  tags: ["claude-assets"],
+  access: "public",
+  params: RefParams,
+  responses: { 200: { description: "The assets on this ref.", schema: RefClaudeAssets } },
+});
+
+export const getProfileClaudeAssets = defineEndpoint({
+  operationId: "getProfileClaudeAssets",
+  method: "GET",
+  path: "/api/v1/profiles/{profileId}/claude-assets",
+  summary: "A person's published, not hidden Claude assets, newest first (spec 063). Public.",
+  tags: ["claude-assets", "profiles"],
+  access: "public",
+  params: z.object({ profileId: z.uuid() }),
+  errors: [404],
+  responses: { 200: { description: "The profile's public assets.", schema: ProfileClaudeAssets } },
+});
+
+// ── Shiurim (spec 063) ────────────────────────────────────────────────────────────────────────────────────────────────────
+export const ShiurVisibility = z.enum(["private", "unlisted", "public"]);
+
+export const ShiurAsset = z.object({
+  assetId: z.uuid(),
+  versionId: z.uuid(),
+  n: z.int().positive(),
+  title: z.string(),
+  description: z.string(),
+  refs: z.array(z.string()),
+  firstRef: z.string(),
+  position: z.int().nonnegative(),
+  contentUrl: z.url(),
+  /** The open-network URL for this shiur (spec 061), signed and short-lived; null when the server has no content secret. */
+  shiurUrl: z.url().nullable(),
+});
+
+export const Shiur = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  visibility: ShiurVisibility,
+  owner: z.object({ name: z.string(), profileId: z.uuid().nullable() }),
+  recordings: z.array(z.object({ id: z.uuid(), title: z.string().nullable(), startedAt: Iso, durationMs: z.int().nullable() })),
+  assets: z.array(ShiurAsset),
+  createdAt: Iso,
+  updatedAt: Iso,
+});
+
+export const ShiurList = z.object({ shiurim: z.array(Shiur) });
+
+export const ShiurInput = z.strictObject({
+  title: z.string().trim().min(1).max(200),
+  visibility: ShiurVisibility.optional(),
+  /** One of the caller's recordings, to attach. */
+  recordingId: z.uuid().optional(),
+});
+
+export const PinInput = z.strictObject({ assetId: z.uuid(), versionId: z.uuid().optional() });
+
+const ShiurParams = z.object({ shiurId: z.uuid() });
+
+export const listMyShiurim = defineEndpoint({
+  operationId: "listMyShiurim",
+  method: "GET",
+  path: "/api/v1/shiurim",
+  summary: "The caller's own shiurim, private ones included (spec 063).",
+  tags: ["shiurim"],
+  responses: { 200: { description: "The caller's shiurim.", schema: ShiurList } },
+});
+
+export const createShiur = defineEndpoint({
+  operationId: "createShiur",
+  method: "POST",
+  path: "/api/v1/shiurim",
+  summary: "Create a shiur (unlisted by default), optionally with one of the caller's recordings (spec 063).",
+  tags: ["shiurim"],
+  body: ShiurInput,
+  errors: [404],
+  responses: { 201: { description: "The shiur.", schema: Shiur } },
+});
+
+export const getShiur = defineEndpoint({
+  operationId: "getShiur",
+  method: "GET",
+  path: "/api/v1/shiurim/{shiurId}",
+  summary:
+    "An unlisted or public shiur for anyone with its link (spec 063): its ready recordings and pinned Claude assets. Private or unknown: 404.",
+  tags: ["shiurim"],
+  access: "public",
+  params: ShiurParams,
+  errors: [404],
+  responses: { 200: { description: "The shiur.", schema: Shiur } },
+});
+
+export const pinShiurAsset = defineEndpoint({
+  operationId: "pinShiurAsset",
+  method: "POST",
+  path: "/api/v1/shiurim/{shiurId}/assets",
+  summary: "Pin a Claude asset's version in the caller's shiur, or move its pin (spec 063).",
+  tags: ["shiurim"],
+  params: ShiurParams,
+  body: PinInput,
+  errors: [404],
+  responses: { 200: { description: "The shiur.", schema: Shiur } },
+});
+
+export const unpinShiurAsset = defineEndpoint({
+  operationId: "unpinShiurAsset",
+  method: "DELETE",
+  path: "/api/v1/shiurim/{shiurId}/assets/{assetId}",
+  summary: "Remove a Claude asset from the caller's shiur (spec 063).",
+  tags: ["shiurim"],
+  params: z.object({ shiurId: z.uuid(), assetId: z.uuid() }),
+  errors: [404],
+  responses: { 200: { description: "The shiur.", schema: Shiur } },
+});
+
 export const ENDPOINTS = [
   getHealth,
   getMe,
@@ -1179,4 +1569,20 @@ export const ENDPOINTS = [
   livekitWebhook,
   relayLiveReport,
   getLiveStatus,
+  listMyClaudeAssets,
+  saveClaudeAsset,
+  importClaudeAsset,
+  getClaudeAsset,
+  deleteClaudeAsset,
+  getClaudeAssetContent,
+  getClaudeAssetShiurContent,
+  publishClaudeAsset,
+  unpublishClaudeAsset,
+  getClaudeAssetsForRef,
+  getProfileClaudeAssets,
+  listMyShiurim,
+  createShiur,
+  getShiur,
+  pinShiurAsset,
+  unpinShiurAsset,
 ] as const;

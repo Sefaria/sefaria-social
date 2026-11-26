@@ -14,6 +14,7 @@ import { Route as SocialSplatRouteImport } from './routes/social.$'
 import { Route as SocialNotificationsRouteImport } from './routes/social.notifications'
 import { Route as SocialRoomsRouteImport } from './routes/social.rooms'
 import { Route as SocialSettingsRouteImport } from './routes/social.settings'
+import { Route as ApiV1ClaudeAssetsRouteImport } from './routes/api/v1/claude-assets'
 import { Route as ApiV1FeedRouteImport } from './routes/api/v1/feed'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
 import { Route as ApiV1LiveRouteImport } from './routes/api/v1/live'
@@ -23,6 +24,7 @@ import { Route as ApiV1PeopleRouteImport } from './routes/api/v1/people'
 import { Route as ApiV1PostsRouteImport } from './routes/api/v1/posts'
 import { Route as ApiV1ProfilesRouteImport } from './routes/api/v1/profiles'
 import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
+import { Route as ApiV1ShiurimRouteImport } from './routes/api/v1/shiurim'
 import { Route as ApiV1TimelineRouteImport } from './routes/api/v1/timeline'
 import { Route as SocialBBroadcastIdRouteImport } from './routes/social.b.$broadcastId'
 import { Route as SocialPPostIdRouteImport } from './routes/social.p.$postId'
@@ -32,6 +34,8 @@ import { Route as SocialSShiurIdRouteImport } from './routes/social.s.$shiurId'
 import { Route as SocialUProfileIdRouteImport } from './routes/social.u.$profileId'
 import { Route as ApiV1AssetsAssetIdRouteImport } from './routes/api/v1/assets.$assetId'
 import { Route as ApiV1BroadcastsBroadcastIdRouteImport } from './routes/api/v1/broadcasts.$broadcastId'
+import { Route as ApiV1ClaudeAssetsAssetIdRouteImport } from './routes/api/v1/claude-assets.$assetId'
+import { Route as ApiV1ClaudeAssetsImportRouteImport } from './routes/api/v1/claude-assets.import'
 import { Route as ApiV1InternalUserDeletedRouteImport } from './routes/api/v1/internal.user-deleted'
 import { Route as ApiV1NotificationsReadRouteImport } from './routes/api/v1/notifications.read'
 import { Route as ApiV1PostsPostIdRouteImport } from './routes/api/v1/posts.$postId'
@@ -40,6 +44,7 @@ import { Route as ApiV1ProfilesMeRouteImport } from './routes/api/v1/profiles.me
 import { Route as ApiV1RecordingsRecordingIdRouteImport } from './routes/api/v1/recordings.$recordingId'
 import { Route as ApiV1RepliesReplyIdRouteImport } from './routes/api/v1/replies.$replyId'
 import { Route as ApiV1RoomsRoomIdRouteImport } from './routes/api/v1/rooms.$roomId'
+import { Route as ApiV1ShiurimShiurIdRouteImport } from './routes/api/v1/shiurim.$shiurId'
 import { Route as ApiV1AssetsAssetIdAudioRouteImport } from './routes/api/v1/assets.$assetId.audio'
 import { Route as ApiV1AssetsAssetIdManifestRouteImport } from './routes/api/v1/assets.$assetId.manifest'
 import { Route as ApiV1AssetsAssetIdMediaRouteImport } from './routes/api/v1/assets.$assetId.media'
@@ -47,11 +52,16 @@ import { Route as ApiV1AssetsAssetIdStateRouteImport } from './routes/api/v1/ass
 import { Route as ApiV1AssetsAssetIdTranscriptRouteImport } from './routes/api/v1/assets.$assetId.transcript'
 import { Route as ApiV1BroadcastsBroadcastIdEndRouteImport } from './routes/api/v1/broadcasts.$broadcastId.end'
 import { Route as ApiV1BroadcastsBroadcastIdTicketRouteImport } from './routes/api/v1/broadcasts.$broadcastId.ticket'
+import { Route as ApiV1ClaudeAssetsAssetIdPublishRouteImport } from './routes/api/v1/claude-assets.$assetId.publish'
+import { Route as ApiV1ClaudeAssetsAssetIdUnpublishRouteImport } from './routes/api/v1/claude-assets.$assetId.unpublish'
+import { Route as ApiV1ClaudeAssetsContentVersionIdRouteImport } from './routes/api/v1/claude-assets.content.$versionId'
+import { Route as ApiV1ClaudeAssetsRefRefRouteImport } from './routes/api/v1/claude-assets.ref.$ref'
 import { Route as ApiV1InternalLivekitWebhookRouteImport } from './routes/api/v1/internal.livekit.webhook'
 import { Route as ApiV1InternalRelayLiveRouteImport } from './routes/api/v1/internal.relay.live'
 import { Route as ApiV1PostsPostIdReactionRouteImport } from './routes/api/v1/posts.$postId.reaction'
 import { Route as ApiV1PostsPostIdRepliesRouteImport } from './routes/api/v1/posts.$postId.replies'
 import { Route as ApiV1PostsPostIdRepostRouteImport } from './routes/api/v1/posts.$postId.repost'
+import { Route as ApiV1ProfilesProfileIdClaudeAssetsRouteImport } from './routes/api/v1/profiles.$profileId.claude-assets'
 import { Route as ApiV1ProfilesProfileIdFollowRouteImport } from './routes/api/v1/profiles.$profileId.follow'
 import { Route as ApiV1ProfilesByHandleHandleRouteImport } from './routes/api/v1/profiles.by-handle.$handle'
 import { Route as ApiV1RecordingsRecordingIdFinishRouteImport } from './routes/api/v1/recordings.$recordingId.finish'
@@ -63,12 +73,15 @@ import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/roo
 import { Route as ApiV1RoomsRoomIdRecordingsRouteImport } from './routes/api/v1/rooms.$roomId.recordings'
 import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
 import { Route as ApiV1RoomsRoomIdTicketRouteImport } from './routes/api/v1/rooms.$roomId.ticket'
+import { Route as ApiV1ShiurimShiurIdAssetsRouteImport } from './routes/api/v1/shiurim.$shiurId.assets'
 import { Route as ApiV1BroadcastsBroadcastIdCallTokenRouteImport } from './routes/api/v1/broadcasts.$broadcastId.call.token'
 import { Route as ApiV1RecordingsRecordingIdMediaSeqRouteImport } from './routes/api/v1/recordings.$recordingId.media.$seq'
 import { Route as ApiV1RoomsRoomIdCallMuteRouteImport } from './routes/api/v1/rooms.$roomId.call.mute'
 import { Route as ApiV1RoomsRoomIdCallRemoveRouteImport } from './routes/api/v1/rooms.$roomId.call.remove'
 import { Route as ApiV1RoomsRoomIdCallTokenRouteImport } from './routes/api/v1/rooms.$roomId.call.token'
 import { Route as ApiV1RoomsRoomIdMembersMeRouteImport } from './routes/api/v1/rooms.$roomId.members.me'
+import { Route as ApiV1ShiurimShiurIdAssetsAssetIdRouteImport } from './routes/api/v1/shiurim.$shiurId.assets.$assetId'
+import { Route as ApiV1ClaudeAssetsContentVersionIdShiurGrantRouteImport } from './routes/api/v1/claude-assets.content.$versionId.shiur.$grant'
 
 const SocialIndexRoute = SocialIndexRouteImport.update({
   id: '/social/',
@@ -93,6 +106,11 @@ const SocialRoomsRoute = SocialRoomsRouteImport.update({
 const SocialSettingsRoute = SocialSettingsRouteImport.update({
   id: '/social/settings',
   path: '/social/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1ClaudeAssetsRoute = ApiV1ClaudeAssetsRouteImport.update({
+  id: '/api/v1/claude-assets',
+  path: '/api/v1/claude-assets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1FeedRoute = ApiV1FeedRouteImport.update({
@@ -138,6 +156,11 @@ const ApiV1ProfilesRoute = ApiV1ProfilesRouteImport.update({
 const ApiV1RoomsRoute = ApiV1RoomsRouteImport.update({
   id: '/api/v1/rooms',
   path: '/api/v1/rooms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1ShiurimRoute = ApiV1ShiurimRouteImport.update({
+  id: '/api/v1/shiurim',
+  path: '/api/v1/shiurim',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1TimelineRoute = ApiV1TimelineRouteImport.update({
@@ -186,6 +209,17 @@ const ApiV1BroadcastsBroadcastIdRoute =
     path: '/api/v1/broadcasts/$broadcastId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiV1ClaudeAssetsAssetIdRoute =
+  ApiV1ClaudeAssetsAssetIdRouteImport.update({
+    id: '/$assetId',
+    path: '/$assetId',
+    getParentRoute: () => ApiV1ClaudeAssetsRoute,
+  } as any)
+const ApiV1ClaudeAssetsImportRoute = ApiV1ClaudeAssetsImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => ApiV1ClaudeAssetsRoute,
+} as any)
 const ApiV1InternalUserDeletedRoute =
   ApiV1InternalUserDeletedRouteImport.update({
     id: '/api/v1/internal/user-deleted',
@@ -228,6 +262,11 @@ const ApiV1RoomsRoomIdRoute = ApiV1RoomsRoomIdRouteImport.update({
   path: '/$roomId',
   getParentRoute: () => ApiV1RoomsRoute,
 } as any)
+const ApiV1ShiurimShiurIdRoute = ApiV1ShiurimShiurIdRouteImport.update({
+  id: '/$shiurId',
+  path: '/$shiurId',
+  getParentRoute: () => ApiV1ShiurimRoute,
+} as any)
 const ApiV1AssetsAssetIdAudioRoute = ApiV1AssetsAssetIdAudioRouteImport.update({
   id: '/audio',
   path: '/audio',
@@ -267,6 +306,29 @@ const ApiV1BroadcastsBroadcastIdTicketRoute =
     path: '/ticket',
     getParentRoute: () => ApiV1BroadcastsBroadcastIdRoute,
   } as any)
+const ApiV1ClaudeAssetsAssetIdPublishRoute =
+  ApiV1ClaudeAssetsAssetIdPublishRouteImport.update({
+    id: '/publish',
+    path: '/publish',
+    getParentRoute: () => ApiV1ClaudeAssetsAssetIdRoute,
+  } as any)
+const ApiV1ClaudeAssetsAssetIdUnpublishRoute =
+  ApiV1ClaudeAssetsAssetIdUnpublishRouteImport.update({
+    id: '/unpublish',
+    path: '/unpublish',
+    getParentRoute: () => ApiV1ClaudeAssetsAssetIdRoute,
+  } as any)
+const ApiV1ClaudeAssetsContentVersionIdRoute =
+  ApiV1ClaudeAssetsContentVersionIdRouteImport.update({
+    id: '/content/$versionId',
+    path: '/content/$versionId',
+    getParentRoute: () => ApiV1ClaudeAssetsRoute,
+  } as any)
+const ApiV1ClaudeAssetsRefRefRoute = ApiV1ClaudeAssetsRefRefRouteImport.update({
+  id: '/ref/$ref',
+  path: '/ref/$ref',
+  getParentRoute: () => ApiV1ClaudeAssetsRoute,
+} as any)
 const ApiV1InternalLivekitWebhookRoute =
   ApiV1InternalLivekitWebhookRouteImport.update({
     id: '/api/v1/internal/livekit/webhook',
@@ -294,6 +356,12 @@ const ApiV1PostsPostIdRepostRoute = ApiV1PostsPostIdRepostRouteImport.update({
   path: '/repost',
   getParentRoute: () => ApiV1PostsPostIdRoute,
 } as any)
+const ApiV1ProfilesProfileIdClaudeAssetsRoute =
+  ApiV1ProfilesProfileIdClaudeAssetsRouteImport.update({
+    id: '/claude-assets',
+    path: '/claude-assets',
+    getParentRoute: () => ApiV1ProfilesProfileIdRoute,
+  } as any)
 const ApiV1ProfilesProfileIdFollowRoute =
   ApiV1ProfilesProfileIdFollowRouteImport.update({
     id: '/follow',
@@ -356,6 +424,12 @@ const ApiV1RoomsRoomIdTicketRoute = ApiV1RoomsRoomIdTicketRouteImport.update({
   path: '/ticket',
   getParentRoute: () => ApiV1RoomsRoomIdRoute,
 } as any)
+const ApiV1ShiurimShiurIdAssetsRoute =
+  ApiV1ShiurimShiurIdAssetsRouteImport.update({
+    id: '/assets',
+    path: '/assets',
+    getParentRoute: () => ApiV1ShiurimShiurIdRoute,
+  } as any)
 const ApiV1BroadcastsBroadcastIdCallTokenRoute =
   ApiV1BroadcastsBroadcastIdCallTokenRouteImport.update({
     id: '/call/token',
@@ -392,6 +466,18 @@ const ApiV1RoomsRoomIdMembersMeRoute =
     path: '/me',
     getParentRoute: () => ApiV1RoomsRoomIdMembersRoute,
   } as any)
+const ApiV1ShiurimShiurIdAssetsAssetIdRoute =
+  ApiV1ShiurimShiurIdAssetsAssetIdRouteImport.update({
+    id: '/$assetId',
+    path: '/$assetId',
+    getParentRoute: () => ApiV1ShiurimShiurIdAssetsRoute,
+  } as any)
+const ApiV1ClaudeAssetsContentVersionIdShiurGrantRoute =
+  ApiV1ClaudeAssetsContentVersionIdShiurGrantRouteImport.update({
+    id: '/shiur/$grant',
+    path: '/shiur/$grant',
+    getParentRoute: () => ApiV1ClaudeAssetsContentVersionIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/social/$': typeof SocialSplatRoute
@@ -399,6 +485,7 @@ export interface FileRoutesByFullPath {
   '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
+  '/api/v1/claude-assets': typeof ApiV1ClaudeAssetsRouteWithChildren
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/live': typeof ApiV1LiveRoute
@@ -408,6 +495,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/shiurim': typeof ApiV1ShiurimRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
   '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
@@ -417,6 +505,8 @@ export interface FileRoutesByFullPath {
   '/social/u/$profileId': typeof SocialUProfileIdRoute
   '/api/v1/assets/$assetId': typeof ApiV1AssetsAssetIdRouteWithChildren
   '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
+  '/api/v1/claude-assets/$assetId': typeof ApiV1ClaudeAssetsAssetIdRouteWithChildren
+  '/api/v1/claude-assets/import': typeof ApiV1ClaudeAssetsImportRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
@@ -425,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/shiurim/$shiurId': typeof ApiV1ShiurimShiurIdRouteWithChildren
   '/api/v1/assets/$assetId/audio': typeof ApiV1AssetsAssetIdAudioRoute
   '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
@@ -432,11 +523,16 @@ export interface FileRoutesByFullPath {
   '/api/v1/assets/$assetId/transcript': typeof ApiV1AssetsAssetIdTranscriptRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
+  '/api/v1/claude-assets/$assetId/publish': typeof ApiV1ClaudeAssetsAssetIdPublishRoute
+  '/api/v1/claude-assets/$assetId/unpublish': typeof ApiV1ClaudeAssetsAssetIdUnpublishRoute
+  '/api/v1/claude-assets/content/$versionId': typeof ApiV1ClaudeAssetsContentVersionIdRouteWithChildren
+  '/api/v1/claude-assets/ref/$ref': typeof ApiV1ClaudeAssetsRefRefRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/internal/relay/live': typeof ApiV1InternalRelayLiveRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
+  '/api/v1/profiles/$profileId/claude-assets': typeof ApiV1ProfilesProfileIdClaudeAssetsRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/profiles/by-handle/$handle': typeof ApiV1ProfilesByHandleHandleRoute
   '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
@@ -448,12 +544,15 @@ export interface FileRoutesByFullPath {
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/ticket': typeof ApiV1RoomsRoomIdTicketRoute
+  '/api/v1/shiurim/$shiurId/assets': typeof ApiV1ShiurimShiurIdAssetsRouteWithChildren
   '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
   '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
   '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
+  '/api/v1/shiurim/$shiurId/assets/$assetId': typeof ApiV1ShiurimShiurIdAssetsAssetIdRoute
+  '/api/v1/claude-assets/content/$versionId/shiur/$grant': typeof ApiV1ClaudeAssetsContentVersionIdShiurGrantRoute
 }
 export interface FileRoutesByTo {
   '/social/$': typeof SocialSplatRoute
@@ -461,6 +560,7 @@ export interface FileRoutesByTo {
   '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social': typeof SocialIndexRoute
+  '/api/v1/claude-assets': typeof ApiV1ClaudeAssetsRouteWithChildren
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/live': typeof ApiV1LiveRoute
@@ -470,6 +570,7 @@ export interface FileRoutesByTo {
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/shiurim': typeof ApiV1ShiurimRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
   '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
@@ -479,6 +580,8 @@ export interface FileRoutesByTo {
   '/social/u/$profileId': typeof SocialUProfileIdRoute
   '/api/v1/assets/$assetId': typeof ApiV1AssetsAssetIdRouteWithChildren
   '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
+  '/api/v1/claude-assets/$assetId': typeof ApiV1ClaudeAssetsAssetIdRouteWithChildren
+  '/api/v1/claude-assets/import': typeof ApiV1ClaudeAssetsImportRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
@@ -487,6 +590,7 @@ export interface FileRoutesByTo {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/shiurim/$shiurId': typeof ApiV1ShiurimShiurIdRouteWithChildren
   '/api/v1/assets/$assetId/audio': typeof ApiV1AssetsAssetIdAudioRoute
   '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
@@ -494,11 +598,16 @@ export interface FileRoutesByTo {
   '/api/v1/assets/$assetId/transcript': typeof ApiV1AssetsAssetIdTranscriptRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
+  '/api/v1/claude-assets/$assetId/publish': typeof ApiV1ClaudeAssetsAssetIdPublishRoute
+  '/api/v1/claude-assets/$assetId/unpublish': typeof ApiV1ClaudeAssetsAssetIdUnpublishRoute
+  '/api/v1/claude-assets/content/$versionId': typeof ApiV1ClaudeAssetsContentVersionIdRouteWithChildren
+  '/api/v1/claude-assets/ref/$ref': typeof ApiV1ClaudeAssetsRefRefRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/internal/relay/live': typeof ApiV1InternalRelayLiveRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
+  '/api/v1/profiles/$profileId/claude-assets': typeof ApiV1ProfilesProfileIdClaudeAssetsRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/profiles/by-handle/$handle': typeof ApiV1ProfilesByHandleHandleRoute
   '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
@@ -510,12 +619,15 @@ export interface FileRoutesByTo {
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/ticket': typeof ApiV1RoomsRoomIdTicketRoute
+  '/api/v1/shiurim/$shiurId/assets': typeof ApiV1ShiurimShiurIdAssetsRouteWithChildren
   '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
   '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
   '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
+  '/api/v1/shiurim/$shiurId/assets/$assetId': typeof ApiV1ShiurimShiurIdAssetsAssetIdRoute
+  '/api/v1/claude-assets/content/$versionId/shiur/$grant': typeof ApiV1ClaudeAssetsContentVersionIdShiurGrantRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -524,6 +636,7 @@ export interface FileRoutesById {
   '/social/rooms': typeof SocialRoomsRoute
   '/social/settings': typeof SocialSettingsRoute
   '/social/': typeof SocialIndexRoute
+  '/api/v1/claude-assets': typeof ApiV1ClaudeAssetsRouteWithChildren
   '/api/v1/feed': typeof ApiV1FeedRoute
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/live': typeof ApiV1LiveRoute
@@ -533,6 +646,7 @@ export interface FileRoutesById {
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
+  '/api/v1/shiurim': typeof ApiV1ShiurimRouteWithChildren
   '/api/v1/timeline': typeof ApiV1TimelineRoute
   '/social/b/$broadcastId': typeof SocialBBroadcastIdRoute
   '/social/p/$postId': typeof SocialPPostIdRoute
@@ -542,6 +656,8 @@ export interface FileRoutesById {
   '/social/u/$profileId': typeof SocialUProfileIdRoute
   '/api/v1/assets/$assetId': typeof ApiV1AssetsAssetIdRouteWithChildren
   '/api/v1/broadcasts/$broadcastId': typeof ApiV1BroadcastsBroadcastIdRouteWithChildren
+  '/api/v1/claude-assets/$assetId': typeof ApiV1ClaudeAssetsAssetIdRouteWithChildren
+  '/api/v1/claude-assets/import': typeof ApiV1ClaudeAssetsImportRoute
   '/api/v1/internal/user-deleted': typeof ApiV1InternalUserDeletedRoute
   '/api/v1/notifications/read': typeof ApiV1NotificationsReadRoute
   '/api/v1/posts/$postId': typeof ApiV1PostsPostIdRouteWithChildren
@@ -550,6 +666,7 @@ export interface FileRoutesById {
   '/api/v1/recordings/$recordingId': typeof ApiV1RecordingsRecordingIdRouteWithChildren
   '/api/v1/replies/$replyId': typeof ApiV1RepliesReplyIdRoute
   '/api/v1/rooms/$roomId': typeof ApiV1RoomsRoomIdRouteWithChildren
+  '/api/v1/shiurim/$shiurId': typeof ApiV1ShiurimShiurIdRouteWithChildren
   '/api/v1/assets/$assetId/audio': typeof ApiV1AssetsAssetIdAudioRoute
   '/api/v1/assets/$assetId/manifest': typeof ApiV1AssetsAssetIdManifestRoute
   '/api/v1/assets/$assetId/media': typeof ApiV1AssetsAssetIdMediaRoute
@@ -557,11 +674,16 @@ export interface FileRoutesById {
   '/api/v1/assets/$assetId/transcript': typeof ApiV1AssetsAssetIdTranscriptRoute
   '/api/v1/broadcasts/$broadcastId/end': typeof ApiV1BroadcastsBroadcastIdEndRoute
   '/api/v1/broadcasts/$broadcastId/ticket': typeof ApiV1BroadcastsBroadcastIdTicketRoute
+  '/api/v1/claude-assets/$assetId/publish': typeof ApiV1ClaudeAssetsAssetIdPublishRoute
+  '/api/v1/claude-assets/$assetId/unpublish': typeof ApiV1ClaudeAssetsAssetIdUnpublishRoute
+  '/api/v1/claude-assets/content/$versionId': typeof ApiV1ClaudeAssetsContentVersionIdRouteWithChildren
+  '/api/v1/claude-assets/ref/$ref': typeof ApiV1ClaudeAssetsRefRefRoute
   '/api/v1/internal/livekit/webhook': typeof ApiV1InternalLivekitWebhookRoute
   '/api/v1/internal/relay/live': typeof ApiV1InternalRelayLiveRoute
   '/api/v1/posts/$postId/reaction': typeof ApiV1PostsPostIdReactionRoute
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
+  '/api/v1/profiles/$profileId/claude-assets': typeof ApiV1ProfilesProfileIdClaudeAssetsRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
   '/api/v1/profiles/by-handle/$handle': typeof ApiV1ProfilesByHandleHandleRoute
   '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
@@ -573,12 +695,15 @@ export interface FileRoutesById {
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
   '/api/v1/rooms/$roomId/ticket': typeof ApiV1RoomsRoomIdTicketRoute
+  '/api/v1/shiurim/$shiurId/assets': typeof ApiV1ShiurimShiurIdAssetsRouteWithChildren
   '/api/v1/broadcasts/$broadcastId/call/token': typeof ApiV1BroadcastsBroadcastIdCallTokenRoute
   '/api/v1/recordings/$recordingId/media/$seq': typeof ApiV1RecordingsRecordingIdMediaSeqRoute
   '/api/v1/rooms/$roomId/call/mute': typeof ApiV1RoomsRoomIdCallMuteRoute
   '/api/v1/rooms/$roomId/call/remove': typeof ApiV1RoomsRoomIdCallRemoveRoute
   '/api/v1/rooms/$roomId/call/token': typeof ApiV1RoomsRoomIdCallTokenRoute
   '/api/v1/rooms/$roomId/members/me': typeof ApiV1RoomsRoomIdMembersMeRoute
+  '/api/v1/shiurim/$shiurId/assets/$assetId': typeof ApiV1ShiurimShiurIdAssetsAssetIdRoute
+  '/api/v1/claude-assets/content/$versionId/shiur/$grant': typeof ApiV1ClaudeAssetsContentVersionIdShiurGrantRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -588,6 +713,7 @@ export interface FileRouteTypes {
     | '/social/rooms'
     | '/social/settings'
     | '/social/'
+    | '/api/v1/claude-assets'
     | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/live'
@@ -597,6 +723,7 @@ export interface FileRouteTypes {
     | '/api/v1/posts'
     | '/api/v1/profiles'
     | '/api/v1/rooms'
+    | '/api/v1/shiurim'
     | '/api/v1/timeline'
     | '/social/b/$broadcastId'
     | '/social/p/$postId'
@@ -606,6 +733,8 @@ export interface FileRouteTypes {
     | '/social/u/$profileId'
     | '/api/v1/assets/$assetId'
     | '/api/v1/broadcasts/$broadcastId'
+    | '/api/v1/claude-assets/$assetId'
+    | '/api/v1/claude-assets/import'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
@@ -614,6 +743,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/shiurim/$shiurId'
     | '/api/v1/assets/$assetId/audio'
     | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
@@ -621,11 +751,16 @@ export interface FileRouteTypes {
     | '/api/v1/assets/$assetId/transcript'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
+    | '/api/v1/claude-assets/$assetId/publish'
+    | '/api/v1/claude-assets/$assetId/unpublish'
+    | '/api/v1/claude-assets/content/$versionId'
+    | '/api/v1/claude-assets/ref/$ref'
     | '/api/v1/internal/livekit/webhook'
     | '/api/v1/internal/relay/live'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
+    | '/api/v1/profiles/$profileId/claude-assets'
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/profiles/by-handle/$handle'
     | '/api/v1/recordings/$recordingId/finish'
@@ -637,12 +772,15 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/ticket'
+    | '/api/v1/shiurim/$shiurId/assets'
     | '/api/v1/broadcasts/$broadcastId/call/token'
     | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
     | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
+    | '/api/v1/shiurim/$shiurId/assets/$assetId'
+    | '/api/v1/claude-assets/content/$versionId/shiur/$grant'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/social/$'
@@ -650,6 +788,7 @@ export interface FileRouteTypes {
     | '/social/rooms'
     | '/social/settings'
     | '/social'
+    | '/api/v1/claude-assets'
     | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/live'
@@ -659,6 +798,7 @@ export interface FileRouteTypes {
     | '/api/v1/posts'
     | '/api/v1/profiles'
     | '/api/v1/rooms'
+    | '/api/v1/shiurim'
     | '/api/v1/timeline'
     | '/social/b/$broadcastId'
     | '/social/p/$postId'
@@ -668,6 +808,8 @@ export interface FileRouteTypes {
     | '/social/u/$profileId'
     | '/api/v1/assets/$assetId'
     | '/api/v1/broadcasts/$broadcastId'
+    | '/api/v1/claude-assets/$assetId'
+    | '/api/v1/claude-assets/import'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
@@ -676,6 +818,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/shiurim/$shiurId'
     | '/api/v1/assets/$assetId/audio'
     | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
@@ -683,11 +826,16 @@ export interface FileRouteTypes {
     | '/api/v1/assets/$assetId/transcript'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
+    | '/api/v1/claude-assets/$assetId/publish'
+    | '/api/v1/claude-assets/$assetId/unpublish'
+    | '/api/v1/claude-assets/content/$versionId'
+    | '/api/v1/claude-assets/ref/$ref'
     | '/api/v1/internal/livekit/webhook'
     | '/api/v1/internal/relay/live'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
+    | '/api/v1/profiles/$profileId/claude-assets'
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/profiles/by-handle/$handle'
     | '/api/v1/recordings/$recordingId/finish'
@@ -699,12 +847,15 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/ticket'
+    | '/api/v1/shiurim/$shiurId/assets'
     | '/api/v1/broadcasts/$broadcastId/call/token'
     | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
     | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
+    | '/api/v1/shiurim/$shiurId/assets/$assetId'
+    | '/api/v1/claude-assets/content/$versionId/shiur/$grant'
   id:
     | '__root__'
     | '/social/$'
@@ -712,6 +863,7 @@ export interface FileRouteTypes {
     | '/social/rooms'
     | '/social/settings'
     | '/social/'
+    | '/api/v1/claude-assets'
     | '/api/v1/feed'
     | '/api/v1/health'
     | '/api/v1/live'
@@ -721,6 +873,7 @@ export interface FileRouteTypes {
     | '/api/v1/posts'
     | '/api/v1/profiles'
     | '/api/v1/rooms'
+    | '/api/v1/shiurim'
     | '/api/v1/timeline'
     | '/social/b/$broadcastId'
     | '/social/p/$postId'
@@ -730,6 +883,8 @@ export interface FileRouteTypes {
     | '/social/u/$profileId'
     | '/api/v1/assets/$assetId'
     | '/api/v1/broadcasts/$broadcastId'
+    | '/api/v1/claude-assets/$assetId'
+    | '/api/v1/claude-assets/import'
     | '/api/v1/internal/user-deleted'
     | '/api/v1/notifications/read'
     | '/api/v1/posts/$postId'
@@ -738,6 +893,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId'
     | '/api/v1/replies/$replyId'
     | '/api/v1/rooms/$roomId'
+    | '/api/v1/shiurim/$shiurId'
     | '/api/v1/assets/$assetId/audio'
     | '/api/v1/assets/$assetId/manifest'
     | '/api/v1/assets/$assetId/media'
@@ -745,11 +901,16 @@ export interface FileRouteTypes {
     | '/api/v1/assets/$assetId/transcript'
     | '/api/v1/broadcasts/$broadcastId/end'
     | '/api/v1/broadcasts/$broadcastId/ticket'
+    | '/api/v1/claude-assets/$assetId/publish'
+    | '/api/v1/claude-assets/$assetId/unpublish'
+    | '/api/v1/claude-assets/content/$versionId'
+    | '/api/v1/claude-assets/ref/$ref'
     | '/api/v1/internal/livekit/webhook'
     | '/api/v1/internal/relay/live'
     | '/api/v1/posts/$postId/reaction'
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
+    | '/api/v1/profiles/$profileId/claude-assets'
     | '/api/v1/profiles/$profileId/follow'
     | '/api/v1/profiles/by-handle/$handle'
     | '/api/v1/recordings/$recordingId/finish'
@@ -761,12 +922,15 @@ export interface FileRouteTypes {
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
     | '/api/v1/rooms/$roomId/ticket'
+    | '/api/v1/shiurim/$shiurId/assets'
     | '/api/v1/broadcasts/$broadcastId/call/token'
     | '/api/v1/recordings/$recordingId/media/$seq'
     | '/api/v1/rooms/$roomId/call/mute'
     | '/api/v1/rooms/$roomId/call/remove'
     | '/api/v1/rooms/$roomId/call/token'
     | '/api/v1/rooms/$roomId/members/me'
+    | '/api/v1/shiurim/$shiurId/assets/$assetId'
+    | '/api/v1/claude-assets/content/$versionId/shiur/$grant'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -775,6 +939,7 @@ export interface RootRouteChildren {
   SocialRoomsRoute: typeof SocialRoomsRoute
   SocialSettingsRoute: typeof SocialSettingsRoute
   SocialIndexRoute: typeof SocialIndexRoute
+  ApiV1ClaudeAssetsRoute: typeof ApiV1ClaudeAssetsRouteWithChildren
   ApiV1FeedRoute: typeof ApiV1FeedRoute
   ApiV1HealthRoute: typeof ApiV1HealthRoute
   ApiV1LiveRoute: typeof ApiV1LiveRoute
@@ -784,6 +949,7 @@ export interface RootRouteChildren {
   ApiV1PostsRoute: typeof ApiV1PostsRouteWithChildren
   ApiV1ProfilesRoute: typeof ApiV1ProfilesRouteWithChildren
   ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
+  ApiV1ShiurimRoute: typeof ApiV1ShiurimRouteWithChildren
   ApiV1TimelineRoute: typeof ApiV1TimelineRoute
   SocialBBroadcastIdRoute: typeof SocialBBroadcastIdRoute
   SocialPPostIdRoute: typeof SocialPPostIdRoute
@@ -835,6 +1001,13 @@ declare module '@tanstack/react-router' {
       path: '/social/settings'
       fullPath: '/social/settings'
       preLoaderRoute: typeof SocialSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/claude-assets': {
+      id: '/api/v1/claude-assets'
+      path: '/api/v1/claude-assets'
+      fullPath: '/api/v1/claude-assets'
+      preLoaderRoute: typeof ApiV1ClaudeAssetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/feed': {
@@ -900,6 +1073,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/shiurim': {
+      id: '/api/v1/shiurim'
+      path: '/api/v1/shiurim'
+      fullPath: '/api/v1/shiurim'
+      preLoaderRoute: typeof ApiV1ShiurimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/timeline': {
       id: '/api/v1/timeline'
       path: '/api/v1/timeline'
@@ -963,6 +1143,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1BroadcastsBroadcastIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/claude-assets/$assetId': {
+      id: '/api/v1/claude-assets/$assetId'
+      path: '/$assetId'
+      fullPath: '/api/v1/claude-assets/$assetId'
+      preLoaderRoute: typeof ApiV1ClaudeAssetsAssetIdRouteImport
+      parentRoute: typeof ApiV1ClaudeAssetsRoute
+    }
+    '/api/v1/claude-assets/import': {
+      id: '/api/v1/claude-assets/import'
+      path: '/import'
+      fullPath: '/api/v1/claude-assets/import'
+      preLoaderRoute: typeof ApiV1ClaudeAssetsImportRouteImport
+      parentRoute: typeof ApiV1ClaudeAssetsRoute
+    }
     '/api/v1/internal/user-deleted': {
       id: '/api/v1/internal/user-deleted'
       path: '/api/v1/internal/user-deleted'
@@ -1019,6 +1213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdRouteImport
       parentRoute: typeof ApiV1RoomsRoute
     }
+    '/api/v1/shiurim/$shiurId': {
+      id: '/api/v1/shiurim/$shiurId'
+      path: '/$shiurId'
+      fullPath: '/api/v1/shiurim/$shiurId'
+      preLoaderRoute: typeof ApiV1ShiurimShiurIdRouteImport
+      parentRoute: typeof ApiV1ShiurimRoute
+    }
     '/api/v1/assets/$assetId/audio': {
       id: '/api/v1/assets/$assetId/audio'
       path: '/audio'
@@ -1068,6 +1269,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1BroadcastsBroadcastIdTicketRouteImport
       parentRoute: typeof ApiV1BroadcastsBroadcastIdRoute
     }
+    '/api/v1/claude-assets/$assetId/publish': {
+      id: '/api/v1/claude-assets/$assetId/publish'
+      path: '/publish'
+      fullPath: '/api/v1/claude-assets/$assetId/publish'
+      preLoaderRoute: typeof ApiV1ClaudeAssetsAssetIdPublishRouteImport
+      parentRoute: typeof ApiV1ClaudeAssetsAssetIdRoute
+    }
+    '/api/v1/claude-assets/$assetId/unpublish': {
+      id: '/api/v1/claude-assets/$assetId/unpublish'
+      path: '/unpublish'
+      fullPath: '/api/v1/claude-assets/$assetId/unpublish'
+      preLoaderRoute: typeof ApiV1ClaudeAssetsAssetIdUnpublishRouteImport
+      parentRoute: typeof ApiV1ClaudeAssetsAssetIdRoute
+    }
+    '/api/v1/claude-assets/content/$versionId': {
+      id: '/api/v1/claude-assets/content/$versionId'
+      path: '/content/$versionId'
+      fullPath: '/api/v1/claude-assets/content/$versionId'
+      preLoaderRoute: typeof ApiV1ClaudeAssetsContentVersionIdRouteImport
+      parentRoute: typeof ApiV1ClaudeAssetsRoute
+    }
+    '/api/v1/claude-assets/ref/$ref': {
+      id: '/api/v1/claude-assets/ref/$ref'
+      path: '/ref/$ref'
+      fullPath: '/api/v1/claude-assets/ref/$ref'
+      preLoaderRoute: typeof ApiV1ClaudeAssetsRefRefRouteImport
+      parentRoute: typeof ApiV1ClaudeAssetsRoute
+    }
     '/api/v1/internal/livekit/webhook': {
       id: '/api/v1/internal/livekit/webhook'
       path: '/api/v1/internal/livekit/webhook'
@@ -1102,6 +1331,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/posts/$postId/repost'
       preLoaderRoute: typeof ApiV1PostsPostIdRepostRouteImport
       parentRoute: typeof ApiV1PostsPostIdRoute
+    }
+    '/api/v1/profiles/$profileId/claude-assets': {
+      id: '/api/v1/profiles/$profileId/claude-assets'
+      path: '/claude-assets'
+      fullPath: '/api/v1/profiles/$profileId/claude-assets'
+      preLoaderRoute: typeof ApiV1ProfilesProfileIdClaudeAssetsRouteImport
+      parentRoute: typeof ApiV1ProfilesProfileIdRoute
     }
     '/api/v1/profiles/$profileId/follow': {
       id: '/api/v1/profiles/$profileId/follow'
@@ -1180,6 +1416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdTicketRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdRoute
     }
+    '/api/v1/shiurim/$shiurId/assets': {
+      id: '/api/v1/shiurim/$shiurId/assets'
+      path: '/assets'
+      fullPath: '/api/v1/shiurim/$shiurId/assets'
+      preLoaderRoute: typeof ApiV1ShiurimShiurIdAssetsRouteImport
+      parentRoute: typeof ApiV1ShiurimShiurIdRoute
+    }
     '/api/v1/broadcasts/$broadcastId/call/token': {
       id: '/api/v1/broadcasts/$broadcastId/call/token'
       path: '/call/token'
@@ -1222,8 +1465,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdMembersMeRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdMembersRoute
     }
+    '/api/v1/shiurim/$shiurId/assets/$assetId': {
+      id: '/api/v1/shiurim/$shiurId/assets/$assetId'
+      path: '/$assetId'
+      fullPath: '/api/v1/shiurim/$shiurId/assets/$assetId'
+      preLoaderRoute: typeof ApiV1ShiurimShiurIdAssetsAssetIdRouteImport
+      parentRoute: typeof ApiV1ShiurimShiurIdAssetsRoute
+    }
+    '/api/v1/claude-assets/content/$versionId/shiur/$grant': {
+      id: '/api/v1/claude-assets/content/$versionId/shiur/$grant'
+      path: '/shiur/$grant'
+      fullPath: '/api/v1/claude-assets/content/$versionId/shiur/$grant'
+      preLoaderRoute: typeof ApiV1ClaudeAssetsContentVersionIdShiurGrantRouteImport
+      parentRoute: typeof ApiV1ClaudeAssetsContentVersionIdRoute
+    }
   }
 }
+
+interface ApiV1ClaudeAssetsAssetIdRouteChildren {
+  ApiV1ClaudeAssetsAssetIdPublishRoute: typeof ApiV1ClaudeAssetsAssetIdPublishRoute
+  ApiV1ClaudeAssetsAssetIdUnpublishRoute: typeof ApiV1ClaudeAssetsAssetIdUnpublishRoute
+}
+
+const ApiV1ClaudeAssetsAssetIdRouteChildren: ApiV1ClaudeAssetsAssetIdRouteChildren =
+  {
+    ApiV1ClaudeAssetsAssetIdPublishRoute: ApiV1ClaudeAssetsAssetIdPublishRoute,
+    ApiV1ClaudeAssetsAssetIdUnpublishRoute:
+      ApiV1ClaudeAssetsAssetIdUnpublishRoute,
+  }
+
+const ApiV1ClaudeAssetsAssetIdRouteWithChildren =
+  ApiV1ClaudeAssetsAssetIdRoute._addFileChildren(
+    ApiV1ClaudeAssetsAssetIdRouteChildren,
+  )
+
+interface ApiV1ClaudeAssetsContentVersionIdRouteChildren {
+  ApiV1ClaudeAssetsContentVersionIdShiurGrantRoute: typeof ApiV1ClaudeAssetsContentVersionIdShiurGrantRoute
+}
+
+const ApiV1ClaudeAssetsContentVersionIdRouteChildren: ApiV1ClaudeAssetsContentVersionIdRouteChildren =
+  {
+    ApiV1ClaudeAssetsContentVersionIdShiurGrantRoute:
+      ApiV1ClaudeAssetsContentVersionIdShiurGrantRoute,
+  }
+
+const ApiV1ClaudeAssetsContentVersionIdRouteWithChildren =
+  ApiV1ClaudeAssetsContentVersionIdRoute._addFileChildren(
+    ApiV1ClaudeAssetsContentVersionIdRouteChildren,
+  )
+
+interface ApiV1ClaudeAssetsRouteChildren {
+  ApiV1ClaudeAssetsAssetIdRoute: typeof ApiV1ClaudeAssetsAssetIdRouteWithChildren
+  ApiV1ClaudeAssetsImportRoute: typeof ApiV1ClaudeAssetsImportRoute
+  ApiV1ClaudeAssetsContentVersionIdRoute: typeof ApiV1ClaudeAssetsContentVersionIdRouteWithChildren
+  ApiV1ClaudeAssetsRefRefRoute: typeof ApiV1ClaudeAssetsRefRefRoute
+}
+
+const ApiV1ClaudeAssetsRouteChildren: ApiV1ClaudeAssetsRouteChildren = {
+  ApiV1ClaudeAssetsAssetIdRoute: ApiV1ClaudeAssetsAssetIdRouteWithChildren,
+  ApiV1ClaudeAssetsImportRoute: ApiV1ClaudeAssetsImportRoute,
+  ApiV1ClaudeAssetsContentVersionIdRoute:
+    ApiV1ClaudeAssetsContentVersionIdRouteWithChildren,
+  ApiV1ClaudeAssetsRefRefRoute: ApiV1ClaudeAssetsRefRefRoute,
+}
+
+const ApiV1ClaudeAssetsRouteWithChildren =
+  ApiV1ClaudeAssetsRoute._addFileChildren(ApiV1ClaudeAssetsRouteChildren)
 
 interface ApiV1NotificationsRouteChildren {
   ApiV1NotificationsReadRoute: typeof ApiV1NotificationsReadRoute
@@ -1264,11 +1571,14 @@ const ApiV1PostsRouteWithChildren = ApiV1PostsRoute._addFileChildren(
 )
 
 interface ApiV1ProfilesProfileIdRouteChildren {
+  ApiV1ProfilesProfileIdClaudeAssetsRoute: typeof ApiV1ProfilesProfileIdClaudeAssetsRoute
   ApiV1ProfilesProfileIdFollowRoute: typeof ApiV1ProfilesProfileIdFollowRoute
 }
 
 const ApiV1ProfilesProfileIdRouteChildren: ApiV1ProfilesProfileIdRouteChildren =
   {
+    ApiV1ProfilesProfileIdClaudeAssetsRoute:
+      ApiV1ProfilesProfileIdClaudeAssetsRoute,
     ApiV1ProfilesProfileIdFollowRoute: ApiV1ProfilesProfileIdFollowRoute,
   }
 
@@ -1344,6 +1654,44 @@ const ApiV1RoomsRouteChildren: ApiV1RoomsRouteChildren = {
 
 const ApiV1RoomsRouteWithChildren = ApiV1RoomsRoute._addFileChildren(
   ApiV1RoomsRouteChildren,
+)
+
+interface ApiV1ShiurimShiurIdAssetsRouteChildren {
+  ApiV1ShiurimShiurIdAssetsAssetIdRoute: typeof ApiV1ShiurimShiurIdAssetsAssetIdRoute
+}
+
+const ApiV1ShiurimShiurIdAssetsRouteChildren: ApiV1ShiurimShiurIdAssetsRouteChildren =
+  {
+    ApiV1ShiurimShiurIdAssetsAssetIdRoute:
+      ApiV1ShiurimShiurIdAssetsAssetIdRoute,
+  }
+
+const ApiV1ShiurimShiurIdAssetsRouteWithChildren =
+  ApiV1ShiurimShiurIdAssetsRoute._addFileChildren(
+    ApiV1ShiurimShiurIdAssetsRouteChildren,
+  )
+
+interface ApiV1ShiurimShiurIdRouteChildren {
+  ApiV1ShiurimShiurIdAssetsRoute: typeof ApiV1ShiurimShiurIdAssetsRouteWithChildren
+}
+
+const ApiV1ShiurimShiurIdRouteChildren: ApiV1ShiurimShiurIdRouteChildren = {
+  ApiV1ShiurimShiurIdAssetsRoute: ApiV1ShiurimShiurIdAssetsRouteWithChildren,
+}
+
+const ApiV1ShiurimShiurIdRouteWithChildren =
+  ApiV1ShiurimShiurIdRoute._addFileChildren(ApiV1ShiurimShiurIdRouteChildren)
+
+interface ApiV1ShiurimRouteChildren {
+  ApiV1ShiurimShiurIdRoute: typeof ApiV1ShiurimShiurIdRouteWithChildren
+}
+
+const ApiV1ShiurimRouteChildren: ApiV1ShiurimRouteChildren = {
+  ApiV1ShiurimShiurIdRoute: ApiV1ShiurimShiurIdRouteWithChildren,
+}
+
+const ApiV1ShiurimRouteWithChildren = ApiV1ShiurimRoute._addFileChildren(
+  ApiV1ShiurimRouteChildren,
 )
 
 interface ApiV1AssetsAssetIdRouteChildren {
@@ -1426,6 +1774,7 @@ const rootRouteChildren: RootRouteChildren = {
   SocialRoomsRoute: SocialRoomsRoute,
   SocialSettingsRoute: SocialSettingsRoute,
   SocialIndexRoute: SocialIndexRoute,
+  ApiV1ClaudeAssetsRoute: ApiV1ClaudeAssetsRouteWithChildren,
   ApiV1FeedRoute: ApiV1FeedRoute,
   ApiV1HealthRoute: ApiV1HealthRoute,
   ApiV1LiveRoute: ApiV1LiveRoute,
@@ -1435,6 +1784,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1PostsRoute: ApiV1PostsRouteWithChildren,
   ApiV1ProfilesRoute: ApiV1ProfilesRouteWithChildren,
   ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,
+  ApiV1ShiurimRoute: ApiV1ShiurimRouteWithChildren,
   ApiV1TimelineRoute: ApiV1TimelineRoute,
   SocialBBroadcastIdRoute: SocialBBroadcastIdRoute,
   SocialPPostIdRoute: SocialPPostIdRoute,

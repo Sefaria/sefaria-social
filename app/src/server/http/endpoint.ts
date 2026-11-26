@@ -23,6 +23,7 @@ import { verifyLivekitWebhook } from "../services/livekit";
 import { CORRELATION_HEADER, correlationIdFrom } from "./correlation";
 import { corsHeaders, preflight } from "./cors";
 import { ApiError, errorBody } from "./errors";
+import { MCP_ENDPOINTS } from "./mcp-routes";
 import { PUBLIC_ENDPOINTS } from "./public-routes";
 
 export const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
@@ -48,6 +49,11 @@ export interface EndpointSpec {
   tags: readonly string[];
   /** Defaults to "user": a verified Sefaria identity. */
   access?: Access;
+  /**
+   * Spec 064: also accept a token issued through the MCP connector (`via: "mcp"`). Only for endpoints on MCP_ENDPOINTS
+   * (./mcp-routes.ts); every other `user` endpoint refuses such a token with 403 auth.mcp_not_allowed.
+   */
+  mcp?: true;
   params?: z.ZodObject;
   /** Search parameters (each a string or absent); validated like params, unknown ones rejected by a strict schema. */
   query?: z.ZodObject;
@@ -105,6 +111,11 @@ export function defineEndpoint<const S extends EndpointSpec>(spec: S): S & { acc
       `Endpoint ${spec.operationId} (${key}) is declared public but is not on PUBLIC_ENDPOINTS (app/src/server/http/public-routes.ts). ` +
         `Fix: remove access: "public" so it requires a signed-in user, or add it to the public list with a reason for the reviewer.`,
     );
+  if (spec.mcp && (access !== "user" || !MCP_ENDPOINTS.has(key)))
+    throw new Error(
+      `Endpoint ${spec.operationId} (${key}) accepts MCP tokens (mcp: true) but is not on MCP_ENDPOINTS (app/src/server/http/mcp-routes.ts). ` +
+        `Fix: remove mcp: true, or add it to MCP_ENDPOINTS with a reason for the reviewer.`,
+    );
   return { ...spec, access };
 }
 
@@ -122,9 +133,29 @@ export interface StreamBody {
 const isStreamBody = (b: unknown): b is StreamBody =>
   typeof b === "object" && b !== null && "stream" in b && (b as StreamBody).stream instanceof ReadableStream;
 
-/** The only headers a binary handler may add (spec 052): what a byte-range answer needs. */
-export type RangeHeaders = Partial<Record<"accept-ranges" | "content-range", string>>;
-const RANGE_HEADERS = new Set(["accept-ranges", "content-range"]);
+/**
+ * The only headers a binary handler may add: what a byte-range answer needs (spec 052), and the security and caching headers
+ * of a Claude asset's file (spec 061). Nothing about the caller, never a cookie.
+ */
+export type RangeHeaders = Partial<
+  Record<
+    | "accept-ranges"
+    | "content-range"
+    | "content-security-policy"
+    | "x-content-type-options"
+    | "referrer-policy"
+    | "cache-control",
+    string
+  >
+>;
+const RANGE_HEADERS = new Set([
+  "accept-ranges",
+  "content-range",
+  "content-security-policy",
+  "x-content-type-options",
+  "referrer-policy",
+  "cache-control",
+]);
 
 /** A binary response (spec 041): the bytes as they are, with the handler's content type. */
 function bytesResponse(
@@ -189,9 +220,14 @@ function validate<T extends z.ZodType>(schema: T, value: unknown): z.output<T> {
   return parsed.data;
 }
 
-async function checkAccess(access: Access, request: Request): Promise<{ identity?: Identity; raw?: string }> {
+async function checkAccess(access: Access, request: Request, mcp = false): Promise<{ identity?: Identity; raw?: string }> {
   if (access === "public") return {};
-  if (access === "user") return { identity: await authenticate(request) };
+  if (access === "user") {
+    const identity = await authenticate(request);
+    // Spec 064: a token issued through the MCP connector saves Claude assets and does nothing else.
+    if (identity.via === "mcp" && !mcp) throw new ApiError(403, "auth.mcp_not_allowed");
+    return { identity };
+  }
   if (access === "relay-report") {
     // The relay's live reports (spec 056): no signature is a plain 401, before anything else, so the route is protected by
     // default even where the secret is not configured.
@@ -280,7 +316,7 @@ export function bind<const S extends EndpointSpec & { access: Access }>(
 ): BoundHandler {
   const fn = (ctx: RouteCtx) =>
     run(spec.method, spec.path, ctx, async (correlationId) => {
-      const { identity, raw } = await checkAccess(spec.access, ctx.request);
+      const { identity, raw } = await checkAccess(spec.access, ctx.request, spec.mcp === true);
       const params = spec.params ? validate(spec.params, ctx.params ?? {}) : {};
       const query = spec.query ? validate(spec.query, Object.fromEntries(new URL(ctx.request.url).searchParams)) : {};
       let body: unknown;

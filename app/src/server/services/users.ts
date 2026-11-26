@@ -5,6 +5,7 @@ import { eq, or, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import type { Db } from "../db/client";
 import {
+  assets,
   deletedUsers,
   follows,
   notifications,
@@ -80,6 +81,8 @@ export async function deleteUserData(tx: Executor, userId: number, eventId: stri
   await tx.delete(sessionRecordings).where(eq(sessionRecordings.ownerUserId, userId));
   // spec 043: the broadcasts the user hosted (those of the user's own rooms went with them)
   await tx.delete(broadcasts).where(eq(broadcasts.hostUserId, userId));
+  // spec 060: the user's Claude assets, with their versions, indexed refs and pins (cascade); their files go in the sweep
+  await tx.delete(assets).where(eq(assets.ownerUserId, userId));
   // spec 058: invitations the user sent or was sent, in other people's rooms (those of the user's own rooms went with them)
   await tx.delete(roomInvites).where(or(eq(roomInvites.inviterUserId, userId), eq(roomInvites.inviteeUserId, userId)));
   // Social graph and posts (specs 023-026). The person profile's cascade removes its posts, replies, followers and the

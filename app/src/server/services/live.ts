@@ -98,7 +98,10 @@ async function embeddedKinds(db: Db, ids: string[]): Promise<Map<string, LiveKin
   const rows = await db
     .selectDistinct({ id: posts.embedId, kind: posts.embedKind })
     .from(posts)
-    .where(and(inArray(posts.embedId, ids), isNotNull(posts.embedKind), isNull(posts.deletedAt)));
+    // A Claude asset (spec 063) has no live state: it is left out like an id no post embeds.
+    .where(
+      and(inArray(posts.embedId, ids), isNotNull(posts.embedKind), sql`${posts.embedKind} <> 'asset'`, isNull(posts.deletedAt)),
+    );
   return new Map(rows.map((r) => [r.id!, r.kind as LiveKind]));
 }
 

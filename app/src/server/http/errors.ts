@@ -41,6 +41,12 @@ export type ErrorCode =
   | "profile.handle_taken"
   | "invite.rate_limited"
   | "follow.self"
+  | "asset.not_found"
+  | "asset.daily_limit"
+  | "asset.refs_unavailable"
+  | "asset.not_verified"
+  | "shiur.not_found"
+  | "auth.mcp_not_allowed"
   | "internal";
 
 const MESSAGES: Record<ErrorCode, string> = {
@@ -85,6 +91,12 @@ const MESSAGES: Record<ErrorCode, string> = {
   "profile.handle_taken": "That handle is taken.",
   "invite.rate_limited": "Too many invitations in the last hour. Try again later.",
   "follow.self": "You cannot follow yourself.",
+  "asset.not_found": "Asset not found.",
+  "asset.daily_limit": "You have saved the most assets allowed in 24 hours. Try again tomorrow.",
+  "asset.refs_unavailable": "Sefaria cannot check the asset's refs right now. Nothing was saved; try again shortly.",
+  "asset.not_verified": "Publishing an asset needs a verified profile.",
+  "shiur.not_found": "Shiur not found.",
+  "auth.mcp_not_allowed": "A token issued through the Sefaria connector can only save assets.",
   internal: "Something went wrong.",
 };
 

@@ -63,6 +63,7 @@ describe("spec 008: user-deleted webhook", () => {
     const { h, walk, seeded } = await setup();
     expect(await walk.uncoveredTables(h.sql, seeded), "every table is seeded").toEqual([]);
     const seededForA = [
+      "assets.owner_user_id: 1",
       "broadcasts.host_user_id: 2",
       "follows.follower_user_id: 1",
       "notifications.recipient_user_id: 1",
@@ -96,6 +97,7 @@ describe("spec 008: user-deleted webhook", () => {
     // B keeps their own rows; only the links to A's room and A's shiur (and B's follow of, and reaction on, A's profile and
     // post) went with A's data.
     expect(await walk.userValues(h.sql, B)).toEqual([
+      "assets.owner_user_id: 1",
       "broadcasts.host_user_id: 1",
       "notifications.recipient_user_id: 1",
       "posts.created_by_user_id: 1",

@@ -24,6 +24,8 @@ export interface ProfileDto {
   viewerFollows: boolean;
   isOwn: boolean;
   canManage: boolean;
+  /** Spec 062: only on a verified profile. */
+  verified?: true;
 }
 
 export interface MeDto extends ProfileDto {
@@ -41,6 +43,7 @@ async function profileDto(db: Executor, viewer: number, profileId: string): Prom
       name: profiles.name,
       handle: profiles.handle,
       bio: profiles.bio,
+      verified: profiles.verified,
       followers: sql<number>`(select count(*)::int from ${follows} where ${follows.profileId} = ${profiles.id})`,
       following: sql<number>`(case when ${profiles.userId} is null then 0 else (select count(*)::int from ${follows} where ${follows.followerUserId} = ${profiles.userId}) end)`,
       viewerFollows: sql<boolean>`exists (select 1 from ${follows} where ${follows.profileId} = ${profiles.id} and ${follows.followerUserId} = ${viewer})`,
@@ -61,6 +64,7 @@ async function profileDto(db: Executor, viewer: number, profileId: string): Prom
     viewerFollows: Boolean(p.viewerFollows),
     isOwn,
     canManage: isOwn || Boolean(p.admin),
+    ...(p.verified ? { verified: true as const } : {}),
   };
 }
 

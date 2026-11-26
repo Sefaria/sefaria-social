@@ -117,6 +117,15 @@ configMap:
     RESEND_API_URL: https://api.resend.com
     INVITE_EMAIL_FROM: "Sefaria <invitations@sefaria.org>"
     ROOM_LINK_ORIGIN: https://www.sefaria.org
+    # Claude assets (specs 060-061): Sefaria's ref expansion, the file size and daily limits, and the content origin (a
+    # registrable domain of its own; empty until the owner picks one, see the setup checklist). The CDN list is off by default.
+    SEFARIA_API_ORIGIN: https://www.sefaria.org
+    ASSET_MAX_BYTES: "5242880"
+    ASSET_DAILY_LIMIT: "20"
+    ASSET_MAX_SEGMENTS: "2000"
+    ASSET_CONTENT_ORIGIN: ""
+    ASSET_TRUSTED_CDNS: cdnjs.cloudflare.com,cdn.jsdelivr.net,unpkg.com,fonts.googleapis.com,fonts.gstatic.com
+    ASSET_TRUSTED_CDNS_ENABLED: "false"
 
 # Secret values, by name only. The Secret (sefaria-social-secrets) is created by the cluster's secret store.
 secret:
@@ -179,6 +188,23 @@ env:
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: RESEND_API_KEY, optional: true } }
   - name: SEFARIA_LOOKUP_SECRET
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: SEFARIA_LOOKUP_SECRET, optional: true } }
+  - name: SEFARIA_API_ORIGIN
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SEFARIA_API_ORIGIN } }
+  - name: ASSET_MAX_BYTES
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_MAX_BYTES } }
+  - name: ASSET_DAILY_LIMIT
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_DAILY_LIMIT } }
+  - name: ASSET_MAX_SEGMENTS
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_MAX_SEGMENTS } }
+  - name: ASSET_CONTENT_ORIGIN
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_CONTENT_ORIGIN } }
+  - name: ASSET_TRUSTED_CDNS
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_TRUSTED_CDNS } }
+  - name: ASSET_TRUSTED_CDNS_ENABLED
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ASSET_TRUSTED_CDNS_ENABLED } }
+  # Optional until the owner adds it (setup checklist): without it a shiur gives no open-network asset URL.
+  - name: ASSET_CONTENT_SECRET
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: ASSET_CONTENT_SECRET, optional: true } }
   - name: LIVEKIT_API_KEY
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: LIVEKIT_API_KEY } }
   - name: LIVEKIT_API_SECRET

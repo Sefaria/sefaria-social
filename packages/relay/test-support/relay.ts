@@ -37,7 +37,10 @@ export interface Relay {
   /** The relay's HTTP address (workerd listening on a local port), for callers outside the test process's dispatchFetch. */
   url: URL;
   /** Signs a Sefaria-style identity token (plan 6.1) with the test key, or with `key` (a key the JWKS does not hold). */
-  token(claims: { sub: string; name?: string; expSeconds?: number; iss?: string; aud?: string }, key?: JoseKey): Promise<string>;
+  token(
+    claims: { sub: string; name?: string; expSeconds?: number; iss?: string; aud?: string; via?: string },
+    key?: JoseKey,
+  ): Promise<string>;
   otherKey: JoseKey;
   close(): Promise<void>;
 }
@@ -76,9 +79,9 @@ export async function startRelay(opts: { socialServerUrl?: string } = {}): Promi
     mf,
     url,
     otherKey: other.privateKey,
-    async token({ sub, name = "Test Learner", expSeconds = 600, iss = ISSUER, aud = "sefaria-social" }, key = privateKey) {
+    async token({ sub, name = "Test Learner", expSeconds = 600, iss = ISSUER, aud = "sefaria-social", via }, key = privateKey) {
       const now = Math.floor(Date.now() / 1000);
-      return new SignJWT({ name, staff: false })
+      return new SignJWT({ name, staff: false, ...(via === undefined ? {} : { via }) })
         .setProtectedHeader({ alg: "RS256", typ: "JWT", kid: KID })
         .setIssuer(iss)
         .setAudience(aud)

@@ -7,6 +7,7 @@ import { and, asc, desc, eq, inArray, isNull, lt, or, sql, type SQL } from "driz
 import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import {
+  assets,
   broadcasts,
   follows,
   posts,
@@ -21,6 +22,7 @@ import {
   userDisplay,
 } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { contentUrl } from "./asset-content";
 import { notify, notifyFollowersOfPost, ownersOf } from "./notifications";
 import { canActAs, ensurePersonProfile } from "./person-profile";
 import { rank, type Candidate } from "./ranking";
@@ -44,14 +46,16 @@ export interface QuotedPostDto {
   createdAt: string | null;
 }
 
-export type EmbedKind = "room" | "broadcast" | "recording";
+export type EmbedKind = "room" | "broadcast" | "recording" | "asset";
 
-/** A post's card (spec 055); title and leader are null when the target no longer exists. */
+/** A post's card (spec 055); title and leader are null when the target no longer exists. An asset is `assetEmbed`. */
 export interface EmbedDto {
-  kind: EmbedKind;
+  kind: Exclude<EmbedKind, "asset">;
   id: string;
   title: string | null;
   leader: string | null;
+  /** Spec 063: only on an asset embed that still exists. */
+  contentUrl?: string;
 }
 
 export interface PostDto {
@@ -72,6 +76,8 @@ export interface PostDto {
   repostedBy: AuthorDto | null;
   /** Only on a post that embeds a room, broadcast or recording (spec 055); absent otherwise. */
   embed?: EmbedDto;
+  /** Only on a post that embeds a Claude asset (spec 063), answered apart so `embed.kind` keeps its three values. */
+  assetEmbed?: { id: string; title: string | null; leader: string | null; contentUrl?: string };
 }
 
 export interface ReplyDto {
@@ -145,7 +151,11 @@ const toPost = (r: PostRow): PostDto => ({
   reposted: Boolean(r.reposted),
   quoted: r.quotedPostId ? { id: r.quotedPostId, body: null, ref: null, author: null, createdAt: null } : null,
   repostedBy: null,
-  ...(r.embedKind && r.embedId ? { embed: { kind: r.embedKind as EmbedKind, id: r.embedId, title: null, leader: null } } : {}),
+  ...(r.embedKind === "asset" && r.embedId
+    ? { assetEmbed: { id: r.embedId, title: null, leader: null } }
+    : r.embedKind && r.embedId
+      ? { embed: { kind: r.embedKind as EmbedDto["kind"], id: r.embedId, title: null, leader: null } }
+      : {}),
 });
 
 type Tx = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
@@ -155,8 +165,28 @@ async function embedTargets(
   db: Tx,
   kind: EmbedKind,
   ids: string[],
-): Promise<Map<string, { title: string; leader: string | null }>> {
+): Promise<Map<string, { title: string; leader: string | null; contentUrl?: string }>> {
   if (!ids.length) return new Map();
+  if (kind === "asset") {
+    // Spec 063: a Claude asset that is not hidden; its published file, or its current one while unpublished (its author's own).
+    const found = await db
+      .select({
+        id: assets.id,
+        title: assets.title,
+        leader: sql<string | null>`coalesce(${profiles.name}, ${userDisplay.name})`,
+        versionId: sql<string | null>`coalesce(${assets.publishedVersionId}, ${assets.currentVersionId})`,
+      })
+      .from(assets)
+      .leftJoin(profiles, and(eq(profiles.userId, assets.ownerUserId), eq(profiles.kind, "person")))
+      .leftJoin(userDisplay, eq(userDisplay.userId, assets.ownerUserId))
+      .where(and(inArray(assets.id, ids), eq(assets.hidden, false)));
+    return new Map(
+      found.map((r) => [
+        r.id,
+        { title: r.title, leader: r.leader ?? null, ...(r.versionId ? { contentUrl: contentUrl(r.versionId) } : {}) },
+      ]),
+    );
+  }
   const rows =
     kind === "room"
       ? await db
@@ -188,6 +218,21 @@ async function embedTargets(
  * A room is members-only; posting it makes its title and live text public (decision 0011 D9), so only its people may.
  */
 async function mayEmbed(db: Tx, userId: number, kind: EmbedKind, id: string): Promise<boolean> {
+  if (kind === "asset") {
+    // Spec 063 AC-006: the author's own asset, or a published one; never a hidden one.
+    const [row] = await db
+      .select({ ok: sql<number>`1` })
+      .from(assets)
+      .where(
+        and(
+          eq(assets.id, id),
+          eq(assets.hidden, false),
+          or(eq(assets.ownerUserId, userId), sql`${assets.publishedVersionId} is not null`),
+        ),
+      )
+      .limit(1);
+    return row !== undefined;
+  }
   const roomOf =
     kind === "room"
       ? sql`${id}::uuid`
@@ -204,15 +249,24 @@ async function mayEmbed(db: Tx, userId: number, kind: EmbedKind, id: string): Pr
 
 /** Fill in each embed's title and leader (one query per kind present). */
 async function withEmbeds(db: Db, list: PostDto[]): Promise<PostDto[]> {
-  const kinds: EmbedKind[] = ["room", "broadcast", "recording"];
-  const found = new Map<string, { title: string; leader: string | null }>();
+  const kinds: EmbedKind[] = ["room", "broadcast", "recording", "asset"];
+  const found = new Map<string, { title: string; leader: string | null; contentUrl?: string }>();
+  const target = (p: PostDto) =>
+    p.assetEmbed ? { kind: "asset" as const, id: p.assetEmbed.id } : p.embed ? { kind: p.embed.kind, id: p.embed.id } : null;
   for (const kind of kinds) {
-    const ids = [...new Set(list.flatMap((p) => (p.embed?.kind === kind ? [p.embed.id] : [])))];
+    const ids = [...new Set(list.flatMap((p) => (target(p)?.kind === kind ? [target(p)!.id] : [])))];
     for (const [id, t] of await embedTargets(db, kind, ids)) found.set(`${kind}:${id}`, t);
   }
   return list.map((p) => {
-    const t = p.embed && found.get(`${p.embed.kind}:${p.embed.id}`);
-    return t && p.embed ? { ...p, embed: { ...p.embed, ...t } } : p;
+    const at = target(p);
+    const t = at && found.get(`${at.kind}:${at.id}`);
+    if (!t) return p;
+    if (p.assetEmbed)
+      return {
+        ...p,
+        assetEmbed: { ...p.assetEmbed, title: t.title, leader: t.leader, ...(t.contentUrl ? { contentUrl: t.contentUrl } : {}) },
+      };
+    return p.embed ? { ...p, embed: { ...p.embed, title: t.title, leader: t.leader } } : p;
   });
 }
 

@@ -141,3 +141,11 @@ Newest first. Corrections made by a script in `docs/features/tools/` name the sc
 - 2026-11-23 — OPS-019 "Surface bundle size budget checked in CI": built (spec 019, T-001..T-002).
 - 2026-11-23 — OPS-020 "Release pipeline with versioned assets, a stable pointer and rollback": built (spec 020, T-001..T-003).
 - 2026-11-23 — OPS-021 "Server container image and standalone Helm values": built (spec 021, T-001..T-002).
+- 2026-11-27 — SHIUR-008 "Save a Claude asset with its manifest and refs checked, as immutable versions": built (spec 060, T-001).
+- 2026-11-27 — SHIUR-009 "Import a Claude asset from a public HTTPS URL": built (spec 060, T-002).
+- 2026-11-27 — SHIUR-010 "Claude asset content served sandboxed from its own origin": built (spec 061, T-001).
+- 2026-11-27 — IDENT-106 "Verified profiles, granted by staff": built (spec 062, T-001).
+- 2026-11-27 — SHIUR-011 "Publish a Claude asset to the segments it covers" and API-053 "Published Claude assets by ref, for the reader's sidebar": built (spec 062, T-002).
+- 2026-11-27 — SHIUR-012 "A shiur that holds recordings and pinned Claude asset versions": built (spec 063, T-001).
+- 2026-11-27 — FEED-077 "Claude assets as post cards and on profile and shiur pages" and FEED-078 "A profile's public Claude assets": built (spec 063, T-002..T-003).
+- 2026-11-27 — IDENT-107 "Tokens issued through the MCP write Claude assets and nothing else": built (spec 064, T-001).

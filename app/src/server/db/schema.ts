@@ -58,11 +58,12 @@ export const shiurim = pgTable(
       .primaryKey()
       .default(sql`gen_random_uuid()`),
     roomId: uuid("room_id").references(() => rooms.id, { onDelete: "set null" }),
+    /** The shiur's owner (spec 063; the column keeps its first name: renaming it is a contract step). */
     teacherUserId: userId("teacher_user_id").notNull(),
     title: text("title").notNull(),
     /** A Sefaria ref, for example "Berakhot 2a". Never the text itself. */
     ref: text("ref"),
-    /** "private" | "public"; private by default. */
+    /** "private" | "unlisted" | "public" (spec 063: `unlisted`, anyone with the link, is the default of the API). */
     visibility: text("visibility").notNull().default("private"),
     scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
     createdAt: createdAt(),
@@ -194,9 +195,12 @@ export const sessionRecordings = pgTable(
     transcriptJobId: text("transcript_job_id"),
     transcriptSubmittedAt: timestamp("transcript_submitted_at", { withTimezone: true }),
     stateMessages: integer("state_messages").notNull().default(0),
+    /** Spec 063: the shiur this recording belongs to, if any. */
+    shiurId: uuid("shiur_id").references((): AnyPgColumn => shiurim.id, { onDelete: "set null" }),
     createdAt: createdAt(),
   },
   (t) => [
+    index("session_recordings_shiur_idx").on(t.shiurId),
     index("session_recordings_room_idx").on(t.roomId, t.createdAt),
     index("session_recordings_owner_user_id_idx").on(t.ownerUserId),
     uniqueIndex("session_recordings_one_running_idx")
@@ -293,6 +297,11 @@ export const profiles = pgTable(
     bio: text("bio").notNull().default(""),
     /** Spec 057: the @handle, unique ignoring case. A trigger (migration 0012) makes the first one from the name; settings change it. */
     handle: text("handle").notNull().default(""),
+    /** Spec 062: the blue check, set and removed by staff (`npm run verify-profile`); needed to publish a Claude asset. */
+    verified: boolean("verified").notNull().default(false),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    /** Who verified it, as staff wrote it on the command line (a name, never a user id). */
+    verifiedBy: text("verified_by"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -345,7 +354,7 @@ export const posts = pgTable(
     ref: text("ref"),
     /** A quote (spec 030): the post this one quotes. Kept when the quoted post is deleted (it shows as unavailable). */
     quotedPostId: uuid("quoted_post_id").references((): AnyPgColumn => posts.id, { onDelete: "set null" }),
-    /** A room, broadcast or recording the post shows as a card (spec 055): "room" | "broadcast" | "recording". */
+    /** A card under the post: "room" | "broadcast" | "recording" (spec 055) | "asset" (a Claude asset, spec 063). */
     embedKind: text("embed_kind"),
     /** The embedded target's id. No foreign key: a target deleted later shows as unavailable. */
     embedId: uuid("embed_id"),
@@ -362,7 +371,7 @@ export const posts = pgTable(
       .where(sql`${t.embedId} is not null`),
     check(
       "posts_embed_check",
-      sql`(${t.embedKind} is null and ${t.embedId} is null) or (${t.embedKind} in ('room', 'broadcast', 'recording') and ${t.embedId} is not null)`,
+      sql`(${t.embedKind} is null and ${t.embedId} is null) or (${t.embedKind} in ('room', 'broadcast', 'recording', 'asset') and ${t.embedId} is not null)`,
     ),
   ],
 );
@@ -478,5 +487,112 @@ export const roomInvites = pgTable(
       "room_invites_target_check",
       sql`(${t.inviteeUserId} is not null and ${t.emailSha256} is null) or (${t.inviteeUserId} is null and ${t.emailSha256} is not null)`,
     ),
+  ],
+);
+
+// ── Claude assets (specs 060–063) ─────────────────────────────────────────────────────────────────────────────────────────
+/**
+ * A Claude asset (spec 060): an interactive HTML file made in Claude, kept as immutable versions (files in the object store
+ * under `assets/<id>/<sha256>.html`). Personal data: deleted with its owner's account. `hidden` is staff's takedown (spec 062).
+ */
+export const assets = pgTable(
+  "assets",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    ownerUserId: userId("owner_user_id").notNull(),
+    /** From the current version's manifest. */
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    lang: text("lang"),
+    /** Where it was imported from or made (shown only; never fetched again, never embedded). */
+    sourceUrl: text("source_url"),
+    currentVersionId: uuid("current_version_id").references((): AnyPgColumn => assetVersions.id, { onDelete: "set null" }),
+    publishedVersionId: uuid("published_version_id").references((): AnyPgColumn => assetVersions.id, {
+      onDelete: "set null",
+    }),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    hidden: boolean("hidden").notNull().default(false),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("assets_owner_user_id_idx").on(t.ownerUserId, t.createdAt),
+    index("assets_current_version_idx").on(t.currentVersionId),
+    index("assets_published_version_idx").on(t.publishedVersionId),
+  ],
+);
+
+/** One immutable version of a Claude asset: its file's hash, size and object key, and the manifest with Sefaria's expansion. */
+export const assetVersions = pgTable(
+  "asset_versions",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    assetId: uuid("asset_id")
+      .notNull()
+      .references((): AnyPgColumn => assets.id, { onDelete: "cascade" }),
+    n: integer("n").notNull(),
+    sha256: text("sha256").notNull(),
+    storageKey: text("storage_key").notNull(),
+    bytes: integer("bytes").notNull(),
+    manifest: jsonb("manifest").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("asset_versions_asset_n_idx").on(t.assetId, t.n), index("asset_versions_created_idx").on(t.createdAt)],
+);
+
+/**
+ * Spec 062: the segments a published asset version covers, one row per segment, for the sidebar's read by section or segment.
+ * Written only for the published version; replaced on publish, removed on unpublish. Holds no user id.
+ */
+export const assetRefs = pgTable(
+  "asset_refs",
+  {
+    assetId: uuid("asset_id")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => assetVersions.id, { onDelete: "cascade" }),
+    segmentRef: text("segment_ref").notNull(),
+    sectionRef: text("section_ref").notNull(),
+    /** The ref as the manifest declared it, normalized by Sefaria. */
+    sourceRef: text("source_ref").notNull(),
+    label: text("label"),
+    /** Text order within the version. */
+    position: integer("position").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.assetId, t.position] }),
+    index("asset_refs_version_idx").on(t.versionId),
+    index("asset_refs_segment_idx").on(t.segmentRef),
+    index("asset_refs_section_idx").on(t.sectionRef),
+  ],
+);
+
+/** Spec 063: the Claude assets of a shiur, each pinned at the version it was given with; the owner moves a pin. */
+export const shiurAssets = pgTable(
+  "shiur_assets",
+  {
+    shiurId: uuid("shiur_id")
+      .notNull()
+      .references(() => shiurim.id, { onDelete: "cascade" }),
+    assetId: uuid("asset_id")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => assetVersions.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shiurId, t.assetId] }),
+    index("shiur_assets_asset_idx").on(t.assetId),
+    index("shiur_assets_version_idx").on(t.versionId),
   ],
 );

@@ -12,6 +12,7 @@ import { langAttrs } from "~/features/shell/strings";
 import { useStrings } from "~/features/shell/use-strings";
 import { Avatar } from "~/ui/Avatar";
 import kit from "~/ui/kit.module.css";
+import { OwnAssets, ProfileAssets } from "./ClaudeAssets";
 import { FollowButton } from "./FollowButton";
 import styles from "./profile.module.css";
 
@@ -93,6 +94,12 @@ export function ProfilePage({ profileId }: { profileId: string }) {
         <div className={styles.heroText}>
           <h1 className={styles.name} dir="auto">
             {profile.name}
+            {profile.verified ? (
+              <span className={kit.badge} data-profile-verified="">
+                {" "}
+                {t.verified}
+              </span>
+            ) : null}
           </h1>
           <p className={styles.handle} dir="ltr" data-profile-handle="">
             @{profile.handle}
@@ -145,6 +152,8 @@ export function ProfilePage({ profileId }: { profileId: string }) {
           </ul>
         )}
       </section>
+      {profile.kind === "person" ? <ProfileAssets profileId={profile.id} /> : null}
+      {profile.isOwn ? <OwnAssets /> : null}
     </main>
   );
 }

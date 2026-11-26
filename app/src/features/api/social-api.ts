@@ -66,7 +66,26 @@ export interface SocialApi {
   readNotifications(): Promise<void>;
   /** The live state of posted rooms, broadcasts and recordings (spec 056); public, sent without a token. */
   liveStatus(ids: string[]): Promise<LiveStatus[]>;
+  /** A person's published Claude assets (spec 063); public. */
+  profileAssets(profileId: string): Promise<PublicClaudeAsset[]>;
+  /** The viewer's own Claude assets, hidden ones marked (spec 060). */
+  myAssets(): Promise<MyClaudeAsset[]>;
+  /** Save an HTML file (spec 060): the saved asset, or the problems that kept it from being saved. */
+  saveAsset(html: string): Promise<{ ok: true; asset: MyClaudeAsset } | { ok: false; problems: ClaudeAssetProblem[] }>;
+  /** Publish (the current version) or unpublish one of the viewer's assets (spec 062). */
+  publishAsset(assetId: string, on: boolean): Promise<void>;
+  /** An unlisted or public shiur with its recordings and pinned assets (spec 063); public. */
+  shiur(shiurId: string): Promise<Shiur>;
 }
+
+/** Claude assets and shiurim (specs 060–063). */
+export type MyClaudeAsset =
+  paths["/api/v1/claude-assets"]["get"]["responses"][200]["content"]["application/json"]["assets"][number];
+export type PublicClaudeAsset =
+  paths["/api/v1/profiles/{profileId}/claude-assets"]["get"]["responses"][200]["content"]["application/json"]["assets"][number];
+export type ClaudeAssetProblem =
+  paths["/api/v1/claude-assets"]["post"]["responses"][422]["content"]["application/json"]["problems"][number];
+export type Shiur = paths["/api/v1/shiurim/{shiurId}"]["get"]["responses"][200]["content"]["application/json"];
 
 /** One posted session's live state (spec 056). */
 export type LiveStatus = paths["/api/v1/live"]["get"]["responses"][200]["content"]["application/json"][number];
@@ -152,6 +171,33 @@ export function createSocialApi(host: SurfaceHost): SocialApi {
     },
     async readNotifications() {
       ok(await c.POST("/api/v1/notifications/read"));
+    },
+    async profileAssets(profileId) {
+      return unwrap(await open.GET("/api/v1/profiles/{profileId}/claude-assets", { params: { path: { profileId } } })).assets;
+    },
+    async myAssets() {
+      return unwrap(await c.GET("/api/v1/claude-assets")).assets;
+    },
+    async saveAsset(html) {
+      const r = await c.POST("/api/v1/claude-assets", { body: { html } });
+      if (r.response.status === 422) {
+        const refused = r.error as { problems?: ClaudeAssetProblem[] } | undefined;
+        return { ok: false, problems: refused?.problems ?? [] };
+      }
+      const saved = unwrap(r);
+      if (!("asset" in saved)) throw new SocialApiError(r.response.status, "unexpected");
+      return { ok: true, asset: { ...saved.asset, hidden: false } };
+    },
+    async publishAsset(assetId, on) {
+      const init = { params: { path: { assetId } } };
+      ok(
+        on
+          ? await c.POST("/api/v1/claude-assets/{assetId}/publish", { ...init, body: {} })
+          : await c.POST("/api/v1/claude-assets/{assetId}/unpublish", init),
+      );
+    },
+    async shiur(shiurId) {
+      return unwrap(await open.GET("/api/v1/shiurim/{shiurId}", { params: { path: { shiurId } } }));
     },
   };
 }

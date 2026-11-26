@@ -246,7 +246,7 @@
       "area": "api",
       "name": "Published Claude assets by ref, for the reader's sidebar",
       "description": "A public, cacheable, CORS-enabled read of the published, not hidden assets of verified authors on a section or segment, each with its anchor segments, declared refs, version and content URL.",
-      "status": "planned",
+      "status": "built",
       "spec": "062",
       "acs": [
         "062/AC-004"
@@ -256,7 +256,9 @@
         "profile"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.claude-asset-publish.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -811,7 +813,7 @@
       "area": "feed",
       "name": "Claude assets as post cards and on profile and shiur pages",
       "description": "A post may embed a Claude asset (the author's own or a published one) shown as a card with its title, author and an Open link; the profile page lists a person's assets, and on one's own page upload, Publish and Unpublish; the shiur page lists its pinned assets.",
-      "status": "planned",
+      "status": "built",
       "spec": "063",
       "acs": [
         "063/AC-006",
@@ -824,7 +826,11 @@
         "post"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.claude-asset-listing.int.test.ts",
+        "app/src/features/profile/claude-assets.test.tsx",
+        "app/src/features/shiur/shiur-page.test.tsx"
+      ],
       "since": null,
       "changed": []
     },
@@ -833,7 +839,7 @@
       "area": "feed",
       "name": "A profile's public Claude assets",
       "description": "A public read of a person's published, not hidden Claude assets, newest first, each with its refs, published version and content URL.",
-      "status": "planned",
+      "status": "built",
       "spec": "063",
       "acs": [
         "063/AC-005"
@@ -845,7 +851,9 @@
         "post"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.claude-asset-listing.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -1360,7 +1368,7 @@
       "area": "ident",
       "name": "Verified profiles, granted by staff",
       "description": "Staff mark a person's profile verified (the blue check) or remove the mark with a command line tool; a verified profile's answers carry verified: true.",
-      "status": "planned",
+      "status": "built",
       "spec": "062",
       "acs": [
         "062/AC-001",
@@ -1371,7 +1379,9 @@
         "profile"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.claude-asset-publish.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -1380,7 +1390,7 @@
       "area": "ident",
       "name": "Tokens issued through the MCP write Claude assets and nothing else",
       "description": "A token with via: mcp is accepted only on the two asset write routes (a reviewed list), refused with 403 everywhere else, any other via value is an invalid token, and the relay refuses it.",
-      "status": "planned",
+      "status": "built",
       "spec": "064",
       "acs": [
         "064/AC-001",
@@ -1394,7 +1404,11 @@
         "identity"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.mcp-tokens.int.test.ts",
+        "app/src/server/http/endpoint.test.ts",
+        "packages/relay/src/relay.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -3233,7 +3247,7 @@
       "area": "shiur",
       "name": "Save a Claude asset with its manifest and refs checked, as immutable versions",
       "description": "A signed-in user saves one self-contained HTML file whose sefaria-asset manifest declares its refs; Sefaria checks and expands every ref; the file is kept in the object store as an immutable version; refusals are a 422 with problems a model can act on; dry run, a daily limit, public reads, the owner's list and deletion.",
-      "status": "planned",
+      "status": "built",
       "spec": "060",
       "acs": [
         "060/AC-001",
@@ -3249,7 +3263,10 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.claude-assets.int.test.ts",
+        "app/src/lib/asset-manifest.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -3258,7 +3275,7 @@
       "area": "shiur",
       "name": "Import a Claude asset from a public HTTPS URL",
       "description": "The server fetches a raw HTML file once over HTTPS from a public address (resolved once, connected to that address, no redirects, text/html, size capped while streaming) and saves it like an upload; Claude links are refused with the two working routes named.",
-      "status": "planned",
+      "status": "built",
       "spec": "060",
       "acs": [
         "060/AC-007"
@@ -3267,7 +3284,10 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.claude-assets-import.int.test.ts",
+        "app/src/server/services/asset-import.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -3276,7 +3296,7 @@
       "area": "shiur",
       "name": "Claude asset content served sandboxed from its own origin",
       "description": "Each version's file is served from ASSET_CONTENT_ORIGIN with a sandbox CSP and frame-ancestors limited to the reader's origins: a closed policy (optional trusted CDN list) at its public URL, and an open one only at a signed, short-lived shiur URL for a version the shiur pins.",
-      "status": "planned",
+      "status": "built",
       "spec": "061",
       "acs": [
         "061/AC-001",
@@ -3290,7 +3310,11 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.claude-asset-content.int.test.ts",
+        "app/src/server/http/endpoint.test.ts",
+        "app/src/server/services/asset-content.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -3299,7 +3323,7 @@
       "area": "shiur",
       "name": "Publish a Claude asset to the segments it covers",
       "description": "A verified owner publishes one version of an asset; one row per covered segment is indexed; unpublishing removes them; staff can hide an asset and removing a verification hides its assets from the sidebar at once.",
-      "status": "planned",
+      "status": "built",
       "spec": "062",
       "acs": [
         "062/AC-002",
@@ -3311,7 +3335,9 @@
         "profile"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.claude-asset-publish.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -3320,7 +3346,7 @@
       "area": "shiur",
       "name": "A shiur that holds recordings and pinned Claude asset versions",
       "description": "A user creates a shiur (private, unlisted or public), attaches a recording, and pins Claude asset versions; the shiur's public answer lists its recordings and pinned assets with content and signed shiur URLs; a newer version does not move the pin.",
-      "status": "planned",
+      "status": "built",
       "spec": "063",
       "acs": [
         "063/AC-001",
@@ -3335,7 +3361,9 @@
         "post"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.shiurim.int.test.ts"
+      ],
       "since": null,
       "changed": []
     }

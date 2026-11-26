@@ -91,7 +91,33 @@ export async function seedEveryTable(sql: Sql, a: number, b: number, unrelated: 
       other,
     ]);
     await sql("insert into room_invites (room_id, inviter_user_id, email_sha256) values ($1, $2, 'seed-sha')", [room!.id, user]);
+    // specs 060-063: a Claude asset of the user with one version, published (one indexed segment), pinned in the user's shiur
+    const [asset] = await sql<{ id: string }>(
+      "insert into assets (owner_user_id, title, description) values ($1, 'Seed asset', 'Seed') returning id",
+      [user],
+    );
+    const [version] = await sql<{ id: string }>(
+      `insert into asset_versions (asset_id, n, sha256, storage_key, bytes, manifest) values ($1, 1, repeat('a', 64), 'assets/seed/a.html', 10, '{"v":1,"title":"Seed asset","refs":[]}') returning id`,
+      [asset!.id],
+    );
+    await sql("update assets set current_version_id = $2, published_version_id = $2, published_at = now() where id = $1", [
+      asset!.id,
+      version!.id,
+    ]);
+    await sql(
+      "insert into asset_refs (asset_id, version_id, segment_ref, section_ref, source_ref, position) values ($1, $2, 'Genesis 1:1', 'Genesis 1', 'Genesis 1:1', 0)",
+      [asset!.id, version!.id],
+    );
+    await sql("insert into shiur_assets (shiur_id, asset_id, version_id, position) values ($1, $2, $3, 0)", [
+      shiur!.id,
+      asset!.id,
+      version!.id,
+    ]);
     for (const t of [
+      "assets",
+      "asset_versions",
+      "asset_refs",
+      "shiur_assets",
       "room_invites",
       "call_status",
       "live_status",
