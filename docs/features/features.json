@@ -242,6 +242,25 @@
       "changed": []
     },
     {
+      "id": "API-053",
+      "area": "api",
+      "name": "Published Claude assets by ref, for the reader's sidebar",
+      "description": "A public, cacheable, CORS-enabled read of the published, not hidden assets of verified authors on a section or segment, each with its anchor segments, declared refs, version and content URL.",
+      "status": "planned",
+      "spec": "062",
+      "acs": [
+        "062/AC-004"
+      ],
+      "surfaces": [
+        "api",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "FEED-015",
       "area": "feed",
       "name": "Feed API: live, scheduled and recent for the viewer",
@@ -788,6 +807,49 @@
       "changed": []
     },
     {
+      "id": "FEED-077",
+      "area": "feed",
+      "name": "Claude assets as post cards and on profile and shiur pages",
+      "description": "A post may embed a Claude asset (the author's own or a published one) shown as a card with its title, author and an Open link; the profile page lists a person's assets, and on one's own page upload, Publish and Unpublish; the shiur page lists its pinned assets.",
+      "status": "planned",
+      "spec": "063",
+      "acs": [
+        "063/AC-006",
+        "063/AC-007"
+      ],
+      "surfaces": [
+        "api",
+        "shiur",
+        "profile",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "FEED-078",
+      "area": "feed",
+      "name": "A profile's public Claude assets",
+      "description": "A public read of a person's published, not hidden Claude assets, newest first, each with its refs, published version and content URL.",
+      "status": "planned",
+      "spec": "063",
+      "acs": [
+        "063/AC-005"
+      ],
+      "surfaces": [
+        "api",
+        "shiur",
+        "profile",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",
@@ -1290,6 +1352,49 @@
         "app/src/features/profile/profile-handle.test.tsx",
         "e2e/social.spec.ts"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-106",
+      "area": "ident",
+      "name": "Verified profiles, granted by staff",
+      "description": "Staff mark a person's profile verified (the blue check) or remove the mark with a command line tool; a verified profile's answers carry verified: true.",
+      "status": "planned",
+      "spec": "062",
+      "acs": [
+        "062/AC-001",
+        "062/AC-005"
+      ],
+      "surfaces": [
+        "api",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "IDENT-107",
+      "area": "ident",
+      "name": "Tokens issued through the MCP write Claude assets and nothing else",
+      "description": "A token with via: mcp is accepted only on the two asset write routes (a reviewed list), refused with 403 everywhere else, any other via value is an invalid token, and the relay refuses it.",
+      "status": "planned",
+      "spec": "064",
+      "acs": [
+        "064/AC-001",
+        "064/AC-002",
+        "064/AC-003",
+        "064/AC-004",
+        "064/AC-005"
+      ],
+      "surfaces": [
+        "api",
+        "identity"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     },
@@ -3120,6 +3225,117 @@
         "app/src/features/recording/transcript-language.test.tsx",
         "app/src/features/replay/shiur-player.test.tsx"
       ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-008",
+      "area": "shiur",
+      "name": "Save a Claude asset with its manifest and refs checked, as immutable versions",
+      "description": "A signed-in user saves one self-contained HTML file whose sefaria-asset manifest declares its refs; Sefaria checks and expands every ref; the file is kept in the object store as an immutable version; refusals are a 422 with problems a model can act on; dry run, a daily limit, public reads, the owner's list and deletion.",
+      "status": "planned",
+      "spec": "060",
+      "acs": [
+        "060/AC-001",
+        "060/AC-002",
+        "060/AC-003",
+        "060/AC-004",
+        "060/AC-005",
+        "060/AC-006",
+        "060/AC-008",
+        "060/AC-009"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-009",
+      "area": "shiur",
+      "name": "Import a Claude asset from a public HTTPS URL",
+      "description": "The server fetches a raw HTML file once over HTTPS from a public address (resolved once, connected to that address, no redirects, text/html, size capped while streaming) and saves it like an upload; Claude links are refused with the two working routes named.",
+      "status": "planned",
+      "spec": "060",
+      "acs": [
+        "060/AC-007"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-010",
+      "area": "shiur",
+      "name": "Claude asset content served sandboxed from its own origin",
+      "description": "Each version's file is served from ASSET_CONTENT_ORIGIN with a sandbox CSP and frame-ancestors limited to the reader's origins: a closed policy (optional trusted CDN list) at its public URL, and an open one only at a signed, short-lived shiur URL for a version the shiur pins.",
+      "status": "planned",
+      "spec": "061",
+      "acs": [
+        "061/AC-001",
+        "061/AC-002",
+        "061/AC-003",
+        "061/AC-004",
+        "061/AC-005",
+        "061/AC-006"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-011",
+      "area": "shiur",
+      "name": "Publish a Claude asset to the segments it covers",
+      "description": "A verified owner publishes one version of an asset; one row per covered segment is indexed; unpublishing removes them; staff can hide an asset and removing a verification hides its assets from the sidebar at once.",
+      "status": "planned",
+      "spec": "062",
+      "acs": [
+        "062/AC-002",
+        "062/AC-003",
+        "062/AC-006"
+      ],
+      "surfaces": [
+        "api",
+        "profile"
+      ],
+      "depends_on": {},
+      "tests": [],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-012",
+      "area": "shiur",
+      "name": "A shiur that holds recordings and pinned Claude asset versions",
+      "description": "A user creates a shiur (private, unlisted or public), attaches a recording, and pins Claude asset versions; the shiur's public answer lists its recordings and pinned assets with content and signed shiur URLs; a newer version does not move the pin.",
+      "status": "planned",
+      "spec": "063",
+      "acs": [
+        "063/AC-001",
+        "063/AC-002",
+        "063/AC-003",
+        "063/AC-004"
+      ],
+      "surfaces": [
+        "api",
+        "shiur",
+        "profile",
+        "post"
+      ],
+      "depends_on": {},
+      "tests": [],
       "since": null,
       "changed": []
     }

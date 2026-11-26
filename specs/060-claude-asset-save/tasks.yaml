@@ -1,0 +1,51 @@
+- id: T-001
+  title: Save a Claude asset with its manifest and refs checked, versions, dry run, daily limit, reads and deletion
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-008, AC-009]
+  files:
+    - "app/src/lib/asset-manifest.ts"
+    - "app/src/lib/asset-manifest.test.ts"
+    - "app/src/server/services/sefaria-refs.ts"
+    - "app/src/server/services/claude-assets.ts"
+    - "app/src/server/services/users.ts"
+    - "app/src/server/services/recordings.ts"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/0014_*.sql"
+    - "app/src/server/db/migrations/meta/0014_snapshot.json"
+    - "app/src/server/db/migrations/meta/_journal.json"
+    - "app/src/server/config.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/claude-assets.ts"
+    - "app/src/routes/api/v1/claude-assets.$assetId.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.claude-assets.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "app/src/api.user-deleted.int.test.ts"
+    - "test/integration/schema-walk.ts"
+    - "test/integration/fake-sefaria.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "packages/api-client/src/index.ts"
+    - "docs/runbooks/server.md"
+  depends_on: []
+  parallel: false
+  completes: [SHIUR-008]
+  verify: ["npm run test:integration", "npm test", "npm run typecheck"]
+- id: T-002
+  title: Import a Claude asset from a public HTTPS URL, pinned to the checked address, no redirects
+  acs: [AC-007]
+  files:
+    - "app/src/server/services/asset-import.ts"
+    - "app/src/server/services/asset-import.test.ts"
+    - "app/src/server/services/claude-assets.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/claude-assets.import.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.claude-assets-import.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [SHIUR-009]
+  verify: ["npm run test:integration", "npm test", "npm run typecheck"]

@@ -1,0 +1,70 @@
+- id: T-001
+  title: A shiur that holds recordings and pinned Claude asset versions
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/0016_*.sql"
+    - "app/src/server/db/migrations/meta/0016_snapshot.json"
+    - "app/src/server/db/migrations/meta/_journal.json"
+    - "app/src/server/services/shiurim.ts"
+    - "app/src/server/services/claude-assets.ts"
+    - "app/src/server/services/users.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/shiurim.ts"
+    - "app/src/routes/api/v1/shiurim.$shiurId.ts"
+    - "app/src/routes/api/v1/shiurim.$shiurId.assets.ts"
+    - "app/src/routes/api/v1/shiurim.$shiurId.assets.$assetId.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.shiurim.int.test.ts"
+    - "app/src/api.claude-asset-content.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "test/integration/schema-walk.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "packages/api-client/src/index.ts"
+  depends_on: []
+  parallel: false
+  completes: [SHIUR-012]
+  verify: ["npm run test:integration", "npm run typecheck"]
+- id: T-002
+  title: A profile's public assets, and an asset as a post's card
+  acs: [AC-005, AC-006]
+  files:
+    - "app/src/server/services/claude-assets.ts"
+    - "app/src/server/services/posts.ts"
+    - "app/src/server/services/live.ts"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/profiles.$profileId.claude-assets.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.claude-asset-listing.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "packages/api-client/src/index.ts"
+  depends_on: [T-001]
+  parallel: false
+  verify: ["npm run test:integration", "npm run typecheck"]
+- id: T-003
+  title: Assets on the profile page with upload and publish, on the shiur page, and as a post card
+  acs: [AC-007]
+  files:
+    - "app/src/features/api/social-api.ts"
+    - "app/src/features/profile/ClaudeAssets.tsx"
+    - "app/src/features/profile/claude-assets.module.css"
+    - "app/src/features/profile/claude-assets.test.tsx"
+    - "app/src/features/profile/ProfilePage.tsx"
+    - "app/src/features/shiur/ShiurPage.tsx"
+    - "app/src/features/shiur/shiur-page.test.tsx"
+    - "app/src/features/shiur/shiur.module.css"
+    - "app/src/features/post/EmbedCard.tsx"
+    - "app/src/features/post/post-embeds.test.tsx"
+    - "app/src/features/post/embed-card.module.css"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/routes/social.s.$shiurId.tsx"
+  depends_on: [T-002]
+  parallel: false
+  completes: [FEED-077, FEED-078]
+  verify: ["npm test", "npm run typecheck", "npm run lint"]
