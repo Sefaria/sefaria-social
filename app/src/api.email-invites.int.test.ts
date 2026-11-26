@@ -112,6 +112,7 @@ describe("spec 059: inviting by email", () => {
   // @feature ROOM-056 Inviting by email
   // @ac 059/AC-001
   it("tells an active Sefaria account found by its address in Social, after the answer, and sends no email", async () => {
+    await settle(); // the delivery step exists (on a base without it, this assertion fails first)
     const benId = nextUser++;
     const w = fresh();
     const { h, f, room, invite } = await setup({ accounts: { [`ben_${w}@example.org`]: benId } });
@@ -127,6 +128,7 @@ describe("spec 059: inviting by email", () => {
   // @feature ROOM-056 Inviting by email
   // @ac 059/AC-002
   it("emails an address without an account once a day whatever the room, naming the inviter, the room and its link, escaped", async () => {
+    await settle(); // the delivery step exists (on a base without it, this assertion fails first)
     const w = fresh();
     const { f, room, otherRoom, invite, inviteTo } = await setup();
     const to = `new_${w}@example.org`;
@@ -153,6 +155,7 @@ describe("spec 059: inviting by email", () => {
   // @feature ROOM-056 Inviting by email
   // @ac 059/AC-003
   it("answers invited at once whether or not the address has an account, keeps only keyed hashes, and removes old rows", async () => {
+    await settle(); // the delivery step exists (on a base without it, this assertion fails first)
     const w = fresh();
     const known = `known_${w}@example.org`;
     const unknown = `unknown_${w}@example.org`;
@@ -178,6 +181,7 @@ describe("spec 059: inviting by email", () => {
   // @feature ROOM-056 Inviting by email
   // @ac 059/AC-004
   it("answers unavailable without an email provider key, looks nothing up, and handles still work", async () => {
+    await settle(); // the delivery step exists (on a base without it, this assertion fails first)
     const { h, f, invite } = await setup({ email: false, accounts: { "a@example.org": 1 } });
     expect(Object.keys(invitesModule)).toHaveLength(1);
     const benId = nextUser++;
@@ -193,6 +197,7 @@ describe("spec 059: inviting by email", () => {
   // @feature ROOM-056 Inviting by email
   // @ac 059/AC-005
   it("logs a provider failure without telling the inviter, and requests sent together cannot pass the hourly limit", async () => {
+    await settle(); // the delivery step exists (on a base without it, this assertion fails first)
     const w = fresh();
     const bad = `bad_${w}@example.org`;
     const { h, f, rachelId, room, invite } = await setup({ lookup: false, failEmailTo: bad });
