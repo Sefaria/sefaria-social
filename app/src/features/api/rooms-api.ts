@@ -49,7 +49,19 @@ export interface RoomsApi {
   leave?(roomId: string): Promise<void>;
   /** Spec 048: a relay ticket naming the caller's role in the room; null when there is none to have (not a member, no relay). */
   ticket?(roomId: string): Promise<RoomTicket | null>;
+  /** Spec 058: invite people by @handle or email; one result per entry. Optional like the above. */
+  invite?(roomId: string, to: string[], lang?: "en" | "he"): Promise<InviteOutcome>;
+  /** Spec 058: people for the invite bar's suggestions. */
+  people?(q: string): Promise<Person[]>;
 }
+
+/** Spec 058: what happened to each entry of an invitation, in order. */
+export type InviteStatus = "invited" | "member" | "self" | "not_found" | "invalid" | "unavailable" | "failed";
+export type InviteOutcome =
+  | { kind: "ok"; results: { to: string; status: InviteStatus }[] }
+  | { kind: "limited"; retryAfterSeconds: number }
+  | { kind: "not-found" };
+export type Person = { id: string; handle: string; name: string; kind: "person" };
 
 /** A relay ticket for an ordinary room (spec 048). A bearer credential: kept in memory, never stored, logged or put in a URL. */
 export type RoomTicket = { ticket: string; role: "owner" | "member"; expiresAt: string };
@@ -131,6 +143,21 @@ export function createRoomsApi(host: SurfaceHost): RoomsApi {
       if (data) return { ticket: data.ticket, role: data.role, expiresAt: data.expiresAt };
       if (response.status === 404 || response.status === 400 || response.status === 503) return null;
       throw new RoomsApiError(response.status);
+    },
+    async invite(roomId, to, lang) {
+      const { data, response } = await client.POST("/api/v1/rooms/{roomId}/invites", {
+        params: { path: { roomId } },
+        body: { to, ...(lang ? { lang } : {}) },
+      });
+      if (data) return { kind: "ok", results: data.results };
+      if (response.status === 429)
+        return { kind: "limited", retryAfterSeconds: Number(response.headers.get("retry-after")) || 3600 };
+      if (response.status === 404) return { kind: "not-found" };
+      throw new RoomsApiError(response.status);
+    },
+    async people(q) {
+      const { data } = await client.GET("/api/v1/people", { params: { query: { q } } });
+      return data?.people ?? [];
     },
     async join(roomId) {
       const { data, response } = await client.POST("/api/v1/rooms/{roomId}/members", { params: { path: { roomId } } });

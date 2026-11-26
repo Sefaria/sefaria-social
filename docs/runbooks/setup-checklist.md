@@ -225,6 +225,13 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
 - [ ] **Confirm or change the open points** in `docs/plans/shiur.md` section 8 (the 2-minute grace, a new session in a closed
       room, one card per post, signed-out viewing of a live session, retention and size limits, editing an asset). Until then
       the specs build them as proposed and list them in `docs/plans/shiur-progress.md`. Added by the shiur plan.
+- [ ] **Email invitations** (spec 059): a Resend account with Sefaria's sending domain verified, its API key as the secret
+      `RESEND_API_KEY`, and `INVITE_EMAIL_FROM` on that domain. Until then an email in the invite bar says email invites are
+      not available; handles work.
+- [ ] **Sefaria's account lookup** (spec 059): deploy the Sefaria-Project change that adds `POST /api/social/user-lookup`
+      (on the `reader-next` branch), generate one random secret and set it as Django's `SOCIAL_LOOKUP_SECRET` and Social's
+      `SEFARIA_LOOKUP_SECRET`, and set `SEFARIA_LOOKUP_URL` to `https://<sefaria host>/api/social/user-lookup`. Without it
+      every invited address is emailed, including people who already have an account.
 - [ ] **Sofer.ai API key**: request one from their support (`https://docs.sofer.ai`), and set it as the secret
       `SOFER_API_KEY` for each environment that should produce transcripts. Without it transcripts are `unavailable` and
       everything else works. Ask them about WebM or M4A input and the maximum file size and length. Needed by spec 054. In Helm the key is read from

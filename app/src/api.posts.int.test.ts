@@ -63,7 +63,11 @@ describe("spec 023: posts and the timeline", () => {
     expect([refused.status, (refused.json as { error: { code: string } }).error.code]).toEqual([403, "post.forbidden"]);
     const mine = await institution(h, "My Shul", 4242);
     const asShul = await post(h, me, { body: "Shabbat shiur at 5", asProfileId: mine });
-    expect([asShul.status, (asShul.json as Post).author]).toEqual([201, { id: mine, kind: "institution", name: "My Shul" }]);
+    expect([asShul.status, (asShul.json as Post).author]).toEqual([
+      201,
+      // The handle (spec 057) is given by the database: "my_shul", or with a number when an earlier run took it.
+      { id: mine, kind: "institution", name: "My Shul", handle: expect.stringMatching(/^my_shul\d*$/) },
+    ]);
   });
 
   // @feature FEED-061 The timeline: Following and Everyone, newest first, in pages

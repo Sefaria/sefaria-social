@@ -45,6 +45,20 @@ const Env = z.object({
    * public asset URL; without it the audio is sent in the request (base64).
    */
   SOCIAL_PUBLIC_ORIGIN: z.preprocess(emptyIsUnset, z.url().optional()),
+  /**
+   * Spec 059: Sefaria's account lookup by email (`POST /api/social/user-lookup` on the main site), and the HMAC key shared
+   * with Django's SOCIAL_LOOKUP_SECRET. Either unset: an invited address is always emailed, never looked up.
+   */
+  SEFARIA_LOOKUP_URL: z.preprocess(emptyIsUnset, z.url().optional()),
+  SEFARIA_LOOKUP_SECRET: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
+  /** Spec 059: the Resend API key (secret). Unset: inviting by email is unavailable. */
+  RESEND_API_KEY: z.preprocess(emptyIsUnset, z.string().min(1).optional()),
+  /** Spec 059: Resend's API base (tests point it at a fake). */
+  RESEND_API_URL: z.preprocess(emptyIsUnset, z.url().default("https://api.resend.com")),
+  /** Spec 059: the invitation email's sender, an address on a domain verified with Resend. */
+  INVITE_EMAIL_FROM: z.preprocess(emptyIsUnset, z.string().min(3).default("Sefaria <invitations@sefaria.org>")),
+  /** Spec 059: where a room's link in an email points: <ROOM_LINK_ORIGIN>/social/r/<roomId>. */
+  ROOM_LINK_ORIGIN: z.preprocess(emptyIsUnset, z.url().default("https://www.sefaria.org")),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 

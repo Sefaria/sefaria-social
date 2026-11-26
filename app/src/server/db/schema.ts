@@ -291,10 +291,19 @@ export const profiles = pgTable(
     userId: userId("user_id").unique(),
     name: text("name").notNull(),
     bio: text("bio").notNull().default(""),
+    /** Spec 057: the @handle, unique ignoring case. A trigger (migration 0012) makes the first one from the name; settings change it. */
+    handle: text("handle").notNull().default(""),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("profiles_kind_idx").on(t.kind)],
+  (t) => [
+    index("profiles_kind_idx").on(t.kind),
+    // Partial: '' is "not yet given" (the column's default, which the trigger replaces), so the index can exist before the
+    // backfill and serve its lookups (migration 0012).
+    uniqueIndex("profiles_handle_idx")
+      .on(sql`lower(${t.handle})`)
+      .where(sql`${t.handle} <> ''`),
+  ],
 );
 
 /** Who may post as, and is notified for, an institution profile. */
@@ -421,10 +430,12 @@ export const notifications = pgTable(
       .primaryKey()
       .default(sql`gen_random_uuid()`),
     recipientUserId: userId("recipient_user_id").notNull(),
-    /** follow | reply | reaction | post */
+    /** follow | reply | reaction | post | room_invite (spec 058) */
     kind: text("kind").notNull(),
     actorProfileId: uuid("actor_profile_id").references(() => profiles.id, { onDelete: "cascade" }),
     postId: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }),
+    /** Spec 058: the room a room_invite is to; the invitation goes with the room. */
+    roomId: uuid("room_id").references(() => rooms.id, { onDelete: "cascade" }),
     createdAt: createdAt(),
     readAt: timestamp("read_at", { withTimezone: true }),
   },
@@ -432,5 +443,40 @@ export const notifications = pgTable(
     index("notifications_recipient_idx").on(t.recipientUserId, t.createdAt),
     index("notifications_actor_idx").on(t.actorProfileId),
     index("notifications_post_idx").on(t.postId),
+    index("notifications_room_idx").on(t.roomId),
+  ],
+);
+
+/**
+ * Spec 058: one row per invitation to a room, for the once-a-day rule and the hourly limit (in Postgres, so every server
+ * replica counts the same). An invitation by email (spec 059) keeps only a keyed hash of the address, never the address, and
+ * rows go after two days.
+ */
+export const roomInvites = pgTable(
+  "room_invites",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    inviterUserId: userId("inviter_user_id").notNull(),
+    inviteeUserId: userId("invitee_user_id"),
+    emailSha256: text("email_sha256"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("room_invites_inviter_idx").on(t.inviterUserId, t.createdAt),
+    index("room_invites_invitee_idx").on(t.roomId, t.inviteeUserId, t.createdAt),
+    // Spec 059: an address is emailed at most once a day, whatever the room.
+    index("room_invites_email_idx").on(t.emailSha256, t.createdAt),
+    // Rows older than the rules' windows are removed.
+    index("room_invites_created_idx").on(t.createdAt),
+    index("room_invites_invitee_user_idx").on(t.inviteeUserId),
+    check(
+      "room_invites_target_check",
+      sql`(${t.inviteeUserId} is not null and ${t.emailSha256} is null) or (${t.inviteeUserId} is null and ${t.emailSha256} is not null)`,
+    ),
   ],
 );

@@ -1,6 +1,6 @@
 // `/social/notifications`, titled "Activity" (spec 026 AC-004): each notification as a sentence in the interface language,
 // unread ones marked with a dot and bold text, each opening straight to the post or profile it is about. Showing the page marks
-// everything read and clears the badge.
+// everything read and clears the badge. A room invitation (spec 058) opens the room's lobby, with a Join button beside it.
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Notification } from "~/features/api/social-api";
@@ -26,6 +26,8 @@ export function sentence(n: Notification, t: Strings): string {
       return t.nReply(who);
     case "reaction":
       return t.nReaction(who);
+    case "room_invite":
+      return t.nRoomInvite(who, n.room?.title ?? t.aRoom);
     default:
       return t.nPost(who);
   }
@@ -93,7 +95,22 @@ export function ActivityPage() {
             >
               {n.actor ? <Avatar id={n.actor.id} name={n.actor.name} kind="person" size={36} /> : <span />}
               <div className={styles.text}>
-                {n.post && n.kind !== "follow" ? (
+                {n.kind === "room_invite" && n.room ? (
+                  <span className={styles.inviteLine}>
+                    <Link to="/social/r/$roomId" params={{ roomId: n.room.id }} className={styles.link} dir="auto">
+                      {sentence(n, t)}
+                    </Link>
+                    <Link
+                      to="/social/r/$roomId"
+                      params={{ roomId: n.room.id }}
+                      className={`${kit.button} ${kit.primary}`}
+                      data-action="join-invited-room"
+                      aria-label={`${t.joinInvitedRoom}: ${n.room.title}`}
+                    >
+                      {t.joinInvitedRoom}
+                    </Link>
+                  </span>
+                ) : n.post && n.kind !== "follow" ? (
                   <Link to="/social/p/$postId" params={{ postId: n.post.id }} className={styles.link}>
                     {sentence(n, t)}
                   </Link>

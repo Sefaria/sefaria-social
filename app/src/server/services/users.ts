@@ -1,7 +1,7 @@
 // User data held by social, keyed by the Sefaria user id: the display cache, and the deletion that removes every row for a
 // user (plan section 6.3). deleteUserData is the one function the webhook and the staff purge command share; when a table
 // gains a user column, extend it here and the seed in test/integration/schema-walk.ts (the walk test fails until you do).
-import { eq, sql } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import type { Db } from "../db/client";
 import {
@@ -14,6 +14,7 @@ import {
   reactions,
   replies,
   reposts,
+  roomInvites,
   roomMembers,
   rooms,
   shiurim,
@@ -79,6 +80,8 @@ export async function deleteUserData(tx: Executor, userId: number, eventId: stri
   await tx.delete(sessionRecordings).where(eq(sessionRecordings.ownerUserId, userId));
   // spec 043: the broadcasts the user hosted (those of the user's own rooms went with them)
   await tx.delete(broadcasts).where(eq(broadcasts.hostUserId, userId));
+  // spec 058: invitations the user sent or was sent, in other people's rooms (those of the user's own rooms went with them)
+  await tx.delete(roomInvites).where(or(eq(roomInvites.inviterUserId, userId), eq(roomInvites.inviteeUserId, userId)));
   // Social graph and posts (specs 023-026). The person profile's cascade removes its posts, replies, followers and the
   // notifications it caused; posts and replies the user wrote as an institution go too.
   const notified = await tx

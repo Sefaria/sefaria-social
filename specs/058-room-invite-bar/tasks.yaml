@@ -1,0 +1,47 @@
+- id: T-001
+  title: Invitations, people search and the room_invite notification on the server
+  acs: [AC-001, AC-002, AC-003, AC-004]
+  files:
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/0013_room_invites.sql"
+    - "app/src/server/db/migrations/meta/_journal.json"
+    - "app/src/server/db/migrations/meta/0013_snapshot.json"
+    - "app/src/server/services/invites.ts"
+    - "app/src/server/services/invites.test.ts"
+    - "app/src/server/services/people.ts"
+    - "app/src/server/services/notifications.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/log/logger.ts"
+    - "app/src/routes/api/v1/rooms.$roomId.invites.ts"
+    - "app/src/routes/api/v1/people.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.invites.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "app/src/server/services/users.ts"
+    - "app/src/api.user-deleted.int.test.ts"
+    - "test/integration/**"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+  depends_on: []
+  parallel: false
+  completes: [API-052]
+  verify: ["npm run test:integration", "npm run test:contract", "npm run typecheck"]
+- id: T-002
+  title: The invite bar in the room and the invitation in activity
+  acs: [AC-002, AC-005]
+  files:
+    - "app/src/features/room/InviteBar.tsx"
+    - "app/src/features/room/InvitePanel.tsx"
+    - "app/src/features/room/invite-bar.test.tsx"
+    - "app/src/features/room/lobby.module.css"
+    - "app/src/features/api/rooms-api.ts"
+    - "app/src/features/notifications/**"
+    - "app/src/features/shell/strings.ts"
+    - "e2e/rooms.spec.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [ROOM-055]
+  verify: ["npm test -- app/src/features/room app/src/features/notifications", "npm run typecheck"]

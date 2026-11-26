@@ -22,6 +22,7 @@ const TABLES = [
   "recording_state_chunks",
   "replies",
   "reposts",
+  "room_invites",
   "room_members",
   "rooms",
   "session_recordings",
@@ -62,7 +63,9 @@ describe("spec 005: database", () => {
       order by 1`);
     expect(unindexed).toEqual([]);
     const fks = await h.sql("select conname from pg_constraint where contype = 'f'");
-    expect(fks.length).toBe(20); // spec 051 dropped recording_media_chunks and its foreign key; spec 056 added live_status's
+    // spec 051 dropped recording_media_chunks and its foreign key; spec 056 added live_status's; spec 058 room_invites' and
+    // notifications.room_id's
+    expect(fks.length).toBe(22);
   });
 
   // @ac 005/AC-002

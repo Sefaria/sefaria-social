@@ -94,6 +94,9 @@ export function ProfilePage({ profileId }: { profileId: string }) {
           <h1 className={styles.name} dir="auto">
             {profile.name}
           </h1>
+          <p className={styles.handle} dir="ltr" data-profile-handle="">
+            @{profile.handle}
+          </p>
           {profile.kind === "institution" ? <span className={kit.badge}>{t.institution}</span> : null}
           {profile.bio ? (
             <p className={styles.bio} dir="auto" data-profile-bio="">

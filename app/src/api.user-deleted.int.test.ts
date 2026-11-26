@@ -72,6 +72,8 @@ describe("spec 008: user-deleted webhook", () => {
       "reactions.user_id: 1",
       "replies.created_by_user_id: 1",
       "reposts.created_by_user_id: 1",
+      "room_invites.inviter_user_id: 3",
+      "room_invites.invitee_user_id: 2",
       "room_members.user_id: 2",
       "rooms.owner_user_id: 1",
       "session_recordings.owner_user_id: 2",
@@ -101,6 +103,8 @@ describe("spec 008: user-deleted webhook", () => {
       "profiles.user_id: 1",
       "replies.created_by_user_id: 1",
       "reposts.created_by_user_id: 1",
+      // spec 058: B's invitation by email in B's own room stays; B's invitation of A went with A
+      "room_invites.inviter_user_id: 1",
       "room_members.user_id: 1",
       "rooms.owner_user_id: 1",
       "session_recordings.owner_user_id: 1",

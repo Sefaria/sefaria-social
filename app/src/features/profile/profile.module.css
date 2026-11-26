@@ -166,3 +166,29 @@
   align-items: center;
   gap: var(--sefaria-space-3, 12px);
 }
+
+/* Spec 057: the @handle under the name, and the Handle field with its "@" before the input. */
+.handle {
+  margin: 0;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.handleInput {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+}
+
+.handleInput input {
+  flex: 1;
+  min-width: 0;
+}
+
+.fieldError {
+  color: var(--sefaria-color-danger, #c03522);
+  font-size: 14px;
+}

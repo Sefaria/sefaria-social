@@ -25,6 +25,7 @@ export const LOG_EVENTS = [
   "transcript.submit_failed",
   "transcript.poll_failed",
   "transcript.rate_limited",
+  "invite.delivery_failed",
 ] as const;
 export type LogEvent = (typeof LOG_EVENTS)[number];
 export type LogLevel = "debug" | "info" | "warn" | "error";

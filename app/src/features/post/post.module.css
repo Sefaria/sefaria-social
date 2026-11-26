@@ -258,3 +258,14 @@ a.quoted:focus-visible {
   color: var(--sefaria-color-text-muted, #6f6f6f);
   font-size: 13px;
 }
+
+/* Spec 057: the author's @handle after their name. */
+.handle {
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  font-size: 14px;
+  unicode-bidi: isolate;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
