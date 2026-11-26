@@ -27,6 +27,11 @@ services:
       CALLS_ENABLED: "${CALLS_ENABLED}"
       # Transcripts (spec 054) need SOFER_API_KEY set on the app; unset, they are "unavailable".
       SOFER_API_KEY: "${SOFER_API_KEY}"
+      # Inviting by email (spec 059): Resend's key, and Sefaria's account lookup with its shared secret; unset, email invites
+      # are unavailable (no key) or always emailed (no lookup).
+      RESEND_API_KEY: "${RESEND_API_KEY}"
+      SEFARIA_LOOKUP_URL: "${SEFARIA_LOOKUP_URL}"
+      SEFARIA_LOOKUP_SECRET: "${SEFARIA_LOOKUP_SECRET}"
     # Spec 051: recordings' media until a cloud bucket replaces the filesystem store; one app container per deployment.
     volumes:
       - social-assets:/srv/.data

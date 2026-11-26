@@ -111,6 +111,12 @@ configMap:
     # about 80 minutes it cannot go inline). Empty means unset.
     SOFER_API_URL: https://api.sofer.ai
     SOCIAL_PUBLIC_ORIGIN: ""
+    # Inviting by email (spec 059): Sefaria's account lookup (empty: every address is emailed), Resend's API, the sender (a
+    # domain verified with Resend) and where a room's link points. Empty means unset.
+    SEFARIA_LOOKUP_URL: ""
+    RESEND_API_URL: https://api.resend.com
+    INVITE_EMAIL_FROM: "Sefaria <invitations@sefaria.org>"
+    ROOM_LINK_ORIGIN: https://www.sefaria.org
 
 # Secret values, by name only. The Secret (sefaria-social-secrets) is created by the cluster's secret store.
 secret:
@@ -159,6 +165,20 @@ env:
   # Optional until the owner adds the Sofer.ai key to the Secret (setup checklist); without it transcripts are "unavailable".
   - name: SOFER_API_KEY
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: SOFER_API_KEY, optional: true } }
+  - name: SEFARIA_LOOKUP_URL
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: SEFARIA_LOOKUP_URL } }
+  - name: RESEND_API_URL
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: RESEND_API_URL } }
+  - name: INVITE_EMAIL_FROM
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: INVITE_EMAIL_FROM } }
+  - name: ROOM_LINK_ORIGIN
+    valueFrom: { configMapKeyRef: { name: sefaria-social-config, key: ROOM_LINK_ORIGIN } }
+  # Optional until the owner adds them (setup checklist): without RESEND_API_KEY inviting by email is unavailable; without
+  # SEFARIA_LOOKUP_SECRET every invited address is emailed, never looked up.
+  - name: RESEND_API_KEY
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: RESEND_API_KEY, optional: true } }
+  - name: SEFARIA_LOOKUP_SECRET
+    valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: SEFARIA_LOOKUP_SECRET, optional: true } }
   - name: LIVEKIT_API_KEY
     valueFrom: { secretKeyRef: { name: sefaria-social-secrets, key: LIVEKIT_API_KEY } }
   - name: LIVEKIT_API_SECRET

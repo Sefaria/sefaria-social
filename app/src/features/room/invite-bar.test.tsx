@@ -104,7 +104,7 @@ describe("spec 058: the invite bar", () => {
 
     await act(async () => q<HTMLButtonElement>("[data-action=send-invites]")!.click());
     await wait();
-    expect(invite).toHaveBeenCalledWith(ROOM, ["@ben", "@nobody"]);
+    expect(invite).toHaveBeenCalledWith(ROOM, ["@ben", "@nobody"], "en");
     expect(q("[data-invite-chip='@ben']")?.getAttribute("data-status")).toBe("invited");
     expect(q("[data-invite-chip='@ben']")?.textContent).toContain("Invited");
     expect(q("[data-invite-chip='@nobody']")?.getAttribute("data-status")).toBe("not_found");
@@ -113,7 +113,7 @@ describe("spec 058: the invite bar", () => {
     // Sending again sends only what failed.
     await act(async () => q<HTMLButtonElement>("[data-action=send-invites]")!.click());
     await wait();
-    expect(invite).toHaveBeenLastCalledWith(ROOM, ["@nobody"]);
+    expect(invite).toHaveBeenLastCalledWith(ROOM, ["@nobody"], "en");
   });
 
   it("says when the hour's limit is reached, and that email is not available when the server cannot send it", async () => {

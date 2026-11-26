@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:073bf8ba7f889a08ca9043a5e5e6b6ce94279c52a6569af69827840fd6c10c1b",
   "feature_sha": "sha256:36a589113b77a36eda43362340bbc48cb9a514bd60960d4cd3af67e8f497100d",
-  "tasks_sha": "sha256:b5b76e1189f0bf6c8235ef524505b6e5c9c116213868ef1112330d05d47df599",
+  "tasks_sha": "sha256:cd2b3e1d03631364108b9144d5fbab1fa32ae5da1d13e371fd84134c876e11c2",
   "risk": "high",
   "features": [
     "ROOM-056"
@@ -25,7 +25,9 @@
         "app/src/server/services/sefaria-lookup.ts",
         "app/src/server/services/mailer.ts",
         "app/src/server/services/invites.ts",
-        "app/src/server/services/rooms.ts",
+        "app/src/server/services/email-invites.ts",
+        "app/src/routes/api/v1/rooms.$roomId.invites.ts",
+        "app/src/features/api/rooms-api.ts",
         "app/src/server/config.ts",
         "app/src/server/api/contracts.ts",
         "app/src/server/log/logger.ts",

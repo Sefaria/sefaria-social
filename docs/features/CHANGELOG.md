@@ -3,6 +3,7 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-26 — ROOM-056 "Inviting by email": built (spec 059; named by `tools/2026-11-26-name-057-059-entries.mjs`). Needs a Resend key and Sefaria's account lookup to be fully on.
 - 2026-11-26 — ROOM-055 "The invite bar in a room, and invitations in activity" and API-052 "Room invitations and people search": built (spec 058; named by `tools/2026-11-26-name-057-059-entries.mjs`).
 - 2026-11-26 — IDENT-104 "Profile @handles, unique and made from the name" and IDENT-105 "The @handle in settings and beside the name": built (spec 057; named by `tools/2026-11-26-name-057-059-entries.mjs`).
 - 2026-11-26 — SHIUR-007 "A shiur's transcript from Sofer.ai, in the leader's language, line by line in the player": built (spec 054; named by `tools/2026-11-26-name-054-entries.mjs`).

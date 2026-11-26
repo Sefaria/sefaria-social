@@ -1074,6 +1074,8 @@ export const getLiveStatus = defineEndpoint({
 export const RoomInviteInput = z.strictObject({
   /** "@handle", "handle" or an email address (spec 059), up to 20. */
   to: z.array(z.string().min(1).max(320)).min(1).max(20),
+  /** Spec 059: the language of an invitation email (the inviter's interface); English when absent. */
+  lang: z.enum(["en", "he"]).optional(),
 });
 
 export const RoomInviteResults = z.object({

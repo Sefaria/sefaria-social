@@ -7565,6 +7565,13 @@
                       "minLength": 1,
                       "maxLength": 320
                     }
+                  },
+                  "lang": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "he"
+                    ]
                   }
                 },
                 "required": [

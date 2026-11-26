@@ -4653,6 +4653,8 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
+                    /** @enum {string} */
+                    lang?: "en" | "he";
                     to: string[];
                 };
             };

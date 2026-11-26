@@ -45,7 +45,9 @@ const ENTRIES = {
     name: "Inviting by email",
     description:
       "An email in the invite bar: a Sefaria account (looked up on Sefaria, signed request) gets the in-app invitation; anyone else an email with the room's link; the answer never says which, and no address is kept.",
-    status: "planned",
+    acs: ["059/AC-001", "059/AC-002", "059/AC-003", "059/AC-004", "059/AC-005"],
+    status: "built",
+    tests: ["app/src/api.email-invites.int.test.ts", "app/src/features/room/invite-bar.test.tsx"],
   },
 };
 

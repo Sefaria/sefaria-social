@@ -96,10 +96,21 @@ export async function invitePerson(
   });
 }
 
-/** Handles an email entry (spec 059); set by the email invitations module so this one does not depend on it. */
+/**
+ * Handles an email entry (spec 059); set by the email invitations module so this one does not depend on it. Called outside
+ * the handles' transaction and in parallel, since it may wait on Sefaria and on the email provider.
+ */
 export type EmailInviter = (
-  tx: Tx,
-  input: { roomId: string; roomTitle: string; inviter: Identity; inviterProfileId: string; inviterName: string; email: string },
+  db: Db,
+  input: {
+    roomId: string;
+    roomTitle: string;
+    inviter: Identity;
+    inviterProfileId: string;
+    inviterName: string;
+    email: string;
+    lang: "en" | "he";
+  },
 ) => Promise<InviteStatus>;
 
 let emailInviter: EmailInviter = async () => "unavailable";
@@ -114,6 +125,7 @@ export async function inviteToRoom(
   roomId: string,
   to: readonly string[],
   db: Db = getDb(),
+  lang: "en" | "he" = "en",
 ): Promise<InviteResult[]> {
   if (to.length === 0 || to.length > MAX_ENTRIES) throw new ApiError(400, "request.invalid");
   const room = await membership(db, identity, roomId);
@@ -122,7 +134,8 @@ export async function inviteToRoom(
   if ((await sentLastHour(db, identity.userId)) + counted > INVITES_PER_HOUR)
     throw new ApiError(429, "invite.rate_limited", { "retry-after": "3600" });
 
-  return db.transaction(async (tx) => {
+  const results: (InviteResult | null)[] = entries.map(() => null);
+  const own = await db.transaction(async (tx) => {
     const own = await ensurePersonProfile(tx, identity);
     const handles = [...new Set(entries.flatMap((e) => (e.entry.kind === "handle" ? [e.entry.handle] : [])))];
     const byHandle = new Map<string, number | null>();
@@ -146,34 +159,46 @@ export async function inviteToRoom(
         : [],
     );
     const done = new Set<number>();
-    const results: InviteResult[] = [];
-    for (const { raw, entry } of entries) {
+    for (const [i, { raw, entry }] of entries.entries()) {
+      const answer = (status: InviteStatus) => (results[i] = { to: raw, status });
       if (entry.kind === "invalid") {
-        results.push({ to: raw, status: "invalid" });
+        answer("invalid");
         continue;
       }
-      if (entry.kind === "email") {
-        const status = await emailInviter(tx, {
-          roomId,
-          roomTitle: room.title,
-          inviter: identity,
-          inviterProfileId: own.id,
-          inviterName: own.name,
-          email: entry.email,
-        });
-        results.push({ to: raw, status });
-        continue;
-      }
+      if (entry.kind === "email") continue; // after the transaction, below
       const userId = byHandle.get(entry.handle) ?? null;
-      if (userId === null) results.push({ to: raw, status: "not_found" });
-      else if (userId === identity.userId) results.push({ to: raw, status: "self" });
-      else if (members.has(userId)) results.push({ to: raw, status: "member" });
+      if (userId === null) answer("not_found");
+      else if (userId === identity.userId) answer("self");
+      else if (members.has(userId)) answer("member");
       else {
         if (!done.has(userId)) await invitePerson(tx, { roomId, inviter: identity, inviterProfileId: own.id, invitee: userId });
         done.add(userId);
-        results.push({ to: raw, status: "invited" });
+        answer("invited");
       }
     }
-    return results;
+    return own;
   });
+
+  // Email entries (spec 059): each on its own, in parallel; the same address twice is sent once.
+  const emails = new Map<string, Promise<InviteStatus>>();
+  await Promise.all(
+    entries.map(async ({ raw, entry }, i) => {
+      if (entry.kind !== "email") return;
+      if (!emails.has(entry.email))
+        emails.set(
+          entry.email,
+          emailInviter(db, {
+            roomId,
+            roomTitle: room.title,
+            inviter: identity,
+            inviterProfileId: own.id,
+            inviterName: own.name,
+            email: entry.email,
+            lang,
+          }).catch(() => "failed" as const),
+        );
+      results[i] = { to: raw, status: await emails.get(entry.email)! };
+    }),
+  );
+  return results.map((r) => r!);
 }

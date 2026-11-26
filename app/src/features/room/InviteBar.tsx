@@ -4,6 +4,7 @@
 // marked with its reason; sent ones go after a moment. Rooms stay link-open: this only tells people.
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useRoomsApi, type InviteStatus, type Person } from "~/features/api/rooms-api";
+import { useInterfaceLang } from "~/features/host/host-context";
 import { useStrings } from "~/features/shell/use-strings";
 import kit from "~/ui/kit.module.css";
 import styles from "./lobby.module.css";
@@ -21,6 +22,7 @@ const done = (s: InviteStatus | null) => s === "invited" || s === "member";
 export function InviteBar({ roomId }: { roomId: string }) {
   const t = useStrings();
   const api = useRoomsApi();
+  const lang = useInterfaceLang() === "hebrew" ? "he" : "en";
   const ids = { input: useId(), list: useId(), hint: useId() };
   const [text, setText] = useState("");
   const [chips, setChips] = useState<Chip[]>([]);
@@ -98,7 +100,7 @@ export function InviteBar({ roomId }: { roomId: string }) {
     setSending(true);
     setNotice("");
     try {
-      const outcome = await api.invite!(roomId, pending.slice(0, MAX_CHIPS));
+      const outcome = await api.invite!(roomId, pending.slice(0, MAX_CHIPS), lang);
       if (outcome.kind === "limited") setNotice(t.inviteLimited);
       else if (outcome.kind === "not-found") setNotice(t.inviteFailed);
       else {

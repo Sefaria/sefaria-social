@@ -50,7 +50,7 @@ export interface RoomsApi {
   /** Spec 048: a relay ticket naming the caller's role in the room; null when there is none to have (not a member, no relay). */
   ticket?(roomId: string): Promise<RoomTicket | null>;
   /** Spec 058: invite people by @handle or email; one result per entry. Optional like the above. */
-  invite?(roomId: string, to: string[]): Promise<InviteOutcome>;
+  invite?(roomId: string, to: string[], lang?: "en" | "he"): Promise<InviteOutcome>;
   /** Spec 058: people for the invite bar's suggestions. */
   people?(q: string): Promise<Person[]>;
 }
@@ -144,10 +144,10 @@ export function createRoomsApi(host: SurfaceHost): RoomsApi {
       if (response.status === 404 || response.status === 400 || response.status === 503) return null;
       throw new RoomsApiError(response.status);
     },
-    async invite(roomId, to) {
+    async invite(roomId, to, lang) {
       const { data, response } = await client.POST("/api/v1/rooms/{roomId}/invites", {
         params: { path: { roomId } },
-        body: { to },
+        body: { to, ...(lang ? { lang } : {}) },
       });
       if (data) return { kind: "ok", results: data.results };
       if (response.status === 429)
