@@ -3,9 +3,9 @@
   "spec": "059",
   "title": "Invite by email from the same bar; a Sefaria user is told in Social, anyone else gets an email with the room's link",
   "approved": false,
-  "spec_sha": "sha256:073bf8ba7f889a08ca9043a5e5e6b6ce94279c52a6569af69827840fd6c10c1b",
-  "feature_sha": "sha256:36a589113b77a36eda43362340bbc48cb9a514bd60960d4cd3af67e8f497100d",
-  "tasks_sha": "sha256:cd2b3e1d03631364108b9144d5fbab1fa32ae5da1d13e371fd84134c876e11c2",
+  "spec_sha": "sha256:7a1821174722688a805b804c431b20ba44d6cb2433d665de173929c8af161b77",
+  "feature_sha": "sha256:5597814652fd3b849851beee37647334fc9f078ebac192004d645fb09db69dfe",
+  "tasks_sha": "sha256:1c88e28c6ee5c3ff34209041651efd9b13d1df5f7a9684bda377d0d305b05d86",
   "risk": "high",
   "features": [
     "ROOM-056"
@@ -25,7 +25,11 @@
         "app/src/server/services/sefaria-lookup.ts",
         "app/src/server/services/mailer.ts",
         "app/src/server/services/invites.ts",
-        "app/src/server/services/email-invites.ts",
+        "app/src/server/services/people.ts",
+        "app/src/server/db/schema.ts",
+        "app/src/server/db/migrations/0013_room_invites.sql",
+        "app/src/server/db/migrations/meta/0013_snapshot.json",
+        "app/src/server/db/migrations/meta/_journal.json",
         "app/src/routes/api/v1/rooms.$roomId.invites.ts",
         "app/src/features/api/rooms-api.ts",
         "app/src/server/config.ts",
@@ -57,7 +61,7 @@
   "acs": [
     {
       "ac": "AC-001",
-      "text": "WHEN an invitation's entry is an email address and the account lookup is configured THE SYSTEM SHALL ask Sefaria (`POST <SEFARIA_LOOKUP_URL>`, the body signed like the deletion webhook) which account has that address; for an account it SHALL add the same `room_invite` notification as a handle does, with no email",
+      "text": "WHEN an invitation's entry is an email address and the account lookup is configured THE SYSTEM SHALL, after answering, ask Sefaria (`POST <SEFARIA_LOOKUP_URL>`, the body signed like the deletion webhook) which active account has that address; for an account that is not the inviter and not in the room it SHALL add the same `room_invite` notification as a handle does, with no email",
       "scenarios": [
         "AC-001 an address with an account"
       ],
@@ -66,7 +70,7 @@
     },
     {
       "ac": "AC-002",
-      "text": "WHEN no Sefaria account has the address, or the lookup is not configured, THE SYSTEM SHALL send one email to it through the email provider, saying who invited them, the room's title and its link, with every value escaped, at most once per room and address in 24 hours",
+      "text": "WHEN no Sefaria account has the address, or the lookup is not configured, THE SYSTEM SHALL, after answering, send one email to it through the email provider, in the inviter's interface language, saying who invited them, the room's title and its link, with every value escaped; an address is emailed at most once in 24 hours, whatever the room or the inviter",
       "scenarios": [
         "AC-002 an address without an account"
       ],
@@ -75,7 +79,7 @@
     },
     {
       "ac": "AC-003",
-      "text": "THE SYSTEM SHALL answer an email entry `invited` whether or not an account has that address (the answer never tells the caller who has an account), and SHALL keep no email address: only its SHA-256, to apply the 24-hour rule",
+      "text": "THE SYSTEM SHALL answer every email entry `invited` at once, before any lookup or email, so neither the answer nor its time tells the caller who has an account; it SHALL keep no email address, only a hash keyed with a server secret, and SHALL remove invitation rows after two days",
       "scenarios": [
         "AC-003 no telling who has an account"
       ],
@@ -93,9 +97,9 @@
     },
     {
       "ac": "AC-005",
-      "text": "WHEN the lookup or the provider fails or takes more than 10 seconds THE SYSTEM SHALL answer that entry `failed`, the others unaffected, and log it without the address",
+      "text": "WHEN the lookup or the provider fails or takes more than 10 seconds THE SYSTEM SHALL log it without the address and leave the other entries unaffected; an inviter may invite at most 100 addresses a day, and the hourly limit of spec 058 counts email entries too, both counted under one lock per inviter so requests sent together cannot pass them",
       "scenarios": [
-        "AC-005 a failure"
+        "AC-005 failures and limits"
       ],
       "passes": false,
       "evidence": null

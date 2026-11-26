@@ -1,23 +1,39 @@
-// Room invitations (spec 058; spec 059 for email). A member sends up to 20 entries; each gets its own answer, in order. Rooms
-// stay link-open (decision 0008): an invitation tells someone and takes them to the room, it does not admit them. A person is
-// told at most once a day per room, and an inviter may send at most INVITES_PER_HOUR, counted in Postgres so every server
-// replica counts the same.
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
+// Room invitations (specs 058 and 059). A member sends up to 20 entries, @handles or email addresses; each gets its own answer,
+// in order. Rooms stay link-open (decision 0008): an invitation tells someone and takes them to the room, it does not admit them.
+//
+// Limits, all in Postgres so every server replica counts the same, and all checked and recorded under one lock per inviter, so
+// requests sent at the same moment cannot each see room under a limit:
+// - INVITES_PER_HOUR invitations an hour per inviter, and EMAIL_INVITES_PER_DAY by email a day;
+// - a person is told once a day per room; an address is emailed once a day, whatever the room or the inviter.
+//
+// Email (spec 059): the answer for an address is "invited" at once, whether or not it has a Sefaria account, and nothing about
+// the address reaches the answer. Looking it up on Sefaria and then telling the account in Social, or emailing the address,
+// happens after the answer, so neither its time nor its failure tells the inviter who has an account. Only a keyed hash of the
+// address is kept, and rows go after two days.
+import { createHmac } from "node:crypto";
+import { and, eq, gt, inArray, lt, sql, type SQL } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
+import { getConfig } from "../config";
 import { getDb, type Db } from "../db/client";
 import { profiles, roomInvites, roomMembers } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { log } from "../log/logger";
 import { canonicalHandle, handleProblem } from "./handles";
+import { emailConfigured, sendInviteEmail } from "./mailer";
 import { notify } from "./notifications";
 import { ensurePersonProfile } from "./person-profile";
 import { membership } from "./rooms";
+import { lookupConfigured, sefariaUserByEmail } from "./sefaria-lookup";
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 export const MAX_ENTRIES = 20;
 export const MAX_ENTRY_LENGTH = 320;
 export const INVITES_PER_HOUR = 50;
-const REPEAT_HOURS = 24;
+export const EMAIL_INVITES_PER_DAY = 100;
+const KEEP = sql`now() - interval '2 days'`;
+const DAY = sql`now() - interval '24 hours'`;
+const HOUR = sql`now() - interval '1 hour'`;
 
 export type InviteStatus =
   | "invited"
@@ -27,7 +43,7 @@ export type InviteStatus =
   | "invalid"
   /** Spec 059: email invitations are not available on this server. */
   | "unavailable"
-  /** Spec 059: the lookup or the email provider failed for this entry. */
+  /** Kept for older clients; no answer gives it now (a failure after the answer is logged). */
   | "failed";
 
 export interface InviteResult {
@@ -56,37 +72,38 @@ export function classifyEntry(raw: string): Entry {
   return { kind: "handle", handle };
 }
 
-/** How many invitations the inviter sent in the last hour. */
-async function sentLastHour(db: Db | Tx, inviter: number): Promise<number> {
-  const [row] = await db
+/**
+ * The address's keyed hash: HMAC-SHA256 under a key only this server has (derived from the email provider's key, which exists
+ * whenever email invitations do), so a list of addresses cannot be matched against the table. Rows live two days, so a key
+ * change only restarts the once-a-day rule.
+ */
+export function emailKey(email: string): string {
+  const key = `social.invite-email:${getConfig().RESEND_API_KEY ?? ""}`;
+  return createHmac("sha256", key).update(email, "utf8").digest("hex");
+}
+
+async function count(tx: Tx | Db, where: SQL | undefined): Promise<number> {
+  const [row] = await tx
     .select({ n: sql<number>`count(*)::int` })
     .from(roomInvites)
-    .where(and(eq(roomInvites.inviterUserId, inviter), gt(roomInvites.createdAt, sql`now() - interval '1 hour'`)));
+    .where(where);
   return row?.n ?? 0;
 }
 
-const recently = sql`now() - ${sql.raw(`interval '${REPEAT_HOURS} hours'`)}`;
-
-/** Invite a person (by user id) to the room: a room_invite notification, once a day per room and person. */
-export async function invitePerson(
+/** Tell a person (by user id) about the room: a room_invite notification, once a day per room and person. */
+async function tellPerson(
   tx: Tx,
-  input: { roomId: string; inviter: Identity; inviterProfileId: string; invitee: number },
+  input: { roomId: string; inviter: Identity; inviterProfileId: string; invitee: number; record: boolean },
 ): Promise<void> {
-  const [recent] = await tx
-    .select({ id: roomInvites.id })
-    .from(roomInvites)
-    .where(
-      and(
-        eq(roomInvites.roomId, input.roomId),
-        eq(roomInvites.inviteeUserId, input.invitee),
-        gt(roomInvites.createdAt, recently),
-      ),
-    )
-    .limit(1);
-  await tx
-    .insert(roomInvites)
-    .values({ roomId: input.roomId, inviterUserId: input.inviter.userId, inviteeUserId: input.invitee });
-  if (recent) return;
+  const told = await count(
+    tx,
+    and(eq(roomInvites.roomId, input.roomId), eq(roomInvites.inviteeUserId, input.invitee), gt(roomInvites.createdAt, DAY)),
+  );
+  if (input.record || !told)
+    await tx
+      .insert(roomInvites)
+      .values({ roomId: input.roomId, inviterUserId: input.inviter.userId, inviteeUserId: input.invitee });
+  if (told) return;
   await notify(tx, {
     recipients: [input.invitee],
     kind: "room_invite",
@@ -96,30 +113,53 @@ export async function invitePerson(
   });
 }
 
-/**
- * Handles an email entry (spec 059); set by the email invitations module so this one does not depend on it. Called outside
- * the handles' transaction and in parallel, since it may wait on Sefaria and on the email provider.
- */
-export type EmailInviter = (
-  db: Db,
-  input: {
-    roomId: string;
-    roomTitle: string;
-    inviter: Identity;
-    inviterProfileId: string;
-    inviterName: string;
-    email: string;
-    lang: "en" | "he";
-  },
-) => Promise<InviteStatus>;
-
-let emailInviter: EmailInviter = async () => "unavailable";
-
-export function setEmailInviter(fn: EmailInviter): void {
-  emailInviter = fn;
+interface Delivery {
+  email: string;
+  roomId: string;
+  roomTitle: string;
+  inviter: Identity;
+  inviterProfileId: string;
+  inviterName: string;
+  lang: "en" | "he";
 }
 
-/** Spec 058 AC-001..003: invite each entry to the room. */
+/** After the answer: tell the address's Sefaria account in Social, or email the address. Failures are logged, never answered. */
+export async function deliver(db: Db, d: Delivery): Promise<"told" | "emailed" | "skipped" | "failed"> {
+  try {
+    const account = lookupConfigured() ? await sefariaUserByEmail(d.email) : null;
+    if (account !== null) {
+      if (account === d.inviter.userId) return "skipped";
+      const [member] = await db
+        .select({ userId: roomMembers.userId })
+        .from(roomMembers)
+        .where(and(eq(roomMembers.roomId, d.roomId), eq(roomMembers.userId, account)));
+      if (member) return "skipped";
+      await db.transaction((tx) =>
+        tellPerson(tx, {
+          roomId: d.roomId,
+          inviter: d.inviter,
+          inviterProfileId: d.inviterProfileId,
+          invitee: account,
+          record: false,
+        }),
+      );
+      return "told";
+    }
+    await sendInviteEmail({ to: d.email, inviterName: d.inviterName, roomTitle: d.roomTitle, roomId: d.roomId, lang: d.lang });
+    return "emailed";
+  } catch (e) {
+    log.warn("invite.delivery_failed", { error: e instanceof Error ? e.message.slice(0, 120) : "error" });
+    return "failed";
+  }
+}
+
+/** Deliveries started by answers already sent; tests wait for them. */
+const pending = new Set<Promise<unknown>>();
+export async function settleDeliveries(): Promise<void> {
+  while (pending.size) await Promise.allSettled([...pending]);
+}
+
+/** Specs 058 and 059: invite each entry to the room. */
 export async function inviteToRoom(
   identity: Identity,
   roomId: string,
@@ -130,12 +170,30 @@ export async function inviteToRoom(
   if (to.length === 0 || to.length > MAX_ENTRIES) throw new ApiError(400, "request.invalid");
   const room = await membership(db, identity, roomId);
   const entries = to.map((raw) => ({ raw, entry: classifyEntry(raw) }));
-  const counted = entries.filter((e) => e.entry.kind !== "invalid").length;
-  if ((await sentLastHour(db, identity.userId)) + counted > INVITES_PER_HOUR)
-    throw new ApiError(429, "invite.rate_limited", { "retry-after": "3600" });
+  const emailOn = emailConfigured();
+  const results: InviteResult[] = entries.map(({ raw }) => ({ to: raw, status: "invalid" }));
+  const deliveries: Delivery[] = [];
 
-  const results: (InviteResult | null)[] = entries.map(() => null);
-  const own = await db.transaction(async (tx) => {
+  await db.transaction(async (tx) => {
+    // One inviter's requests run one at a time from here: the counts below and the rows written are seen together.
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`social.invites:${identity.userId}`}))`);
+    await tx.delete(roomInvites).where(lt(roomInvites.createdAt, KEEP));
+    const handleCount = entries.filter((e) => e.entry.kind === "handle").length;
+    const emailCount = emailOn ? new Set(entries.flatMap((e) => (e.entry.kind === "email" ? [e.entry.email] : []))).size : 0;
+    const lastHour = await count(tx, and(eq(roomInvites.inviterUserId, identity.userId), gt(roomInvites.createdAt, HOUR)));
+    const emailsToday = emailCount
+      ? await count(
+          tx,
+          and(
+            eq(roomInvites.inviterUserId, identity.userId),
+            sql`${roomInvites.emailSha256} is not null`,
+            gt(roomInvites.createdAt, DAY),
+          ),
+        )
+      : 0;
+    if (lastHour + handleCount + emailCount > INVITES_PER_HOUR || emailsToday + emailCount > EMAIL_INVITES_PER_DAY)
+      throw new ApiError(429, "invite.rate_limited", { "retry-after": "3600" });
+
     const own = await ensurePersonProfile(tx, identity);
     const handles = [...new Set(entries.flatMap((e) => (e.entry.kind === "handle" ? [e.entry.handle] : [])))];
     const byHandle = new Map<string, number | null>();
@@ -158,47 +216,52 @@ export async function inviteToRoom(
           ).map((r) => r.userId)
         : [],
     );
-    const done = new Set<number>();
-    for (const [i, { raw, entry }] of entries.entries()) {
-      const answer = (status: InviteStatus) => (results[i] = { to: raw, status });
-      if (entry.kind === "invalid") {
-        answer("invalid");
+    const told = new Set<number>();
+    const reserved = new Set<string>();
+    for (const [i, { entry }] of entries.entries()) {
+      const answer = (status: InviteStatus) => (results[i]!.status = status);
+      if (entry.kind === "invalid") continue;
+      if (entry.kind === "email") {
+        if (!emailOn) {
+          answer("unavailable");
+          continue;
+        }
+        answer("invited");
+        if (reserved.has(entry.email)) continue;
+        reserved.add(entry.email);
+        // Once a day per address, whoever invites it: reserved now, under a lock on the address, delivered after the answer.
+        const key = emailKey(entry.email);
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`social.invite-email:${key}`}))`);
+        const recent = await count(tx, and(eq(roomInvites.emailSha256, key), gt(roomInvites.createdAt, DAY)));
+        if (recent) continue;
+        await tx.insert(roomInvites).values({ roomId, inviterUserId: identity.userId, emailSha256: key });
+        deliveries.push({
+          email: entry.email,
+          roomId,
+          roomTitle: room.title,
+          inviter: identity,
+          inviterProfileId: own.id,
+          inviterName: own.name,
+          lang,
+        });
         continue;
       }
-      if (entry.kind === "email") continue; // after the transaction, below
       const userId = byHandle.get(entry.handle) ?? null;
       if (userId === null) answer("not_found");
       else if (userId === identity.userId) answer("self");
       else if (members.has(userId)) answer("member");
       else {
-        if (!done.has(userId)) await invitePerson(tx, { roomId, inviter: identity, inviterProfileId: own.id, invitee: userId });
-        done.add(userId);
+        if (!told.has(userId))
+          await tellPerson(tx, { roomId, inviter: identity, inviterProfileId: own.id, invitee: userId, record: true });
+        told.add(userId);
         answer("invited");
       }
     }
-    return own;
   });
 
-  // Email entries (spec 059): each on its own, in parallel; the same address twice is sent once.
-  const emails = new Map<string, Promise<InviteStatus>>();
-  await Promise.all(
-    entries.map(async ({ raw, entry }, i) => {
-      if (entry.kind !== "email") return;
-      if (!emails.has(entry.email))
-        emails.set(
-          entry.email,
-          emailInviter(db, {
-            roomId,
-            roomTitle: room.title,
-            inviter: identity,
-            inviterProfileId: own.id,
-            inviterName: own.name,
-            email: entry.email,
-            lang,
-          }).catch(() => "failed" as const),
-        );
-      results[i] = { to: raw, status: await emails.get(entry.email)! };
-    }),
-  );
-  return results.map((r) => r!);
+  for (const d of deliveries) {
+    const p: Promise<unknown> = deliver(db, d).finally(() => pending.delete(p));
+    pending.add(p);
+  }
+  return results;
 }

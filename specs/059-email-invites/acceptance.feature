@@ -8,12 +8,13 @@ Feature: Invite by email from the same bar; a Sefaria user is told in Social, an
 
   @AC-002
   Scenario: AC-002 an address without an account
-    When a member invites new@example.org twice in a day
+    When members invite new@example.org twice in a day, from two rooms
     Then one email is sent, naming the inviter, the room and its link, escaped
 
   @AC-003
   Scenario: AC-003 no telling who has an account
-    Then both answers are invited and no table holds either address
+    Then both answers are invited at once, even while the provider is slow
+    And no table holds either address, only keyed hashes, and old rows are removed
 
   @AC-004
   Scenario: AC-004 no provider key
@@ -22,6 +23,7 @@ Feature: Invite by email from the same bar; a Sefaria user is told in Social, an
     Then it is unavailable, nothing is looked up, and the bar says email invites are not available
 
   @AC-005
-  Scenario: AC-005 a failure
+  Scenario: AC-005 failures and limits
     When the provider fails for one address
-    Then that entry is failed and the others are answered as usual
+    Then every entry is answered invited, the failure is logged, and the other address is emailed
+    And requests sent together cannot pass the hourly limit

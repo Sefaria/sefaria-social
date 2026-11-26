@@ -7781,6 +7781,16 @@
               }
             }
           },
+          "429": {
+            "description": "Error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "503": {
             "description": "A dependency is unavailable (auth.unavailable, webhook.unavailable).",
             "content": {

@@ -4,9 +4,13 @@ import { and, eq, ilike, or, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
 import { profiles } from "../db/schema";
+import { ApiError } from "../http/errors";
+import { createRateLimiter } from "../http/rate-limit";
 
 export const PEOPLE_LIMIT = 8;
 export const QUERY_MAX = 30;
+/** Suggestions are asked as someone types; this is far above typing, and keeps a script from listing everyone fast. */
+const limiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
 
 export interface PersonDto {
   id: string;
@@ -19,7 +23,8 @@ export interface PersonDto {
 const literal = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 export async function searchPeople(identity: Identity, q: string, db: Db = getDb()): Promise<PersonDto[]> {
-  void identity;
+  const limit = limiter.hit(`people:${identity.userId}`);
+  if (!limit.allowed) throw new ApiError(429, "request.rate_limited", { "retry-after": String(limit.retryAfterSeconds) });
   const text = q.slice(0, QUERY_MAX).normalize("NFKC").trim();
   const handlePart = text.toLowerCase().replace(/^@/, "");
   const namePart = text.replace(/^@/, "");

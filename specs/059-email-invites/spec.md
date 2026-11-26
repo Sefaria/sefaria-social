@@ -17,18 +17,21 @@ none) and cannot send email today.
 
 ## Acceptance criteria
 
-- AC-001 WHEN an invitation's entry is an email address and the account lookup is configured THE SYSTEM SHALL ask Sefaria
-  (`POST <SEFARIA_LOOKUP_URL>`, the body signed like the deletion webhook) which account has that address; for an account it
-  SHALL add the same `room_invite` notification as a handle does, with no email
-- AC-002 WHEN no Sefaria account has the address, or the lookup is not configured, THE SYSTEM SHALL send one email to it through
-  the email provider, saying who invited them, the room's title and its link, with every value escaped, at most once per room
-  and address in 24 hours
-- AC-003 THE SYSTEM SHALL answer an email entry `invited` whether or not an account has that address (the answer never tells the
-  caller who has an account), and SHALL keep no email address: only its SHA-256, to apply the 24-hour rule
+- AC-001 WHEN an invitation's entry is an email address and the account lookup is configured THE SYSTEM SHALL, after answering,
+  ask Sefaria (`POST <SEFARIA_LOOKUP_URL>`, the body signed like the deletion webhook) which active account has that address;
+  for an account that is not the inviter and not in the room it SHALL add the same `room_invite` notification as a handle does,
+  with no email
+- AC-002 WHEN no Sefaria account has the address, or the lookup is not configured, THE SYSTEM SHALL, after answering, send one
+  email to it through the email provider, in the inviter's interface language, saying who invited them, the room's title and
+  its link, with every value escaped; an address is emailed at most once in 24 hours, whatever the room or the inviter
+- AC-003 THE SYSTEM SHALL answer every email entry `invited` at once, before any lookup or email, so neither the answer nor its
+  time tells the caller who has an account; it SHALL keep no email address, only a hash keyed with a server secret, and SHALL
+  remove invitation rows after two days
 - AC-004 WHILE no email provider key is set THE SYSTEM SHALL answer every email entry `unavailable` without looking it up, and
   the bar SHALL say that inviting by email is not available here; handles work as before
-- AC-005 WHEN the lookup or the provider fails or takes more than 10 seconds THE SYSTEM SHALL answer that entry `failed`, the
-  others unaffected, and log it without the address
+- AC-005 WHEN the lookup or the provider fails or takes more than 10 seconds THE SYSTEM SHALL log it without the address and
+  leave the other entries unaffected; an inviter may invite at most 100 addresses a day, and the hourly limit of spec 058 counts
+  email entries too, both counted under one lock per inviter so requests sent together cannot pass them
 
 ## Out of scope
 
@@ -42,4 +45,5 @@ none) and cannot send email today.
   (at most 1 KB), answers 200 `{"user_id": n}` or 404; unsigned or wrong-signature calls answer 401. It finds the user with
   `get_user(email)`, never `User.objects.get(username=...)` (the username is a hash).
 - Provider: Resend (`RESEND_API_KEY`, sender `INVITE_EMAIL_FROM`). The room's link is `<ROOM_LINK_ORIGIN>/social/r/<roomId>`.
-- The email entry counts toward the caller's 50 invitations an hour (spec 058).
+- Delivery runs in the server process after the answer; a server stopped in between loses that delivery (the address is still
+  counted for the day). A queue on the row (decision 0014) is the next step if that matters.

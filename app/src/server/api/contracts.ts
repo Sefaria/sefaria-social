@@ -1114,6 +1114,7 @@ export const searchPeople = defineEndpoint({
   summary: "Up to 8 people whose @handle starts with q (a leading @ ignored) or whose name contains it, handles first.",
   tags: ["profiles"],
   query: z.object({ q: z.string().min(1).max(30) }),
+  errors: [429],
   responses: { 200: { description: "Matching people, public fields only.", schema: z.object({ people: z.array(Person) }) } },
 });
 
