@@ -19,6 +19,7 @@ import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
 import { Route as ApiV1LiveRouteImport } from './routes/api/v1/live'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiV1NotificationsRouteImport } from './routes/api/v1/notifications'
+import { Route as ApiV1PeopleRouteImport } from './routes/api/v1/people'
 import { Route as ApiV1PostsRouteImport } from './routes/api/v1/posts'
 import { Route as ApiV1ProfilesRouteImport } from './routes/api/v1/profiles'
 import { Route as ApiV1RoomsRouteImport } from './routes/api/v1/rooms'
@@ -57,6 +58,7 @@ import { Route as ApiV1RecordingsRecordingIdFinishRouteImport } from './routes/a
 import { Route as ApiV1RecordingsRecordingIdMediaRouteImport } from './routes/api/v1/recordings.$recordingId.media'
 import { Route as ApiV1RecordingsRecordingIdStateRouteImport } from './routes/api/v1/recordings.$recordingId.state'
 import { Route as ApiV1RoomsRoomIdBroadcastsRouteImport } from './routes/api/v1/rooms.$roomId.broadcasts'
+import { Route as ApiV1RoomsRoomIdInvitesRouteImport } from './routes/api/v1/rooms.$roomId.invites'
 import { Route as ApiV1RoomsRoomIdMembersRouteImport } from './routes/api/v1/rooms.$roomId.members'
 import { Route as ApiV1RoomsRoomIdRecordingsRouteImport } from './routes/api/v1/rooms.$roomId.recordings'
 import { Route as ApiV1RoomsRoomIdStatusRouteImport } from './routes/api/v1/rooms.$roomId.status'
@@ -116,6 +118,11 @@ const ApiV1MeRoute = ApiV1MeRouteImport.update({
 const ApiV1NotificationsRoute = ApiV1NotificationsRouteImport.update({
   id: '/api/v1/notifications',
   path: '/api/v1/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1PeopleRoute = ApiV1PeopleRouteImport.update({
+  id: '/api/v1/people',
+  path: '/api/v1/people',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1PostsRoute = ApiV1PostsRouteImport.update({
@@ -323,6 +330,11 @@ const ApiV1RoomsRoomIdBroadcastsRoute =
     path: '/broadcasts',
     getParentRoute: () => ApiV1RoomsRoomIdRoute,
   } as any)
+const ApiV1RoomsRoomIdInvitesRoute = ApiV1RoomsRoomIdInvitesRouteImport.update({
+  id: '/invites',
+  path: '/invites',
+  getParentRoute: () => ApiV1RoomsRoomIdRoute,
+} as any)
 const ApiV1RoomsRoomIdMembersRoute = ApiV1RoomsRoomIdMembersRouteImport.update({
   id: '/members',
   path: '/members',
@@ -392,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/live': typeof ApiV1LiveRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
+  '/api/v1/people': typeof ApiV1PeopleRoute
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
@@ -430,6 +443,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
   '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
   '/api/v1/rooms/$roomId/broadcasts': typeof ApiV1RoomsRoomIdBroadcastsRoute
+  '/api/v1/rooms/$roomId/invites': typeof ApiV1RoomsRoomIdInvitesRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
@@ -452,6 +466,7 @@ export interface FileRoutesByTo {
   '/api/v1/live': typeof ApiV1LiveRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
+  '/api/v1/people': typeof ApiV1PeopleRoute
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
@@ -490,6 +505,7 @@ export interface FileRoutesByTo {
   '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
   '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
   '/api/v1/rooms/$roomId/broadcasts': typeof ApiV1RoomsRoomIdBroadcastsRoute
+  '/api/v1/rooms/$roomId/invites': typeof ApiV1RoomsRoomIdInvitesRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
@@ -513,6 +529,7 @@ export interface FileRoutesById {
   '/api/v1/live': typeof ApiV1LiveRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/notifications': typeof ApiV1NotificationsRouteWithChildren
+  '/api/v1/people': typeof ApiV1PeopleRoute
   '/api/v1/posts': typeof ApiV1PostsRouteWithChildren
   '/api/v1/profiles': typeof ApiV1ProfilesRouteWithChildren
   '/api/v1/rooms': typeof ApiV1RoomsRouteWithChildren
@@ -551,6 +568,7 @@ export interface FileRoutesById {
   '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
   '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
   '/api/v1/rooms/$roomId/broadcasts': typeof ApiV1RoomsRoomIdBroadcastsRoute
+  '/api/v1/rooms/$roomId/invites': typeof ApiV1RoomsRoomIdInvitesRoute
   '/api/v1/rooms/$roomId/members': typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   '/api/v1/rooms/$roomId/recordings': typeof ApiV1RoomsRoomIdRecordingsRoute
   '/api/v1/rooms/$roomId/status': typeof ApiV1RoomsRoomIdStatusRoute
@@ -575,6 +593,7 @@ export interface FileRouteTypes {
     | '/api/v1/live'
     | '/api/v1/me'
     | '/api/v1/notifications'
+    | '/api/v1/people'
     | '/api/v1/posts'
     | '/api/v1/profiles'
     | '/api/v1/rooms'
@@ -613,6 +632,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId/media'
     | '/api/v1/recordings/$recordingId/state'
     | '/api/v1/rooms/$roomId/broadcasts'
+    | '/api/v1/rooms/$roomId/invites'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
@@ -635,6 +655,7 @@ export interface FileRouteTypes {
     | '/api/v1/live'
     | '/api/v1/me'
     | '/api/v1/notifications'
+    | '/api/v1/people'
     | '/api/v1/posts'
     | '/api/v1/profiles'
     | '/api/v1/rooms'
@@ -673,6 +694,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId/media'
     | '/api/v1/recordings/$recordingId/state'
     | '/api/v1/rooms/$roomId/broadcasts'
+    | '/api/v1/rooms/$roomId/invites'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
@@ -695,6 +717,7 @@ export interface FileRouteTypes {
     | '/api/v1/live'
     | '/api/v1/me'
     | '/api/v1/notifications'
+    | '/api/v1/people'
     | '/api/v1/posts'
     | '/api/v1/profiles'
     | '/api/v1/rooms'
@@ -733,6 +756,7 @@ export interface FileRouteTypes {
     | '/api/v1/recordings/$recordingId/media'
     | '/api/v1/recordings/$recordingId/state'
     | '/api/v1/rooms/$roomId/broadcasts'
+    | '/api/v1/rooms/$roomId/invites'
     | '/api/v1/rooms/$roomId/members'
     | '/api/v1/rooms/$roomId/recordings'
     | '/api/v1/rooms/$roomId/status'
@@ -756,6 +780,7 @@ export interface RootRouteChildren {
   ApiV1LiveRoute: typeof ApiV1LiveRoute
   ApiV1MeRoute: typeof ApiV1MeRoute
   ApiV1NotificationsRoute: typeof ApiV1NotificationsRouteWithChildren
+  ApiV1PeopleRoute: typeof ApiV1PeopleRoute
   ApiV1PostsRoute: typeof ApiV1PostsRouteWithChildren
   ApiV1ProfilesRoute: typeof ApiV1ProfilesRouteWithChildren
   ApiV1RoomsRoute: typeof ApiV1RoomsRouteWithChildren
@@ -845,6 +870,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/notifications'
       fullPath: '/api/v1/notifications'
       preLoaderRoute: typeof ApiV1NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/people': {
+      id: '/api/v1/people'
+      path: '/api/v1/people'
+      fullPath: '/api/v1/people'
+      preLoaderRoute: typeof ApiV1PeopleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/posts': {
@@ -1113,6 +1145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1RoomsRoomIdBroadcastsRouteImport
       parentRoute: typeof ApiV1RoomsRoomIdRoute
     }
+    '/api/v1/rooms/$roomId/invites': {
+      id: '/api/v1/rooms/$roomId/invites'
+      path: '/invites'
+      fullPath: '/api/v1/rooms/$roomId/invites'
+      preLoaderRoute: typeof ApiV1RoomsRoomIdInvitesRouteImport
+      parentRoute: typeof ApiV1RoomsRoomIdRoute
+    }
     '/api/v1/rooms/$roomId/members': {
       id: '/api/v1/rooms/$roomId/members'
       path: '/members'
@@ -1270,6 +1309,7 @@ const ApiV1RoomsRoomIdMembersRouteWithChildren =
 
 interface ApiV1RoomsRoomIdRouteChildren {
   ApiV1RoomsRoomIdBroadcastsRoute: typeof ApiV1RoomsRoomIdBroadcastsRoute
+  ApiV1RoomsRoomIdInvitesRoute: typeof ApiV1RoomsRoomIdInvitesRoute
   ApiV1RoomsRoomIdMembersRoute: typeof ApiV1RoomsRoomIdMembersRouteWithChildren
   ApiV1RoomsRoomIdRecordingsRoute: typeof ApiV1RoomsRoomIdRecordingsRoute
   ApiV1RoomsRoomIdStatusRoute: typeof ApiV1RoomsRoomIdStatusRoute
@@ -1281,6 +1321,7 @@ interface ApiV1RoomsRoomIdRouteChildren {
 
 const ApiV1RoomsRoomIdRouteChildren: ApiV1RoomsRoomIdRouteChildren = {
   ApiV1RoomsRoomIdBroadcastsRoute: ApiV1RoomsRoomIdBroadcastsRoute,
+  ApiV1RoomsRoomIdInvitesRoute: ApiV1RoomsRoomIdInvitesRoute,
   ApiV1RoomsRoomIdMembersRoute: ApiV1RoomsRoomIdMembersRouteWithChildren,
   ApiV1RoomsRoomIdRecordingsRoute: ApiV1RoomsRoomIdRecordingsRoute,
   ApiV1RoomsRoomIdStatusRoute: ApiV1RoomsRoomIdStatusRoute,
@@ -1390,6 +1431,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1LiveRoute: ApiV1LiveRoute,
   ApiV1MeRoute: ApiV1MeRoute,
   ApiV1NotificationsRoute: ApiV1NotificationsRouteWithChildren,
+  ApiV1PeopleRoute: ApiV1PeopleRoute,
   ApiV1PostsRoute: ApiV1PostsRouteWithChildren,
   ApiV1ProfilesRoute: ApiV1ProfilesRouteWithChildren,
   ApiV1RoomsRoute: ApiV1RoomsRouteWithChildren,

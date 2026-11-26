@@ -183,9 +183,11 @@ const ProfilesQuery = z.strictObject({ suggested: z.literal("1") });
 // ── Notifications (spec 026) ──────────────────────────────────────────────────────────────────────────────────────────────
 export const Notification = z.object({
   id: z.uuid(),
-  kind: z.enum(["follow", "reply", "reaction", "post"]),
+  kind: z.enum(["follow", "reply", "reaction", "post", "room_invite"]),
   actor: z.object({ id: z.uuid(), name: z.string() }).nullable(),
   post: z.object({ id: z.uuid(), snippet: z.string() }).nullable(),
+  /** Spec 058: the room a room_invite is to. */
+  room: z.object({ id: z.uuid(), title: z.string() }).nullable(),
   createdAt: Iso,
   read: z.boolean(),
 });
@@ -1068,6 +1070,51 @@ export const getLiveStatus = defineEndpoint({
   },
 });
 
+// ── Room invitations and people search (spec 058) ───────────────────────────────────────────────────────────────────────
+export const RoomInviteInput = z.strictObject({
+  /** "@handle", "handle" or an email address (spec 059), up to 20. */
+  to: z.array(z.string().min(1).max(320)).min(1).max(20),
+});
+
+export const RoomInviteResults = z.object({
+  results: z.array(
+    z.object({
+      to: z.string(),
+      status: z.enum(["invited", "member", "self", "not_found", "invalid", "unavailable", "failed"]),
+    }),
+  ),
+});
+
+export const inviteToRoom = defineEndpoint({
+  operationId: "inviteToRoom",
+  method: "POST",
+  path: "/api/v1/rooms/{roomId}/invites",
+  summary:
+    "Invite people to a room by @handle or email (members only): one answer per entry; a person is told once a day per room; 50 an hour per inviter.",
+  tags: ["rooms"],
+  params: z.object({ roomId: z.uuid() }),
+  body: RoomInviteInput,
+  errors: [400, 404, 429],
+  responses: { 200: { description: "What happened to each entry, in order.", schema: RoomInviteResults } },
+});
+
+export const Person = z.object({
+  id: z.uuid(),
+  handle: z.string(),
+  name: z.string(),
+  kind: z.literal("person"),
+});
+
+export const searchPeople = defineEndpoint({
+  operationId: "searchPeople",
+  method: "GET",
+  path: "/api/v1/people",
+  summary: "Up to 8 people whose @handle starts with q (a leading @ ignored) or whose name contains it, handles first.",
+  tags: ["profiles"],
+  query: z.object({ q: z.string().min(1).max(30) }),
+  responses: { 200: { description: "Matching people, public fields only.", schema: z.object({ people: z.array(Person) }) } },
+});
+
 export const ENDPOINTS = [
   getHealth,
   getMe,
@@ -1119,6 +1166,8 @@ export const ENDPOINTS = [
   listProfiles,
   getProfile,
   getProfileByHandle,
+  inviteToRoom,
+  searchPeople,
   followProfile,
   unfollowProfile,
   listNotifications,

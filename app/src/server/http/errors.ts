@@ -39,6 +39,7 @@ export type ErrorCode =
   | "profile.not_found"
   | "profile.handle_invalid"
   | "profile.handle_taken"
+  | "invite.rate_limited"
   | "follow.self"
   | "internal";
 
@@ -82,6 +83,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   "profile.not_found": "Profile not found.",
   "profile.handle_invalid": "A handle is 3 to 30 letters a–z, digits or _, starting with a letter.",
   "profile.handle_taken": "That handle is taken.",
+  "invite.rate_limited": "Too many invitations in the last hour. Try again later.",
   "follow.self": "You cannot follow yourself.",
   internal: "Something went wrong.",
 };

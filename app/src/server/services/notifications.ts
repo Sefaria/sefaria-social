@@ -1,14 +1,14 @@
 // Notifications (spec 026): written in the same transaction as the action that causes them, read by the recipient, never
-// about one's own action. In-app only.
+// about one's own action. In-app only. A room_invite (spec 058) names the room; it goes with the room.
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
-import { follows, notifications, posts, profileAdmins, profiles } from "../db/schema";
+import { follows, notifications, posts, profileAdmins, profiles, rooms } from "../db/schema";
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 type Executor = Db | Tx;
 
-export type NotificationKind = "follow" | "reply" | "reaction" | "post";
+export type NotificationKind = "follow" | "reply" | "reaction" | "post" | "room_invite";
 export const NOTIFICATION_LIMIT = 50;
 const SNIPPET = 120;
 
@@ -17,6 +17,8 @@ export interface NotificationDto {
   kind: NotificationKind;
   actor: { id: string; name: string } | null;
   post: { id: string; snippet: string } | null;
+  /** Spec 058: the room a room_invite is to. */
+  room: { id: string; title: string } | null;
   createdAt: string;
   read: boolean;
 }
@@ -35,7 +37,14 @@ export async function ownersOf(db: Executor, profileId: string): Promise<number[
 
 export async function notify(
   db: Executor,
-  input: { recipients: number[]; kind: NotificationKind; actorProfileId: string; postId?: string | null; actorUserId: number },
+  input: {
+    recipients: number[];
+    kind: NotificationKind;
+    actorProfileId: string;
+    postId?: string | null;
+    roomId?: string | null;
+    actorUserId: number;
+  },
 ): Promise<void> {
   const recipients = [...new Set(input.recipients)].filter((r) => r !== input.actorUserId);
   if (recipients.length === 0) return;
@@ -45,6 +54,7 @@ export async function notify(
       kind: input.kind,
       actorProfileId: input.actorProfileId,
       postId: input.postId ?? null,
+      roomId: input.roomId ?? null,
     })),
   );
 }
@@ -70,10 +80,13 @@ export async function listNotifications(
       postId: posts.id,
       postBody: posts.body,
       postDeleted: posts.deletedAt,
+      roomId: rooms.id,
+      roomTitle: rooms.title,
     })
     .from(notifications)
     .leftJoin(profiles, eq(profiles.id, notifications.actorProfileId))
     .leftJoin(posts, eq(posts.id, notifications.postId))
+    .leftJoin(rooms, eq(rooms.id, notifications.roomId))
     .where(eq(notifications.recipientUserId, identity.userId))
     .orderBy(desc(notifications.createdAt), desc(notifications.id))
     .limit(NOTIFICATION_LIMIT);
@@ -89,6 +102,7 @@ export async function listNotifications(
         kind: r.kind as NotificationKind,
         actor: r.actorId ? { id: r.actorId, name: r.actorName ?? "" } : null,
         post: r.postId ? { id: r.postId, snippet: snippet(r.postBody ?? "") } : null,
+        room: r.roomId ? { id: r.roomId, title: r.roomTitle ?? "" } : null,
         createdAt: r.createdAt.toISOString(),
         read: r.readAt !== null,
       })),

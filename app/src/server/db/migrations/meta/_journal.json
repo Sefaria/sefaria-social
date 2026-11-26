@@ -92,6 +92,13 @@
       "when": 1795726166357,
       "tag": "0012_profile_handles",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795726767629,
+      "tag": "0013_room_invites",
+      "breakpoints": true
     }
   ]
 }
