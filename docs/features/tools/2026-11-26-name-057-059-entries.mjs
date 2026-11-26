@@ -26,7 +26,12 @@ const ENTRIES = {
       "Under Invite people in the room's lobby, a field takes @handles (with suggestions) and emails as chips and sends them; each comes back with what happened; an invited person sees 'X invited you to <room>' with Join in their activity.",
     acs: ["058/AC-002", "058/AC-005"],
     status: "built",
-    tests: ["app/src/features/room/invite-bar.test.tsx", "app/src/features/notifications/sentence.test.ts", "e2e/rooms.spec.ts"],
+    tests: [
+      "app/src/api.invites.int.test.ts",
+      "app/src/features/room/invite-bar.test.tsx",
+      "app/src/features/notifications/sentence.test.ts",
+      "e2e/rooms.spec.ts",
+    ],
   },
   "API-052": {
     name: "Room invitations and people search",
