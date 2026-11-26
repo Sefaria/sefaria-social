@@ -463,6 +463,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/profiles/by-handle/{handle}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The profile with this @handle (any case, with or without the @) (spec 057). */
+        get: operations["getProfileByHandle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/profiles/me": {
         parameters: {
             query?: never;
@@ -477,7 +494,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Change the viewer's name or bio. */
+        /** Change the viewer's name, bio or @handle. */
         patch: operations["updateMyProfile"];
         trace?: never;
     };
@@ -1998,6 +2015,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         author: {
+                            handle: string;
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
@@ -2021,6 +2039,7 @@ export interface operations {
                         quoteCount: number;
                         quoted: {
                             author: {
+                                handle: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
@@ -2040,6 +2059,7 @@ export interface operations {
                         repostCount: number;
                         reposted: boolean;
                         repostedBy: {
+                            handle: string;
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
@@ -2125,6 +2145,7 @@ export interface operations {
                     "application/json": {
                         post: {
                             author: {
+                                handle: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
@@ -2148,6 +2169,7 @@ export interface operations {
                             quoteCount: number;
                             quoted: {
                                 author: {
+                                    handle: string;
                                     /** Format: uuid */
                                     id: string;
                                     /** @enum {string} */
@@ -2167,6 +2189,7 @@ export interface operations {
                             repostCount: number;
                             reposted: boolean;
                             repostedBy: {
+                                handle: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
@@ -2176,6 +2199,7 @@ export interface operations {
                         };
                         replies: {
                             author: {
+                                handle: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
@@ -2442,6 +2466,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         author: {
+                            handle: string;
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
@@ -2649,6 +2674,7 @@ export interface operations {
                             canManage: boolean;
                             followers: number;
                             following: number;
+                            handle: string;
                             /** Format: uuid */
                             id: string;
                             isOwn: boolean;
@@ -2709,6 +2735,7 @@ export interface operations {
                     "application/json": {
                         posts: {
                             author: {
+                                handle: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
@@ -2732,6 +2759,7 @@ export interface operations {
                             quoteCount: number;
                             quoted: {
                                 author: {
+                                    handle: string;
                                     /** Format: uuid */
                                     id: string;
                                     /** @enum {string} */
@@ -2751,6 +2779,7 @@ export interface operations {
                             repostCount: number;
                             reposted: boolean;
                             repostedBy: {
+                                handle: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
@@ -2763,6 +2792,7 @@ export interface operations {
                             canManage: boolean;
                             followers: number;
                             following: number;
+                            handle: string;
                             /** Format: uuid */
                             id: string;
                             isOwn: boolean;
@@ -2934,6 +2964,77 @@ export interface operations {
             };
         };
     };
+    getProfileByHandle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The profile. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        bio: string;
+                        canManage: boolean;
+                        followers: number;
+                        following: number;
+                        handle: string;
+                        /** Format: uuid */
+                        id: string;
+                        isOwn: boolean;
+                        /** @enum {string} */
+                        kind: "person" | "institution";
+                        name: string;
+                        viewerFollows: boolean;
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getMyProfile: {
         parameters: {
             query?: never;
@@ -2959,6 +3060,7 @@ export interface operations {
                         canManage: boolean;
                         followers: number;
                         following: number;
+                        handle: string;
                         /** Format: uuid */
                         id: string;
                         isOwn: boolean;
@@ -3000,6 +3102,7 @@ export interface operations {
             content: {
                 "application/json": {
                     bio?: string;
+                    handle?: string;
                     name?: string;
                 };
             };
@@ -3021,6 +3124,7 @@ export interface operations {
                         canManage: boolean;
                         followers: number;
                         following: number;
+                        handle: string;
                         /** Format: uuid */
                         id: string;
                         isOwn: boolean;
@@ -3042,6 +3146,15 @@ export interface operations {
             };
             /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4926,6 +5039,7 @@ export interface operations {
                         nextCursor: string | null;
                         posts: {
                             author: {
+                                handle: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
@@ -4949,6 +5063,7 @@ export interface operations {
                             quoteCount: number;
                             quoted: {
                                 author: {
+                                    handle: string;
                                     /** Format: uuid */
                                     id: string;
                                     /** @enum {string} */
@@ -4968,6 +5083,7 @@ export interface operations {
                             repostCount: number;
                             reposted: boolean;
                             repostedBy: {
+                                handle: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */

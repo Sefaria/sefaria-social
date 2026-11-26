@@ -66,7 +66,13 @@ export const Feed = z.object({
 });
 
 // ── Posts, replies, reactions (specs 023, 024) ────────────────────────────────────────────────────────────────────────────
-export const Author = z.object({ id: z.uuid(), kind: z.enum(["person", "institution"]), name: z.string() });
+export const Author = z.object({
+  id: z.uuid(),
+  kind: z.enum(["person", "institution"]),
+  name: z.string(),
+  /** Spec 057: the @handle (without the "@"). */
+  handle: z.string(),
+});
 
 /** The post a quote quotes (spec 030); body, ref, author and createdAt are null when it was deleted. */
 export const QuotedPost = z.object({
@@ -146,6 +152,8 @@ export const Profile = z.object({
   id: z.uuid(),
   kind: z.enum(["person", "institution"]),
   name: z.string(),
+  /** Spec 057: the @handle (without the "@"), unique ignoring case. */
+  handle: z.string(),
   bio: z.string(),
   followers: z.int().nonnegative(),
   following: z.int().nonnegative(),
@@ -163,6 +171,8 @@ export const ProfileList = z.object({ profiles: z.array(Profile) });
 export const ProfileInput = z.strictObject({
   name: z.string().trim().min(1).max(80).optional(),
   bio: z.string().trim().max(300).optional(),
+  /** Spec 057: checked on the server after canonical form (400 profile.handle_invalid, 409 profile.handle_taken). */
+  handle: z.string().max(64).optional(),
 });
 
 export const FollowState = z.object({ following: z.boolean(), followers: z.int().nonnegative() });
@@ -881,9 +891,10 @@ export const updateMyProfile = defineEndpoint({
   operationId: "updateMyProfile",
   method: "PATCH",
   path: "/api/v1/profiles/me",
-  summary: "Change the viewer's name or bio.",
+  summary: "Change the viewer's name, bio or @handle.",
   tags: ["profiles"],
   body: ProfileInput,
+  errors: [400, 409],
   responses: { 200: { description: "The viewer's profile.", schema: MyProfile } },
 });
 
@@ -906,6 +917,19 @@ export const getProfile = defineEndpoint({
   params: ProfileParams,
   errors: [404],
   responses: { 200: { description: "The profile and its posts.", schema: ProfileWithPosts } },
+});
+
+const HandleParams = z.object({ handle: z.string().min(1).max(64) });
+
+export const getProfileByHandle = defineEndpoint({
+  operationId: "getProfileByHandle",
+  method: "GET",
+  path: "/api/v1/profiles/by-handle/{handle}",
+  summary: "The profile with this @handle (any case, with or without the @) (spec 057).",
+  tags: ["profiles"],
+  params: HandleParams,
+  errors: [404],
+  responses: { 200: { description: "The profile.", schema: Profile } },
 });
 
 export const followProfile = defineEndpoint({
@@ -1094,6 +1118,7 @@ export const ENDPOINTS = [
   updateMyProfile,
   listProfiles,
   getProfile,
+  getProfileByHandle,
   followProfile,
   unfollowProfile,
   listNotifications,

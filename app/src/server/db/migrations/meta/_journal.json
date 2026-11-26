@@ -85,6 +85,13 @@
       "when": 1795678128416,
       "tag": "0011_transcripts",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795726166357,
+      "tag": "0012_profile_handles",
+      "breakpoints": true
     }
   ]
 }

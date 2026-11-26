@@ -37,6 +37,8 @@ export type ErrorCode =
   | "reply.not_found"
   | "reply.forbidden"
   | "profile.not_found"
+  | "profile.handle_invalid"
+  | "profile.handle_taken"
   | "follow.self"
   | "internal";
 
@@ -78,6 +80,8 @@ const MESSAGES: Record<ErrorCode, string> = {
   "reply.not_found": "Reply not found.",
   "reply.forbidden": "Only the reply's author can do that.",
   "profile.not_found": "Profile not found.",
+  "profile.handle_invalid": "A handle is 3 to 30 letters a–z, digits or _, starting with a letter.",
+  "profile.handle_taken": "That handle is taken.",
   "follow.self": "You cannot follow yourself.",
   internal: "Something went wrong.",
 };

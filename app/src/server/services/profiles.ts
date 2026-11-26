@@ -6,6 +6,7 @@ import { getDb, type Db } from "../db/client";
 import { follows, profileAdmins, profiles } from "../db/schema";
 import { ApiError } from "../http/errors";
 import { notify, ownersOf } from "./notifications";
+import { canonicalHandle, handleProblem, profileIdByHandle } from "./handles";
 import { administered, ensurePersonProfile, type Executor } from "./person-profile";
 import { postsByProfile, type PostDto } from "./posts";
 
@@ -15,6 +16,8 @@ export interface ProfileDto {
   id: string;
   kind: "person" | "institution";
   name: string;
+  /** Spec 057. */
+  handle: string;
   bio: string;
   followers: number;
   following: number;
@@ -36,6 +39,7 @@ async function profileDto(db: Executor, viewer: number, profileId: string): Prom
       kind: profiles.kind,
       userId: profiles.userId,
       name: profiles.name,
+      handle: profiles.handle,
       bio: profiles.bio,
       followers: sql<number>`(select count(*)::int from ${follows} where ${follows.profileId} = ${profiles.id})`,
       following: sql<number>`(case when ${profiles.userId} is null then 0 else (select count(*)::int from ${follows} where ${follows.followerUserId} = ${profiles.userId}) end)`,
@@ -50,6 +54,7 @@ async function profileDto(db: Executor, viewer: number, profileId: string): Prom
     id: p.id,
     kind: kindOf(p.kind),
     name: p.name,
+    handle: p.handle,
     bio: p.bio,
     followers: Number(p.followers),
     following: Number(p.following),
@@ -65,17 +70,45 @@ export async function getMe(identity: Identity, db: Db = getDb()): Promise<MeDto
   return { ...dto!, administers: await administered(db, identity.userId) };
 }
 
-export async function updateMe(identity: Identity, input: { name?: string; bio?: string }, db: Db = getDb()): Promise<MeDto> {
+export async function updateMe(
+  identity: Identity,
+  input: { name?: string; bio?: string; handle?: string },
+  db: Db = getDb(),
+): Promise<MeDto> {
   const own = await ensurePersonProfile(db, identity);
-  const set: Partial<{ name: string; bio: string }> = {};
+  // Only these fields are written, whatever else a body holds.
+  const set: Partial<{ name: string; bio: string; handle: string }> = {};
   if (input.name !== undefined) set.name = input.name;
   if (input.bio !== undefined) set.bio = input.bio;
-  if (Object.keys(set).length)
-    await db
-      .update(profiles)
-      .set({ ...set, updatedAt: sql`now()` })
-      .where(eq(profiles.id, own.id));
+  if (input.handle !== undefined) {
+    const handle = canonicalHandle(input.handle);
+    if (handleProblem(handle)) throw new ApiError(400, "profile.handle_invalid");
+    const holder = await profileIdByHandle(db, handle);
+    if (holder && holder !== own.id) throw new ApiError(409, "profile.handle_taken");
+    set.handle = handle;
+  }
+  if (Object.keys(set).length) {
+    try {
+      await db
+        .update(profiles)
+        .set({ ...set, updatedAt: sql`now()` })
+        .where(eq(profiles.id, own.id));
+    } catch (e) {
+      // Taken between the check and the write: the unique index decides.
+      if (set.handle && /unique|23505/i.test(`${(e as { code?: string }).code ?? ""} ${String(e)}`))
+        throw new ApiError(409, "profile.handle_taken");
+      throw e;
+    }
+  }
   return getMe(identity, db);
+}
+
+/** Spec 057: the profile with this handle. */
+export async function getProfileByHandle(identity: Identity, handle: string, db: Db = getDb()): Promise<ProfileDto> {
+  const id = await profileIdByHandle(db, handle);
+  const dto = id ? await profileDto(db, identity.userId, id) : null;
+  if (!dto) throw new ApiError(404, "profile.not_found");
+  return dto;
 }
 
 export async function getProfile(

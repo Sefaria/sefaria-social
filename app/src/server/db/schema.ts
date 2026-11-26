@@ -291,10 +291,12 @@ export const profiles = pgTable(
     userId: userId("user_id").unique(),
     name: text("name").notNull(),
     bio: text("bio").notNull().default(""),
+    /** Spec 057: the @handle, unique ignoring case. A trigger (migration 0012) makes the first one from the name; settings change it. */
+    handle: text("handle").notNull().default(""),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("profiles_kind_idx").on(t.kind)],
+  (t) => [index("profiles_kind_idx").on(t.kind), uniqueIndex("profiles_handle_idx").on(sql`lower(${t.handle})`)],
 );
 
 /** Who may post as, and is notified for, an institution profile. */

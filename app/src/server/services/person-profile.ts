@@ -14,18 +14,35 @@ export interface ProfileRow {
   userId: number | null;
   name: string;
   bio: string;
+  /** Spec 057: given by the database on insert. */
+  handle: string;
 }
 
 const FALLBACK_NAME = "Sefaria learner";
 
+const isHandleClash = (e: unknown) => /profiles_handle_idx/.test(`${String(e)} ${JSON.stringify(e)}`);
+
 export async function ensurePersonProfile(db: Executor, identity: Identity): Promise<ProfileRow> {
   const [existing] = await db.select().from(profiles).where(eq(profiles.userId, identity.userId));
   if (existing) return existing;
-  const [created] = await db
-    .insert(profiles)
-    .values({ kind: "person", userId: identity.userId, name: identity.name || FALLBACK_NAME })
-    .onConflictDoNothing({ target: profiles.userId })
-    .returning();
+  // The database gives the new profile a handle (spec 057). Two people with the same name signing in at the same moment can
+  // be given the same one; the unique index refuses the second, which tries again (in a savepoint, so a caller's transaction
+  // goes on).
+  let created: ProfileRow | undefined;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      [created] = await db.transaction((t) =>
+        t
+          .insert(profiles)
+          .values({ kind: "person", userId: identity.userId, name: identity.name || FALLBACK_NAME })
+          .onConflictDoNothing({ target: profiles.userId })
+          .returning(),
+      );
+      break;
+    } catch (e) {
+      if (attempt >= 3 || !isHandleClash(e)) throw e;
+    }
+  }
   if (created) return created;
   const [raced] = await db.select().from(profiles).where(eq(profiles.userId, identity.userId));
   return raced!;

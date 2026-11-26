@@ -31,6 +31,8 @@ export interface AuthorDto {
   id: string;
   kind: "person" | "institution";
   name: string;
+  /** Spec 057. */
+  handle: string;
 }
 
 /** The post a quote quotes; body, ref, author and time are null when it was deleted. */
@@ -93,6 +95,7 @@ function postColumns(viewer: number) {
     authorId: profiles.id,
     authorKind: profiles.kind,
     authorName: profiles.name,
+    authorHandle: profiles.handle,
     replyCount: sql<number>`(select count(*)::int from ${replies} where ${replies.postId} = ${posts.id})`,
     reactionCount: sql<number>`(select count(*)::int from ${reactions} where ${reactions.postId} = ${posts.id})`,
     reacted: sql<boolean>`exists (select 1 from ${reactions} where ${reactions.postId} = ${posts.id} and ${reactions.userId} = ${viewer})`,
@@ -114,6 +117,7 @@ type PostRow = {
   authorId: string;
   authorKind: string;
   authorName: string;
+  authorHandle: string;
   replyCount: number;
   reactionCount: number;
   reacted: boolean;
@@ -130,7 +134,7 @@ const toPost = (r: PostRow): PostDto => ({
   id: r.id,
   body: r.body,
   ref: r.ref,
-  author: { id: r.authorId, kind: kindOf(r.authorKind), name: r.authorName },
+  author: { id: r.authorId, kind: kindOf(r.authorKind), name: r.authorName, handle: r.authorHandle },
   createdAt: r.createdAt.toISOString(),
   replyCount: Number(r.replyCount),
   reactionCount: Number(r.reactionCount),
@@ -225,6 +229,7 @@ async function withQuoted(db: Db, list: PostDto[]): Promise<PostDto[]> {
       authorId: profiles.id,
       authorKind: profiles.kind,
       authorName: profiles.name,
+      authorHandle: profiles.handle,
     })
     .from(posts)
     .innerJoin(profiles, eq(profiles.id, posts.authorProfileId))
@@ -240,7 +245,7 @@ async function withQuoted(db: Db, list: PostDto[]): Promise<PostDto[]> {
         body: q.body,
         ref: q.ref,
         createdAt: q.createdAt.toISOString(),
-        author: { id: q.authorId, kind: kindOf(q.authorKind), name: q.authorName },
+        author: { id: q.authorId, kind: kindOf(q.authorKind), name: q.authorName, handle: q.authorHandle },
       },
     };
   });
@@ -268,10 +273,10 @@ async function postsInOrder(db: Db, viewer: number, ids: string[]): Promise<Post
 async function authorsById(db: Db, ids: string[]): Promise<Map<string, AuthorDto>> {
   if (!ids.length) return new Map();
   const rows = await db
-    .select({ id: profiles.id, kind: profiles.kind, name: profiles.name })
+    .select({ id: profiles.id, kind: profiles.kind, name: profiles.name, handle: profiles.handle })
     .from(profiles)
     .where(inArray(profiles.id, ids));
-  return new Map(rows.map((r) => [r.id, { id: r.id, kind: kindOf(r.kind), name: r.name }]));
+  return new Map(rows.map((r) => [r.id, { id: r.id, kind: kindOf(r.kind), name: r.name, handle: r.handle }]));
 }
 
 // ── Cursors ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -586,6 +591,7 @@ async function listReplies(db: Db, viewer: number, postId: string): Promise<Repl
       authorId: profiles.id,
       authorKind: profiles.kind,
       authorName: profiles.name,
+      authorHandle: profiles.handle,
     })
     .from(replies)
     .innerJoin(profiles, eq(profiles.id, replies.authorProfileId))
@@ -602,7 +608,7 @@ async function listReplies(db: Db, viewer: number, postId: string): Promise<Repl
   return rows.map((r) => ({
     id: r.id,
     body: r.body,
-    author: { id: r.authorId, kind: kindOf(r.authorKind), name: r.authorName },
+    author: { id: r.authorId, kind: kindOf(r.authorKind), name: r.authorName, handle: r.authorHandle },
     createdAt: r.createdAt.toISOString(),
     canDelete: r.createdBy === viewer,
   }));
@@ -626,7 +632,7 @@ export async function createReply(identity: Identity, postId: string, body: stri
     return {
       id: row!.id,
       body: row!.body,
-      author: { id: own.id, kind: kindOf(own.kind), name: own.name },
+      author: { id: own.id, kind: kindOf(own.kind), name: own.name, handle: own.handle },
       createdAt: row!.createdAt.toISOString(),
       canDelete: true,
     };

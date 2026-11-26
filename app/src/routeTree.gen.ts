@@ -52,6 +52,7 @@ import { Route as ApiV1PostsPostIdReactionRouteImport } from './routes/api/v1/po
 import { Route as ApiV1PostsPostIdRepliesRouteImport } from './routes/api/v1/posts.$postId.replies'
 import { Route as ApiV1PostsPostIdRepostRouteImport } from './routes/api/v1/posts.$postId.repost'
 import { Route as ApiV1ProfilesProfileIdFollowRouteImport } from './routes/api/v1/profiles.$profileId.follow'
+import { Route as ApiV1ProfilesByHandleHandleRouteImport } from './routes/api/v1/profiles.by-handle.$handle'
 import { Route as ApiV1RecordingsRecordingIdFinishRouteImport } from './routes/api/v1/recordings.$recordingId.finish'
 import { Route as ApiV1RecordingsRecordingIdMediaRouteImport } from './routes/api/v1/recordings.$recordingId.media'
 import { Route as ApiV1RecordingsRecordingIdStateRouteImport } from './routes/api/v1/recordings.$recordingId.state'
@@ -292,6 +293,12 @@ const ApiV1ProfilesProfileIdFollowRoute =
     path: '/follow',
     getParentRoute: () => ApiV1ProfilesProfileIdRoute,
   } as any)
+const ApiV1ProfilesByHandleHandleRoute =
+  ApiV1ProfilesByHandleHandleRouteImport.update({
+    id: '/by-handle/$handle',
+    path: '/by-handle/$handle',
+    getParentRoute: () => ApiV1ProfilesRoute,
+  } as any)
 const ApiV1RecordingsRecordingIdFinishRoute =
   ApiV1RecordingsRecordingIdFinishRouteImport.update({
     id: '/finish',
@@ -418,6 +425,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
+  '/api/v1/profiles/by-handle/$handle': typeof ApiV1ProfilesByHandleHandleRoute
   '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
   '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
   '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
@@ -477,6 +485,7 @@ export interface FileRoutesByTo {
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
+  '/api/v1/profiles/by-handle/$handle': typeof ApiV1ProfilesByHandleHandleRoute
   '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
   '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
   '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
@@ -537,6 +546,7 @@ export interface FileRoutesById {
   '/api/v1/posts/$postId/replies': typeof ApiV1PostsPostIdRepliesRoute
   '/api/v1/posts/$postId/repost': typeof ApiV1PostsPostIdRepostRoute
   '/api/v1/profiles/$profileId/follow': typeof ApiV1ProfilesProfileIdFollowRoute
+  '/api/v1/profiles/by-handle/$handle': typeof ApiV1ProfilesByHandleHandleRoute
   '/api/v1/recordings/$recordingId/finish': typeof ApiV1RecordingsRecordingIdFinishRoute
   '/api/v1/recordings/$recordingId/media': typeof ApiV1RecordingsRecordingIdMediaRouteWithChildren
   '/api/v1/recordings/$recordingId/state': typeof ApiV1RecordingsRecordingIdStateRoute
@@ -598,6 +608,7 @@ export interface FileRouteTypes {
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
+    | '/api/v1/profiles/by-handle/$handle'
     | '/api/v1/recordings/$recordingId/finish'
     | '/api/v1/recordings/$recordingId/media'
     | '/api/v1/recordings/$recordingId/state'
@@ -657,6 +668,7 @@ export interface FileRouteTypes {
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
+    | '/api/v1/profiles/by-handle/$handle'
     | '/api/v1/recordings/$recordingId/finish'
     | '/api/v1/recordings/$recordingId/media'
     | '/api/v1/recordings/$recordingId/state'
@@ -716,6 +728,7 @@ export interface FileRouteTypes {
     | '/api/v1/posts/$postId/replies'
     | '/api/v1/posts/$postId/repost'
     | '/api/v1/profiles/$profileId/follow'
+    | '/api/v1/profiles/by-handle/$handle'
     | '/api/v1/recordings/$recordingId/finish'
     | '/api/v1/recordings/$recordingId/media'
     | '/api/v1/recordings/$recordingId/state'
@@ -1065,6 +1078,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ProfilesProfileIdFollowRouteImport
       parentRoute: typeof ApiV1ProfilesProfileIdRoute
     }
+    '/api/v1/profiles/by-handle/$handle': {
+      id: '/api/v1/profiles/by-handle/$handle'
+      path: '/by-handle/$handle'
+      fullPath: '/api/v1/profiles/by-handle/$handle'
+      preLoaderRoute: typeof ApiV1ProfilesByHandleHandleRouteImport
+      parentRoute: typeof ApiV1ProfilesRoute
+    }
     '/api/v1/recordings/$recordingId/finish': {
       id: '/api/v1/recordings/$recordingId/finish'
       path: '/finish'
@@ -1221,11 +1241,13 @@ const ApiV1ProfilesProfileIdRouteWithChildren =
 interface ApiV1ProfilesRouteChildren {
   ApiV1ProfilesProfileIdRoute: typeof ApiV1ProfilesProfileIdRouteWithChildren
   ApiV1ProfilesMeRoute: typeof ApiV1ProfilesMeRoute
+  ApiV1ProfilesByHandleHandleRoute: typeof ApiV1ProfilesByHandleHandleRoute
 }
 
 const ApiV1ProfilesRouteChildren: ApiV1ProfilesRouteChildren = {
   ApiV1ProfilesProfileIdRoute: ApiV1ProfilesProfileIdRouteWithChildren,
   ApiV1ProfilesMeRoute: ApiV1ProfilesMeRoute,
+  ApiV1ProfilesByHandleHandleRoute: ApiV1ProfilesByHandleHandleRoute,
 }
 
 const ApiV1ProfilesRouteWithChildren = ApiV1ProfilesRoute._addFileChildren(
