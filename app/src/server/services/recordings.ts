@@ -19,6 +19,7 @@ import type { StreamBody } from "../http/endpoint";
 import { ensureAssetWorker, kickAssetWorker } from "../jobs/process-asset";
 import { membership } from "./rooms";
 import { upsertDisplay } from "./users";
+import { sweepOrphanAssets } from "./claude-assets";
 
 /** One media chunk (the recorder's 5-second timeslice) at most. */
 export const MAX_MEDIA_CHUNK_BYTES = 4 * 1024 * 1024;
@@ -422,6 +423,7 @@ export async function sweepOrphanObjects(db: Db = getDb(), objects = objectStore
 export async function sweepAfterDeletion(db: Db = getDb()): Promise<void> {
   try {
     await sweepOrphanObjects(db);
+    await sweepOrphanAssets(db); // spec 060: the files of the user's Claude assets
   } catch (err) {
     log.error("asset.sweep_failed", { error: err instanceof Error ? err.message.slice(0, 200) : "error" });
   }

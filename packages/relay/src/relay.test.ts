@@ -282,6 +282,18 @@ describe("relay", () => {
     expect([badPath.status, plain.status, foreign.status, noOrigin.status]).toEqual([404, 426, 403, 403]);
   });
 
+  // @feature IDENT-107 Tokens issued through the MCP write Claude assets and nothing else
+  // @ac 064/AC-004
+  it("refuses a token issued through the MCP connector, and accepts the same token without the marker", async () => {
+    expect(Object.keys(workers), "packages/relay/src/worker.ts exists").toEqual(["./worker.ts"]);
+    const { connect } = support;
+    const room = "/r/room-mcp-00001";
+    const marked = await connect(relay.mf, room, { protocols: protocolsFor(await relay.token({ sub: "4242", via: "mcp" })) });
+    const other = await connect(relay.mf, room, { protocols: protocolsFor(await relay.token({ sub: "4242", via: "other" })) });
+    const plain = await connect(relay.mf, room, { protocols: protocolsFor(await relay.token({ sub: "4242" })) });
+    expect([marked.status, other.status, plain.status]).toEqual([401, 401, 101]);
+  });
+
   // @feature IDENT-041 Relay accepts only verified Sefaria tokens
   // @ac 010/AC-002
   it("refuses no token, a foreign key, an expired token, a wrong issuer or audience, and a token in the URL; answers only its subprotocol", async () => {

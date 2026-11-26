@@ -38,6 +38,13 @@ describe("spec 006: protect by default", () => {
       "GET /api/v1/assets/{assetId}/transcript",
       "GET /api/v1/assets/{assetId}/audio",
       "GET /api/v1/live",
+      // Claude assets (specs 060-063): an asset by id, its sandboxed files, the sidebar's read by ref, a profile's list, a shiur
+      "GET /api/v1/claude-assets/{assetId}",
+      "GET /api/v1/claude-assets/content/{versionId}",
+      "GET /api/v1/claude-assets/content/{versionId}/shiur/{grant}",
+      "GET /api/v1/claude-assets/ref/{ref}",
+      "GET /api/v1/profiles/{profileId}/claude-assets",
+      "GET /api/v1/shiurim/{shiurId}",
     ]);
   });
 

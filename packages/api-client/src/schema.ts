@@ -170,6 +170,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claude-assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's own Claude assets, newest first, hidden ones marked (spec 060). */
+        get: operations["listMyClaudeAssets"];
+        put?: never;
+        /** Save an HTML file as a Claude asset or a new version (spec 060). The manifest in the file is the source of its title and refs; Sefaria checks every ref. dryRun checks without storing. */
+        post: operations["saveClaudeAsset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claude-assets/{assetId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A Claude asset for anyone with its id (spec 060): metadata, versions, the current manifest. Hidden or unknown: 404. */
+        get: operations["getClaudeAsset"];
+        put?: never;
+        post?: never;
+        /** Delete one of the caller's assets with its versions and files (spec 060). */
+        delete: operations["deleteClaudeAsset"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claude-assets/{assetId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a version (the current one by default) to the segments it covers; needs a verified profile (spec 062). */
+        post: operations["publishClaudeAsset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claude-assets/{assetId}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take an asset off the segments it covers (spec 062). */
+        post: operations["unpublishClaudeAsset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claude-assets/content/{versionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A version's file, sandboxed, with the closed network policy (spec 061). Served on ASSET_CONTENT_ORIGIN only; hidden, deleted or unknown: 404. */
+        get: operations["getClaudeAssetContent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claude-assets/content/{versionId}/shiur/{grant}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A version's file, sandboxed, with the open network policy of a shiur (spec 061): the grant is signed, expires, and holds only while the shiur pins the version. */
+        get: operations["getClaudeAssetShiurContent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claude-assets/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fetch a raw HTML file once from a public https URL and save it like an upload (spec 060 AC-007). Claude links are refused with the two working routes named. */
+        post: operations["importClaudeAsset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claude-assets/ref/{ref}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Published, not hidden Claude assets of verified authors on a section or segment (Sefaria's normal form), for the reader's sidebar (spec 062). Public; cacheable for 60 seconds. */
+        get: operations["getClaudeAssetsForRef"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/feed": {
         parameters: {
             query?: never;
@@ -454,6 +592,23 @@ export interface paths {
         };
         /** A person's or an institution's profile and its latest posts. */
         get: operations["getProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/profiles/{profileId}/claude-assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A person's published, not hidden Claude assets, newest first (spec 063). Public. */
+        get: operations["getProfileClaudeAssets"];
         put?: never;
         post?: never;
         delete?: never;
@@ -822,6 +977,75 @@ export interface paths {
         /** A 10-minute relay ticket for the room, naming the caller and their role: owner for the room's owner (who leads), member for anyone else in it. Members only; 503 room.relay_unavailable without a relay secret. */
         post: operations["getRoomTicket"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shiurim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's own shiurim, private ones included (spec 063). */
+        get: operations["listMyShiurim"];
+        put?: never;
+        /** Create a shiur (unlisted by default), optionally with one of the caller's recordings (spec 063). */
+        post: operations["createShiur"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shiurim/{shiurId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An unlisted or public shiur for anyone with its link (spec 063): its ready recordings and pinned Claude assets. Private or unknown: 404. */
+        get: operations["getShiur"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shiurim/{shiurId}/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pin a Claude asset's version in the caller's shiur, or move its pin (spec 063). */
+        post: operations["pinShiurAsset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shiurim/{shiurId}/assets/{assetId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a Claude asset from the caller's shiur (spec 063). */
+        delete: operations["unpinShiurAsset"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1507,6 +1731,1109 @@ export interface operations {
             };
         };
     };
+    listMyClaudeAssets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's assets. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        assets: {
+                            author: {
+                                name: string;
+                                profileId: string | null;
+                                verified: boolean;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            currentVersionId: string | null;
+                            description: string;
+                            hidden: boolean;
+                            /** Format: uuid */
+                            id: string;
+                            lang: string | null;
+                            manifest: {
+                                description: string;
+                                lang: string | null;
+                                refs: {
+                                    heRef: string;
+                                    label: string | null;
+                                    ref: string;
+                                    sectionRefs: string[];
+                                    segmentRefs: string[];
+                                    sourceRef: string;
+                                }[];
+                                title: string;
+                                /** @constant */
+                                v: 1;
+                            } | null;
+                            publishedAt: string | null;
+                            publishedVersionId: string | null;
+                            sourceUrl: string | null;
+                            title: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            versions: {
+                                bytes: number;
+                                /** Format: uri */
+                                contentUrl: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: uuid */
+                                id: string;
+                                n: number;
+                                sha256: string;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    saveClaudeAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    assetId?: string;
+                    dryRun?: boolean;
+                    html: string;
+                    /** Format: uri */
+                    sourceUrl?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description A dry run's check, or the same bytes as a current version (nothing new stored). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        asset: {
+                            author: {
+                                name: string;
+                                profileId: string | null;
+                                verified: boolean;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            currentVersionId: string | null;
+                            description: string;
+                            /** Format: uuid */
+                            id: string;
+                            lang: string | null;
+                            manifest: {
+                                description: string;
+                                lang: string | null;
+                                refs: {
+                                    heRef: string;
+                                    label: string | null;
+                                    ref: string;
+                                    sectionRefs: string[];
+                                    segmentRefs: string[];
+                                    sourceRef: string;
+                                }[];
+                                title: string;
+                                /** @constant */
+                                v: 1;
+                            } | null;
+                            publishedAt: string | null;
+                            publishedVersionId: string | null;
+                            sourceUrl: string | null;
+                            title: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            versions: {
+                                bytes: number;
+                                /** Format: uri */
+                                contentUrl: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: uuid */
+                                id: string;
+                                n: number;
+                                sha256: string;
+                            }[];
+                        };
+                        created: boolean;
+                        firstRef: string;
+                        unchanged: boolean;
+                        version: {
+                            bytes: number;
+                            /** Format: uri */
+                            contentUrl: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: uuid */
+                            id: string;
+                            n: number;
+                            sha256: string;
+                        };
+                    } | {
+                        bytes: number;
+                        /** @constant */
+                        dryRun: true;
+                        firstRef: string;
+                        manifest: {
+                            description: string;
+                            lang: string | null;
+                            refs: {
+                                heRef: string;
+                                label: string | null;
+                                ref: string;
+                                sectionRefs: string[];
+                                segmentRefs: string[];
+                                sourceRef: string;
+                            }[];
+                            title: string;
+                            /** @constant */
+                            v: 1;
+                        };
+                        sha256: string;
+                    };
+                };
+            };
+            /** @description Saved: a new asset, or a new version of one. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        asset: {
+                            author: {
+                                name: string;
+                                profileId: string | null;
+                                verified: boolean;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            currentVersionId: string | null;
+                            description: string;
+                            /** Format: uuid */
+                            id: string;
+                            lang: string | null;
+                            manifest: {
+                                description: string;
+                                lang: string | null;
+                                refs: {
+                                    heRef: string;
+                                    label: string | null;
+                                    ref: string;
+                                    sectionRefs: string[];
+                                    segmentRefs: string[];
+                                    sourceRef: string;
+                                }[];
+                                title: string;
+                                /** @constant */
+                                v: 1;
+                            } | null;
+                            publishedAt: string | null;
+                            publishedVersionId: string | null;
+                            sourceUrl: string | null;
+                            title: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            versions: {
+                                bytes: number;
+                                /** Format: uri */
+                                contentUrl: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: uuid */
+                                id: string;
+                                n: number;
+                                sha256: string;
+                            }[];
+                        };
+                        created: boolean;
+                        firstRef: string;
+                        unchanged: boolean;
+                        version: {
+                            bytes: number;
+                            /** Format: uri */
+                            contentUrl: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: uuid */
+                            id: string;
+                            n: number;
+                            sha256: string;
+                        };
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The request body is larger than 12 MiB (request.too_large). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not saved: the problems, each with a code and what to change. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: {
+                            /** @constant */
+                            code: "asset.invalid";
+                            message: string;
+                        };
+                        problems: {
+                            code: string;
+                            message: string;
+                            ref?: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getClaudeAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The asset. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        author: {
+                            name: string;
+                            profileId: string | null;
+                            verified: boolean;
+                        };
+                        /** Format: date-time */
+                        createdAt: string;
+                        currentVersionId: string | null;
+                        description: string;
+                        /** Format: uuid */
+                        id: string;
+                        lang: string | null;
+                        manifest: {
+                            description: string;
+                            lang: string | null;
+                            refs: {
+                                heRef: string;
+                                label: string | null;
+                                ref: string;
+                                sectionRefs: string[];
+                                segmentRefs: string[];
+                                sourceRef: string;
+                            }[];
+                            title: string;
+                            /** @constant */
+                            v: 1;
+                        } | null;
+                        publishedAt: string | null;
+                        publishedVersionId: string | null;
+                        sourceUrl: string | null;
+                        title: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        versions: {
+                            bytes: number;
+                            /** Format: uri */
+                            contentUrl: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: uuid */
+                            id: string;
+                            n: number;
+                            sha256: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteClaudeAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    publishClaudeAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    versionId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The asset, with its published version. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        author: {
+                            name: string;
+                            profileId: string | null;
+                            verified: boolean;
+                        };
+                        /** Format: date-time */
+                        createdAt: string;
+                        currentVersionId: string | null;
+                        description: string;
+                        /** Format: uuid */
+                        id: string;
+                        lang: string | null;
+                        manifest: {
+                            description: string;
+                            lang: string | null;
+                            refs: {
+                                heRef: string;
+                                label: string | null;
+                                ref: string;
+                                sectionRefs: string[];
+                                segmentRefs: string[];
+                                sourceRef: string;
+                            }[];
+                            title: string;
+                            /** @constant */
+                            v: 1;
+                        } | null;
+                        publishedAt: string | null;
+                        publishedVersionId: string | null;
+                        sourceUrl: string | null;
+                        title: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        versions: {
+                            bytes: number;
+                            /** Format: uri */
+                            contentUrl: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: uuid */
+                            id: string;
+                            n: number;
+                            sha256: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not allowed for this caller (for example room.forbidden). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The request body is larger than 64 KiB (request.too_large). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    unpublishClaudeAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The asset, with no published version. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        author: {
+                            name: string;
+                            profileId: string | null;
+                            verified: boolean;
+                        };
+                        /** Format: date-time */
+                        createdAt: string;
+                        currentVersionId: string | null;
+                        description: string;
+                        /** Format: uuid */
+                        id: string;
+                        lang: string | null;
+                        manifest: {
+                            description: string;
+                            lang: string | null;
+                            refs: {
+                                heRef: string;
+                                label: string | null;
+                                ref: string;
+                                sectionRefs: string[];
+                                segmentRefs: string[];
+                                sourceRef: string;
+                            }[];
+                            title: string;
+                            /** @constant */
+                            v: 1;
+                        } | null;
+                        publishedAt: string | null;
+                        publishedVersionId: string | null;
+                        sourceUrl: string | null;
+                        title: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        versions: {
+                            bytes: number;
+                            /** Format: uri */
+                            contentUrl: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: uuid */
+                            id: string;
+                            n: number;
+                            sha256: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getClaudeAssetContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The HTML file. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getClaudeAssetShiurContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grant: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The HTML file. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    importClaudeAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    assetId?: string;
+                    dryRun?: boolean;
+                    url: string;
+                };
+            };
+        };
+        responses: {
+            /** @description A dry run's check, or the same bytes as a current version (nothing new stored). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        asset: {
+                            author: {
+                                name: string;
+                                profileId: string | null;
+                                verified: boolean;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            currentVersionId: string | null;
+                            description: string;
+                            /** Format: uuid */
+                            id: string;
+                            lang: string | null;
+                            manifest: {
+                                description: string;
+                                lang: string | null;
+                                refs: {
+                                    heRef: string;
+                                    label: string | null;
+                                    ref: string;
+                                    sectionRefs: string[];
+                                    segmentRefs: string[];
+                                    sourceRef: string;
+                                }[];
+                                title: string;
+                                /** @constant */
+                                v: 1;
+                            } | null;
+                            publishedAt: string | null;
+                            publishedVersionId: string | null;
+                            sourceUrl: string | null;
+                            title: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            versions: {
+                                bytes: number;
+                                /** Format: uri */
+                                contentUrl: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: uuid */
+                                id: string;
+                                n: number;
+                                sha256: string;
+                            }[];
+                        };
+                        created: boolean;
+                        firstRef: string;
+                        unchanged: boolean;
+                        version: {
+                            bytes: number;
+                            /** Format: uri */
+                            contentUrl: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: uuid */
+                            id: string;
+                            n: number;
+                            sha256: string;
+                        };
+                    } | {
+                        bytes: number;
+                        /** @constant */
+                        dryRun: true;
+                        firstRef: string;
+                        manifest: {
+                            description: string;
+                            lang: string | null;
+                            refs: {
+                                heRef: string;
+                                label: string | null;
+                                ref: string;
+                                sectionRefs: string[];
+                                segmentRefs: string[];
+                                sourceRef: string;
+                            }[];
+                            title: string;
+                            /** @constant */
+                            v: 1;
+                        };
+                        sha256: string;
+                    };
+                };
+            };
+            /** @description Saved: a new asset, or a new version of one. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        asset: {
+                            author: {
+                                name: string;
+                                profileId: string | null;
+                                verified: boolean;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            currentVersionId: string | null;
+                            description: string;
+                            /** Format: uuid */
+                            id: string;
+                            lang: string | null;
+                            manifest: {
+                                description: string;
+                                lang: string | null;
+                                refs: {
+                                    heRef: string;
+                                    label: string | null;
+                                    ref: string;
+                                    sectionRefs: string[];
+                                    segmentRefs: string[];
+                                    sourceRef: string;
+                                }[];
+                                title: string;
+                                /** @constant */
+                                v: 1;
+                            } | null;
+                            publishedAt: string | null;
+                            publishedVersionId: string | null;
+                            sourceUrl: string | null;
+                            title: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            versions: {
+                                bytes: number;
+                                /** Format: uri */
+                                contentUrl: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: uuid */
+                                id: string;
+                                n: number;
+                                sha256: string;
+                            }[];
+                        };
+                        created: boolean;
+                        firstRef: string;
+                        unchanged: boolean;
+                        version: {
+                            bytes: number;
+                            /** Format: uri */
+                            contentUrl: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: uuid */
+                            id: string;
+                            n: number;
+                            sha256: string;
+                        };
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The request body is larger than 64 KiB (request.too_large). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not saved: the problems, each with a code and what to change. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: {
+                            /** @constant */
+                            code: "asset.invalid";
+                            message: string;
+                        };
+                        problems: {
+                            code: string;
+                            message: string;
+                            ref?: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getClaudeAssetsForRef: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ref: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The assets on this ref. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        assets: {
+                            anchorRefs: string[];
+                            author: {
+                                name: string;
+                                /** Format: uuid */
+                                profileId: string;
+                                /** @constant */
+                                verified: true;
+                            };
+                            /** Format: uri */
+                            contentUrl: string;
+                            description: string;
+                            /** Format: uuid */
+                            id: string;
+                            refs: string[];
+                            title: string;
+                            /** Format: uuid */
+                            versionId: string;
+                        }[];
+                        ref: string;
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getFeed: {
         parameters: {
             query?: never;
@@ -2104,7 +3431,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        kind: "room" | "broadcast" | "recording";
+                        kind: "room" | "broadcast" | "recording" | "asset";
                     };
                     /** Format: uuid */
                     quotedPostId?: string;
@@ -2133,10 +3460,12 @@ export interface operations {
                         /** Format: date-time */
                         createdAt: string;
                         embed?: {
+                            /** Format: uri */
+                            contentUrl?: string;
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
-                            kind: "room" | "broadcast" | "recording";
+                            kind: "room" | "broadcast" | "recording" | "asset";
                             leader: string | null;
                             title: string | null;
                         };
@@ -2263,10 +3592,12 @@ export interface operations {
                             /** Format: date-time */
                             createdAt: string;
                             embed?: {
+                                /** Format: uri */
+                                contentUrl?: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
-                                kind: "room" | "broadcast" | "recording";
+                                kind: "room" | "broadcast" | "recording" | "asset";
                                 leader: string | null;
                                 title: string | null;
                             };
@@ -2787,6 +4118,8 @@ export interface operations {
                             /** @enum {string} */
                             kind: "person" | "institution";
                             name: string;
+                            /** @constant */
+                            verified?: true;
                             viewerFollows: boolean;
                         }[];
                     };
@@ -2853,10 +4186,12 @@ export interface operations {
                             /** Format: date-time */
                             createdAt: string;
                             embed?: {
+                                /** Format: uri */
+                                contentUrl?: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
-                                kind: "room" | "broadcast" | "recording";
+                                kind: "room" | "broadcast" | "recording" | "asset";
                                 leader: string | null;
                                 title: string | null;
                             };
@@ -2905,6 +4240,8 @@ export interface operations {
                             /** @enum {string} */
                             kind: "person" | "institution";
                             name: string;
+                            /** @constant */
+                            verified?: true;
                             viewerFollows: boolean;
                         };
                     };
@@ -2939,6 +4276,60 @@ export interface operations {
             };
             /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getProfileClaudeAssets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The profile's public assets. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        assets: {
+                            /** Format: uri */
+                            contentUrl: string;
+                            description: string;
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: date-time */
+                            publishedAt: string;
+                            refs: string[];
+                            title: string;
+                            /** Format: uuid */
+                            versionId: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3099,6 +4490,8 @@ export interface operations {
                         /** @enum {string} */
                         kind: "person" | "institution";
                         name: string;
+                        /** @constant */
+                        verified?: true;
                         viewerFollows: boolean;
                     };
                 };
@@ -3173,6 +4566,8 @@ export interface operations {
                         /** @enum {string} */
                         kind: "person" | "institution";
                         name: string;
+                        /** @constant */
+                        verified?: true;
                         viewerFollows: boolean;
                     };
                 };
@@ -3237,6 +4632,8 @@ export interface operations {
                         /** @enum {string} */
                         kind: "person" | "institution";
                         name: string;
+                        /** @constant */
+                        verified?: true;
                         viewerFollows: boolean;
                     };
                 };
@@ -5213,6 +6610,481 @@ export interface operations {
             };
         };
     };
+    listMyShiurim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's shiurim. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        shiurim: {
+                            assets: {
+                                /** Format: uuid */
+                                assetId: string;
+                                /** Format: uri */
+                                contentUrl: string;
+                                description: string;
+                                firstRef: string;
+                                n: number;
+                                position: number;
+                                refs: string[];
+                                shiurUrl: string | null;
+                                title: string;
+                                /** Format: uuid */
+                                versionId: string;
+                            }[];
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: uuid */
+                            id: string;
+                            owner: {
+                                name: string;
+                                profileId: string | null;
+                            };
+                            recordings: {
+                                durationMs: number | null;
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: date-time */
+                                startedAt: string;
+                                title: string | null;
+                            }[];
+                            title: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** @enum {string} */
+                            visibility: "private" | "unlisted" | "public";
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createShiur: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    recordingId?: string;
+                    title: string;
+                    /** @enum {string} */
+                    visibility?: "private" | "unlisted" | "public";
+                };
+            };
+        };
+        responses: {
+            /** @description The shiur. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        assets: {
+                            /** Format: uuid */
+                            assetId: string;
+                            /** Format: uri */
+                            contentUrl: string;
+                            description: string;
+                            firstRef: string;
+                            n: number;
+                            position: number;
+                            refs: string[];
+                            shiurUrl: string | null;
+                            title: string;
+                            /** Format: uuid */
+                            versionId: string;
+                        }[];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: uuid */
+                        id: string;
+                        owner: {
+                            name: string;
+                            profileId: string | null;
+                        };
+                        recordings: {
+                            durationMs: number | null;
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: date-time */
+                            startedAt: string;
+                            title: string | null;
+                        }[];
+                        title: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** @enum {string} */
+                        visibility: "private" | "unlisted" | "public";
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The request body is larger than 64 KiB (request.too_large). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getShiur: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shiurId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The shiur. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        assets: {
+                            /** Format: uuid */
+                            assetId: string;
+                            /** Format: uri */
+                            contentUrl: string;
+                            description: string;
+                            firstRef: string;
+                            n: number;
+                            position: number;
+                            refs: string[];
+                            shiurUrl: string | null;
+                            title: string;
+                            /** Format: uuid */
+                            versionId: string;
+                        }[];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: uuid */
+                        id: string;
+                        owner: {
+                            name: string;
+                            profileId: string | null;
+                        };
+                        recordings: {
+                            durationMs: number | null;
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: date-time */
+                            startedAt: string;
+                            title: string | null;
+                        }[];
+                        title: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** @enum {string} */
+                        visibility: "private" | "unlisted" | "public";
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    pinShiurAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shiurId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    assetId: string;
+                    /** Format: uuid */
+                    versionId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The shiur. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        assets: {
+                            /** Format: uuid */
+                            assetId: string;
+                            /** Format: uri */
+                            contentUrl: string;
+                            description: string;
+                            firstRef: string;
+                            n: number;
+                            position: number;
+                            refs: string[];
+                            shiurUrl: string | null;
+                            title: string;
+                            /** Format: uuid */
+                            versionId: string;
+                        }[];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: uuid */
+                        id: string;
+                        owner: {
+                            name: string;
+                            profileId: string | null;
+                        };
+                        recordings: {
+                            durationMs: number | null;
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: date-time */
+                            startedAt: string;
+                            title: string | null;
+                        }[];
+                        title: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** @enum {string} */
+                        visibility: "private" | "unlisted" | "public";
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The request body is larger than 64 KiB (request.too_large). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    unpinShiurAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: string;
+                shiurId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The shiur. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        assets: {
+                            /** Format: uuid */
+                            assetId: string;
+                            /** Format: uri */
+                            contentUrl: string;
+                            description: string;
+                            firstRef: string;
+                            n: number;
+                            position: number;
+                            refs: string[];
+                            shiurUrl: string | null;
+                            title: string;
+                            /** Format: uuid */
+                            versionId: string;
+                        }[];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: uuid */
+                        id: string;
+                        owner: {
+                            name: string;
+                            profileId: string | null;
+                        };
+                        recordings: {
+                            durationMs: number | null;
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: date-time */
+                            startedAt: string;
+                            title: string | null;
+                        }[];
+                        title: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** @enum {string} */
+                        visibility: "private" | "unlisted" | "public";
+                    };
+                };
+            };
+            /** @description The request does not match the schema (request.invalid). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No valid credentials (auth.missing_token, auth.invalid_token, auth.user_deleted, webhook.bad_signature). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this caller (for example room.not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description A dependency is unavailable (auth.unavailable, webhook.unavailable). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getTimeline: {
         parameters: {
             query?: {
@@ -5247,10 +7119,12 @@ export interface operations {
                             /** Format: date-time */
                             createdAt: string;
                             embed?: {
+                                /** Format: uri */
+                                contentUrl?: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
-                                kind: "room" | "broadcast" | "recording";
+                                kind: "room" | "broadcast" | "recording" | "asset";
                                 leader: string | null;
                                 title: string | null;
                             };

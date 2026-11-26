@@ -8,6 +8,9 @@ const migrations = import.meta.glob("./server/db/migrations/*.sql", { query: "?r
 const ruleModules = import.meta.glob("./server/db/migration-rules.ts");
 
 const TABLES = [
+  "asset_refs",
+  "asset_versions",
+  "assets",
   "broadcasts",
   "call_removals",
   "call_status",
@@ -26,6 +29,7 @@ const TABLES = [
   "room_members",
   "rooms",
   "session_recordings",
+  "shiur_assets",
   "shiur_recordings",
   "shiurim",
   "user_display",
@@ -64,8 +68,9 @@ describe("spec 005: database", () => {
     expect(unindexed).toEqual([]);
     const fks = await h.sql("select conname from pg_constraint where contype = 'f'");
     // spec 051 dropped recording_media_chunks and its foreign key; spec 056 added live_status's; spec 058 room_invites' and
-    // notifications.room_id's
-    expect(fks.length).toBe(22);
+    // notifications.room_id's; specs 060-063 nine: assets' two version pointers, asset_versions', asset_refs' two,
+    // shiur_assets' three and session_recordings.shiur_id
+    expect(fks.length).toBe(31);
   });
 
   // @ac 005/AC-002

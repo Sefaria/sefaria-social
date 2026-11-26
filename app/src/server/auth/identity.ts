@@ -10,6 +10,8 @@ export const SocialTokenClaims = z.object({
     .max(2000)
     .optional(),
   staff: z.boolean().default(false),
+  /** Spec 064: "mcp" when Django issued the token to Sefaria's MCP connector; any other value makes the token invalid. */
+  via: z.literal("mcp").optional(),
 });
 
 export interface Identity {
@@ -18,6 +20,8 @@ export interface Identity {
   name: string;
   picture: string | null;
   staff: boolean;
+  /** Spec 064: present when the token was issued through the MCP connector; such a token only saves Claude assets. */
+  via?: "mcp";
 }
 
 export function identityFromClaims(claims: unknown): Identity | null {
@@ -25,5 +29,11 @@ export function identityFromClaims(claims: unknown): Identity | null {
   if (!parsed.success) return null;
   const userId = Number(parsed.data.sub);
   if (!Number.isSafeInteger(userId)) return null;
-  return { userId, name: parsed.data.name.trim(), picture: parsed.data.picture ?? null, staff: parsed.data.staff };
+  return {
+    userId,
+    name: parsed.data.name.trim(),
+    picture: parsed.data.picture ?? null,
+    staff: parsed.data.staff,
+    ...(parsed.data.via ? { via: parsed.data.via } : {}),
+  };
 }

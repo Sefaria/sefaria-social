@@ -33,6 +33,8 @@
     "api:generate": "tsx app/scripts/openapi.ts",
     "api:breaking": "tsx app/scripts/openapi-breaking.ts",
     "purge-user": "tsx app/scripts/purge-user.ts",
+    "verify-profile": "tsx app/scripts/verify-profile.ts",
+    "asset-takedown": "tsx app/scripts/asset-takedown.ts",
     "smoke:server": "node app/scripts/smoke.mjs",
     "qa:server": "tsx app/scripts/qa-server.ts",
     "qa:relay": "tsx app/scripts/qa-relay.ts",

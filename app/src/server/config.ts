@@ -59,6 +59,27 @@ const Env = z.object({
   INVITE_EMAIL_FROM: z.preprocess(emptyIsUnset, z.string().min(3).default("Sefaria <invitations@sefaria.org>")),
   /** Spec 059: where a room's link in an email points: <ROOM_LINK_ORIGIN>/social/r/<roomId>. */
   ROOM_LINK_ORIGIN: z.preprocess(emptyIsUnset, z.url().default("https://www.sefaria.org")),
+  /** Spec 060: the Sefaria API that checks and expands refs (`POST <origin>/api/refs/expand`). */
+  SEFARIA_API_ORIGIN: z.preprocess(emptyIsUnset, z.url({ protocol: /^https?$/ }).default("https://www.sefaria.org")),
+  /** Spec 060: a Claude asset file's size limit in bytes (5 MB). */
+  ASSET_MAX_BYTES: z.preprocess(emptyIsUnset, z.coerce.number().int().positive().max(10_000_000).default(5_242_880)),
+  /** Spec 060: new asset versions a user may save in 24 hours. */
+  ASSET_DAILY_LIMIT: z.preprocess(emptyIsUnset, z.coerce.number().int().positive().default(20)),
+  /** Spec 060: the most segments one asset's refs may expand to. */
+  ASSET_MAX_SEGMENTS: z.preprocess(emptyIsUnset, z.coerce.number().int().positive().default(2000)),
+  /**
+   * Spec 061: the origin that serves asset files, never the API's own or a sefaria.org one. In development the Social server
+   * itself under another host name (127.0.0.1 instead of localhost). When set, content routes answer 404 on other origins.
+   */
+  ASSET_CONTENT_ORIGIN: z.preprocess(emptyIsUnset, z.url({ protocol: /^https?$/ }).optional()),
+  /** Spec 061: HMAC key for a shiur's open-network content URLs. Unset: none are issued and every grant is refused. */
+  ASSET_CONTENT_SECRET: z.preprocess(emptyIsUnset, z.string().min(16).optional()),
+  /** Spec 061: hosts a public asset may load scripts, styles and fonts from, when ASSET_TRUSTED_CDNS_ENABLED is "true". */
+  ASSET_TRUSTED_CDNS: z.preprocess(
+    emptyIsUnset,
+    z.string().default("cdnjs.cloudflare.com,cdn.jsdelivr.net,unpkg.com,fonts.googleapis.com,fonts.gstatic.com"),
+  ),
+  ASSET_TRUSTED_CDNS_ENABLED: z.preprocess(emptyIsUnset, z.string().optional()),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 
