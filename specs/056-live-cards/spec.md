@@ -2,7 +2,7 @@
 id: "056"
 title: A posted room or broadcast card shows, live, the text its leader is on
 features: [API-051, FEED-076]
-status: proposed
+status: approved
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [api, session, post]
 risk: high

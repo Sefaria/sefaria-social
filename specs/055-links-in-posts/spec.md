@@ -2,7 +2,7 @@
 id: "055"
 title: Links in posts become links, and a room, broadcast or recording link becomes a card under the post
 features: [FEED-074, FEED-075]
-status: proposed
+status: approved
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [api, post, feed]
 risk: high

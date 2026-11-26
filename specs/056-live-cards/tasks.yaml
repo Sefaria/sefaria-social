@@ -48,6 +48,7 @@
     - "app/src/features/api/social-api.ts"
     - "app/src/features/shell/strings.ts"
     - "e2e/live-cards.spec.ts"
+    - "playwright.config.ts"
     - "e2e/stack/publisher.ts"
   depends_on: [T-002]
   parallel: false
