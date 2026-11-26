@@ -1,0 +1,48 @@
+- id: T-001
+  title: Verified profiles and the staff commands to verify a profile and take an asset down
+  acs: [AC-001, AC-005]
+  files:
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/0015_*.sql"
+    - "app/src/server/db/migrations/meta/0015_snapshot.json"
+    - "app/src/server/db/migrations/meta/_journal.json"
+    - "app/src/server/services/staff.ts"
+    - "app/src/server/services/profiles.ts"
+    - "app/src/server/services/claude-assets.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/scripts/verify-profile.ts"
+    - "app/scripts/asset-takedown.ts"
+    - "package.json"
+    - "app/src/api.claude-asset-publish.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "test/integration/schema-walk.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/api.contract.test.ts"
+  depends_on: []
+  parallel: false
+  completes: [IDENT-106]
+  verify: ["npm run test:integration", "npm run typecheck"]
+- id: T-002
+  title: Publish and unpublish, indexed by segment, and the public ref read API for the sidebar
+  acs: [AC-002, AC-003, AC-004, AC-006]
+  files:
+    - "app/src/server/services/claude-assets.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/claude-assets.$assetId.publish.ts"
+    - "app/src/routes/api/v1/claude-assets.$assetId.unpublish.ts"
+    - "app/src/routes/api/v1/claude-assets.ref.$ref.ts"
+    - "app/src/api.claude-asset-publish.int.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/api.contract.test.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [SHIUR-011, API-053]
+  verify: ["npm run test:integration", "npm run typecheck"]

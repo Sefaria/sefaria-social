@@ -1,0 +1,26 @@
+- id: T-001
+  title: Content served sandboxed with the public or the signed shiur policy, on its own origin
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005, AC-006]
+  files:
+    - "app/src/server/services/asset-content.ts"
+    - "app/src/server/services/asset-content.test.ts"
+    - "app/src/server/services/claude-assets.ts"
+    - "app/src/server/http/endpoint.ts"
+    - "app/src/server/http/endpoint.test.ts"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/routes/api/v1/claude-assets.content.$versionId.ts"
+    - "app/src/routes/api/v1/claude-assets.content.$versionId.shiur.$grant.ts"
+    - "app/src/api.claude-asset-content.int.test.ts"
+    - "docs/runbooks/server.md"
+    - "deploy/helm/values.yaml"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/api.contract.test.ts"
+  depends_on: []
+  parallel: false
+  completes: [SHIUR-010]
+  verify: ["npm run test:integration", "npm test", "npm run typecheck"]

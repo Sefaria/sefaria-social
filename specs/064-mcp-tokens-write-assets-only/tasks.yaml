@@ -1,0 +1,18 @@
+- id: T-001
+  title: Tokens marked via mcp accepted only on the two asset write routes, refused by the relay
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "app/src/server/auth/identity.ts"
+    - "app/src/server/http/mcp-routes.ts"
+    - "app/src/server/http/endpoint.ts"
+    - "app/src/server/http/endpoint.test.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/api.mcp-tokens.int.test.ts"
+    - "packages/relay/src/auth.ts"
+    - "packages/relay/src/relay.test.ts"
+    - "packages/relay/test-support/relay.ts"
+  depends_on: []
+  parallel: false
+  completes: [IDENT-107]
+  verify: ["npm run test:integration", "npm test", "npm run test:relay", "npm run typecheck"]

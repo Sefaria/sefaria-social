@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude assets on a profile, a shiur and a post</title>
+    <style>
+      /* Mockup only. Stand-ins for the reader's tokens; the build uses the real --sefaria-* tokens from the host. */
+      :root {
+        --sefaria-color-text: #000;
+        --sefaria-color-text-muted: #666;
+        --sefaria-color-border: #ddd;
+        --sefaria-color-brand: #18345d;
+        --sefaria-color-surface: #fff;
+        --sefaria-color-surface-muted: #f6f6f6;
+        --sefaria-color-danger: #a12;
+        --sefaria-space-2: 8px;
+        --sefaria-space-3: 12px;
+        --sefaria-space-4: 16px;
+        --sefaria-radius-lg: 8px;
+        --sefaria-radius-pill: 999px;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        color: var(--sefaria-color-text);
+        background: var(--sefaria-color-surface);
+        margin: var(--sefaria-space-4);
+        max-width: 640px;
+      }
+      section {
+        border-top: 1px solid var(--sefaria-color-border);
+        padding-top: var(--sefaria-space-3);
+        margin-top: var(--sefaria-space-4);
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: var(--sefaria-space-2);
+      }
+      li {
+        border: 1px solid var(--sefaria-color-border);
+        border-radius: var(--sefaria-radius-lg);
+        padding: var(--sefaria-space-3);
+      }
+      .muted {
+        color: var(--sefaria-color-text-muted);
+      }
+      .row {
+        display: flex;
+        gap: var(--sefaria-space-2);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      button,
+      a.button {
+        border: 1px solid var(--sefaria-color-brand);
+        color: var(--sefaria-color-brand);
+        background: none;
+        border-radius: var(--sefaria-radius-pill);
+        padding: 4px 12px;
+        text-decoration: none;
+        font: inherit;
+      }
+      .problem {
+        color: var(--sefaria-color-danger);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Profile: Chana Levi <span title="Verified">&#10004;</span></h1>
+    <section aria-labelledby="pub">
+      <h2 id="pub">Claude assets</h2>
+      <ul>
+        <li>
+          <strong>The Seven Days</strong>
+          <p class="muted">A scrolling story of creation, tied to Genesis 1.</p>
+          <div class="row">
+            <a class="button" href="#" target="_blank" rel="noopener noreferrer">Open</a>
+            <a href="#">Genesis 1:1-5</a>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="own">
+      <h2 id="own">Your assets (own profile only)</h2>
+      <label>Upload an asset (.html) <input type="file" accept=".html,text/html" /></label>
+      <p class="problem" role="alert">"Genesis 99:1" is not a ref Sefaria knows. Fix the ref in the manifest, then save again.</p>
+      <ul>
+        <li>
+          <div class="row">
+            <strong>The Seven Days</strong>
+            <span class="muted">version 2 · published version 1</span>
+          </div>
+          <div class="row">
+            <a class="button" href="#" target="_blank" rel="noopener noreferrer">Open</a>
+            <button type="button">Publish version 2</button>
+            <button type="button">Unpublish</button>
+          </div>
+        </li>
+        <li>
+          <div class="row"><strong>Parallel lives</strong> <span class="muted">hidden by staff</span></div>
+          <p class="problem" role="status">Publishing needs a verified profile.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="shiur">
+      <h2 id="shiur">Shiur page: Bereshit</h2>
+      <p><a href="#">Recording: Bereshit, week 1</a></p>
+      <ul>
+        <li>
+          <strong>The Seven Days</strong> <span class="muted">version 1</span>
+          <div class="row"><a class="button" href="#" target="_blank" rel="noopener noreferrer">Open</a></div>
+        </li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="post">
+      <h2 id="post">Post card with an asset</h2>
+      <ul>
+        <li>
+          <strong>The Seven Days</strong>
+          <p class="muted">by Chana Levi</p>
+          <a class="button" href="#" target="_blank" rel="noopener noreferrer">Open</a>
+        </li>
+        <li class="muted">This asset is no longer available.</li>
+      </ul>
+    </section>
+  </body>
+</html>

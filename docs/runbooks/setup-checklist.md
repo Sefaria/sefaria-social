@@ -252,3 +252,25 @@ These are proposals by the F2 worker for a human to rewrite and own. Once real, 
       variables, next to `RELAY_INTERNAL_SECRET` (same value as the server's). With it the relay reports each room's live
       text to the server; without it live cards fall back to the server reading the relay's status (decision 0013). Added by
       spec 056.
+- [ ] **Approve specs 060–064 (Claude assets)** after review: `npm run factory -- approve NNN --by YOUR_EMAIL`, then
+      `npm run factory -- compile NNN`, and commit `specs/approvals.json` and the work orders. Decision 0015 lists the choices
+      taken while you were away. Added by specs 060–064.
+- [ ] **A content domain for Claude assets** (spec 061): a separate registrable domain (not under `sefaria.org` and not the
+      Social API's host), with TLS, pointed at the Social server; set it as `ASSET_CONTENT_ORIGIN` (for example
+      `https://sefaria-assets.example`). Until then the default `http://127.0.0.1:3200` only suits development. Set
+      `SOCIAL_ALLOWED_ORIGINS` to the reader's origins: it is also the content's `frame-ancestors` list.
+- [ ] **`ASSET_CONTENT_SECRET`** (spec 061): one random secret per environment (for example `openssl rand -base64 32`). Without
+      it a shiur gives no open-network URL for its assets; public URLs work.
+- [ ] **The trusted CDN list** (spec 061): confirm or change `ASSET_TRUSTED_CDNS` (the default lists cdnjs.cloudflare.com,
+      cdn.jsdelivr.net, unpkg.com, fonts.googleapis.com and fonts.gstatic.com) and decide whether to set
+      `ASSET_TRUSTED_CDNS_ENABLED=true`; it is off by default.
+- [ ] **Sefaria's ref expansion** (spec 060): deploy the Sefaria-Project change that adds `POST /api/refs/expand`, and set
+      `SEFARIA_API_ORIGIN` if Social should call another host than `https://www.sefaria.org`. Until it is deployed every save
+      answers 503 `asset.refs_unavailable`.
+- [ ] **The object storage bucket adapter** (spec 060): Claude asset files use the same `ObjectStore` as recordings
+      (`assets/<assetId>/<sha256>.html`); the bucket item above covers both.
+- [ ] **Verify the first authors** (spec 062): for each person who may publish to the sidebar, run
+      `npm run verify-profile -- <profile id or @handle> --by <your name>` against the environment's database. Take an asset
+      down with `npm run asset-takedown -- <asset id>` (`--restore` undoes it).
+- [ ] **Have the Claude asset design reviewed for security** before it reaches real users (plan section 9): sandbox, content
+      origin, CSP, the shiur grant's residual risk (decision 0015 point 6), import's address checks.
