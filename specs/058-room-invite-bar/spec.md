@@ -6,7 +6,7 @@ features: [ROOM-055, API-052]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [room-lobby, notifications, api]
 risk: high
-contract_impact: api-minor
+contract_impact: api-major
 ---
 
 ## Problem
@@ -48,3 +48,6 @@ them to the room; it does not change who may join (decision 0008).
 - `notifications` gets `room_id` (cascade with the room) and the kind `room_invite`.
 - An entry is a handle when it is `@` plus a handle, or a bare handle; an email when it has one `@` with text on both sides and
   a dot after it (length capped before any pattern).
+- **API-major:** the notification `kind` gains `room_invite`. A surface built before this spec, still open in a browser,
+  shows an invitation as "<name> posted" linking to the inviter's profile until it reloads; nothing fails. New request fields
+  are optional and every other change adds.

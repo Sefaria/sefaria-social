@@ -3,7 +3,7 @@
   "spec": "058",
   "title": "Invite people to a room by @handle from a bar in the room, with suggestions, and they are told in Social",
   "approved": false,
-  "spec_sha": "sha256:38ac3182a0b0de41707c078a0e6d6a06a1af5465169a838d879ea82ce4643de3",
+  "spec_sha": "sha256:209a695599168b19545df7ec5bc7c5da6f8b8f77fc917262b3338e682f694bf8",
   "feature_sha": "sha256:56420734a4bd099e82b66b297a0ee75bd1869fba77f163f47944d716add8d2ae",
   "tasks_sha": "sha256:c9500f30f8879cde1eedfe01acdca5ecb110f710799e10d6d4dbbd116fb682ce",
   "risk": "high",
