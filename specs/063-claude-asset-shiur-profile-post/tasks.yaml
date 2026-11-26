@@ -59,6 +59,7 @@
     - "app/src/features/shiur/ShiurPage.tsx"
     - "app/src/features/shiur/shiur-page.test.tsx"
     - "app/src/features/post/EmbedCard.tsx"
+    - "app/src/features/post/PostCard.tsx"
     - "app/src/features/shell/strings.ts"
   depends_on: [T-002]
   parallel: false
