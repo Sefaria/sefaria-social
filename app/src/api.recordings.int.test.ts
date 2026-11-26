@@ -2,7 +2,11 @@
 // batches in order, finishes or finalises the recording, and serves it back to the room's members (L2, real Postgres), through
 // the route tree, with a local server playing LiveKit's RoomService (Twirp) for the room metadata. Each test first asserts its
 // route is served, so on a base without the feature it fails on that assertion.
+import { mkdtempSync } from "node:fs";
+import { readdir, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { getRouter } from "~/router";
 
@@ -73,6 +77,24 @@ async function fakeLivekit() {
     calls,
     close: () => new Promise<void>((r) => server.close(() => r())),
   };
+}
+
+/** The object store of these tests (spec 051): a fresh directory per run. */
+const ASSET_DIR = mkdtempSync(path.join(tmpdir(), "social-assets-"));
+process.env.ASSET_STORE_DIR = ASSET_DIR;
+
+/** The media chunks of a recording as the object store holds them, in seq order. */
+async function storedChunks(recordingId: string): Promise<{ seq: number; hex: string }[]> {
+  const dir = path.join(ASSET_DIR, "recordings", recordingId, "raw");
+  let names: string[];
+  try {
+    names = (await readdir(dir)).filter((n) => !n.endsWith(".tmp")).sort();
+  } catch {
+    return [];
+  }
+  return Promise.all(
+    names.map(async (n) => ({ seq: Number(n), hex: Buffer.from(await readFile(path.join(dir, n))).toString("hex") })),
+  );
 }
 
 let cleanup: (() => Promise<void>) | undefined;
@@ -159,11 +181,8 @@ describe("spec 041: session recordings on the server", () => {
     expect(code(await putChunk(rec.id, 2, new Uint8Array([9]), stranger)), "a non-member").toBe("404 recording.not_found");
     expect(code(await putChunk(rec.id, 2, new Uint8Array(4 * 1024 * 1024 + 1))), "over 4 MB").toBe("413 request.too_large");
     expect(code(await putChunk(MISSING, 0, new Uint8Array([1]))), "an unknown recording").toBe("404 recording.not_found");
-    expect(
-      await h.sql<{ seq: number; hex: string }>(
-        "select seq, encode(bytes, 'hex') as hex from recording_media_chunks order by seq",
-      ),
-    ).toEqual([
+    // The chunks live in the object store (spec 051), one object per seq.
+    expect(await storedChunks(rec.id)).toEqual([
       { seq: 0, hex: "010203" },
       { seq: 1, hex: "0405" },
     ]);
@@ -199,7 +218,7 @@ describe("spec 041: session recordings on the server", () => {
     expect(code(await postState(rec.id, [change(3, 3000, "/Genesis.1.4")])), "state after finish").toBe(
       "409 recording.not_recording",
     );
-    expect(await h.sql("select count(*)::int as n from recording_media_chunks")).toEqual([{ n: 2 }]);
+    expect((await storedChunks(rec.id)).length).toBe(2);
     expect(await h.sql("select count(*)::int as n from recording_state_chunks")).toEqual([{ n: 2 }]);
   });
 
@@ -297,12 +316,14 @@ describe("spec 041: session recordings on the server", () => {
     const rec = (await start()).json as Recording;
     await putChunk(rec.id, 0, new Uint8Array([1, 2]));
     await postState(rec.id, [keyframe(0, 0)]);
+    expect((await storedChunks(rec.id)).length, "its media is in the object store (spec 051)").toBeGreaterThan(0);
     const del = (token: string) => h.call("DELETE", `/api/v1/recordings/${rec.id}`, { token });
     expect(code(await del(dana)), "a member").toBe("403 recording.forbidden");
     expect(code(await del(stranger)), "a non-member").toBe("404 recording.not_found");
     expect((await del(owner)).status).toBe(204);
-    for (const table of ["session_recordings", "recording_media_chunks", "recording_state_chunks"])
+    for (const table of ["session_recordings", "recording_state_chunks"])
       expect(await h.sql(`select count(*)::int as n from ${table}`), table).toEqual([{ n: 0 }]);
+    expect(await storedChunks(rec.id), "its media in the object store (spec 051)").toEqual([]);
 
     // The account deletion: the owner's recordings go, with their chunks; the walk finds nothing for them.
     const kept = (await start()).json as Recording;
@@ -322,7 +343,7 @@ describe("spec 041: session recordings on the server", () => {
     expect(await h.sql("select count(*)::int as n from session_recordings where owner_user_id = $1", [OWNER])).toEqual([
       { n: 0 },
     ]);
-    expect(await h.sql("select count(*)::int as n from recording_media_chunks")).toEqual([{ n: 0 }]);
+    expect(await storedChunks(kept.id), "the user's media in the object store (spec 051)").toEqual([]);
     const walk = await import("../../test/integration/schema-walk");
     expect(await walk.userValues(h.sql, OWNER)).toEqual(["deleted_users.user_id: 1"]);
     expect(room.id).not.toBe(elsewhere.id);

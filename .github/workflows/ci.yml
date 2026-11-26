@@ -209,6 +209,8 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: ffmpeg for asset processing (spec 052)
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg)
       - name: Harness journeys
         run: npm run test:e2e
       - name: Upload traces on failure
@@ -285,6 +287,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - name: ffmpeg for asset processing (spec 052)
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg)
       - name: Integration tests (real Postgres)
         run: npx vitest run --project integration --reporter=default --reporter=junit --outputFile.junit=test-results/integration.xml
       - name: Relay tests (the Worker in workerd through Miniflare)
@@ -374,6 +378,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
+      # The processing and transcript tests make their media with ffmpeg when they load, on the base as on the head.
+      - name: ffmpeg for asset processing (spec 052)
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg)
       - name: Prove red
         env:
           FACTORY_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}

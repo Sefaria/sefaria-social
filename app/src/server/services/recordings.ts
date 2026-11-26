@@ -8,10 +8,15 @@ import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import { getConfig } from "../config";
 import { getDb, type Db } from "../db/client";
-import { recordingMediaChunks, recordingStateChunks, roomMembers, sessionRecordings, userDisplay } from "../db/schema";
+import { createHash } from "node:crypto";
+import { recordingStateChunks, roomMembers, sessionRecordings, userDisplay } from "../db/schema";
 import { ApiError } from "../http/errors";
+import { log } from "../log/logger";
 import { setRoomRecording } from "./livekit";
-import { postgresStore, type Executor, type RecordingStore } from "./recording-store";
+import { postgresStore, removeObjects, type Executor, type RecordingStore } from "./recording-store";
+import { assetKey, objectStore, recordingPrefix, type ObjectStore } from "./object-store";
+import type { StreamBody } from "../http/endpoint";
+import { ensureAssetWorker, kickAssetWorker } from "../jobs/process-asset";
 import { membership } from "./rooms";
 import { upsertDisplay } from "./users";
 
@@ -152,6 +157,8 @@ export async function finaliseStale(scope: { roomId: string } | { recordingId: s
         status: "ready",
         finishedAt: sql`now()`,
         durationMs: sql`coalesce(${sessionRecordings.durationMs}, ${lastT}, 0)`,
+        processStatus: "queued",
+        processAfter: sql`now()`,
       })
       .where(where)
       .returning({ roomId: sessionRecordings.roomId });
@@ -209,30 +216,30 @@ export async function putMedia(
 ): Promise<void> {
   if (bytes.byteLength === 0) throw new ApiError(400, "request.invalid");
   if (bytes.byteLength > MAX_MEDIA_CHUNK_BYTES) throw new ApiError(413, "request.too_large");
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
   await db.transaction(async (tx) => {
     const row = await forUpload(tx, identity, recordingId);
-    const [last] = await tx
-      .select({ seq: sql<number | null>`max(${recordingMediaChunks.seq})` })
-      .from(recordingMediaChunks)
-      .where(eq(recordingMediaChunks.recordingId, recordingId));
-    const next = last?.seq === null || last?.seq === undefined ? 0 : Number(last.seq) + 1;
-    if (seq === next - 1 && (await sameChunk(tx, recordingId, seq, bytes))) return; // a retry whose first try landed
+    // The row is locked: the count and the last chunk's hash cannot move under us (spec 051 AC-005).
+    const [counts] = await tx
+      .select({ chunks: sessionRecordings.mediaChunks, last: sessionRecordings.lastChunkSha256 })
+      .from(sessionRecordings)
+      .where(eq(sessionRecordings.id, recordingId));
+    const next = counts?.chunks ?? 0;
+    if (seq === next - 1 && counts?.last === sha256) return; // a retry whose first try landed
     if (seq !== next) throw new ApiError(409, "recording.out_of_order");
     if (row.mediaBytes + bytes.byteLength > MAX_MEDIA_BYTES) throw new ApiError(413, "recording.too_large");
+    // Written before the row: a failed write leaves the count, so the recorder retries the same seq (the same key).
     await store(tx).putMedia(recordingId, seq, bytes);
     await tx
       .update(sessionRecordings)
-      .set({ mediaBytes: sql`${sessionRecordings.mediaBytes} + ${bytes.byteLength}`, lastUploadAt: sql`now()` })
+      .set({
+        mediaBytes: sql`${sessionRecordings.mediaBytes} + ${bytes.byteLength}`,
+        mediaChunks: sql`${sessionRecordings.mediaChunks} + 1`,
+        lastChunkSha256: sha256,
+        lastUploadAt: sql`now()`,
+      })
       .where(eq(sessionRecordings.id, recordingId));
   });
-}
-
-async function sameChunk(tx: Executor, recordingId: string, seq: number, bytes: Uint8Array): Promise<boolean> {
-  const [kept] = await tx
-    .select({ bytes: recordingMediaChunks.bytes })
-    .from(recordingMediaChunks)
-    .where(and(eq(recordingMediaChunks.recordingId, recordingId), eq(recordingMediaChunks.seq, seq)));
-  return !!kept && Buffer.from(kept.bytes).equals(Buffer.from(bytes));
 }
 
 /**
@@ -279,11 +286,20 @@ export async function finishRecording(
     const row = await forUpload(tx, identity, recordingId);
     await tx
       .update(sessionRecordings)
-      .set({ status: "ready", durationMs: Math.round(durationMs), finishedAt: sql`now()` })
+      .set({
+        status: "ready",
+        durationMs: Math.round(durationMs),
+        finishedAt: sql`now()`,
+        // Spec 052: queued for processing; it plays from the raw chunks until that is done.
+        processStatus: "queued",
+        processAfter: sql`now()`,
+      })
       .where(eq(sessionRecordings.id, recordingId));
     return row.roomId;
   });
   await setRoomRecording(roomId, false);
+  ensureAssetWorker();
+  kickAssetWorker();
   return toDto(await visible(db, identity, recordingId), identity);
 }
 
@@ -328,16 +344,16 @@ export async function getRecordingState(
   };
 }
 
-/** The media: every chunk in order, with the recorded content type (AC-004). */
+/** The media (AC-004; spec 052): the processed file, by byte range, once it exists; until then every chunk in order. */
 export async function getRecordingMedia(
   identity: Identity,
   recordingId: string,
+  range: string | null = null,
   db: Db = getDb(),
   store: RecordingStore = postgresStore(db),
-): Promise<{ bytes: Uint8Array; contentType: string }> {
+): Promise<MediaAnswer> {
   const row = await getRecording(identity, recordingId, db);
-  const chunks = await store.mediaChunks(recordingId);
-  return { bytes: Buffer.concat(chunks), contentType: row.mime ?? "application/octet-stream" };
+  return mediaOf(recordingId, row.mime, range, store);
 }
 
 /** Delete a recording and its chunks (AC-005): the recorder or the room's owner. */
@@ -353,6 +369,7 @@ export async function deleteRecording(
     await store(tx).remove(recordingId);
     return r;
   });
+  await removeObjects([recordingId]); // spec 051 AC-005: its media goes with it
   if (row.status === "recording") await setRoomRecording(row.roomId, false);
 }
 
@@ -370,4 +387,203 @@ export async function recordingOf(roomIds: readonly string[], db: Db = getDb()):
       ),
     );
   return new Set(rows.map((r) => r.roomId));
+}
+
+/**
+ * Remove the objects of recordings whose rows are gone (spec 051 AC-005): a deleted room or user takes its recordings' rows with
+ * it by cascade, and this takes their media. Run after such a deletion commits. Returns how many recordings' objects went.
+ */
+export async function sweepOrphanObjects(db: Db = getDb(), objects = objectStore()): Promise<number> {
+  const keys = await objects.list("recordings/");
+  const ids = [...new Set(keys.map((k) => k.split("/")[1]).filter((id): id is string => !!id && UUID.test(id)))];
+  let removed = 0;
+  // In batches, so a store with many recordings never builds one enormous query.
+  for (let i = 0; i < ids.length; i += 500) {
+    const batch = ids.slice(i, i + 500);
+    const kept = await db
+      .select({ id: sessionRecordings.id })
+      .from(sessionRecordings)
+      .where(inArray(sessionRecordings.id, batch));
+    const live = new Set(kept.map((r) => r.id));
+    const gone = batch.filter((id) => !live.has(id));
+    await removeObjects(gone, objects);
+    removed += gone.length;
+  }
+  return removed;
+}
+
+/** The sweep after a deletion that has already committed: a failure is logged, never turned into the request's failure. */
+export async function sweepAfterDeletion(db: Db = getDb()): Promise<void> {
+  try {
+    await sweepOrphanObjects(db);
+  } catch (err) {
+    log.error("asset.sweep_failed", { error: err instanceof Error ? err.message.slice(0, 200) : "error" });
+  }
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+// ── Public reads (spec 051 AC-004; docs/plans/shiur.md D2) ─────────────────────────────────────────────────────────────
+
+/** What anyone with a ready recording's link may know: no room, no user ids, nothing a member alone sees. */
+export interface AssetDto {
+  id: string;
+  title: string | null;
+  status: "ready";
+  mime: string | null;
+  startedAt: string;
+  durationMs: number | null;
+  leader: { name: string | null };
+}
+
+/** A ready recording by id, for anyone; 404 for one that is still recording, failed, or unknown. */
+async function readyAsset(db: Db, assetId: string) {
+  await finaliseStale({ recordingId: assetId }, db);
+  const [row] = await db
+    .select({
+      id: sessionRecordings.id,
+      title: sessionRecordings.title,
+      status: sessionRecordings.status,
+      mime: sessionRecordings.mime,
+      startedAt: sessionRecordings.startedAt,
+      durationMs: sessionRecordings.durationMs,
+      name: userDisplay.name,
+    })
+    .from(sessionRecordings)
+    .leftJoin(userDisplay, eq(userDisplay.userId, sessionRecordings.ownerUserId))
+    .where(and(eq(sessionRecordings.id, assetId), eq(sessionRecordings.status, "ready")))
+    .limit(1);
+  if (!row) throw new ApiError(404, "recording.not_found");
+  return row;
+}
+
+export async function getAsset(assetId: string, db: Db = getDb()): Promise<AssetDto> {
+  const r = await readyAsset(db, assetId);
+  return {
+    id: r.id,
+    title: r.title,
+    status: "ready",
+    mime: r.mime,
+    startedAt: r.startedAt.toISOString(),
+    durationMs: r.durationMs,
+    leader: { name: r.name },
+  };
+}
+
+export async function getAssetState(
+  assetId: string,
+  db: Db = getDb(),
+  store: RecordingStore = postgresStore(db),
+): Promise<RecordingStateDto> {
+  const r = await readyAsset(db, assetId);
+  const messages = (await store.stateMessages(assetId))
+    .map((m) => parseStreamMessage(m))
+    .filter((m): m is StreamMessage => m !== null);
+  return {
+    v: 1,
+    startedAt: r.startedAt.toISOString(),
+    duration: r.durationMs ?? Math.round(messages.at(-1)?.t ?? 0),
+    client: RECORDING_CLIENT,
+    messages,
+  };
+}
+
+export async function getAssetMedia(
+  assetId: string,
+  range: string | null = null,
+  db: Db = getDb(),
+  store: RecordingStore = postgresStore(db),
+): Promise<MediaAnswer> {
+  const r = await readyAsset(db, assetId);
+  return mediaOf(assetId, r.mime, range, store);
+}
+
+/** Spec 052: a ready recording's manifest once processing is done; 404 recording.not_processed until then. */
+export async function getAssetManifest(assetId: string, db: Db = getDb(), objects = objectStore()): Promise<unknown> {
+  await readyAsset(db, assetId);
+  const bytes = await objects.get(assetKey(assetId, "manifest.json"));
+  if (!bytes) throw new ApiError(404, "recording.not_processed");
+  return JSON.parse(new TextDecoder().decode(bytes)) as unknown;
+}
+
+// ── Media by byte range (spec 052 AC-004) ──────────────────────────────────────────────────────────────────────────────
+
+/** The most one range answer carries; a player asks again for the rest. */
+export const MAX_RANGE_BYTES = 8 * 1024 * 1024;
+
+export type MediaAnswer =
+  | { status: 200; bytes: Uint8Array | StreamBody; contentType: string; headers: Record<string, string> }
+  | { status: 206; bytes: Uint8Array | StreamBody; contentType: string; headers: Record<string, string> };
+
+/** One `bytes=` range of a file of `size` bytes: [start, end] inclusive, "unsatisfiable", or null (none, or not one range). */
+export function parseRange(header: string | null, size: number): [number, number] | "unsatisfiable" | null {
+  if (!header) return null;
+  const m = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!m || (m[1] === "" && m[2] === "")) return null;
+  let start: number;
+  let end: number;
+  if (m[1] === "") {
+    const suffix = Number(m[2]);
+    if (suffix === 0) return "unsatisfiable";
+    start = Math.max(0, size - suffix);
+    end = size - 1;
+  } else {
+    start = Number(m[1]);
+    end = m[2] === "" ? size - 1 : Math.min(Number(m[2]), size - 1);
+  }
+  if (!Number.isSafeInteger(start) || start >= size || end < start) return "unsatisfiable";
+  return [start, end];
+}
+
+async function mediaOf(id: string, mime: string | null, range: string | null, _store: RecordingStore): Promise<MediaAnswer> {
+  const objects = objectStore();
+  const key = assetKey(id, "media.webm");
+  const size = await objects.size(key);
+  if (size === null) return rawMedia(id, mime, objects);
+  return byRange(objects, key, size, range, "video/webm");
+}
+
+/**
+ * Not processed yet: the raw chunks, whole and in order, streamed one chunk at a time (spec 052 review: never the whole
+ * recording in memory). A MediaRecorder file cannot be seeked, so there are no ranges here. 404 when no chunk is there.
+ */
+async function rawMedia(id: string, mime: string | null, objects: ObjectStore): Promise<MediaAnswer> {
+  const keys = (await objects.list(`${recordingPrefix(id)}raw/`)).sort();
+  const sizes = await Promise.all(keys.map((k) => objects.size(k)));
+  if (keys.length === 0 || sizes.some((n) => n === null)) throw new ApiError(404, "recording.not_found");
+  let next = 0;
+  const stream = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (next >= keys.length) return controller.close();
+      const chunk = await objects.get(keys[next++]!);
+      if (!chunk) return controller.error(new Error("a media chunk went missing"));
+      controller.enqueue(chunk);
+    },
+  });
+  const length = sizes.reduce<number>((a, n) => a + (n ?? 0), 0);
+  return { status: 200, bytes: { stream, length }, contentType: mime ?? "application/octet-stream", headers: {} };
+}
+
+/** A stored file by byte range (at most MAX_RANGE_BYTES an answer), or whole without one; streamed either way. */
+async function byRange(
+  objects: ObjectStore,
+  key: string,
+  size: number,
+  range: string | null,
+  contentType: string,
+): Promise<MediaAnswer> {
+  const r = parseRange(range, size);
+  if (r === "unsatisfiable") throw new ApiError(416, "request.range_not_satisfiable", { "content-range": `bytes */${size}` });
+  if (size === 0) return { status: 200, bytes: new Uint8Array(), contentType, headers: { "accept-ranges": "bytes" } };
+  const [start, end] = r === null ? [0, size - 1] : [r[0], Math.min(r[1], r[0] + MAX_RANGE_BYTES - 1)];
+  const stream = await objects.stream(key, start, end);
+  if (!stream) throw new ApiError(404, "recording.not_found");
+  const body = { stream, length: end - start + 1 };
+  if (r === null) return { status: 200, bytes: body, contentType, headers: { "accept-ranges": "bytes" } };
+  return {
+    status: 206,
+    bytes: body,
+    contentType,
+    headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${size}` },
+  };
 }

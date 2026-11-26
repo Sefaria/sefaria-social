@@ -76,7 +76,7 @@ export interface HandlerInput<S extends EndpointSpec> {
 
 export type HandlerResult<S extends EndpointSpec> = {
   [K in keyof S["responses"] & number]: S["responses"][K]["binary"] extends true
-    ? { status: K; body: Uint8Array; contentType: string }
+    ? { status: K; body: Uint8Array | StreamBody; contentType: string; headers?: RangeHeaders }
     : {
         status: K;
         body: S["responses"][K]["schema"] extends z.ZodType ? z.input<S["responses"][K]["schema"]> : undefined;
@@ -114,10 +114,22 @@ function json(status: number, body: unknown, correlationId: string, extra: Recor
   return new Response(JSON.stringify(body), { status, headers: { ...headers, "content-type": "application/json" } });
 }
 
+/** A binary body sent as it is read (spec 052): a media file is never held in memory whole. */
+export interface StreamBody {
+  stream: ReadableStream<Uint8Array>;
+  length: number;
+}
+const isStreamBody = (b: unknown): b is StreamBody =>
+  typeof b === "object" && b !== null && "stream" in b && (b as StreamBody).stream instanceof ReadableStream;
+
+/** The only headers a binary handler may add (spec 052): what a byte-range answer needs. */
+export type RangeHeaders = Partial<Record<"accept-ranges" | "content-range", string>>;
+const RANGE_HEADERS = new Set(["accept-ranges", "content-range"]);
+
 /** A binary response (spec 041): the bytes as they are, with the handler's content type. */
 function bytesResponse(
   status: number,
-  body: Uint8Array,
+  body: Uint8Array | StreamBody,
   contentType: string,
   correlationId: string,
   extra: Record<string, string>,
@@ -127,9 +139,9 @@ function bytesResponse(
     [CORRELATION_HEADER]: correlationId,
     ...extra,
     "content-type": contentType,
-    "content-length": String(body.byteLength),
+    "content-length": String(isStreamBody(body) ? body.length : body.byteLength),
   };
-  return new Response(body as Uint8Array<ArrayBuffer>, { status, headers });
+  return new Response(isStreamBody(body) ? body.stream : (body as Uint8Array<ArrayBuffer>), { status, headers });
 }
 
 /** The body as bytes, refused (413) as soon as it passes `max`: a declared length is checked first, then the stream itself. */
@@ -229,8 +241,13 @@ async function run(
   try {
     const result = await inner(correlationId);
     status = result.status;
-    if (result.contentType !== undefined && result.body instanceof Uint8Array)
-      return bytesResponse(result.status, result.body, result.contentType, correlationId, cors);
+    if (result.contentType !== undefined && (result.body instanceof Uint8Array || isStreamBody(result.body))) {
+      const range = Object.fromEntries(Object.entries(result.headers ?? {}).filter(([k]) => RANGE_HEADERS.has(k)));
+      return bytesResponse(result.status, result.body as Uint8Array | StreamBody, result.contentType, correlationId, {
+        ...cors,
+        ...range,
+      });
+    }
     return json(result.status, result.body, correlationId, { ...result.headers, ...cors });
   } catch (e) {
     if (e instanceof ApiError) {
@@ -281,15 +298,15 @@ export function bind<const S extends EndpointSpec & { access: Access }>(
         status: number;
         body: unknown;
         contentType?: unknown;
-        headers?: Partial<Record<ResponseHeader, string>>;
+        headers?: Record<string, string>;
       };
       const headers = pickHeaders(result.headers);
       const declared = spec.responses[result.status];
       if (!declared) throw new Error(`Undeclared status ${result.status} from ${spec.operationId}`);
       if (declared.binary) {
-        if (!(result.body instanceof Uint8Array) || typeof result.contentType !== "string")
+        if (!(result.body instanceof Uint8Array || isStreamBody(result.body)) || typeof result.contentType !== "string")
           throw new TypeError(`Response of ${spec.operationId} is not bytes with a content type`);
-        return { status: result.status, body: result.body, contentType: result.contentType };
+        return { status: result.status, body: result.body, contentType: result.contentType, headers: result.headers };
       }
       if (!declared.schema) return { status: result.status, body: undefined, headers };
       const out = declared.schema.safeParse(result.body);

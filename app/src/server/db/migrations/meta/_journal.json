@@ -64,6 +64,20 @@
       "when": 1795640955222,
       "tag": "0008_live_status",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795677242981,
+      "tag": "0009_shiur_asset_media",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795677248336,
+      "tag": "0010_asset_processing",
+      "breakpoints": true
     }
   ]
 }

@@ -28,7 +28,15 @@ describe("spec 006: protect by default", () => {
     expect(report.calls).toContain("DELETE /api/v1/rooms/$roomId -> 401");
     expect(report.calls).toContain("POST /api/v1/internal/user-deleted -> 401");
     expect(report.calls).toContain("PUT /api/v1/rooms -> 401");
-    expect([...PUBLIC_ENDPOINTS]).toEqual(["GET /api/v1/health", "GET /api/v1/live"]);
+    // The public list is short on purpose; each entry has its reason in public-routes.ts (a ready shiur asset: spec 051, D2).
+    expect([...PUBLIC_ENDPOINTS]).toEqual([
+      "GET /api/v1/health",
+      "GET /api/v1/assets/{assetId}",
+      "GET /api/v1/assets/{assetId}/state",
+      "GET /api/v1/assets/{assetId}/media",
+      "GET /api/v1/assets/{assetId}/manifest",
+      "GET /api/v1/live",
+    ]);
   });
 
   it("every served handler is bound to a declared endpoint, and every endpoint is served", async () => {

@@ -4,6 +4,13 @@
 export const PUBLIC_ENDPOINTS: ReadonlySet<string> = new Set([
   // Load balancers and uptime checks; reports the database only.
   "GET /api/v1/health",
+  // A ready shiur recording opens for anyone who has its link (owner's decision D2, docs/plans/shiur.md; spec 051). The id is
+  // an unguessable UUID; the answer carries no room, no user id, nothing only a member sees; recordings in progress are 404.
+  "GET /api/v1/assets/{assetId}",
+  "GET /api/v1/assets/{assetId}/state",
+  "GET /api/v1/assets/{assetId}/media",
+  // Its manifest once processed (spec 052): files, length, chapters; nothing more than the three above already give.
+  "GET /api/v1/assets/{assetId}/manifest",
   // Posted live cards (spec 056): the live state of a room, broadcast or recording, only for ids that a post embeds. Decision
   // 0011 D9 makes a posted session an open invitation; a session nobody posted is left out, so ids cannot be probed.
   "GET /api/v1/live",

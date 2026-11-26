@@ -17,10 +17,13 @@ export function CallFrame({
   owner = "call",
   label,
   title,
+  pinned = null,
 }: {
   children: ReactNode;
   pill: (expand: () => void) => ReactNode;
   notice?: ReactNode;
+  /** Spec 053: a replay's talking head held where the leader had it (desktop window only). */
+  pinned?: { x: number; y: number; w: number; h: number } | null;
   /** Shown in every size, the pill and the collapsed strip too: the window owner's question (spec 042 AC-007). */
   prompt?: ReactNode;
   /** What the frame holds: the call, or a recording's replay (spec 042), which shares its geometry. */
@@ -37,6 +40,8 @@ export function CallFrame({
       {children}
     </CallStrip>
   ) : (
-    <CallWindow {...frame}>{children}</CallWindow>
+    <CallWindow {...frame} pinned={pinned}>
+      {children}
+    </CallWindow>
   );
 }

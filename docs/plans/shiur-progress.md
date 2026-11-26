@@ -8,17 +8,17 @@ and facts, not a diary.
 
 States: `not started`, `spec drafted`, `building`, `built` (all checks pass, awaiting approval), `approved`, `merged`.
 
-| Spec | Title                                                           | State       | PR      | Notes                                                                                                                         |
-| ---- | --------------------------------------------------------------- | ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| 048  | Sticky following, a fixed leader, follow a person by their head | built       | group A | Awaiting `factory approve 048`. Broadcast viewers still break away on any input (Back to live).                               |
-| 049  | One press to get in                                             | built       | group A | Awaiting `factory approve 049`. The lobby's Join call keeps its device step (for coming back to a call).                      |
-| 050  | Session kinds and endings                                       | built       | group A | Awaiting `factory approve 050`. A broadcast started from the dialog does not join the host to the broadcast's call by itself. |
-| 051  | The asset in object storage                                     | not started |         |                                                                                                                               |
-| 052  | Processing                                                      | not started |         |                                                                                                                               |
-| 053  | The player                                                      | not started |         |                                                                                                                               |
-| 054  | Transcript                                                      | not started |         |                                                                                                                               |
-| 055  | Links in posts                                                  | built       | #36     | Draft work order; awaiting `factory approve 055`                                                                              |
-| 056  | Live cards                                                      | built       | #36     | Draft work order; awaiting `factory approve 056`; relay needs `SOCIAL_SERVER_URL`                                             |
+| Spec | Title                                                           | State       | PR  | Notes                                                                                         |
+| ---- | --------------------------------------------------------------- | ----------- | --- | --------------------------------------------------------------------------------------------- |
+| 048  | Sticky following, a fixed leader, follow a person by their head | merged      | #35 | Broadcast viewers still break away on any input (Back to live).                               |
+| 049  | One press to get in                                             | merged      | #35 | The lobby's Join call keeps its device step (for coming back to a call).                      |
+| 050  | Session kinds and endings                                       | merged      | #35 | A broadcast started from the dialog does not join the host to the broadcast's call by itself. |
+| 051  | The asset in object storage                                     | built       | #37 | Approved. Filesystem store until a bucket adapter.                                            |
+| 052  | Processing                                                      | built       | #37 | Approved. Queue on the row (decision 0014), not pg-boss.                                      |
+| 053  | The player                                                      | built       | #37 | Approved.                                                                                     |
+| 054  | Transcript                                                      | not started |     |                                                                                               |
+| 055  | Links in posts                                                  | merged      | #36 | Approved                                                                                      |
+| 056  | Live cards                                                      | merged      | #36 | Approved; relay needs `SOCIAL_SERVER_URL`                                                     |
 
 ## Waiting on the owner
 
@@ -41,6 +41,8 @@ if the owner decides otherwise.
 - 050: a session ends 2 minutes after its owner is gone (`packages/session/src/room.ts`, `endAfterMs`).
 - 050: a closed room starts a new session when its owner enters (`room.ts`, `reopen`). The relay keeps rooms in memory only,
   so an emptied closed room may be forgotten; remembering it belongs with the asset (spec 051).
+- 052: the processing queue lives on the recording's row (decision 0014; spec 052 cites it as 0013) instead of pg-boss (the plan's research proposal).
+- 053: the replay's video stays in the floating frame, pinned at the recorded head place; the controls moved to the bar.
 - 050: the session's kind is kept per room for the tab (`features/session/session-kind.ts`); after a reload the owner sees
   Close room, or End broadcast while a broadcast is live.
 - One card per post (055): `app/src/features/post/Composer.tsx` takes only the first session link out of the text.
@@ -59,6 +61,11 @@ if the owner decides otherwise.
 
 Newest first. One or two lines per entry: what changed, and anything the next session must know that the code does not say.
 
+- 2026-11-26: Group B (051–053) built on #37 overnight. A fresh-agent review found 8 problems (whole files in memory on public
+  reads, a crash loop on out-of-memory, the replay pausing when the video hid, the filesystem store unwritable in the image,
+  lease overlap, leftover media after deletion, a bad address failing processing, keyboard on the seek bar); all fixed with
+  tests. The filesystem store needs a volume (Coolify app has one) and does not work across replicas: a bucket adapter is the
+  next step before production. ffmpeg is in the image and CI.
 - 2026-11-25: Group D (055, 056) built on `m/shiur-group-d`, draft PR #36. Migrations `0007_post_embeds`, `0008_live_status`.
   The relay needs a new variable, `SOCIAL_SERVER_URL` (setup checklist); until then the server reads the relay's status.
   The card's poller watches only cards on screen: in the harness the reader pane pushes the timeline below the fold, so

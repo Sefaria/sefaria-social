@@ -2850,6 +2850,124 @@
       ],
       "since": null,
       "changed": []
+    },
+    {
+      "id": "SHIUR-002",
+      "area": "shiur",
+      "name": "Only the leader is recorded, with the talking head's place",
+      "description": "A recording mixes only the recording person's microphone and draws only their camera (else the title card); its reader timeline carries a social.overlay slice with whether the camera is on and where the call window, the talking head, is.",
+      "status": "built",
+      "spec": "051",
+      "acs": [
+        "051/AC-001",
+        "051/AC-002",
+        "051/AC-003"
+      ],
+      "surfaces": [
+        "recording",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/recording/recorder.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-003",
+      "area": "shiur",
+      "name": "A ready recording opens for anyone with its link",
+      "description": "Public endpoints /api/v1/assets/{id}, /state and /media serve a ready recording to anyone, signed out included, with no room id or user id; recordings in progress, failed or unknown are 404; a room's list stays members only.",
+      "status": "built",
+      "spec": "051",
+      "acs": [
+        "051/AC-004"
+      ],
+      "surfaces": [
+        "recording",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.assets.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-004",
+      "area": "shiur",
+      "name": "Recording media in an object store",
+      "description": "Media chunks are kept in an object store (a filesystem store under ASSET_STORE_DIR for now) under recordings/<id>/raw/<seq>, with only their count and the last chunk's hash in Postgres; they go with the recording, its room or its owner. The migration deleted earlier recordings (D12) and dropped the chunk table.",
+      "status": "built",
+      "spec": "051",
+      "acs": [
+        "051/AC-005",
+        "051/AC-006"
+      ],
+      "surfaces": [
+        "recording",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.assets.int.test.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-005",
+      "area": "shiur",
+      "name": "Processing a recording into a seekable asset with a manifest and chapters",
+      "description": "A finished recording is queued on its own row and processed in the background with ffmpeg into media.webm (seekable), audio.m4a, timeline.json and manifest.json with chapters; served by byte range; retried twice with a wait, then failed with the raw chunks kept; safe to run twice.",
+      "status": "built",
+      "spec": "052",
+      "acs": [
+        "052/AC-001",
+        "052/AC-002",
+        "052/AC-003",
+        "052/AC-004",
+        "052/AC-005",
+        "052/AC-006"
+      ],
+      "surfaces": [
+        "recording",
+        "api"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/api.processing.int.test.ts",
+        "e2e/recording.spec.ts"
+      ],
+      "since": null,
+      "changed": []
+    },
+    {
+      "id": "SHIUR-006",
+      "area": "shiur",
+      "name": "The shiur player: a bar with chapters, the talking head in place, open to anyone",
+      "description": "A replay has a bar docked at the bottom (play, seek with chapter markers named by ref, back and forward, speed, Hide video, Close, Space and arrows); the video is the talking head pinned where the leader had it, gone while their camera was off or for an audio-only shiur; signed out it loads through the public reads.",
+      "status": "built",
+      "spec": "053",
+      "acs": [
+        "053/AC-001",
+        "053/AC-002",
+        "053/AC-003",
+        "053/AC-004",
+        "053/AC-005"
+      ],
+      "surfaces": [
+        "recording"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/replay/shiur-player.test.tsx",
+        "e2e/recording.spec.ts"
+      ],
+      "since": null,
+      "changed": []
     }
   ]
 }

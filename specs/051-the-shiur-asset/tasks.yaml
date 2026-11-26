@@ -1,0 +1,50 @@
+- id: T-001
+  title: Only the leader is recorded, with the talking head's place in the timeline
+  acs: [AC-001, AC-002, AC-003]
+  files:
+    - "app/src/features/av/media.ts"
+    - "app/src/features/av/livekit-engine.ts"
+    - "app/src/features/av/test-media.ts"
+    - "app/src/features/av/head-place.ts"
+    - "app/src/features/av/CallWindow.tsx"
+    - "app/src/features/recording/recording-controller.ts"
+    - "app/src/features/recording/recorder.test.ts"
+  depends_on: []
+  parallel: false
+  completes: [SHIUR-002]
+  verify: ["npm test -- app/src/features/recording app/src/features/av", "npm run typecheck"]
+- id: T-002
+  title: Media in an object store, public reads of a ready recording, the old recordings and chunk table gone
+  acs: [AC-004, AC-005, AC-006]
+  files:
+    - ".gitignore"
+    - "app/scripts/purge-user.ts"
+    - "app/src/api.assets.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "app/src/api.recordings.int.test.ts"
+    - "app/src/api.routes.int.test.ts"
+    - "app/src/db.int.test.ts"
+    - "app/src/routeTree.gen.ts"
+    - "app/src/routes/api/v1/assets.$assetId.ts"
+    - "app/src/routes/api/v1/assets.$assetId.state.ts"
+    - "app/src/routes/api/v1/assets.$assetId.media.ts"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/config.ts"
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/0009_shiur_asset_media.sql"
+    - "app/src/server/db/migrations/meta/_journal.json"
+    - "app/src/server/db/migrations/meta/0009_snapshot.json"
+    - "app/src/server/http/public-routes.ts"
+    - "app/src/server/services/object-store.ts"
+    - "app/src/server/services/recording-store.ts"
+    - "app/src/server/services/recordings.ts"
+    - "app/src/server/services/rooms.ts"
+    - "app/src/server/webhooks/user-deleted.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+    - "test/integration/schema-walk.ts"
+    - "docs/runbooks/server.md"
+  depends_on: [T-001]
+  parallel: false
+  completes: [SHIUR-003, SHIUR-004]
+  verify: ["npm run test:integration", "npm run test:contract", "npm run typecheck"]

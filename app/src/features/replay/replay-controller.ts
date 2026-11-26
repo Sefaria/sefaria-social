@@ -12,10 +12,17 @@ import { ID_RE } from "~/lib/ids";
 import { withoutAnyCtx } from "~/features/session/room-reader";
 import { createReplayPlayer, type ReplayMedia, type ReplayPlayer, type ReplayPlayerView } from "./player";
 import { createReplayApi, ReplayApiError, type ReplayApi } from "./replay-api";
-import { InvalidRecordingError, parseStateTrack } from "./state-track";
+import { InvalidRecordingError, parseStateTrack, type Chapter, type Recording } from "./state-track";
 import { documentHostFor } from "~/features/host/document-host";
 
 export type ReplayErrorReason = "not-found" | "invalid" | "failed";
+
+export interface ReplayAsset {
+  chapters: Chapter[];
+  /** False for an audio-only recording (the leader's camera was never on, D13); true when not known. */
+  hasVideo: boolean;
+  track: Recording;
+}
 
 export type ReplayView =
   | { kind: "closed" }
@@ -53,6 +60,8 @@ export interface ReplayController {
   player(): ReplayPlayer | null;
   /** The element the window shows while ready, else null. */
   mediaElement(): ReplayMediaElement | null;
+  /** Spec 053: the open recording's chapters, whether it has video, and its timeline (for the talking head's place). */
+  asset(): ReplayAsset | null;
   /** Opens (paused at the start) the recording the reader's `ctx` names, if it names one. */
   fromContext(): void;
 }
@@ -109,7 +118,13 @@ export function createReplayController({
   let cached: ReplayView | null = null;
   /** Bumped by every open and close: a load that finds it changed was abandoned. */
   let generation = 0;
-  let current: { player: ReplayPlayer; media: ReplayMediaElement; url: string; offPlayer: () => void } | null = null;
+  let current: {
+    player: ReplayPlayer;
+    media: ReplayMediaElement;
+    url: string;
+    offPlayer: () => void;
+    asset: ReplayAsset;
+  } | null = null;
 
   const emit = () => {
     cached = null;
@@ -128,7 +143,7 @@ export function createReplayController({
     player.dispose();
     media.pause();
     media.src = "";
-    objectUrls.revoke(url);
+    if (url) objectUrls.revoke(url);
   };
 
   const controller: ReplayController = {
@@ -151,16 +166,28 @@ export function createReplayController({
         if (!live()) return;
         const track = parseStateTrack(await api.getState(recordingId));
         if (!live()) return;
-        const raw = await api.getMedia(recordingId, {
-          expectedBytes: meta.mediaBytes ?? undefined,
-          onProgress: (loaded, total) => {
-            if (live()) set({ kind: "loading", recordingId, progress: total ? Math.min(1, loaded / total) : null });
-          },
-        });
+        // Spec 053: chapters and whether there is video, once the recording is processed (spec 052); none before.
+        const manifest = api.getManifest ? await api.getManifest(recordingId).catch(() => null) : null;
         if (!live()) return;
-        const blob = await fixDuration(raw, meta.durationMs ?? track.duration);
-        if (!live()) return;
-        const url = objectUrls.create(blob);
+        let url: string;
+        let owned = false;
+        if (manifest) {
+          // Processed (spec 052): played from its public address by byte range, never downloaded whole first.
+          url = `${host.config.apiOrigin.replace(/\/+$/, "")}/api/v1/assets/${encodeURIComponent(recordingId)}/media`;
+        } else {
+          const raw = await api.getMedia(recordingId, {
+            expectedBytes: meta.mediaBytes ?? undefined,
+            onProgress: (loaded, total) => {
+              if (live()) set({ kind: "loading", recordingId, progress: total ? Math.min(1, loaded / total) : null });
+            },
+          });
+          if (!live()) return;
+          // A raw MediaRecorder file has no duration: it is written in, so the scrubber can seek.
+          const blob = await fixDuration(raw, meta.durationMs ?? track.duration);
+          if (!live()) return;
+          url = objectUrls.create(blob);
+          owned = true;
+        }
         const media = createMedia();
         media.playsInline = true;
         media.muted = false;
@@ -168,7 +195,12 @@ export function createReplayController({
         media.src = url;
         const player = createReplayPlayer({ media, track, state: host.reader.state });
         const offPlayer = player.subscribe(emit);
-        current = { player, media, url, offPlayer };
+        const asset: ReplayAsset = {
+          chapters: (manifest?.chapters ?? []).map((c) => ({ t: c.t, ref: c.ref, heRef: c.heRef ?? null })),
+          hasVideo: manifest?.hasVideo ?? true,
+          track,
+        };
+        current = { player, media, url: owned ? url : "", offPlayer, asset };
         set({ kind: "ready", recordingId, player: player.view() });
         if (opts.autoplay) await player.play().catch(() => undefined);
       } catch (error) {
@@ -191,6 +223,7 @@ export function createReplayController({
     },
     player: () => current?.player ?? null,
     mediaElement: () => current?.media ?? null,
+    asset: () => current?.asset ?? null,
     fromContext() {
       const id = readRecordingCtx(host.reader.context.get());
       if (id) void controller.open(id, { autoplay: false });

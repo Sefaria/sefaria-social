@@ -19,7 +19,6 @@ const TABLES = [
   "profile_admins",
   "profiles",
   "reactions",
-  "recording_media_chunks",
   "recording_state_chunks",
   "replies",
   "reposts",
@@ -63,7 +62,7 @@ describe("spec 005: database", () => {
       order by 1`);
     expect(unindexed).toEqual([]);
     const fks = await h.sql("select conname from pg_constraint where contype = 'f'");
-    expect(fks.length).toBe(21);
+    expect(fks.length).toBe(20); // spec 051 dropped recording_media_chunks and its foreign key; spec 056 added live_status's
   });
 
   // @ac 005/AC-002

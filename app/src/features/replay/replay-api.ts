@@ -20,7 +20,19 @@ const recordingMetaSchema = z.object({
   mime: z.string().nullable().optional(),
   owner: z.object({ userId: z.number(), name: z.string().nullable().optional() }).optional(),
   canDelete: z.boolean().optional(),
+  /** The public asset's leader (spec 051), when it was read without membership. */
+  leader: z.object({ name: z.string().nullable().optional() }).optional(),
 });
+
+/** A processed recording's manifest (spec 052), as far as the player needs it; other fields are ignored. */
+const manifestSchema = z.object({
+  durationMs: z.number().finite().nonnegative().optional(),
+  hasVideo: z.boolean().optional(),
+  chapters: z
+    .array(z.object({ t: z.number().finite().nonnegative(), ref: z.string(), heRef: z.string().nullable().optional() }))
+    .optional(),
+});
+export type AssetManifest = z.infer<typeof manifestSchema>;
 export type RecordingMeta = z.infer<typeof recordingMetaSchema>;
 const recordingListSchema = z.object({ recordings: z.array(recordingMetaSchema) });
 
@@ -40,6 +52,8 @@ export interface ReplayApi {
   getRecording(recordingId: string): Promise<RecordingMeta>;
   /** The `Recording` v1 document, unparsed (the caller parses it with the session schema). */
   getState(recordingId: string): Promise<unknown>;
+  /** Spec 053: the processed recording's manifest (chapters, video or not), or null before it is processed. Optional for fakes. */
+  getManifest?(recordingId: string): Promise<AssetManifest | null>;
   /** The media as one Blob. `onProgress` hears bytes received and the total when known. */
   getMedia(
     recordingId: string,
@@ -50,6 +64,8 @@ export interface ReplayApi {
 export function createReplayApi(host: SurfaceHost, fetchImpl: typeof fetch = (...args) => globalThis.fetch(...args)): ReplayApi {
   const base = host.config.apiOrigin.replace(/\/+$/, "");
   const path = (recordingId: string, rest = "") => `${base}/api/v1/recordings/${encodeURIComponent(recordingId)}${rest}`;
+  /** Spec 051: a ready recording's public reads, for anyone with its link (signed out included). */
+  const asset = (recordingId: string, rest = "") => `${base}/api/v1/assets/${encodeURIComponent(recordingId)}${rest}`;
 
   const request = async (url: string, method = "GET"): Promise<Response> => {
     const headers = new Headers({ "x-correlation-id": crypto.randomUUID() });
@@ -65,6 +81,20 @@ export function createReplayApi(host: SurfaceHost, fetchImpl: typeof fetch = (..
     return response;
   };
 
+  /**
+   * Spec 053: the member read when signed in; the public one (a ready recording, for anyone with its link, spec 051) when signed
+   * out or when the member read is refused (the viewer is not in the recording's room).
+   */
+  const memberOrPublic = async (member: string, open: string): Promise<Response> => {
+    if (!host.viewer.get()) return request(open);
+    try {
+      return await request(member);
+    } catch (e) {
+      if (e instanceof ReplayApiError && [401, 403, 404].includes(e.status)) return request(open);
+      throw e;
+    }
+  };
+
   return {
     async listRecordings(roomId) {
       const response = await request(`${base}/api/v1/rooms/${encodeURIComponent(roomId)}/recordings`);
@@ -76,17 +106,28 @@ export function createReplayApi(host: SurfaceHost, fetchImpl: typeof fetch = (..
       await request(path(recordingId), "DELETE");
     },
     async getRecording(recordingId) {
-      const response = await request(path(recordingId));
+      // A member sees the room's view (who may delete it); anyone else, or a member of another room, the public asset.
+      const response = await memberOrPublic(path(recordingId), asset(recordingId));
       const parsed = recordingMetaSchema.safeParse(await response.json().catch(() => null));
       if (!parsed.success) throw new ReplayApiError(response.status);
       return parsed.data;
     },
     async getState(recordingId) {
-      const response = await request(path(recordingId, "/state"));
+      const response = await memberOrPublic(path(recordingId, "/state"), asset(recordingId, "/state"));
       return response.json();
     },
+    async getManifest(recordingId) {
+      try {
+        const response = await request(asset(recordingId, "/manifest"));
+        const parsed = manifestSchema.safeParse(await response.json().catch(() => null));
+        return parsed.success ? parsed.data : null;
+      } catch (e) {
+        if (e instanceof ReplayApiError && e.status === 404) return null;
+        throw e;
+      }
+    },
     async getMedia(recordingId, opts = {}) {
-      const response = await request(path(recordingId, "/media"));
+      const response = await memberOrPublic(path(recordingId, "/media"), asset(recordingId, "/media"));
       const type = response.headers.get("content-type") ?? "";
       const length = Number(response.headers.get("content-length"));
       const total = Number.isFinite(length) && length > 0 ? length : (opts.expectedBytes ?? null);

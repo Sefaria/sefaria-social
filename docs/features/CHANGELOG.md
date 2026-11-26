@@ -3,6 +3,9 @@
 One line per change to the feature atlas (`docs/features/features.json`): a feature built, verified, retired, or corrected.
 Newest first. Corrections made by a script in `docs/features/tools/` name the script.
 
+- 2026-11-26 — SHIUR-006 "The shiur player: a bar with chapters, the talking head in place, open to anyone": built (spec 053; named by `tools/2026-11-26-name-053-entries.mjs`). SESS-065's transport moved from the window to the bar.
+- 2026-11-26 — SHIUR-005 "Processing a recording into a seekable asset with a manifest and chapters": built (spec 052; named by `tools/2026-11-26-name-052-entries.mjs`).
+- 2026-11-25 — SHIUR-002 "Only the leader is recorded, with the talking head's place", SHIUR-003 "A ready recording opens for anyone with its link" and SHIUR-004 "Recording media in an object store": built (spec 051; named by `tools/2026-11-25-name-051-entries.mjs`).
 - 2026-11-25 — FEED-076 "Live cards in posts: the leader's current text, polled only while seen": built (spec 056).
 - 2026-11-25 — API-051 "Live status of posted sessions: relay reports and the public read": built (spec 056).
 - 2026-11-25 — FEED-075 "Links in post text, and a session card in the composer and in posts": built (spec 055).

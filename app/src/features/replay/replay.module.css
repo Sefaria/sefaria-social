@@ -100,3 +100,138 @@
   color: var(--sefaria-color-danger);
   padding: var(--sefaria-space-1);
 }
+
+/* Spec 053: the player bar, docked at the bottom of the page above the reader's bottom chrome (its offset is inline). */
+.bar {
+  position: fixed;
+  inset-inline: 0;
+  z-index: 2;
+  display: grid;
+  gap: var(--sefaria-space-1, 4px);
+  box-sizing: border-box;
+  padding: var(--sefaria-space-2, 8px) var(--sefaria-space-4, 16px) var(--sefaria-space-3, 12px);
+  border-block-start: 1px solid var(--sefaria-color-border, #e6e6e6);
+  background: var(--sefaria-color-surface, #ffffff);
+  color: var(--sefaria-color-text, #121212);
+  box-shadow: 0 -6px 18px rgb(0 0 0 / 8%);
+  font-family: var(--sefaria-font-ui, inherit);
+  font-size: 0.875rem;
+}
+
+.barSeek {
+  position: relative;
+  padding-block-start: 10px;
+}
+
+.barSeek input {
+  inline-size: 100%;
+  margin: 0;
+}
+
+.markers {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.markers li {
+  position: absolute;
+  inset-block-start: 0;
+  transform: translateX(-50%);
+}
+
+[dir="rtl"] .markers li {
+  transform: translateX(50%);
+}
+
+.marker {
+  position: relative;
+  display: block;
+  inline-size: 10px;
+  block-size: 10px;
+  padding: 0;
+  border: 2px solid var(--sefaria-color-surface, #ffffff);
+  border-radius: 50%;
+  background: var(--sefaria-color-brand, #18345d);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.marker[data-current] {
+  background: var(--sefaria-color-success, #2e7d32);
+}
+
+.marker:focus-visible {
+  outline: 2px solid var(--sefaria-color-focus, #1976d2);
+  outline-offset: 2px;
+}
+
+.markerTip {
+  position: absolute;
+  inset-block-end: calc(100% + 6px);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: var(--sefaria-radius-sm, 4px);
+  background: var(--sefaria-color-text, #121212);
+  color: var(--sefaria-color-surface, #ffffff);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.marker:hover .markerTip,
+.marker:focus-visible .markerTip {
+  opacity: 1;
+}
+
+.barControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+}
+
+.barControls button {
+  min-block-size: 32px;
+  padding-inline: var(--sefaria-space-3, 12px);
+  border: 1px solid var(--sefaria-color-border-strong, #b5b5b5);
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.barControls button[aria-pressed="true"] {
+  border-color: var(--sefaria-color-brand, #18345d);
+  background: var(--sefaria-color-brand, #18345d);
+  color: var(--sefaria-color-on-brand, #ffffff);
+}
+
+.chapterNow {
+  overflow: hidden;
+  max-inline-size: 30ch;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barEnd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sefaria-space-2, 8px);
+  margin-inline-start: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  .bar {
+    box-shadow: 0 -6px 18px rgb(0 0 0 / 40%);
+  }
+}

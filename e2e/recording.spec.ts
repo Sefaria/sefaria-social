@@ -55,6 +55,8 @@ test.describe("recording a room's session and playing it back", () => {
 
   // @feature SESS-064 Record a room's session (state and call media) in the owner's browser
   // @feature SESS-065 Replay a recording in the reader with the video in the floating window
+  // @feature SHIUR-005 Processing a recording into a seekable asset with a manifest and chapters
+  // @feature SHIUR-006 The shiur player: a bar with chapters, the talking head in place, open to anyone
   test("the owner records the call and the reader; a member plays it back and the reader follows the recording", async ({
     browser,
   }) => {
@@ -114,6 +116,18 @@ test.describe("recording a room's session and playing it back", () => {
     const ended = (await (await api(member.token, "GET", `/api/v1/rooms/${room.id}`)).json()) as { recording?: boolean };
     expect(ended.recording, "the badge's source is gone after Stop").toBeUndefined();
 
+    // Spec 052: the server processes it into a seekable asset with chapters, readable by anyone with its link (spec 051).
+    await expect.poll(async () => (await fetch(`${API}/api/v1/assets/${rec.id}/manifest`)).status, { timeout: 30_000 }).toBe(200);
+    const manifest = (await (await fetch(`${API}/api/v1/assets/${rec.id}/manifest`)).json()) as {
+      durationMs: number;
+      chapters: { ref: string }[];
+    };
+    expect(manifest.durationMs).toBeGreaterThan(5_000);
+    expect(manifest.chapters.length).toBeGreaterThan(0);
+    const range = await fetch(`${API}/api/v1/assets/${rec.id}/media`, { headers: { range: "bytes=0-1023" } });
+    expect(range.status).toBe(206);
+    expect(range.headers.get("content-range")).toMatch(/^bytes 0-1023\/\d+$/);
+
     // The member finds it in the lobby, opens its page and plays it in the reader (042).
     await member.page.goto(`/social/r/${room.id}`);
     await member.page.locator(`[data-recording-id="${rec.id}"] a`).first().click();
@@ -134,6 +148,9 @@ test.describe("recording a room's session and playing it back", () => {
         },
       )
       .toBeGreaterThan(0.5);
+    // Spec 053: the player bar at the bottom, with the chapters.
+    await expect(member.page.locator("[data-replay-bar]")).toBeVisible();
+    await expect(member.page.locator("[data-replay-bar] [data-chapter]")).toHaveCount(manifest.chapters.length);
     // The reader follows the recording past the move at about 3 seconds.
     await expect(location(member.page)).toHaveText(new RegExp(`^/Genesis\\.2\\?ctx=social\\.rec\\.${rec.id}`), {
       timeout: 15_000,

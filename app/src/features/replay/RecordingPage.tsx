@@ -54,7 +54,8 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
-    if (!api || !viewer) {
+    // Spec 053 (D2): a ready recording opens for anyone with its link; signed out, the public read answers (no delete).
+    if (!api) {
       setState({ kind: "not-found" });
       return;
     }
@@ -64,11 +65,11 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
       try {
         const recording = await api.getRecording(recordingId);
         let roomOwner = false;
-        if (recording.roomId && rooms) {
+        if (viewer && recording.roomId && rooms) {
           const room = await rooms.getRoom(recording.roomId).catch(() => null);
           roomOwner = room?.kind === "member" && room.room.role === "owner";
         }
-        const canDelete = recording.canDelete === true || recording.owner?.userId === viewer.id || roomOwner;
+        const canDelete = !!viewer && (recording.canDelete === true || recording.owner?.userId === viewer.id || roomOwner);
         if (live) setState({ kind: "ready", recording, canDelete });
       } catch {
         if (live) setState({ kind: "not-found" });

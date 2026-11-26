@@ -1,0 +1,21 @@
+- id: T-001
+  title: The player bar, chapters, the pinned talking head, public reads and the keyboard
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005]
+  files:
+    - "app/src/features/av/CallFrame.tsx"
+    - "app/src/features/av/CallWindow.tsx"
+    - "app/src/features/replay/ReplayBar.tsx"
+    - "app/src/features/replay/ReplayWindow.tsx"
+    - "app/src/features/replay/RecordingPage.tsx"
+    - "app/src/features/replay/replay-api.ts"
+    - "app/src/features/replay/replay-controller.ts"
+    - "app/src/features/replay/replay-controller.test.ts"
+    - "app/src/features/replay/replay.module.css"
+    - "app/src/features/replay/shiur-player.test.tsx"
+    - "app/src/features/replay/state-track.ts"
+    - "app/src/features/shell/strings.ts"
+    - "e2e/recording.spec.ts"
+  depends_on: []
+  parallel: false
+  completes: [SHIUR-006]
+  verify: ["npm test -- app/src/features/replay", "npm run typecheck"]

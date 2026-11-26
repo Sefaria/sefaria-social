@@ -4,6 +4,7 @@
 import { closeDb, getDb } from "../src/server/db/client";
 import { log } from "../src/server/log/logger";
 import { deleteUserData } from "../src/server/services/users";
+import { sweepAfterDeletion } from "../src/server/services/recordings";
 
 const arg = process.argv[2] ?? "";
 if (!/^[1-9][0-9]{0,15}$/.test(arg) || !Number.isSafeInteger(Number(arg))) {
@@ -13,6 +14,7 @@ if (!/^[1-9][0-9]{0,15}$/.test(arg) || !Number.isSafeInteger(Number(arg))) {
 const userId = Number(arg);
 try {
   const counts = await getDb().transaction((tx) => deleteUserData(tx, userId, null));
+  await sweepAfterDeletion(); // spec 051: the media of the user's recordings, whose rows just went
   log.info("user.purged", { ...counts });
   console.log(`purge-user: removed rows per table: ${JSON.stringify(counts)}; tombstone written.`);
 } finally {
