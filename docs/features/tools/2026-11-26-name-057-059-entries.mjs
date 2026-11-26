@@ -25,16 +25,16 @@ const ENTRIES = {
     description:
       "Under Invite people in the room's lobby, a field takes @handles (with suggestions) and emails as chips and sends them; each comes back with what happened; an invited person sees 'X invited you to <room>' with Join in their activity.",
     acs: ["058/AC-002", "058/AC-005"],
-    status: "planned",
-    tests: [],
+    status: "built",
+    tests: ["app/src/features/room/invite-bar.test.tsx", "app/src/features/notifications/sentence.test.ts", "e2e/rooms.spec.ts"],
   },
   "API-052": {
     name: "Room invitations and people search",
     description:
       "POST /rooms/{roomId}/invites (members only, 1–20 entries, an answer per entry, once per person and room a day, 50 an hour per inviter); GET /people?q= (up to 8 person profiles by handle prefix or name, public fields only).",
     acs: ["058/AC-001", "058/AC-003", "058/AC-004"],
-    status: "planned",
-    tests: [],
+    status: "built",
+    tests: ["app/src/api.invites.int.test.ts"],
   },
   "ROOM-056": {
     name: "Inviting by email",

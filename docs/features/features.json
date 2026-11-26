@@ -222,7 +222,7 @@
       "area": "api",
       "name": "Room invitations and people search",
       "description": "POST /rooms/{roomId}/invites (members only, 1–20 entries, an answer per entry, once per person and room a day, 50 an hour per inviter); GET /people?q= (up to 8 person profiles by handle prefix or name, public fields only).",
-      "status": "planned",
+      "status": "built",
       "spec": "058",
       "acs": [
         "058/AC-001",
@@ -235,7 +235,9 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/api.invites.int.test.ts"
+      ],
       "since": null,
       "changed": []
     },
@@ -2092,7 +2094,7 @@
       "area": "room",
       "name": "The invite bar in a room, and invitations in activity",
       "description": "Under Invite people in the room's lobby, a field takes @handles (with suggestions) and emails as chips and sends them; each comes back with what happened; an invited person sees 'X invited you to <room>' with Join in their activity.",
-      "status": "planned",
+      "status": "built",
       "spec": "058",
       "acs": [
         "058/AC-002",
@@ -2104,7 +2106,11 @@
         "api"
       ],
       "depends_on": {},
-      "tests": [],
+      "tests": [
+        "app/src/features/room/invite-bar.test.tsx",
+        "app/src/features/notifications/sentence.test.ts",
+        "e2e/rooms.spec.ts"
+      ],
       "since": null,
       "changed": []
     },
