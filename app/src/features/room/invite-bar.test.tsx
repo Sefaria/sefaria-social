@@ -82,9 +82,12 @@ describe("spec 058: the invite bar", () => {
     const options = [...document.querySelectorAll('[role="option"]')];
     expect(options.map((o) => o.textContent)).toEqual(["Ben Levi @ben", "Bella @bella"]);
     expect(input().getAttribute("aria-expanded")).toBe("true");
+    expect(input().getAttribute("aria-activedescendant"), "nothing chosen until an arrow key").toBeNull();
+    await key("ArrowDown");
     await key("ArrowDown");
     expect(input().getAttribute("aria-activedescendant")).toBe(options[1]!.id);
     await key("ArrowUp");
+    expect(input().getAttribute("aria-activedescendant")).toBe(options[0]!.id);
     await key("Enter");
     expect(q("[data-invite-chip='@ben']"), "Ben chosen with the keyboard").not.toBeNull();
     expect(input().value).toBe("");

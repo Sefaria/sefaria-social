@@ -1,6 +1,6 @@
 // The invite bar (spec 058 AC-005; spec 059 for email): under the room's link, a field labelled "Invite by @handle or email".
-// Typing offers matching people (a combobox with a listbox: arrow keys and Enter, or a click); Enter, comma or space turns the
-// text into a chip; Send invites sends the chips and says, on each, what happened. An entry that was not sent stays as a chip
+// Typing offers matching people (a combobox with a listbox: an arrow key chooses one, Enter takes it, or a click); otherwise
+// Enter, comma or space turns the typed text into a chip; Send invites sends the chips and says, on each, what happened. An entry that was not sent stays as a chip
 // marked with its reason; sent ones go after a moment. Rooms stay link-open: this only tells people.
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useRoomsApi, type InviteStatus, type Person } from "~/features/api/rooms-api";
@@ -34,6 +34,9 @@ export function InviteBar({ roomId }: { roomId: string }) {
 
   // Suggestions for what is being typed (not for an email address), a moment after the last key.
   useEffect(() => {
+    // What was offered for the text before is no longer offered: Enter never picks from an out-of-date list.
+    setPeople([]);
+    setActive(-1);
     const q = text.trim();
     if (!api?.people || q.replace(/^@/, "").length < 1 || q.includes(" ") || /.@/.test(q)) {
       setPeople([]);
@@ -45,7 +48,8 @@ export function InviteBar({ roomId }: { roomId: string }) {
         .then((found) => {
           if (mine !== asked.current) return;
           setPeople(found);
-          setActive(found.length ? 0 : -1);
+          // Nothing is chosen until an arrow key chooses it: Enter adds what was typed.
+          setActive(-1);
         })
         .catch(() => undefined);
     }, SUGGEST_DELAY_MS);
