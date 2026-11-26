@@ -25,6 +25,7 @@
     - "test/integration/schema-walk.ts"
     - "test/integration/fake-sefaria.ts"
     - "docs/runbooks/server.md"
+    - "deploy/helm/values.yaml"
     - "packages/api-client/openapi.json"
     - "packages/api-client/src/schema.ts"
     - "app/src/routeTree.gen.ts"

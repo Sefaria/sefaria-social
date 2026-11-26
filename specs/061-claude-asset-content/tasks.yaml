@@ -14,6 +14,7 @@
     - "app/src/routes/api/v1/claude-assets.content.$versionId.shiur.$grant.ts"
     - "app/src/api.claude-asset-content.int.test.ts"
     - "docs/runbooks/server.md"
+    - "deploy/helm/values.yaml"
     - "packages/api-client/openapi.json"
     - "packages/api-client/src/schema.ts"
     - "app/src/routeTree.gen.ts"

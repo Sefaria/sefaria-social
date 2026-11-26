@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:924b952970c70b73774eb8cb9ae5800d5f35ca5e5553fdbe839a83770f7080ee",
   "feature_sha": "sha256:846bda1f2830a53be5df32b94e77319f7516e21237af37c3e18ef9a53006244d",
-  "tasks_sha": "sha256:e3c36279c8dd7d51da3d80f2bc5338b3ada3a7f50508ff220be6eea69e05acfe",
+  "tasks_sha": "sha256:fab1e674124ffe5fd5871b9a2c9462525bad103d4cf65a1c14fead1be1c11467",
   "risk": "high",
   "features": [
     "SHIUR-008",
@@ -49,6 +49,7 @@
         "test/integration/schema-walk.ts",
         "test/integration/fake-sefaria.ts",
         "docs/runbooks/server.md",
+        "deploy/helm/values.yaml",
         "packages/api-client/openapi.json",
         "packages/api-client/src/schema.ts",
         "app/src/routeTree.gen.ts",

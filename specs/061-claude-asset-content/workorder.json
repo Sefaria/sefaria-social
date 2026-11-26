@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:30f2bfb3b71b3229027feab092849eb5ab9161e0b7a95f6e339b23003aee1da2",
   "feature_sha": "sha256:3e74a513622b1e2a6c7300d47833cca504fe6caecf075e5514827a6d85e5be89",
-  "tasks_sha": "sha256:89f4fc1d43d3541a6d526199a2737f24894c7e92cb8e7f0c1147705946c24866",
+  "tasks_sha": "sha256:6807d72d2a6058200241bebc3c1c27d5ceac72634f6b590f7b55d1d6b752af93",
   "risk": "high",
   "features": [
     "SHIUR-010"
@@ -35,6 +35,7 @@
         "app/src/routes/api/v1/claude-assets.content.$versionId.shiur.$grant.ts",
         "app/src/api.claude-asset-content.int.test.ts",
         "docs/runbooks/server.md",
+        "deploy/helm/values.yaml",
         "packages/api-client/openapi.json",
         "packages/api-client/src/schema.ts",
         "app/src/routeTree.gen.ts",
