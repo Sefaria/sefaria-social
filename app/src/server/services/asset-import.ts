@@ -122,7 +122,13 @@ export async function fetchPinned(url: URL, maxBytes: number, opts: FetchOptions
   let addresses: Resolved;
   try {
     const literal = net.isIP(host);
-    addresses = literal ? [{ address: host, family: literal === 6 ? 6 : 4 }] : await resolve(host);
+    // The lookup has the same 10-second limit as the fetch: a resolver that never answers fails the import.
+    addresses = literal
+      ? [{ address: host, family: literal === 6 ? 6 : 4 }]
+      : await Promise.race([
+          resolve(host),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("dns timeout")), timeoutMs).unref()),
+        ]);
   } catch {
     return problem("import.fetch_failed", `The host "${host}" could not be found. Check the URL.`);
   }
