@@ -5,7 +5,7 @@
   "approved": false,
   "spec_sha": "sha256:ed7556854d7b735ff17394f6e19841e2448293b3aa0cda440b72382ddab2a72c",
   "feature_sha": "sha256:1dcc78c4ab3ec2571d424b0b8e811f6e3a12dd437c7b962fc7dd63cfe909bb7a",
-  "tasks_sha": "sha256:e924a4dc72b09308c1b5a773ef644b14d9b1b3155ac8c625a6dcea04b3856fa2",
+  "tasks_sha": "sha256:f9cbaec03610beb67796a74b6b5575fc0a3f60a8af9c0490d4dc7bcc7a1c8197",
   "risk": "high",
   "features": [
     "IDENT-104",
@@ -35,6 +35,7 @@
         "app/src/routes/api/v1/profiles.by-handle.$handle.ts",
         "app/src/routeTree.gen.ts",
         "app/src/api.handles.int.test.ts",
+        "app/src/api.posts.int.test.ts",
         "app/src/api.contract.test.ts",
         "app/src/api.routes.int.test.ts",
         "app/src/db.int.test.ts",
@@ -65,6 +66,8 @@
         "app/src/features/profile/profile.module.css",
         "app/src/features/profile/profile-handle.test.tsx",
         "app/src/features/profile/use-me.ts",
+        "app/src/features/api/social-api.ts",
+        "e2e/social.spec.ts",
         "app/src/features/post/**",
         "app/src/features/feed/**",
         "app/src/features/shell/strings.ts"

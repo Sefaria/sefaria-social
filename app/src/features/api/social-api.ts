@@ -58,7 +58,7 @@ export interface SocialApi {
   react(postId: string, on: boolean): Promise<{ reacted: boolean; reactionCount: number }>;
   repost(postId: string, on: boolean): Promise<{ reposted: boolean; repostCount: number }>;
   me(): Promise<MyProfile>;
-  updateMe(input: { name?: string; bio?: string }): Promise<MyProfile>;
+  updateMe(input: { name?: string; bio?: string; handle?: string }): Promise<MyProfile>;
   profile(profileId: string): Promise<ProfileWithPosts>;
   suggested(): Promise<Profile[]>;
   follow(profileId: string, on: boolean): Promise<{ following: boolean; followers: number }>;

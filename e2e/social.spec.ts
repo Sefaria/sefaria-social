@@ -122,6 +122,40 @@ test.describe("posts, replies and Yasher koach", () => {
 });
 
 test.describe("profiles and follows", () => {
+  // @feature IDENT-105 The @handle in settings and beside the name
+  // @ac 057/AC-004
+  // @ac 057/AC-005
+  test("a learner chooses a handle in settings and it shows beside their name on their profile and their posts", async ({
+    browser,
+  }) => {
+    const me = persona("Handle Learner");
+    const other = persona("Handle Holder");
+    const taken = `held_${other.id}`;
+    await api(await tokenFor(other), "PATCH", "/api/v1/profiles/me", { handle: taken });
+    const { page, context } = await as(browser, me);
+    await page.goto("/social/settings?tab=profile");
+    const form = mount(page).locator("[data-profile-form]");
+    const handle = form.locator("[data-profile-handle-input]");
+    await expect(handle).toHaveValue(/^handle_learner\d*$/);
+    await handle.fill(taken);
+    await form.locator("[data-action=save-profile]").click();
+    await expect(form.locator("[data-handle-error]")).toHaveText("That handle is taken. Try another.");
+    await expect(handle).toHaveValue(taken);
+    const mine = `learner_${me.id}`;
+    await handle.fill(`@${mine.toUpperCase()}`);
+    await form.locator("[data-action=save-profile]").click();
+    await expect(form.locator("[data-profile-status]")).toHaveText("Saved.");
+    await expect(handle).toHaveValue(mine);
+    await page.goto("/social");
+    await mount(page).locator("[data-composer-body]").fill(`Handles are here ${me.id}`);
+    await mount(page).locator("[data-action=post]").click();
+    const first = mount(page).locator("[data-timeline] article[data-post]").first();
+    await expect(first.locator("[data-post-handle]")).toHaveText(`@${mine}`);
+    await mount(page).locator("[data-nav=profile]").click();
+    await expect(mount(page).locator("[data-profile-handle]")).toHaveText(`@${mine}`);
+    await context.close();
+  });
+
   // @feature IDENT-101 A profile page: kind, bio, counts, follow state and posts
   // @ac 025/AC-005
   test("following from Who to follow turns the button at once; the profile page shows kind, bio, counts and posts", async ({

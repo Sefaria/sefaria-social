@@ -1,6 +1,7 @@
-// Editing one's profile in settings (spec 025 AC-006): name and bio, the bio's remaining characters, Save, and a polite "Saved".
+// Editing one's profile in settings (spec 025 AC-006): name, @handle (spec 057 AC-004), bio and its remaining characters, Save,
+// and a polite "Saved". A handle the server refuses is said under the Handle field, and what was typed stays.
 import { useEffect, useId, useState, type FormEvent } from "react";
-import { useSocialApi } from "~/features/api/social-api";
+import { SocialApiError, useSocialApi } from "~/features/api/social-api";
 import { useStrings } from "~/features/shell/use-strings";
 import kit from "~/ui/kit.module.css";
 import styles from "./profile.module.css";
@@ -14,13 +15,16 @@ export function ProfileForm() {
   const me = useMe();
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
+  const [handle, setHandle] = useState("");
+  const [handleError, setHandleError] = useState<"invalid" | "taken" | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
-  const ids = { name: useId(), bio: useId(), hint: useId() };
+  const ids = { name: useId(), bio: useId(), hint: useId(), handle: useId(), handleHint: useId() };
 
   useEffect(() => {
     if (!me) return;
     setName(me.name);
     setBio(me.bio);
+    setHandle(me.handle);
   }, [me]);
 
   if (!me || !api) return <p role="status">{t.loading}</p>;
@@ -28,11 +32,16 @@ export function ProfileForm() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setStatus("saving");
+    setHandleError(null);
     try {
-      const next = await api.updateMe({ name: name.trim(), bio: bio.trim() });
+      const next = await api.updateMe({ name: name.trim(), bio: bio.trim(), handle: handle.trim() });
       await refreshMe(api, next);
+      setHandle(next.handle);
       setStatus("saved");
-    } catch {
+    } catch (err) {
+      const code = err instanceof SocialApiError ? err.code : "";
+      if (code === "profile.handle_invalid" || code === "request.invalid") setHandleError("invalid");
+      else if (code === "profile.handle_taken") setHandleError("taken");
       setStatus("failed");
     }
   };
@@ -52,6 +61,38 @@ export function ProfileForm() {
           onChange={(e) => setName(e.target.value)}
           dir="auto"
         />
+      </div>
+      <div className={kit.field}>
+        <label htmlFor={ids.handle} className={kit.label}>
+          {t.handle}
+        </label>
+        <div className={styles.handleInput} dir="ltr">
+          <span aria-hidden="true">@</span>
+          <input
+            id={ids.handle}
+            className={kit.input}
+            value={handle}
+            maxLength={31}
+            required
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            aria-describedby={ids.handleHint}
+            aria-invalid={handleError ? true : undefined}
+            onChange={(e) => {
+              setHandle(e.target.value);
+              setHandleError(null);
+            }}
+            data-profile-handle-input=""
+          />
+        </div>
+        <span
+          id={ids.handleHint}
+          className={handleError ? styles.fieldError : kit.hint}
+          data-handle-error={handleError ?? undefined}
+        >
+          {handleError === "taken" ? t.handleTaken : handleError === "invalid" ? t.handleInvalid : t.handleHint}
+        </span>
       </div>
       <div className={kit.field}>
         <label htmlFor={ids.bio} className={kit.label}>
@@ -82,7 +123,7 @@ export function ProfileForm() {
           {status === "saving" ? t.saving : t.save}
         </button>
         <span role="status" aria-live="polite" data-profile-status={status}>
-          {status === "saved" ? t.saved : status === "failed" ? t.saveFailed : ""}
+          {status === "saved" ? t.saved : status === "failed" && !handleError ? t.saveFailed : ""}
         </span>
       </div>
     </form>

@@ -93,6 +93,9 @@ export function PostCard({
           >
             {post.author.name}
           </Link>
+          <span className={styles.handle} dir="ltr" data-post-handle="">
+            @{post.author.handle}
+          </span>
           {post.author.kind === "institution" ? <span className={kit.badge}>{t.institution}</span> : null}
           <span className={styles.dot} aria-hidden="true">
             ·
