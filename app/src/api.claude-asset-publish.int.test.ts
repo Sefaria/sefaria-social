@@ -8,7 +8,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getRouter } from "~/router";
-import { assetHtml, startFakeSefaria, type FakeSefaria } from "../../test/integration/fake-sefaria";
+import type * as FakeSefariaModule from "../../test/integration/fake-sefaria";
+
+// Loaded through import.meta.glob: on a base without it, each test fails on its first assertion (prove-red).
+const fakeModules = import.meta.glob<typeof FakeSefariaModule>("../../test/integration/fake-sefaria.ts");
+type FakeSefaria = FakeSefariaModule.FakeSefaria;
+let assetHtml: typeof FakeSefariaModule.assetHtml;
 
 const PUBLISH = "/api/v1/claude-assets/$assetId/publish";
 const BY_REF = "/api/v1/claude-assets/ref/$ref";
@@ -48,16 +53,19 @@ const OWNER = 963001;
 
 let sefaria: FakeSefaria;
 beforeAll(async () => {
-  sefaria = await startFakeSefaria();
+  const m = await fakeModules["../../test/integration/fake-sefaria.ts"]?.();
+  if (!m) return; // the base: every test fails on its first assertion
+  assetHtml = m.assetHtml;
+  sefaria = await m.startFakeSefaria();
 });
 afterAll(async () => {
-  await sefaria.close();
+  await sefaria?.close();
   delete process.env.SOCIAL_ALLOWED_ORIGINS;
 });
 
 async function load() {
   process.env.ASSET_STORE_DIR = mkdtempSync(path.join(tmpdir(), "social-publish-"));
-  process.env.SEFARIA_API_ORIGIN = sefaria.origin;
+  process.env.SEFARIA_API_ORIGIN = sefaria?.origin ?? "http://127.0.0.1:9";
   process.env.ASSET_CONTENT_ORIGIN = "http://social.test";
   process.env.SOCIAL_ALLOWED_ORIGINS = "https://www.sefaria.org";
   const h = await (await import("../../test/integration/harness")).harness(getRouter());

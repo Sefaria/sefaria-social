@@ -282,8 +282,8 @@ describe("relay", () => {
     expect([badPath.status, plain.status, foreign.status, noOrigin.status]).toEqual([404, 426, 403, 403]);
   });
 
-  // @feature IDENT-107 Tokens issued through the MCP write Claude assets and nothing else
   // @ac 064/AC-004
+  // @feature IDENT-107 Tokens issued through the MCP write Claude assets and nothing else
   it("refuses a token issued through the MCP connector, and accepts the same token without the marker", async () => {
     expect(Object.keys(workers), "packages/relay/src/worker.ts exists").toEqual(["./worker.ts"]);
     const { connect } = support;

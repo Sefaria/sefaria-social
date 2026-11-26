@@ -6,7 +6,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getRouter } from "~/router";
-import { assetHtml, startFakeSefaria, type FakeSefaria } from "../../test/integration/fake-sefaria";
+import type * as FakeSefariaModule from "../../test/integration/fake-sefaria";
+
+// Loaded through import.meta.glob: on a base without it, each test fails on its first assertion (prove-red).
+const fakeModules = import.meta.glob<typeof FakeSefariaModule>("../../test/integration/fake-sefaria.ts");
+type FakeSefaria = FakeSefariaModule.FakeSefaria;
+let assetHtml: typeof FakeSefariaModule.assetHtml;
 
 const SHIURIM = "/api/v1/shiurim";
 const ONE = "/api/v1/shiurim/$shiurId";
@@ -46,16 +51,19 @@ const MISSING = "6f1c2d3e-4b5a-4c6d-8e7f-001122334455";
 
 let sefaria: FakeSefaria;
 beforeAll(async () => {
-  sefaria = await startFakeSefaria();
+  const m = await fakeModules["../../test/integration/fake-sefaria.ts"]?.();
+  if (!m) return; // the base: every test fails on its first assertion
+  assetHtml = m.assetHtml;
+  sefaria = await m.startFakeSefaria();
 });
 afterAll(async () => {
-  await sefaria.close();
+  await sefaria?.close();
   delete process.env.ASSET_CONTENT_SECRET;
 });
 
 async function load() {
   process.env.ASSET_STORE_DIR = mkdtempSync(path.join(tmpdir(), "social-shiurim-"));
-  process.env.SEFARIA_API_ORIGIN = sefaria.origin;
+  process.env.SEFARIA_API_ORIGIN = sefaria?.origin ?? "http://127.0.0.1:9";
   process.env.ASSET_CONTENT_ORIGIN = "http://social.test";
   process.env.ASSET_CONTENT_SECRET = "integration-test-asset-content-secret";
   const h = await (await import("../../test/integration/harness")).harness(getRouter());

@@ -7,7 +7,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getRouter } from "~/router";
-import { assetHtml, startFakeSefaria, type FakeSefaria } from "../../test/integration/fake-sefaria";
+import type * as FakeSefariaModule from "../../test/integration/fake-sefaria";
+
+// Loaded through import.meta.glob: on a base without it, each test fails on its first assertion (prove-red).
+const fakeModules = import.meta.glob<typeof FakeSefariaModule>("../../test/integration/fake-sefaria.ts");
+type FakeSefaria = FakeSefariaModule.FakeSefaria;
+let assetHtml: typeof FakeSefariaModule.assetHtml;
 
 const IMPORT = "/api/v1/claude-assets/import";
 
@@ -21,10 +26,13 @@ function served(method: string, p: string): unknown {
 type Refused = { error: { code: string }; problems: { code: string; message: string }[] };
 let sefaria: FakeSefaria;
 beforeAll(async () => {
-  sefaria = await startFakeSefaria();
+  const m = await fakeModules["../../test/integration/fake-sefaria.ts"]?.();
+  if (!m) return; // the base: every test fails on its first assertion
+  assetHtml = m.assetHtml;
+  sefaria = await m.startFakeSefaria();
 });
 afterAll(async () => {
-  await sefaria.close();
+  await sefaria?.close();
   const { setImportFetcher } = await import("~/server/services/asset-import");
   setImportFetcher(null);
 });
@@ -34,7 +42,7 @@ describe("spec 060: import from a URL", () => {
   it("imports a public https page and keeps its URL as the source; refuses Claude links, http, private addresses and bad answers", async () => {
     expect(served("POST", IMPORT), `POST ${IMPORT} is served`).toBeTypeOf("function");
     process.env.ASSET_STORE_DIR = mkdtempSync(path.join(tmpdir(), "social-import-"));
-    process.env.SEFARIA_API_ORIGIN = sefaria.origin;
+    process.env.SEFARIA_API_ORIGIN = sefaria?.origin ?? "http://127.0.0.1:9";
     const h = await (await import("../../test/integration/harness")).harness(getRouter());
     const { setImportFetcher, refusedAddress } = await import("~/server/services/asset-import");
     const fetched: string[] = [];

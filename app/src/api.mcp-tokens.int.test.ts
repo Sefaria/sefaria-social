@@ -7,7 +7,13 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getRouter } from "~/router";
-import { assetHtml, startFakeSefaria, type FakeSefaria } from "../../test/integration/fake-sefaria";
+import type * as FakeSefariaModule from "../../test/integration/fake-sefaria";
+
+// Loaded through import.meta.glob: on a base without it, each test fails on its first assertion (prove-red).
+const fakeModules = import.meta.glob<typeof FakeSefariaModule>("../../test/integration/fake-sefaria.ts");
+type FakeSefaria = FakeSefariaModule.FakeSefaria;
+const mcpRoutes = import.meta.glob<typeof import("./server/http/mcp-routes")>("./server/http/mcp-routes.ts");
+let assetHtml: typeof FakeSefariaModule.assetHtml;
 
 const SAVE = "/api/v1/claude-assets";
 const U = 966001;
@@ -15,15 +21,18 @@ const SAMPLE = "00000000-0000-4000-8000-000000000000";
 
 let sefaria: FakeSefaria;
 beforeAll(async () => {
-  sefaria = await startFakeSefaria();
+  const m = await fakeModules["../../test/integration/fake-sefaria.ts"]?.();
+  if (!m) return; // the base: every test fails on its first assertion
+  assetHtml = m.assetHtml;
+  sefaria = await m.startFakeSefaria();
 });
 afterAll(async () => {
-  await sefaria.close();
+  await sefaria?.close();
 });
 
 async function load() {
   process.env.ASSET_STORE_DIR = mkdtempSync(path.join(tmpdir(), "social-mcp-"));
-  process.env.SEFARIA_API_ORIGIN = sefaria.origin;
+  process.env.SEFARIA_API_ORIGIN = sefaria?.origin ?? "http://127.0.0.1:9";
   const h = await (await import("../../test/integration/harness")).harness(getRouter());
   const mcp = await h.token(U, { name: "Via Claude", via: "mcp" });
   return { h, mcp };
@@ -35,7 +44,8 @@ const code = (r: { status: number; json: unknown }) =>
 describe("spec 064: MCP tokens", () => {
   // @ac 064/AC-001
   it("saves and imports with a marked token as its user", async () => {
-    const { MCP_ENDPOINTS } = await import("./server/http/mcp-routes");
+    expect(Object.keys(mcpRoutes), "the reviewed list of MCP endpoints").toEqual(["./server/http/mcp-routes.ts"]);
+    const { MCP_ENDPOINTS } = await mcpRoutes["./server/http/mcp-routes.ts"]!();
     expect([...MCP_ENDPOINTS]).toEqual(["POST /api/v1/claude-assets", "POST /api/v1/claude-assets/import"]);
     const { h, mcp } = await load();
     const saved = await h.call("POST", SAVE, { token: mcp, body: { html: assetHtml(["Genesis 1:1-5"]) } });

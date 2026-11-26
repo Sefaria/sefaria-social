@@ -8,7 +8,12 @@ import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getRouter } from "~/router";
 import { resetConfig } from "~/server/config";
-import { assetHtml, startFakeSefaria, type FakeSefaria } from "../../test/integration/fake-sefaria";
+import type * as FakeSefariaModule from "../../test/integration/fake-sefaria";
+
+// Loaded through import.meta.glob: on a base without it, each test fails on its first assertion (prove-red).
+const fakeModules = import.meta.glob<typeof FakeSefariaModule>("../../test/integration/fake-sefaria.ts");
+type FakeSefaria = FakeSefariaModule.FakeSefaria;
+let assetHtml: typeof FakeSefariaModule.assetHtml;
 
 const CONTENT = "/api/v1/claude-assets/content/$versionId";
 const SHIUR_CONTENT = "/api/v1/claude-assets/content/$versionId/shiur/$grant";
@@ -28,10 +33,13 @@ const SECRET = "integration-test-asset-content-secret";
 
 let sefaria: FakeSefaria;
 beforeAll(async () => {
-  sefaria = await startFakeSefaria();
+  const m = await fakeModules["../../test/integration/fake-sefaria.ts"]?.();
+  if (!m) return; // the base: every test fails on its first assertion
+  assetHtml = m.assetHtml;
+  sefaria = await m.startFakeSefaria();
 });
 afterAll(async () => {
-  await sefaria.close();
+  await sefaria?.close();
   for (const k of ["ASSET_CONTENT_ORIGIN", "ASSET_CONTENT_SECRET", "ASSET_TRUSTED_CDNS_ENABLED", "SOCIAL_ALLOWED_ORIGINS"])
     delete process.env[k];
   resetConfig();
@@ -39,7 +47,7 @@ afterAll(async () => {
 
 async function load() {
   process.env.ASSET_STORE_DIR = mkdtempSync(path.join(tmpdir(), "social-content-"));
-  process.env.SEFARIA_API_ORIGIN = sefaria.origin;
+  process.env.SEFARIA_API_ORIGIN = sefaria?.origin ?? "http://127.0.0.1:9";
   process.env.ASSET_CONTENT_ORIGIN = "http://social.test";
   process.env.ASSET_CONTENT_SECRET = SECRET;
   process.env.SOCIAL_ALLOWED_ORIGINS = "https://www.sefaria.org,https://sefaria.org.il";
