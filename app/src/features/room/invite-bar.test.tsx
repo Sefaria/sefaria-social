@@ -116,6 +116,8 @@ describe("spec 058: the invite bar", () => {
     expect(invite).toHaveBeenLastCalledWith(ROOM, ["@nobody"], "en");
   });
 
+  // @feature ROOM-056 Inviting by email
+  // @ac 059/AC-004
   it("says when the hour's limit is reached, and that email is not available when the server cannot send it", async () => {
     const invite = vi
       .fn()
