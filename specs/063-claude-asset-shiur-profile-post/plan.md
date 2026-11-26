@@ -18,7 +18,7 @@ Source: `LINKED_PANELS_AND_ASSETS_PLAN.md` 6.1, 6.3, D5, D8, D9, P2. Decision: `
 
 - `claude-assets.ts`: `publicAssetsOf(profileId)`; route `profiles.$profileId.claude-assets.ts` (public).
 - `posts.ts`: `asset` in `embedTargets` (title, owner's display name) and `mayEmbed` (own, or published; not hidden);
-  `PostEmbed.contentUrl` optional, set only for assets. `live.ts` ignores asset embeds.
+  answered as `Post.assetEmbed` (optional), never as `embed`, whose kinds stay three. `live.ts` ignores asset embeds.
 - Tests: `app/src/api.claude-asset-listing.int.test.ts`.
 
 ## T-003 The interface (AC-007)

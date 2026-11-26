@@ -37,8 +37,9 @@ exists but nothing writes it, and the shiur page is a placeholder.
 - AC-005 WHEN anyone asks `GET /api/v1/profiles/{profileId}/claude-assets` THE SYSTEM SHALL answer the published, not hidden
   assets of that person, newest first, each with id, title, description, refs, published version id and its `contentUrl`
 - AC-006 WHEN a post is written with `embed: {kind: "asset", id}` THE SYSTEM SHALL accept it when the asset is the author's own
-  or published, and not hidden, and answer the post's embed with the asset's title, its author's name as `leader` and its
-  `contentUrl`; any other asset SHALL be 404 and no post created; posts with other embeds are unchanged
+  or published, and not hidden, and answer the post with `assetEmbed: {id, title, leader, contentUrl}` (the asset's title, its
+  author's name and its file), a field of its own so `embed.kind` keeps its three values for older surfaces; any other asset
+  SHALL be 404 and no post created; posts with other embeds are unchanged
 - AC-007 WHEN a profile page is shown THE SYSTEM SHALL list that person's public assets, each with its title, description and
   an Open link to its content in a new tab; on the viewer's own page it SHALL also list their own assets with Publish or
   Unpublish (a refusal because the profile is not verified says so) and a file input that uploads an `.html` asset and shows
@@ -57,7 +58,8 @@ exists but nothing writes it, and the shiur page is a placeholder.
   contract step); `session_recordings.shiur_id uuid null references shiurim on delete set null` (indexed); `shiur_assets`
   (shiur_id, asset_id, version_id, position, created_at; primary key (shiur_id, asset_id); deleted with the shiur, the asset or
   the version). `posts_embed_check` allows `asset`.
-- `PostEmbed.contentUrl` is optional and present only for an asset embed (older exact-match tests).
+- `Post.assetEmbed` is optional and present only on a post that embeds an asset (older exact-match tests); `embed.kind`'s
+  values are unchanged, so `npm run api:breaking` sees no widened enum and older surfaces show such a post without a card.
 - The live cards (spec 056) ignore asset embeds.
 - UI: `features/assets/` (AssetList, OwnAssets with upload, AssetEmbedCard parts), used by `features/profile/ProfilePage.tsx`,
   `features/shiur/ShiurPage.tsx` and `features/post/EmbedCard.tsx`; strings in English and Hebrew; Open links are real

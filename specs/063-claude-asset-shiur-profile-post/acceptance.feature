@@ -50,7 +50,7 @@ Feature: A shiur holds recordings and pinned Claude assets; assets on profiles a
   @AC-006
   Scenario: AC-006 an asset as a post card
     When V posts with embed asset B, and U posts with embed asset A (unpublished, U's own)
-    Then each answers 201 with embed kind "asset", the asset's title, its author's name as leader and its contentUrl
+    Then each answers 201 with an assetEmbed holding the asset's title, its author's name as leader and its contentUrl, and no embed
     When U posts with embed asset C (V's, unpublished) or an unknown asset
     Then each answers 404 and no post was created
 
