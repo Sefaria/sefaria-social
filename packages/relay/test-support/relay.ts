@@ -42,7 +42,8 @@ export interface Relay {
   close(): Promise<void>;
 }
 
-export async function startRelay(): Promise<Relay> {
+/** `socialServerUrl` sets the relay's SOCIAL_SERVER_URL, so it sends live reports there (spec 056). */
+export async function startRelay(opts: { socialServerUrl?: string } = {}): Promise<Relay> {
   const { publicKey, privateKey } = await generateKeyPair("RS256", { extractable: true });
   const other = await generateKeyPair("RS256", { extractable: true });
   const jwk = { ...(await exportJWK(publicKey)), kid: KID, alg: "RS256", use: "sig" };
@@ -60,7 +61,13 @@ export async function startRelay(): Promise<Relay> {
       script: await bundleWorker(),
       compatibilityDate: "2026-10-01",
       durableObjects: { ROOMS: "Room", TOMBSTONES: "Tombstones" },
-      bindings: { ALLOWED_ORIGINS: ORIGIN, JWKS_URL: jwksUrl, TOKEN_ISSUER: ISSUER, RELAY_INTERNAL_SECRET: SECRET },
+      bindings: {
+        ALLOWED_ORIGINS: ORIGIN,
+        JWKS_URL: jwksUrl,
+        TOKEN_ISSUER: ISSUER,
+        RELAY_INTERNAL_SECRET: SECRET,
+        ...(opts.socialServerUrl ? { SOCIAL_SERVER_URL: opts.socialServerUrl } : {}),
+      },
     }),
   );
   const url = await mf.ready;

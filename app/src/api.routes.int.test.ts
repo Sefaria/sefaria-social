@@ -37,6 +37,7 @@ describe("spec 006: protect by default", () => {
       "GET /api/v1/assets/{assetId}/manifest",
       "GET /api/v1/assets/{assetId}/transcript",
       "GET /api/v1/assets/{assetId}/audio",
+      "GET /api/v1/live",
     ]);
   });
 

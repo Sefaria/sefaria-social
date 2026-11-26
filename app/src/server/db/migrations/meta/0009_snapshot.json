@@ -1,6 +1,6 @@
 {
-  "id": "1c0e662b-063d-44b1-98b2-585b2bbf5077",
-  "prevId": "71c16643-3ff2-45ed-8937-2bbd6ca919a4",
+  "id": "8c4fd5d8-f23b-4d76-9af2-7cd4d654953a",
+  "prevId": "b0e4f838-73f4-420b-b93e-9b0cf0780cff",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -343,6 +343,88 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.live_status": {
+      "name": "live_status",
+      "schema": "",
+      "columns": {
+        "relay_room": {
+          "name": "relay_room",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "room_id": {
+          "name": "room_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ref": {
+          "name": "ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "he_ref": {
+          "name": "he_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "participants": {
+          "name": "participants",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "reported_at": {
+          "name": "reported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "live_status_room_idx": {
+          "name": "live_status_room_idx",
+          "columns": [
+            {
+              "expression": "room_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "live_status_room_id_rooms_id_fk": {
+          "name": "live_status_room_id_rooms_id_fk",
+          "tableFrom": "live_status",
+          "tableTo": "rooms",
+          "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.notifications": {
       "name": "notifications",
       "schema": "",
@@ -512,6 +594,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "embed_kind": {
+          "name": "embed_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "embed_id": {
+          "name": "embed_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -592,6 +686,22 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "posts_embed_idx": {
+          "name": "posts_embed_idx",
+          "columns": [
+            {
+              "expression": "embed_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"posts\".\"embed_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -617,7 +727,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "posts_embed_check": {
+          "name": "posts_embed_check",
+          "value": "(\"posts\".\"embed_kind\" is null and \"posts\".\"embed_id\" is null) or (\"posts\".\"embed_kind\" in ('room', 'broadcast', 'recording') and \"posts\".\"embed_id\" is not null)"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.profile_admins": {
@@ -1312,63 +1427,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "process_status": {
-          "name": "process_status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "process_attempts": {
-          "name": "process_attempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "process_after": {
-          "name": "process_after",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "transcript_status": {
-          "name": "transcript_status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "transcript_language": {
-          "name": "transcript_language",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'en'"
-        },
-        "transcript_attempts": {
-          "name": "transcript_attempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "transcript_after": {
-          "name": "transcript_after",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "transcript_job_id": {
-          "name": "transcript_job_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "transcript_submitted_at": {
-          "name": "transcript_submitted_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "state_messages": {
           "name": "state_messages",
           "type": "integer",
@@ -1436,38 +1494,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "session_recordings_transcript_idx": {
-          "name": "session_recordings_transcript_idx",
-          "columns": [
-            {
-              "expression": "transcript_after",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "where": "\"session_recordings\".\"transcript_status\" in ('queued', 'submitted')",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "session_recordings_process_idx": {
-          "name": "session_recordings_process_idx",
-          "columns": [
-            {
-              "expression": "process_after",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "where": "\"session_recordings\".\"process_status\" in ('queued', 'running')",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -1488,18 +1514,6 @@
         "session_recordings_status_check": {
           "name": "session_recordings_status_check",
           "value": "\"session_recordings\".\"status\" in ('recording', 'ready', 'failed')"
-        },
-        "session_recordings_process_status_check": {
-          "name": "session_recordings_process_status_check",
-          "value": "\"session_recordings\".\"process_status\" is null or \"session_recordings\".\"process_status\" in ('queued', 'running', 'done', 'failed')"
-        },
-        "session_recordings_transcript_status_check": {
-          "name": "session_recordings_transcript_status_check",
-          "value": "\"session_recordings\".\"transcript_status\" is null or \"session_recordings\".\"transcript_status\" in ('queued', 'submitted', 'ready', 'failed', 'unavailable')"
-        },
-        "session_recordings_transcript_language_check": {
-          "name": "session_recordings_transcript_language_check",
-          "value": "\"session_recordings\".\"transcript_language\" in ('en', 'he', 'yi', 'fr')"
         }
       },
       "isRLSEnabled": false

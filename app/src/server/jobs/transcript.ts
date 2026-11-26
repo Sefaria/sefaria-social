@@ -3,7 +3,7 @@
 // its words with their times as `transcript.json` and cues as `transcript.vtt` beside the asset, and marks the manifest. Without
 // a key it is "unavailable" and everything else works; a Sofer.ai failure is "failed" and never touches the asset.
 //
-// The same queue as processing (decision 0013), on its own columns: transcript_status queued → submitted → ready | failed,
+// The same queue as processing (decision 0014), on its own columns: transcript_status queued → submitted → ready | failed,
 // transcript_attempts, transcript_after (when it may run next). Each call to Sofer.ai has a time limit; a poll waits 30 s, growing
 // to 5 minutes; after 6 hours, or 3 failed submissions, it is failed. Sofer.ai allows 5 requests a minute: one job at a time.
 import { eq, sql } from "drizzle-orm";

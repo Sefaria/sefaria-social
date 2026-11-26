@@ -33,6 +33,7 @@ export type ErrorCode =
   | "room.relay_unavailable"
   | "post.not_found"
   | "post.forbidden"
+  | "embed.not_found"
   | "reply.not_found"
   | "reply.forbidden"
   | "profile.not_found"
@@ -73,6 +74,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   "room.relay_unavailable": "Following in rooms is not available right now.",
   "post.not_found": "Post not found.",
   "post.forbidden": "Only the post's author can do that.",
+  "embed.not_found": "That room, broadcast or recording does not exist.",
   "reply.not_found": "Reply not found.",
   "reply.forbidden": "Only the reply's author can do that.",
   "profile.not_found": "Profile not found.",

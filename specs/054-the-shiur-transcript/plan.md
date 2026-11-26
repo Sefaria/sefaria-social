@@ -2,7 +2,7 @@
 
 ## Approach
 
-- Migration 0009: `transcript_status` (queued, submitted, ready, failed, unavailable), `transcript_language` (default `en`),
+- Migration 0011 (written as 0009; renumbered at merge after groups B and D): `transcript_status` (queued, submitted, ready, failed, unavailable), `transcript_language` (default `en`),
   `transcript_attempts`, `transcript_after`, `transcript_job_id`, `transcript_submitted_at`, and a partial index for the queue.
 - `server/jobs/transcript.ts`: claim one row (`FOR UPDATE SKIP LOCKED`), submit `audio.m4a` (inline base64 under 40 MB, or the
   public audio URL when `SOCIAL_PUBLIC_ORIGIN` is set), poll with a growing wait, then store `transcript.json` (words in ms) and

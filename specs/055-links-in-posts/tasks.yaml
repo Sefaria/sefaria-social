@@ -1,0 +1,38 @@
+- id: T-001
+  title: Posts carry an optional embed of a room, broadcast or recording, checked by the server
+  acs: [AC-002, AC-003]
+  files:
+    - "app/src/server/db/schema.ts"
+    - "app/src/server/db/migrations/**"
+    - "app/src/server/api/contracts.ts"
+    - "app/src/server/services/posts.ts"
+    - "app/src/server/http/errors.ts"
+    - "app/src/api.post-embeds.int.test.ts"
+    - "app/src/api.contract.test.ts"
+    - "packages/api-client/openapi.json"
+    - "packages/api-client/src/schema.ts"
+  depends_on: []
+  parallel: false
+  completes: [FEED-074]
+  verify: ["npm run test:integration -- api.post-embeds api.posts api.repost", "npm run typecheck", "npm run test:contract"]
+- id: T-002
+  title: Links in post text, and the card in the composer and in posts
+  acs: [AC-001, AC-004, AC-005]
+  files:
+    - "app/src/features/post/embed-link.ts"
+    - "app/src/features/post/embed-link.test.ts"
+    - "app/src/features/post/linkify.tsx"
+    - "app/src/features/post/linkify.test.tsx"
+    - "app/src/features/post/EmbedCard.tsx"
+    - "app/src/features/post/embed-card.module.css"
+    - "app/src/features/post/post-embeds.test.tsx"
+    - "app/src/features/post/Composer.tsx"
+    - "app/src/features/post/composer.module.css"
+    - "app/src/features/post/PostCard.tsx"
+    - "app/src/features/post/post.module.css"
+    - "app/src/features/api/social-api.ts"
+    - "app/src/features/shell/strings.ts"
+  depends_on: [T-001]
+  parallel: false
+  completes: [FEED-075]
+  verify: ["npm test -- features/post", "npm run typecheck", "npm run lint"]

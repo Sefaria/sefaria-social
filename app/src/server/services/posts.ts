@@ -6,7 +6,20 @@
 import { and, asc, desc, eq, inArray, isNull, lt, or, sql, type SQL } from "drizzle-orm";
 import type { Identity } from "../auth/identity";
 import { getDb, type Db } from "../db/client";
-import { follows, posts, profileAdmins, profiles, reactions, replies, reposts } from "../db/schema";
+import {
+  broadcasts,
+  follows,
+  posts,
+  profileAdmins,
+  profiles,
+  reactions,
+  replies,
+  reposts,
+  roomMembers,
+  rooms,
+  sessionRecordings,
+  userDisplay,
+} from "../db/schema";
 import { ApiError } from "../http/errors";
 import { notify, notifyFollowersOfPost, ownersOf } from "./notifications";
 import { canActAs, ensurePersonProfile } from "./person-profile";
@@ -29,6 +42,16 @@ export interface QuotedPostDto {
   createdAt: string | null;
 }
 
+export type EmbedKind = "room" | "broadcast" | "recording";
+
+/** A post's card (spec 055); title and leader are null when the target no longer exists. */
+export interface EmbedDto {
+  kind: EmbedKind;
+  id: string;
+  title: string | null;
+  leader: string | null;
+}
+
 export interface PostDto {
   id: string;
   body: string;
@@ -45,6 +68,8 @@ export interface PostDto {
   quoted: QuotedPostDto | null;
   /** In a timeline: the profile (one the viewer follows, or the viewer) whose repost brought this post here. */
   repostedBy: AuthorDto | null;
+  /** Only on a post that embeds a room, broadcast or recording (spec 055); absent otherwise. */
+  embed?: EmbedDto;
 }
 
 export interface ReplyDto {
@@ -76,6 +101,8 @@ function postColumns(viewer: number) {
     repostCount: sql<number>`(select count(*)::int from ${reposts} where ${reposts.postId} = ${posts.id})`,
     quoteCount: sql<number>`(select count(*)::int from posts q where q.quoted_post_id = ${posts.id} and q.deleted_at is null)`,
     reposted: sql<boolean>`exists (select 1 from ${reposts} r join profiles rp on rp.id = r.profile_id where r.post_id = ${posts.id} and rp.user_id = ${viewer})`,
+    embedKind: posts.embedKind,
+    embedId: posts.embedId,
   };
 }
 
@@ -95,6 +122,8 @@ type PostRow = {
   repostCount: number;
   quoteCount: number;
   reposted: boolean;
+  embedKind: string | null;
+  embedId: string | null;
 };
 
 const toPost = (r: PostRow): PostDto => ({
@@ -112,7 +141,76 @@ const toPost = (r: PostRow): PostDto => ({
   reposted: Boolean(r.reposted),
   quoted: r.quotedPostId ? { id: r.quotedPostId, body: null, ref: null, author: null, createdAt: null } : null,
   repostedBy: null,
+  ...(r.embedKind && r.embedId ? { embed: { kind: r.embedKind as EmbedKind, id: r.embedId, title: null, leader: null } } : {}),
 });
+
+type Tx = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
+
+/** Title and leader's name of each embedded target of one kind (spec 055); a missing target is left out. */
+async function embedTargets(
+  db: Tx,
+  kind: EmbedKind,
+  ids: string[],
+): Promise<Map<string, { title: string; leader: string | null }>> {
+  if (!ids.length) return new Map();
+  const rows =
+    kind === "room"
+      ? await db
+          .select({ id: rooms.id, title: rooms.title, leader: userDisplay.name })
+          .from(rooms)
+          .leftJoin(userDisplay, eq(userDisplay.userId, rooms.ownerUserId))
+          .where(inArray(rooms.id, ids))
+      : kind === "broadcast"
+        ? await db
+            .select({ id: broadcasts.id, title: broadcasts.title, leader: userDisplay.name })
+            .from(broadcasts)
+            .leftJoin(userDisplay, eq(userDisplay.userId, broadcasts.hostUserId))
+            .where(inArray(broadcasts.id, ids))
+        : await db
+            .select({
+              id: sessionRecordings.id,
+              title: sql<string>`coalesce(${sessionRecordings.title}, ${rooms.title})`,
+              leader: userDisplay.name,
+            })
+            .from(sessionRecordings)
+            .innerJoin(rooms, eq(rooms.id, sessionRecordings.roomId))
+            .leftJoin(userDisplay, eq(userDisplay.userId, sessionRecordings.ownerUserId))
+            .where(inArray(sessionRecordings.id, ids));
+  return new Map(rows.map((r) => [r.id, { title: r.title, leader: r.leader ?? null }]));
+}
+
+/**
+ * Whether this user may post a card for the target (spec 055 AC-002): it exists and they are in its room (owner or member).
+ * A room is members-only; posting it makes its title and live text public (decision 0011 D9), so only its people may.
+ */
+async function mayEmbed(db: Tx, userId: number, kind: EmbedKind, id: string): Promise<boolean> {
+  const roomOf =
+    kind === "room"
+      ? sql`${id}::uuid`
+      : kind === "broadcast"
+        ? sql`(select ${broadcasts.roomId} from ${broadcasts} where ${broadcasts.id} = ${id}::uuid)`
+        : sql`(select ${sessionRecordings.roomId} from ${sessionRecordings} where ${sessionRecordings.id} = ${id}::uuid)`;
+  const [row] = await db
+    .select({ ok: sql<number>`1` })
+    .from(roomMembers)
+    .where(and(eq(roomMembers.userId, userId), sql`${roomMembers.roomId} = ${roomOf}`))
+    .limit(1);
+  return row !== undefined;
+}
+
+/** Fill in each embed's title and leader (one query per kind present). */
+async function withEmbeds(db: Db, list: PostDto[]): Promise<PostDto[]> {
+  const kinds: EmbedKind[] = ["room", "broadcast", "recording"];
+  const found = new Map<string, { title: string; leader: string | null }>();
+  for (const kind of kinds) {
+    const ids = [...new Set(list.flatMap((p) => (p.embed?.kind === kind ? [p.embed.id] : [])))];
+    for (const [id, t] of await embedTargets(db, kind, ids)) found.set(`${kind}:${id}`, t);
+  }
+  return list.map((p) => {
+    const t = p.embed && found.get(`${p.embed.kind}:${p.embed.id}`);
+    return t && p.embed ? { ...p, embed: { ...p.embed, ...t } } : p;
+  });
+}
 
 /** Fill in the posts that these posts quote (one query; a deleted one stays as its id). */
 async function withQuoted(db: Db, list: PostDto[]): Promise<PostDto[]> {
@@ -156,7 +254,7 @@ async function selectPosts(db: Db, viewer: number, where: SQL | undefined, limit
     .where(and(isNull(posts.deletedAt), where))
     .orderBy(desc(posts.createdAt), desc(posts.id))
     .limit(limit);
-  return withQuoted(db, rows.map(toPost));
+  return withEmbeds(db, await withQuoted(db, rows.map(toPost)));
 }
 
 /** These posts, in this order (missing or deleted ones left out). */
@@ -219,7 +317,13 @@ export function decodeRankCursor(cursor: string): { offset: number; asOf: Date }
 // ── Posts ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 export async function createPost(
   identity: Identity,
-  input: { body: string; ref?: string | null; asProfileId?: string | null; quotedPostId?: string | null },
+  input: {
+    body: string;
+    ref?: string | null;
+    asProfileId?: string | null;
+    quotedPostId?: string | null;
+    embed?: { kind: EmbedKind; id: string };
+  },
   db: Db = getDb(),
 ): Promise<PostDto> {
   const id = await db.transaction(async (tx) => {
@@ -228,6 +332,12 @@ export async function createPost(
     if (authorProfileId !== own.id && !(await canActAs(tx, identity.userId, authorProfileId)))
       throw new ApiError(403, "post.forbidden");
     if (input.quotedPostId) await livePost(tx, input.quotedPostId);
+    if (
+      input.embed &&
+      (!(await embedTargets(tx, input.embed.kind, [input.embed.id])).size ||
+        !(await mayEmbed(tx, identity.userId, input.embed.kind, input.embed.id)))
+    )
+      throw new ApiError(404, "embed.not_found");
     const [row] = await tx
       .insert(posts)
       .values({
@@ -236,6 +346,8 @@ export async function createPost(
         body: input.body,
         ref: input.ref || null,
         quotedPostId: input.quotedPostId || null,
+        embedKind: input.embed?.kind ?? null,
+        embedId: input.embed?.id ?? null,
       })
       .returning({ id: posts.id });
     await notifyFollowersOfPost(tx, authorProfileId, row!.id, identity.userId);

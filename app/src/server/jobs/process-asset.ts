@@ -1,11 +1,11 @@
-// Asset processing (spec 052; docs/plans/shiur.md 4.5, 5.1, 5.3; decision 0013). When a recording is ready its row is queued;
+// Asset processing (spec 052; docs/plans/shiur.md 4.5, 5.1, 5.3; decision 0014). When a recording is ready its row is queued;
 // the worker claims it, writes the raw chunks to a temporary file one at a time, remuxes them with ffmpeg into a seekable
 // `media.webm` (cues at the front, a duration), extracts `audio.m4a` (what a transcript is made from), writes the reader
 // timeline as `timeline.json` and a `manifest.json` (files with size and SHA-256, duration, whether there is video, chapters),
 // then removes the raw chunks. Until it is done the recording still plays from the raw chunks. No step holds a recording
 // whole in memory: chunks go to disk one by one, and the processed files are copied and hashed as streams.
 //
-// The queue is the row itself (decision 0013): process_status queued → running → done | failed, process_attempts, and
+// The queue is the row itself (decision 0014): process_status queued → running → done | failed, process_attempts, and
 // process_after (a running job's lease, or a retry's backoff). Claims use FOR UPDATE SKIP LOCKED, so two workers never take
 // one row. A claim is the attempt number: a job writes its result only while the row still holds that attempt, so a job that
 // outlived its lease never overwrites the one that took over. A row whose attempts are spent is failed when its lease runs
