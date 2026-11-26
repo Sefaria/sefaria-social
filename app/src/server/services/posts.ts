@@ -48,9 +48,9 @@ export interface QuotedPostDto {
 
 export type EmbedKind = "room" | "broadcast" | "recording" | "asset";
 
-/** A post's card (spec 055); title and leader are null when the target no longer exists. */
+/** A post's card (spec 055); title and leader are null when the target no longer exists. An asset is `assetEmbed`. */
 export interface EmbedDto {
-  kind: EmbedKind;
+  kind: Exclude<EmbedKind, "asset">;
   id: string;
   title: string | null;
   leader: string | null;
@@ -76,6 +76,8 @@ export interface PostDto {
   repostedBy: AuthorDto | null;
   /** Only on a post that embeds a room, broadcast or recording (spec 055); absent otherwise. */
   embed?: EmbedDto;
+  /** Only on a post that embeds a Claude asset (spec 063), answered apart so `embed.kind` keeps its three values. */
+  assetEmbed?: { id: string; title: string | null; leader: string | null; contentUrl?: string };
 }
 
 export interface ReplyDto {
@@ -149,7 +151,11 @@ const toPost = (r: PostRow): PostDto => ({
   reposted: Boolean(r.reposted),
   quoted: r.quotedPostId ? { id: r.quotedPostId, body: null, ref: null, author: null, createdAt: null } : null,
   repostedBy: null,
-  ...(r.embedKind && r.embedId ? { embed: { kind: r.embedKind as EmbedKind, id: r.embedId, title: null, leader: null } } : {}),
+  ...(r.embedKind === "asset" && r.embedId
+    ? { assetEmbed: { id: r.embedId, title: null, leader: null } }
+    : r.embedKind && r.embedId
+      ? { embed: { kind: r.embedKind as EmbedDto["kind"], id: r.embedId, title: null, leader: null } }
+      : {}),
 });
 
 type Tx = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
@@ -245,13 +251,22 @@ async function mayEmbed(db: Tx, userId: number, kind: EmbedKind, id: string): Pr
 async function withEmbeds(db: Db, list: PostDto[]): Promise<PostDto[]> {
   const kinds: EmbedKind[] = ["room", "broadcast", "recording", "asset"];
   const found = new Map<string, { title: string; leader: string | null; contentUrl?: string }>();
+  const target = (p: PostDto) =>
+    p.assetEmbed ? { kind: "asset" as const, id: p.assetEmbed.id } : p.embed ? { kind: p.embed.kind, id: p.embed.id } : null;
   for (const kind of kinds) {
-    const ids = [...new Set(list.flatMap((p) => (p.embed?.kind === kind ? [p.embed.id] : [])))];
+    const ids = [...new Set(list.flatMap((p) => (target(p)?.kind === kind ? [target(p)!.id] : [])))];
     for (const [id, t] of await embedTargets(db, kind, ids)) found.set(`${kind}:${id}`, t);
   }
   return list.map((p) => {
-    const t = p.embed && found.get(`${p.embed.kind}:${p.embed.id}`);
-    return t && p.embed ? { ...p, embed: { ...p.embed, ...t } } : p;
+    const at = target(p);
+    const t = at && found.get(`${at.kind}:${at.id}`);
+    if (!t) return p;
+    if (p.assetEmbed)
+      return {
+        ...p,
+        assetEmbed: { ...p.assetEmbed, title: t.title, leader: t.leader, ...(t.contentUrl ? { contentUrl: t.contentUrl } : {}) },
+      };
+    return p.embed ? { ...p, embed: { ...p.embed, title: t.title, leader: t.leader } } : p;
   });
 }
 

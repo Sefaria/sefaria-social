@@ -91,26 +91,30 @@ describe("spec 063: assets on profiles and in posts", () => {
     const { h, u, v, a, b, c } = await load();
     const post = (token: string, id: string) =>
       h.call("POST", "/api/v1/posts", { token, body: { body: "", embed: { kind: "asset", id } } });
-    const embedOf = (r: { status: number; json: unknown }) => [r.status, (r.json as { embed?: unknown }).embed];
+    const embedOf = (r: { status: number; json: unknown }) => [
+      r.status,
+      (r.json as { assetEmbed?: unknown }).assetEmbed,
+      "embed" in (r.json as object),
+    ];
     expect(embedOf(await post(v, b.asset.id))).toEqual([
       201,
       {
-        kind: "asset",
         id: b.asset.id,
         title: "B",
         leader: "Rav V",
         contentUrl: `http://social.test/api/v1/claude-assets/content/${b.version.id}`,
       },
+      false,
     ]);
     expect(embedOf(await post(u, a.asset.id))).toEqual([
       201,
       {
-        kind: "asset",
         id: a.asset.id,
         title: "A",
         leader: "Rav U",
         contentUrl: `http://social.test/api/v1/claude-assets/content/${a.version.id}`,
       },
+      false,
     ]);
     const before = await h.sql("select count(*)::int as n from posts");
     expect([(await post(u, c.asset.id)).status, (await post(u, MISSING)).status]).toEqual([404, 404]);

@@ -3447,6 +3447,14 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        assetEmbed?: {
+                            /** Format: uri */
+                            contentUrl?: string;
+                            /** Format: uuid */
+                            id: string;
+                            leader: string | null;
+                            title: string | null;
+                        };
                         author: {
                             handle: string;
                             /** Format: uuid */
@@ -3460,12 +3468,10 @@ export interface operations {
                         /** Format: date-time */
                         createdAt: string;
                         embed?: {
-                            /** Format: uri */
-                            contentUrl?: string;
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
-                            kind: "room" | "broadcast" | "recording" | "asset";
+                            kind: "room" | "broadcast" | "recording";
                             leader: string | null;
                             title: string | null;
                         };
@@ -3579,6 +3585,14 @@ export interface operations {
                 content: {
                     "application/json": {
                         post: {
+                            assetEmbed?: {
+                                /** Format: uri */
+                                contentUrl?: string;
+                                /** Format: uuid */
+                                id: string;
+                                leader: string | null;
+                                title: string | null;
+                            };
                             author: {
                                 handle: string;
                                 /** Format: uuid */
@@ -3592,12 +3606,10 @@ export interface operations {
                             /** Format: date-time */
                             createdAt: string;
                             embed?: {
-                                /** Format: uri */
-                                contentUrl?: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
-                                kind: "room" | "broadcast" | "recording" | "asset";
+                                kind: "room" | "broadcast" | "recording";
                                 leader: string | null;
                                 title: string | null;
                             };
@@ -4173,6 +4185,14 @@ export interface operations {
                 content: {
                     "application/json": {
                         posts: {
+                            assetEmbed?: {
+                                /** Format: uri */
+                                contentUrl?: string;
+                                /** Format: uuid */
+                                id: string;
+                                leader: string | null;
+                                title: string | null;
+                            };
                             author: {
                                 handle: string;
                                 /** Format: uuid */
@@ -4186,12 +4206,10 @@ export interface operations {
                             /** Format: date-time */
                             createdAt: string;
                             embed?: {
-                                /** Format: uri */
-                                contentUrl?: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
-                                kind: "room" | "broadcast" | "recording" | "asset";
+                                kind: "room" | "broadcast" | "recording";
                                 leader: string | null;
                                 title: string | null;
                             };
@@ -7106,6 +7124,14 @@ export interface operations {
                     "application/json": {
                         nextCursor: string | null;
                         posts: {
+                            assetEmbed?: {
+                                /** Format: uri */
+                                contentUrl?: string;
+                                /** Format: uuid */
+                                id: string;
+                                leader: string | null;
+                                title: string | null;
+                            };
                             author: {
                                 handle: string;
                                 /** Format: uuid */
@@ -7119,12 +7145,10 @@ export interface operations {
                             /** Format: date-time */
                             createdAt: string;
                             embed?: {
-                                /** Format: uri */
-                                contentUrl?: string;
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
-                                kind: "room" | "broadcast" | "recording" | "asset";
+                                kind: "room" | "broadcast" | "recording";
                                 leader: string | null;
                                 title: string | null;
                             };

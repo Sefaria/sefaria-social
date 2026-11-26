@@ -83,9 +83,10 @@ export const QuotedPost = z.object({
   createdAt: Iso.nullable(),
 });
 
-/** What a post may embed as a card (spec 055): a room, a broadcast or a recording, by id; a Claude asset (spec 063). */
-export const EmbedKind = z.enum(["room", "broadcast", "recording", "asset"]);
-export const PostEmbedInput = z.strictObject({ kind: EmbedKind, id: z.uuid() });
+/** What a post may embed as a card (spec 055): a room, a broadcast or a recording, by id. */
+export const EmbedKind = z.enum(["room", "broadcast", "recording"]);
+/** A post may also embed a Claude asset (spec 063); it is answered as `assetEmbed`, so `embed.kind` keeps its values. */
+export const PostEmbedInput = z.strictObject({ kind: z.enum(["room", "broadcast", "recording", "asset"]), id: z.uuid() });
 
 /** A post's card (spec 055): the target's title and its leader's name, both null when the target no longer exists. */
 export const PostEmbed = z.object({
@@ -93,7 +94,17 @@ export const PostEmbed = z.object({
   id: z.uuid(),
   title: z.string().nullable(),
   leader: z.string().nullable(),
-  /** Spec 063: only on an asset embed that still exists, its published (or, for its author's own, current) file. */
+});
+
+/**
+ * A post's Claude asset card (spec 063): title and author (`leader`) null when the asset is gone or hidden; `contentUrl` its
+ * published file (or, while its author's own asset is unpublished, its current one), absent when gone. A field of its own so
+ * older surfaces, which know three embed kinds, show the post without a card.
+ */
+export const PostAssetEmbed = z.object({
+  id: z.uuid(),
+  title: z.string().nullable(),
+  leader: z.string().nullable(),
   contentUrl: z.url().optional(),
 });
 
@@ -114,6 +125,8 @@ export const Post = z.object({
   repostedBy: Author.nullable(),
   /** Present only when the post embeds a room, broadcast or recording (spec 055). */
   embed: PostEmbed.optional(),
+  /** Present only when the post embeds a Claude asset (spec 063). */
+  assetEmbed: PostAssetEmbed.optional(),
 });
 
 export const Reply = z.object({ id: z.uuid(), body: z.string(), author: Author, createdAt: Iso, canDelete: z.boolean() });
