@@ -46,9 +46,7 @@ export function FollowButton({
       <button
         type="button"
         className={
-          on
-            ? `${kit.button} ${kit.secondary} ${kit.small} ${styles.followingButton}`
-            : `${kit.button} ${kit.primary} ${kit.small}`
+          on ? `${kit.button} ${kit.secondary} ${kit.small} ${styles.followingButton}` : `${kit.button} ${kit.ink} ${kit.small}`
         }
         aria-pressed={on}
         aria-label={`${on ? t.following_ : t.follow} ${name}`}

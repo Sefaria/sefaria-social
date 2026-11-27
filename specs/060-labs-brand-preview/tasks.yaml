@@ -1,0 +1,31 @@
+- id: T-001
+  title: "Social in the Labs Daylight brand — palette, mark, a colour per learner, questions, small delights"
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007]
+  files:
+    - "app/src/ui/brand.module.css"
+    - "app/src/ui/BrandMark.tsx"
+    - "app/src/ui/brand.test.ts"
+    - "app/src/features/shell/SocialLayout.test.tsx"
+    - "app/src/ui/fonts/**"
+    - "app/src/features/shell/SocialLayout.tsx"
+    - "app/src/features/shell/strings.ts"
+    - "app/src/features/shell/shell.module.css"
+    - "app/src/features/feed/home.module.css"
+    - "app/src/features/feed/feed.module.css"
+    - "app/src/features/feed/card.module.css"
+    - "app/src/features/post/post.module.css"
+    - "app/src/features/post/embed-card.module.css"
+    - "app/src/features/profile/profile.module.css"
+    - "app/src/features/profile/FollowButton.tsx"
+    - "app/src/features/rooms/RoomsBar.tsx"
+    - "app/src/ui/kit.module.css"
+    - "app/src/ui/Avatar.tsx"
+    - "app/src/features/post/avatar-colours.test.tsx"
+    - "app/src/features/post/PostCard.tsx"
+    - "app/src/features/post/question.ts"
+    - "app/src/features/post/question.test.ts"
+    - "docs/features/**"
+  depends_on: []
+  parallel: false
+  verify: ["npm run typecheck", "npm run lint", "npm test", "npm run build:surface"]
+  completes: [FEED-077]

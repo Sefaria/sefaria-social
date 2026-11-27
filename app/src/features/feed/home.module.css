@@ -77,16 +77,21 @@ main:has(> .home) {
 
 main:has(> .home) > h1 {
   margin: 0;
-  font-family: var(--sefaria-font-secondary-en, var(--sefaria-font-ui-en, sans-serif));
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
   color: var(--sefaria-color-brand, #18345d);
 }
 
 main:has(> .home) > h1 + p {
   margin: calc(-1 * var(--sefaria-space-3, 12px)) 0 0;
-  font-size: 12px;
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
   color: var(--sefaria-color-text-muted, #6f6f6f);
 }
 

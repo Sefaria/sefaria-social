@@ -4,6 +4,7 @@ import type { InterfaceLang } from "~/features/host/host-context";
 const STRINGS = {
   english: {
     nav: "Social",
+    labsByline: "from Sefaria Labs",
     feed: "Feed",
     settings: "Settings",
     room: "Room",
@@ -108,6 +109,7 @@ const STRINGS = {
     timelineEveryoneEmpty: "Nobody has posted yet. Be the first.",
     timelineError: "Posts could not be loaded. Try again in a moment.",
     institution: "Community",
+    question: "Question",
     openInReader: (ref: string) => `Open ${ref} in the reader`,
     replies: (n: number) => (n === 1 ? "1 reply" : `${n} replies`),
     reply: "Reply",
@@ -392,6 +394,7 @@ const STRINGS = {
   },
   hebrew: {
     nav: "חברתי",
+    labsByline: "מבית Sefaria Labs",
     feed: "עדכונים",
     settings: "הגדרות",
     room: "חדר",
@@ -495,6 +498,7 @@ const STRINGS = {
     timelineEveryoneEmpty: "עדיין אף אחד לא פרסם. אפשר להיות הראשון.",
     timelineError: "לא ניתן לטעון את הפוסטים. כדאי לנסות שוב בעוד רגע.",
     institution: "קהילה",
+    question: "שאלה",
     openInReader: (ref: string) => `פתיחת ${ref} בקורא`,
     replies: (n: number) => (n === 1 ? "תגובה אחת" : `${n} תגובות`),
     reply: "תגובה",

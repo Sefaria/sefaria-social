@@ -12,9 +12,12 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--sefaria-color-text-strong, inherit);
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sefaria-color-text-muted, inherit);
 }
 
 .list {

@@ -10,7 +10,7 @@ export function RoomsBar() {
   const t = useStrings();
   return (
     <div className={styles.bar} data-rooms-bar="">
-      <StartRoom variant="secondary" />
+      <StartRoom variant="primary" />
       <HostLink to="/social/rooms" className={kit.link}>
         {t.allRooms}
       </HostLink>

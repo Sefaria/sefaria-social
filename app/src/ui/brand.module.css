@@ -1,0 +1,117 @@
+/* Spec 060 (preview): social in the Sefaria Labs brand. Social's mood is joy, curiosity, discovery and connection, so it takes
+   the Labs family's daylight side: white paper with sunny gold under the reader's light and sepia themes ("Daylight", white since the first review), deep
+   blue under its dark theme ("Night"). The one place with literal colours: the palette is defined here once and mapped onto the
+   reader's --sefaria-* tokens inside social's root, so every module keeps reading reader tokens and the reader's own page is
+   untouched. The source of these values is the Sefaria Labs design system, section "Sefaria Social: Daylight". */
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2");
+}
+
+.labs {
+  /* Daylight */
+  --labs-day-page: #ffffff;
+  --labs-day-surface: #ffffff;
+  --labs-day-sunken: #f7f5f0;
+  --labs-day-line: #e6e8ee;
+  --labs-day-line-strong: #9a907c;
+  --labs-day-ink: #1b2233;
+  --labs-day-muted: #545b6a;
+  --labs-day-brand: #1e3f73;
+  --labs-day-brand-hover: #152f57;
+  --labs-day-highlight: #f6e7b8;
+  --labs-day-gold: #7a5d0e;
+  --labs-day-sun: #e6c873;
+  --labs-day-live: #00796f;
+  --labs-day-spark: #6b3a8e;
+  --labs-day-danger: #a8322a;
+
+  /* Night */
+  --labs-night-page: #0b1426;
+  --labs-night-surface: #13213a;
+  --labs-night-sunken: #1b2b48;
+  --labs-night-line: #24365a;
+  --labs-night-line-strong: #5a6e92;
+  --labs-night-ink: #f2ede3;
+  --labs-night-muted: #a9b4c8;
+  --labs-night-brand: #8fb0e8;
+  --labs-night-brand-hover: #b3cdee;
+  --labs-night-highlight: #3a3524;
+  --labs-night-gold: #e6c873;
+  --labs-night-sun: #e6c873;
+  --labs-on-sun: #0b1426;
+  --labs-night-live: #3ce0c4;
+  --labs-night-spark: #b98cf0;
+  --labs-night-danger: #f08a7e;
+
+  /* The signals and the machine face, for social's modules: teal = live now, gold = warmth, violet = a model wrote it */
+  --labs-live: light-dark(var(--labs-day-live), var(--labs-night-live));
+  --labs-gold: light-dark(var(--labs-day-gold), var(--labs-night-gold));
+  --labs-on-gold: light-dark(#ffffff, var(--labs-night-page));
+  /* the sun: the bright gold of a primary action, ink on it (the reader skin's Sign Up) */
+  --labs-sun: light-dark(var(--labs-day-sun), var(--labs-night-sun));
+  --labs-spark: light-dark(var(--labs-day-spark), var(--labs-night-spark));
+  --labs-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* The reader's tokens, re-mapped inside social only */
+  --sefaria-color-page: light-dark(var(--labs-day-page), var(--labs-night-page));
+  --sefaria-color-surface: light-dark(var(--labs-day-surface), var(--labs-night-surface));
+  --sefaria-color-surface-subtle: light-dark(var(--labs-day-surface), var(--labs-night-surface));
+  --sefaria-color-surface-muted: light-dark(var(--labs-day-sunken), var(--labs-night-sunken));
+  --sefaria-color-text: light-dark(var(--labs-day-ink), var(--labs-night-ink));
+  --sefaria-color-text-strong: light-dark(var(--labs-day-ink), var(--labs-night-ink));
+  --sefaria-color-text-secondary: light-dark(var(--labs-day-muted), var(--labs-night-muted));
+  --sefaria-color-text-muted: light-dark(var(--labs-day-muted), var(--labs-night-muted));
+  --sefaria-color-text-dark-grey: light-dark(var(--labs-day-muted), var(--labs-night-muted));
+  --sefaria-color-border: light-dark(var(--labs-day-line), var(--labs-night-line));
+  --sefaria-color-border-light: light-dark(var(--labs-day-line), var(--labs-night-line));
+  --sefaria-color-border-strong: light-dark(var(--labs-day-line-strong), var(--labs-night-line-strong));
+  --sefaria-color-brand: light-dark(var(--labs-day-brand), var(--labs-night-brand));
+  --sefaria-color-brand-hover: light-dark(var(--labs-day-brand-hover), var(--labs-night-brand-hover));
+  --sefaria-color-on-brand: light-dark(#ffffff, var(--labs-night-page));
+  --sefaria-color-link: light-dark(var(--labs-day-brand), var(--labs-night-brand));
+  --sefaria-color-focus: light-dark(var(--labs-day-brand), var(--labs-night-brand));
+  --sefaria-color-highlight: light-dark(var(--labs-day-highlight), var(--labs-night-highlight));
+  --sefaria-color-highlight-soft: light-dark(var(--labs-day-sunken), var(--labs-night-sunken));
+  --sefaria-color-skeleton: light-dark(var(--labs-day-sunken), var(--labs-night-sunken));
+  --sefaria-color-skeleton-shimmer: light-dark(var(--labs-day-line), var(--labs-night-line));
+  --sefaria-color-danger: light-dark(var(--labs-day-danger), var(--labs-night-danger));
+
+  background: var(--sefaria-color-page);
+  color: var(--sefaria-color-text);
+}
+
+/* Page headings in the warm serif text face; section labels (h2) are the system speaking, set in the mono by their modules */
+.labs :where(h1) {
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.labs:lang(he) :where(h1) {
+  font-family: var(--sefaria-font-text-he, "Taamey Frank", serif);
+}
+
+/* The mark and byline at the end of social's nav */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sefaria-space-2, 8px);
+  margin-inline-start: auto;
+  font-family: var(--labs-font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
+  white-space: nowrap;
+}
+
+.mark svg {
+  color: var(--sefaria-color-text, #121212);
+  flex: none;
+}

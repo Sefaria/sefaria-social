@@ -4,6 +4,8 @@ import { useInterfaceLang } from "~/features/host/host-context";
 import { useViewer } from "~/features/host/use-viewer";
 import { useUnread } from "~/features/notifications/use-unread";
 import { useMe } from "~/features/profile/use-me";
+import { BrandMark } from "~/ui/BrandMark";
+import brand from "~/ui/brand.module.css";
 import kit from "~/ui/kit.module.css";
 import { langAttrs, stringsFor } from "./strings";
 import styles from "./shell.module.css";
@@ -17,7 +19,7 @@ export function SocialLayout({ children }: { children: ReactNode }) {
   const t = stringsFor(lang);
   const viewer = useViewer();
   return (
-    <div className={styles.frame} data-social-root="" {...langAttrs(lang)}>
+    <div className={`${styles.frame} ${brand.labs}`} data-social-root="" {...langAttrs(lang)}>
       <nav className={styles.nav} aria-label={t.nav}>
         <Link to="/social" className={styles.navLink} activeOptions={{ exact: true }}>
           {t.feed}
@@ -26,6 +28,7 @@ export function SocialLayout({ children }: { children: ReactNode }) {
         <Link to="/social/settings" className={styles.navLink}>
           {t.settings}
         </Link>
+        <BrandMark byline={t.labsByline} {...langAttrs(lang)} />
       </nav>
       {children}
     </div>

@@ -29,8 +29,11 @@
   gap: 6px;
   min-block-size: 40px;
   color: var(--sefaria-color-text-muted, #6f6f6f);
-  font-size: 15px;
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 12.5px;
   font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   text-decoration: none;
   border-radius: var(--sefaria-radius-xs, 2px);
 }
@@ -45,7 +48,6 @@
 }
 
 .navLink[data-status="active"] {
-  color: var(--sefaria-color-brand, #18345d);
-  font-weight: 700;
-  box-shadow: inset 0 -2px 0 var(--sefaria-color-brand, #18345d);
+  color: var(--sefaria-color-text, #121212);
+  box-shadow: inset 0 -3px 0 var(--labs-sun, var(--sefaria-color-brand, #18345d));
 }
