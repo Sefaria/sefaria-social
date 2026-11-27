@@ -12,6 +12,8 @@ import { parseStateTrack } from "./state-track";
 import { firstTextOf } from "./player";
 import { formatDate, formatLength, useReplayApi, withRecordingCtx } from "./use-replay";
 import styles from "./replay.module.css";
+import { RecordingArtifacts } from "./RecordingArtifacts";
+import assets from "./recording-artifacts.module.css";
 
 type PageState =
   | { kind: "loading" }
@@ -104,7 +106,7 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
   const { recording, canDelete } = state;
   const date = formatDate(recording.startedAt, lang);
 
-  const play = async () => {
+  const play = async (at?: number) => {
     if (!host || !api) return;
     setFailed(null);
     // A call holds the window: ask first, and leave it on confirmation (AC-007).
@@ -115,7 +117,15 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
       // The first recorded text (a recording started in the lobby begins on Social's own page, which is not one).
       const first = firstTextOf(track);
       if (first) host.navigate(withRecordingCtx(first, recordingId));
-      void replayControllerFor(host).open(recordingId, { autoplay: true });
+      const replay = replayControllerFor(host);
+      if (at == null) void replay.open(recordingId, { autoplay: true });
+      else {
+        await replay.open(recordingId, { autoplay: false });
+        const player = replay.player();
+        if (!player) throw new Error("Player unavailable");
+        player.seek(at);
+        await player.play();
+      }
     } catch {
       setFailed("play");
     } finally {
@@ -150,7 +160,10 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
   };
 
   return (
-    <main data-social-page="recording" data-recording-state="ready" className={styles.page}>
+    <main data-social-page="recording" data-recording-state="ready" className={`${styles.page} ${assets.page}`}>
+      <HostLink to="/social" className={kit.link}>
+        {t.shiurBackSocial}
+      </HostLink>
       {/* Spec 044 AC-007: the way back to the recording's room. */}
       {recording.roomId && (
         <p data-back-to-room="">
@@ -173,14 +186,31 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
         )}
       </dl>
       <div className={styles.actions}>
-        <button type="button" data-action="play-recording" disabled={busy} onClick={() => void play()}>
+        <button
+          className={`${kit.button} ${kit.primary}`}
+          type="button"
+          data-action="play-recording"
+          disabled={busy}
+          onClick={() => void play()}
+        >
           {t.play}
         </button>
-        <button type="button" data-action="download-state" onClick={() => void download()}>
+        <button
+          className={`${kit.button} ${kit.secondary}`}
+          type="button"
+          data-action="download-state"
+          onClick={() => void download()}
+        >
           {t.downloadState}
         </button>
         {canDelete && !confirming && (
-          <button type="button" data-action="delete-recording" disabled={busy} onClick={() => setConfirming(true)}>
+          <button
+            className={`${kit.button} ${kit.ghost}`}
+            type="button"
+            data-action="delete-recording"
+            disabled={busy}
+            onClick={() => setConfirming(true)}
+          >
             {t.deleteRecording}
           </button>
         )}
@@ -199,6 +229,7 @@ export function RecordingPage({ recordingId }: { recordingId: string }) {
       {failed === "play" && <p role="alert">{t.recordingCouldNotPlay}</p>}
       {failed === "download" && <p role="alert">{t.recordingNotAvailable}</p>}
       {failed === "delete" && <p role="alert">{t.recordingDeleteFailed}</p>}
+      <RecordingArtifacts key={recordingId} recordingId={recordingId} onSeek={play} />
     </main>
   );
 }

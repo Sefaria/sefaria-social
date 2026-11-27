@@ -2,6 +2,7 @@
 // change of the leader's ref is a chapter {t, ref, heRef}; a place left within MERGE_MS is dropped (a skim through several texts
 // on the way somewhere is one move). Also whether the leader's camera was ever on (the asset has video, D13).
 import type { StreamMessage } from "@sefaria-social/session";
+import { isRecordedText } from "../../lib/recorded-text";
 
 export const MERGE_MS = 3_000;
 const SUMMARY = "social.summary";
@@ -17,13 +18,14 @@ export interface Chapter {
 type Slices = Record<string, { v: number; value: unknown } | null | undefined>;
 
 function refOf(url: string, slices: Slices): { ref: string; heRef: string | null } | null {
+  if (!isRecordedText(url)) return null;
   const summary = slices[SUMMARY]?.value as { ref?: unknown; heRef?: unknown } | undefined;
-  if (typeof summary?.ref === "string" && summary.ref)
+  if (typeof summary?.ref === "string" && isRecordedText(summary.ref))
     return { ref: summary.ref, heRef: typeof summary.heRef === "string" ? summary.heRef : null };
   const scroll = slices[SCROLL]?.value;
   if (scroll && typeof scroll === "object")
     for (const a of Object.values(scroll as Record<string, { ref?: unknown }>))
-      if (typeof a?.ref === "string" && a.ref) return { ref: a.ref, heRef: null };
+      if (typeof a?.ref === "string" && isRecordedText(a.ref)) return { ref: a.ref, heRef: null };
   // The address alone, for a timeline without a summary: only a text's address (Genesis.1), never a malformed one or a page
   // that is not a text (topics, search), which would otherwise become a chapter or fail the whole processing.
   const path = url.split(/[?#]/)[0]!.replace(/^\/+/, "");

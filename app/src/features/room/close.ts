@@ -9,9 +9,18 @@ import { roomControllerFor } from "~/features/session/controller";
 export async function closeSession(host: SurfaceHost, roomId: string): Promise<void> {
   const recording = recordingControllerFor(host);
   const rec = recording.view();
-  if (rec.kind === "recording" && rec.roomId === roomId) await recording.stop();
+  let recordingId: string | void = undefined;
+  if (rec.kind === "stopping" && rec.roomId === roomId) return;
+  if (rec.kind === "recording" && rec.roomId === roomId) {
+    recordingId = await recording.stop();
+    if (!recordingId) return;
+  }
   const broadcasts = broadcastControllerFor(host);
   const live = broadcasts.hostView();
   if (live.kind === "live" && live.roomId === roomId) await broadcasts.end();
   roomControllerFor(host).close(roomId);
+  if (recordingId) {
+    roomControllerFor(host).leave(roomId);
+    host.navigate(`/social/rec/${recordingId}`);
+  }
 }

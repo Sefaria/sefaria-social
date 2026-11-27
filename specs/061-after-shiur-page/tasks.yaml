@@ -1,0 +1,32 @@
+- id: T-001
+  title: Connect the recording page to its assets and the end of a recorded room
+  acs: [AC-001, AC-002, AC-003, AC-004, AC-005, AC-006]
+  files:
+    - "app/src/features/replay/ClassWorkspace.tsx"
+    - "app/src/lib/recorded-text.ts"
+    - "app/src/server/jobs/chapters.ts"
+    - "app/src/server/jobs/chapters.test.ts"
+    - "app/src/features/replay/RecordingPage.tsx"
+    - "app/src/features/replay/RecordingPage.test.tsx"
+    - "app/src/features/replay/RecordingArtifacts.tsx"
+    - "app/src/features/replay/recording-artifacts.module.css"
+    - "app/src/features/replay/after-shiur.test.tsx"
+    - "app/src/features/recording/recording-controller.ts"
+    - "app/src/features/recording/recorder.test.ts"
+    - "app/src/features/room/close.ts"
+    - "app/src/features/room/close.test.ts"
+    - "app/src/features/shell/strings.ts"
+    - "docs/features/features.json"
+    - "docs/features/CHANGELOG.md"
+    - "docs/design/after-class/**"
+  depends_on: []
+  parallel: false
+  completes: [SHIUR-008]
+  verify:
+    [
+      "npm test -- app/src/features/replay app/src/features/recording app/src/features/room",
+      "npm run typecheck",
+      "npm run lint",
+      "npm run test:arch",
+      "npm run build:surface",
+    ]

@@ -92,6 +92,14 @@ async function setup(opts: { meta?: Record<string, unknown> | "missing"; role?: 
 }
 
 describe("a recording's page (spec 042)", () => {
+  // @feature SHIUR-008 Revisit a finished shiur through its texts and transcript
+  // @ac 061/AC-004
+  it("links back to Social and the recording's room", async () => {
+    const s = await setup();
+    expect(s.q('a[href="/social"]')?.textContent).toBe("Back to Social");
+    expect(s.q(`a[href="/social/r/${ROOM}"]`)?.textContent).toBe("Back to the room");
+  });
+
   // @feature SESS-065 Replay a recording in the reader with the video in the floating window
   // @ac 042/AC-001
   it("shows the title, date, length, Play and Download state, and no Delete for a member who did not record it", async () => {

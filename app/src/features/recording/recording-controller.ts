@@ -38,7 +38,7 @@ export interface RecordingController {
   subscribe(cb: () => void): () => void;
   /** Spec 054: `transcriptLanguage` for the transcript; the leader's remembered choice by default. */
   start(roomId: string, opts?: { transcriptLanguage?: TranscriptLanguage }): Promise<void>;
-  stop(): Promise<void>;
+  stop(): Promise<string | void>;
   /** Spec 050 AC-001: pause the recording (the paused time is cut); resume goes on in the same recording. */
   pause(): void;
   resume(): void;
@@ -166,7 +166,7 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
   const now = deps.now ?? (() => Date.now());
   let view: RecordingView = { kind: "idle" };
   const listeners = new Set<() => void>();
-  let active: { recorder: SessionRecorder; mixer: Mixer; cleanup: () => void } | null = null;
+  let active: { id: string; recorder: SessionRecorder; mixer: Mixer; cleanup: () => void } | null = null;
   let generation = 0;
 
   const emit = () => [...listeners].forEach((cb) => cb());
@@ -270,6 +270,7 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
           },
         });
         active = {
+          id,
           recorder,
           mixer,
           cleanup: () => {
@@ -293,6 +294,7 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
       const { roomId } = view;
       const gen = generation;
       const recorder = active.recorder;
+      const id = active.id;
       set({ kind: "stopping", roomId });
       await recorder.stop();
       if (gen !== generation) return;
@@ -300,6 +302,7 @@ export function createRecordingController(deps: RecordingDeps): RecordingControl
       release();
       report("recording.stop", { durationS: Math.round(recorder.elapsed() / 1000) });
       set({ kind: "idle" });
+      return id;
     },
 
     pause() {
