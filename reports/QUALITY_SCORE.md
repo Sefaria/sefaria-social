@@ -8,19 +8,19 @@ the version with those columns to the `factory-data` branch (`reports/QUALITY_SC
 
 | Surface | Features | L0 | L1 | L2 | L3 | L4a | Quarantined | Escaped (open) | Flaky (nightly) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| feed | 23 | 0 | 19 | 0 | 0 | 4 | 0 | 0 | 0 |
-| room-lobby | 24 | 0 | 31 | 0 | 0 | 5 | 0 | 0 | 0 |
+| feed | 25 | 0 | 21 | 0 | 0 | 4 | 0 | 0 | 0 |
+| room-lobby | 27 | 0 | 35 | 0 | 0 | 5 | 0 | 0 | 0 |
 | shiur | 1 | 0 | 1 | 0 | 0 | 1 | 0 | 0 | 0 |
-| settings | 2 | 0 | 2 | 0 | 0 | 2 | 0 | 0 | 0 |
+| settings | 4 | 0 | 4 | 0 | 0 | 2 | 0 | 0 | 0 |
 | rooms | 8 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 |
 | call | 8 | 0 | 14 | 0 | 0 | 3 | 0 | 0 | 0 |
-| recording | 4 | 0 | 11 | 0 | 0 | 2 | 0 | 0 | 0 |
+| recording | 10 | 0 | 16 | 0 | 0 | 3 | 0 | 0 | 0 |
 | broadcast | 3 | 0 | 7 | 0 | 0 | 1 | 0 | 0 | 0 |
-| session | 43 | 1 | 64 | 0 | 0 | 9 | 0 | 0 | 0 |
-| post | 9 | 0 | 8 | 0 | 0 | 1 | 0 | 0 | 0 |
-| profile | 4 | 0 | 3 | 0 | 0 | 1 | 0 | 0 | 0 |
-| notifications | 1 | 0 | 2 | 0 | 0 | 1 | 0 | 0 | 0 |
+| session | 44 | 1 | 66 | 0 | 0 | 9 | 0 | 0 | 0 |
+| post | 12 | 0 | 12 | 0 | 0 | 2 | 0 | 0 | 0 |
+| profile | 6 | 0 | 5 | 0 | 0 | 1 | 0 | 0 | 0 |
+| notifications | 3 | 0 | 4 | 0 | 0 | 2 | 0 | 0 | 0 |
 | presence | 3 | 0 | 8 | 0 | 0 | 1 | 0 | 0 | 0 |
 | host-integration | 8 | 0 | 20 | 0 | 0 | 1 | 0 | 0 | 0 |
 | identity | 8 | 0 | 13 | 0 | 0 | 1 | 0 | 0 | 0 |
-| api | 28 | 0 | 41 | 0 | 0 | 4 | 0 | 0 | 0 |
+| api | 40 | 0 | 55 | 0 | 0 | 5 | 0 | 0 | 0 |
