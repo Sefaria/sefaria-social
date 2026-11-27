@@ -244,6 +244,14 @@ async function recordingCall() {
 }
 
 describe("only the leader is recorded, with the talking head's place (spec 051)", () => {
+  // @feature SHIUR-008 Revisit a finished shiur through its texts and transcript
+  // @ac 061/AC-005
+  it("returns the saved recording id after finishing", async () => {
+    const r = await recordingCall();
+    await r.controller.start("room-1");
+    expect(await r.controller.stop()).toBe("rec-1");
+    expect(r.api.finished).toHaveLength(1);
+  });
   // @feature SHIUR-002 Only the leader is recorded, with the talking head's place
   // @ac 051/AC-001
   it("mixes only the recording person's microphone, whoever else speaks, joins or leaves", async () => {

@@ -3122,6 +3122,36 @@
       ],
       "since": null,
       "changed": []
+    },
+    {
+      "id": "SHIUR-008",
+      "area": "shiur",
+      "name": "Revisit a finished shiur through its texts and transcript",
+      "description": "",
+      "status": "built",
+      "spec": "061",
+      "acs": [
+        "061/AC-001",
+        "061/AC-002",
+        "061/AC-003",
+        "061/AC-004",
+        "061/AC-005",
+        "061/AC-006"
+      ],
+      "surfaces": [
+        "recording",
+        "room-lobby"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/replay/after-shiur.test.tsx",
+        "app/src/features/replay/RecordingPage.test.tsx",
+        "app/src/features/room/close.test.ts",
+        "app/src/features/recording/recorder.test.ts",
+        "app/src/server/jobs/chapters.test.ts"
+      ],
+      "since": null,
+      "changed": []
     }
   ]
 }
