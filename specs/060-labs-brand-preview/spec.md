@@ -2,7 +2,7 @@
 id: "060"
 title: Social wears the Sefaria Labs brand — a visual preview
 features: [FEED-077]
-status: proposed
+status: approved
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [feed, post, profile, room-lobby, rooms, settings]
 risk: normal
