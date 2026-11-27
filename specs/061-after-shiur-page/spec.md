@@ -1,7 +1,7 @@
 ---
 id: "061"
 title: Revisit a finished shiur through its texts and transcript
-status: proposed
+status: approved
 features: [SHIUR-008]
 owner: "@Sefaria/sefaria-social-owners"
 surfaces: [recording, room-lobby]
