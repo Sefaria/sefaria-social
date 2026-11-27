@@ -20,6 +20,7 @@ import { EmbedCard } from "./EmbedCard";
 import { Linkified } from "./linkify";
 import { QuoteComposer } from "./QuoteComposer";
 import { QuotedPost } from "./QuotedPost";
+import { isQuestion } from "./question";
 import { ReactionButton } from "./ReactionButton";
 import { RepostButton } from "./RepostButton";
 import styles from "./post.module.css";
@@ -107,6 +108,11 @@ export function PostCard({
               {time}
             </Link>
           )}
+          {post.body && isQuestion(post.body) ? (
+            <span className={styles.question} data-post-question="">
+              {t.question}
+            </span>
+          ) : null}
         </header>
         {post.body ? (
           <p className={styles.body} dir="auto" data-post-body="">

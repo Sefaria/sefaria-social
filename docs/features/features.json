@@ -788,6 +788,40 @@
       "changed": []
     },
     {
+      "id": "FEED-077",
+      "area": "feed",
+      "name": "Social wears the Sefaria Labs brand — a visual preview",
+      "description": "A preview of social in the Sefaria Labs brand, Daylight side (joy, curiosity, discovery, connection): the reader's tokens re-mapped inside social's root to Daylight (light, sepia) and Night (dark), white paper, three type voices (JetBrains Mono for what the system says: nav, tabs, section labels, refs, times, counts, buttons; the serif for what people wrote: posts, names, room names), the Sefaria Social mark and \"from Sefaria Labs\" beside the nav, avatars as presence (a ring in each person's cursor colour), a Question label on posts that ask, teal only for live (a pulsing dot and a cursor bar on a live room; rooms not live drawn quietly), gold for warmth and action (the primary button, unread count, active tab, a popping Yasher koach).",
+      "status": "built",
+      "spec": "060",
+      "acs": [
+        "060/AC-001",
+        "060/AC-002",
+        "060/AC-003",
+        "060/AC-004",
+        "060/AC-005",
+        "060/AC-006",
+        "060/AC-007"
+      ],
+      "surfaces": [
+        "feed",
+        "post",
+        "profile",
+        "room-lobby",
+        "rooms",
+        "settings"
+      ],
+      "depends_on": {},
+      "tests": [
+        "app/src/features/post/avatar-colours.test.tsx",
+        "app/src/features/post/question.test.ts",
+        "app/src/features/shell/SocialLayout.test.tsx",
+        "app/src/ui/brand.test.ts"
+      ],
+      "since": "2026-11-26",
+      "changed": []
+    },
+    {
       "id": "HOST-000",
       "area": "host",
       "name": "Social page shows the surface name and contract version",

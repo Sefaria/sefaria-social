@@ -12,8 +12,11 @@
   border: 1px solid transparent;
   border-radius: var(--sefaria-radius-pill, 9999px);
   font: inherit;
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   line-height: 1;
   cursor: pointer;
   transition:
@@ -41,17 +44,28 @@
 }
 
 .primary {
-  background: var(--sefaria-color-brand, #18345d);
-  color: var(--sefaria-color-on-brand, #ffffff);
+  /* the one primary action: a gold pill with ink on it (spec 060 AC-004) */
+  background: var(--labs-sun, var(--sefaria-color-brand, #18345d));
+  color: var(--labs-on-sun, var(--sefaria-color-on-brand, #ffffff));
 }
 
 .primary:hover:not(:disabled) {
-  background: var(--sefaria-color-brand-hover, #0f2340);
+  filter: brightness(0.94);
+}
+
+.ink {
+  /* a strong secondary (Follow): an ink pill */
+  background: var(--sefaria-color-text, #121212);
+  color: var(--sefaria-color-surface, #ffffff);
+}
+
+.ink:hover:not(:disabled) {
+  background: var(--sefaria-color-brand, #18345d);
 }
 
 .secondary {
   background: transparent;
-  border-color: var(--sefaria-color-border-strong, #b5b5b5);
+  border-color: var(--sefaria-color-text, #121212);
   color: var(--sefaria-color-text, #121212);
 }
 
@@ -83,7 +97,7 @@
 .small {
   min-block-size: 32px;
   padding-inline: var(--sefaria-space-3, 12px);
-  font-size: 14px;
+  font-size: 11.5px;
 }
 
 .iconButton {
@@ -98,7 +112,8 @@
   background: transparent;
   color: var(--sefaria-color-text-muted, #6f6f6f);
   font: inherit;
-  font-size: 14px;
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 12.5px;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   text-decoration: none;
@@ -139,9 +154,11 @@
   border-radius: var(--sefaria-radius-pill, 9999px);
   background: var(--sefaria-color-highlight, #ddeeff);
   color: var(--sefaria-color-brand, #18345d);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   line-height: 1.5;
 }
 
@@ -153,10 +170,11 @@
   block-size: 20px;
   padding-inline: 6px;
   border-radius: var(--sefaria-radius-pill, 9999px);
-  background: var(--sefaria-color-attention, #cb6158);
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
+  background: var(--labs-gold, var(--sefaria-color-attention, #cb6158));
+  color: var(--labs-on-gold, #ffffff);
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 11px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -185,14 +203,16 @@
   background: transparent;
   color: var(--sefaria-color-text-muted, #6f6f6f);
   font: inherit;
-  font-size: 15px;
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 12.5px;
   font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
 .tab[aria-selected="true"] {
   color: var(--sefaria-color-text, #121212);
-  font-weight: 700;
 }
 
 .tab[aria-selected="true"]::after {
@@ -200,9 +220,9 @@
   position: absolute;
   inset-inline: 0;
   inset-block-end: -1px;
-  block-size: 2px;
+  block-size: 3px;
   border-radius: 2px;
-  background: var(--sefaria-color-brand, #18345d);
+  background: var(--labs-sun, var(--sefaria-color-brand, #18345d));
 }
 
 .skeleton {
@@ -226,16 +246,21 @@
   }
 }
 
+/* Presence (spec 060 AC-005): white, ringed in the person's cursor colour (--avatar-tone, set by Avatar.tsx), initials in ink */
 .avatar {
   display: inline-grid;
   flex: none;
   place-items: center;
+  box-sizing: border-box;
   border-radius: var(--sefaria-radius-round, 50%);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
-  color: #ffffff;
-  font-family: var(--sefaria-font-ui-en, sans-serif);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  background: color-mix(in srgb, var(--avatar-tone, #6f6f6f) 9%, var(--sefaria-color-surface, #ffffff));
+  box-shadow:
+    inset 0 0 0 2px var(--avatar-tone, #6f6f6f),
+    inset 0 0 0 4px var(--sefaria-color-surface, #ffffff);
+  color: var(--sefaria-color-text, #121212);
+  font-family: var(--labs-font-mono, var(--sefaria-font-ui-en, sans-serif));
+  font-weight: 500;
+  letter-spacing: 0.02em;
   user-select: none;
 }
 
@@ -291,8 +316,9 @@
 .emptyTitle {
   margin: 0;
   color: var(--sefaria-color-text, #121212);
-  font-size: 17px;
-  font-weight: 700;
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 20px;
+  font-weight: 500;
 }
 
 .emptyBody {

@@ -52,14 +52,28 @@
 
 .live {
   font-weight: 700;
-  color: var(--sefaria-color-text, inherit);
+  color: var(--labs-live, var(--sefaria-color-text, inherit));
 }
 
 .dot {
   inline-size: 0.5rem;
   block-size: 0.5rem;
   border-radius: var(--sefaria-radius-pill, 9999px);
-  background: var(--sefaria-color-voices, currentColor);
+  background: var(--labs-live, var(--sefaria-color-voices, currentColor));
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.35;
+    transform: scale(1.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+  }
 }
 
 .where {

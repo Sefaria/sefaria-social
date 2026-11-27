@@ -39,8 +39,9 @@
 
 .name {
   margin: 0;
-  font-size: 26px;
-  font-weight: 700;
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 30px;
+  font-weight: 500;
   line-height: 1.2;
   color: var(--sefaria-color-text, #121212);
   overflow-wrap: anywhere;
@@ -71,8 +72,12 @@
   margin: 0;
   padding-block: var(--sefaria-space-3, 12px);
   border-block-end: 1px solid var(--sefaria-color-border, #e6e6e6);
-  font-size: 15px;
-  font-weight: 700;
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
 }
 
 .postList {
@@ -105,9 +110,12 @@
 
 .railTitle {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--sefaria-color-text, #121212);
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sefaria-color-text-muted, #6f6f6f);
 }
 
 .railList {
@@ -139,7 +147,8 @@
 .suggestionName {
   overflow: hidden;
   color: var(--sefaria-color-text, #121212);
-  font-size: 15px;
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 17px;
   font-weight: 600;
   text-decoration: none;
   text-overflow: ellipsis;

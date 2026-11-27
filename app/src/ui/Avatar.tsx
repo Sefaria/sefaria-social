@@ -1,9 +1,20 @@
-// A profile's avatar (spec 025): its initials on a colour chosen from its id, so the same person always looks the same.
-// Institutions are rounded squares, people are circles. Decorative: the name next to it is the accessible label.
+// A profile's avatar (spec 025), drawn as presence (spec 060 AC-005): white, ringed in the person's cursor colour, the initials
+// in ink. The colour is chosen from the profile's id, so the same person always looks the same, here and as their cursor in a
+// room. The cursor set leaves out the Labs signals (teal is live, violet is a model). Institutions are rounded squares, people
+// are circles. Decorative: the name next to it is the accessible label.
+import type { CSSProperties } from "react";
 import styles from "./kit.module.css";
 
-/** Ink tones that keep white initials above 4.5:1 contrast. */
-const TONES = ["#18345d", "#4b5e8a", "#2f6f6a", "#7a4a2b", "#6b3f6e", "#3e5a2f", "#8a3b3b", "#35506b"];
+/** The Labs cursor colours: each at 3:1 or more on white, none of them a signal colour. */
+export const CURSOR_TONES = {
+  gold: "#9a6f0a",
+  blue: "#1e3f73",
+  sky: "#2c6cb0",
+  coral: "#b8452f",
+  moss: "#4a7436",
+  rose: "#a63e64",
+} as const;
+const TONES = Object.values(CURSOR_TONES);
 
 function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -34,7 +45,9 @@ export function Avatar({
     <span
       aria-hidden="true"
       className={kind === "institution" ? `${styles.avatar} ${styles.avatarInstitution}` : styles.avatar}
-      style={{ inlineSize: size, blockSize: size, background: toneOf(id), fontSize: Math.round(size * 0.38) }}
+      style={
+        { inlineSize: size, blockSize: size, "--avatar-tone": toneOf(id), fontSize: Math.round(size * 0.34) } as CSSProperties
+      }
       data-avatar=""
     >
       {initials(name)}

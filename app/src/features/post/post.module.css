@@ -35,7 +35,9 @@
 
 .author {
   color: var(--sefaria-color-text, #121212);
-  font-weight: 700;
+  font-family: var(--sefaria-font-text-en, Georgia, serif);
+  font-size: 17px;
+  font-weight: 600;
   text-decoration: none;
   overflow-wrap: anywhere;
 }
@@ -47,7 +49,8 @@
 .dot,
 .time {
   color: var(--sefaria-color-text-muted, #6f6f6f);
-  font-size: 14px;
+  font-family: var(--labs-font-mono, inherit);
+  font-size: 12px;
   text-decoration: none;
 }
 
@@ -93,10 +96,11 @@ a.time:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--sefaria-font-ui-en, sans-serif);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: var(--labs-font-mono, var(--sefaria-font-ui-en, sans-serif));
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--sefaria-color-brand, #18345d);
 }
 
@@ -122,11 +126,44 @@ a.time:hover {
 }
 
 .number {
+  font-family: var(--labs-font-mono, inherit);
   font-variant-numeric: tabular-nums;
 }
 
 .reaction[aria-pressed="true"] svg {
-  color: var(--sefaria-color-attention, #cb6158);
+  color: var(--labs-gold, var(--sefaria-color-attention, #cb6158));
+  animation: yasher-koach 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes yasher-koach {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.35) rotate(-8deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reaction[aria-pressed="true"] svg {
+    animation: none;
+  }
+}
+
+/* A post that asks a question (spec 060 AC-006) */
+.question {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: var(--sefaria-radius-pill, 9999px);
+  background: var(--sefaria-color-highlight, #ddeeff);
+  color: var(--sefaria-color-text, #121212);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 @container post (max-width: 420px) {
